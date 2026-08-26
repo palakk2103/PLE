@@ -38,23 +38,34 @@ export const getModelByRole = (role) => {
 };
 
 /**
- * Sign restricted pre-authentication token
+ * Signs a temporary short-lived token (5 mins) for 2FA validation step
  */
 export const signPreAuthToken = (payload) => {
-    return jwt.sign(
-        { id: payload.id, role: payload.role, email: payload.email, type: '2fa_pending' },
-        process.env.JWT_SECRET,
-        { expiresIn: '5m' }
-    );
+    return jwt.sign({ ...payload, isPreAuth: true }, PRE_AUTH_SECRET, { expiresIn: '5m' });
 };
 
 /**
- * Generate cryptographically secure OTP and save to DB
+ * Decodes and verifies a temporary pre-auth token
  */
-export const send2FAOtp = async (user, role) => {
-    const email = user.email || user.username; // For managed vendor
+export const verifyPreAuthToken = (token) => {
+    try {
+        const decoded = jwt.verify(token, PRE_AUTH_SECRET);
+        if (!decoded || !decoded.isPreAuth) {
+            throw new ApiError(401, 'Invalid authentication token.');
+        }
+        return decoded;
+    } catch (err) {
+        throw new ApiError(401, 'Session expired. Please log in again.');
+    }
+};
+
+/**
+ * Generates and sends a 6-digit 2FA OTP to user/vendor email
+ */
+export const send2FAOtp = async (user, role = 'customer') => {
+    const email = user.email || user.businessEmail || user.username;
     if (!email) {
-        throw new ApiError(400, 'User has no registered email to receive OTP.');
+        throw new ApiError(400, 'User email not found.');
     }
 
     // Cooldown check
@@ -77,11 +88,20 @@ export const send2FAOtp = async (user, role) => {
 
     // Send email
     try {
+        const html = getOtpEmailTemplate({
+            otp,
+            title: 'Peoples League of Electronics',
+            subtitle: 'Two-Factor Authentication',
+            purpose: 'Two-Factor Authentication (2FA) login',
+            recipientName: user.name || '',
+            expiryMinutes: 5
+        });
+
         await sendEmail({
             to: email,
-            subject: 'Your Two-Factor Authentication (2FA) Code',
+            subject: `Your 2FA Login Security Code - ${otp}`,
             text: `Your 2FA verification code is ${otp}. It will expire in 5 minutes.`,
-            html: `<p>Your Two-Factor Authentication (2FA) verification code is <strong>${otp}</strong>.</p><p>It will expire in 5 minutes.</p>`,
+            html,
         });
     } catch (err) {
         console.warn(`[2FA OTP] Email delivery failed for ${email}: ${err.message}`);

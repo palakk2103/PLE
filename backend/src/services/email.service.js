@@ -1,31 +1,36 @@
 import "../loadEnv.js";
 import nodemailer from 'nodemailer';
 
-const transporterConfig = process.env.SMTP_HOST === 'smtp.gmail.com' 
-  ? {
-      service: 'gmail',
-      auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
-      },
-      tls: {
-          rejectUnauthorized: false
-      }
-    }
-  : {
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT) || 587,
-      secure: false,
-      auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
-      },
-      tls: {
-          rejectUnauthorized: false
-      }
-    };
-
-const transporter = nodemailer.createTransport(transporterConfig);
+const getTransporter = () => {
+    const cleanPass = (process.env.SMTP_PASS || '').replace(/\s+/g, '');
+    const isGmail = process.env.SMTP_HOST === 'smtp.gmail.com';
+    
+    return nodemailer.createTransport(
+        isGmail
+            ? {
+                service: 'gmail',
+                auth: {
+                    user: process.env.SMTP_USER,
+                    pass: cleanPass,
+                },
+                tls: {
+                    rejectUnauthorized: false
+                }
+            }
+            : {
+                host: process.env.SMTP_HOST,
+                port: Number(process.env.SMTP_PORT) || 587,
+                secure: Number(process.env.SMTP_PORT) === 465,
+                auth: {
+                    user: process.env.SMTP_USER,
+                    pass: cleanPass,
+                },
+                tls: {
+                    rejectUnauthorized: false
+                }
+            }
+    );
+};
 
 /**
  * Send an email
@@ -41,6 +46,7 @@ export const sendEmail = async ({ to, subject, html, text }) => {
     };
 
     try {
+        const transporter = getTransporter();
         const info = await transporter.sendMail(mailOptions);
         console.log(`Email sent successfully to ${to}: ${info.messageId}`);
         return info;

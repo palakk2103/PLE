@@ -13,6 +13,8 @@ const MobileVerification = () => {
   const [searchParams] = useSearchParams();
   const { verifyOTP, resendOTP, pendingEmail, isLoading } = useAuthStore();
   const [codes, setCodes] = useState(['', '', '', '', '', '']);
+  const [resendCooldown, setResendCooldown] = useState(30);
+  const [isResending, setIsResending] = useState(false);
   const inputRefs = useRef([]);
 
   const email =
@@ -30,6 +32,15 @@ const MobileVerification = () => {
       inputRefs.current[0].focus();
     }
   }, [email, navigate]);
+
+  // Resend cooldown timer
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
 
   const handleChange = (index, value) => {
     // Only allow single digit
@@ -67,7 +78,7 @@ const MobileVerification = () => {
     const verificationCode = codes.join('');
 
     if (verificationCode.length !== codes.length) {
-      toast.error('Please enter the complete verification code');
+      toast.error('Please enter the complete 6-digit code');
       return;
     }
 
@@ -76,17 +87,33 @@ const MobileVerification = () => {
       toast.success('Verification successful!');
       navigate('/home');
     } catch (error) {
-      toast.error('Invalid verification code. Please try again.');
+      const errMsg = error?.response?.data?.message || error?.message || 'Invalid verification code. Please try again.';
+      if (errMsg.toLowerCase().includes('already verified')) {
+        toast.success('Account is already verified! Redirecting to login...');
+        setTimeout(() => navigate('/login'), 1500);
+        return;
+      }
+      toast.error(errMsg);
     }
   };
 
   const handleResend = async () => {
-    if (!email) return;
+    if (!email || resendCooldown > 0 || isResending) return;
+    setIsResending(true);
     try {
       await resendOTP(email);
-      toast.success('Verification code sent to your email');
+      toast.success('New verification code sent to your email!');
+      setResendCooldown(45);
     } catch (error) {
-      toast.error(error?.message || 'Failed to resend code. Please try again.');
+      const errMsg = error?.response?.data?.message || error?.message || 'Failed to resend code.';
+      if (errMsg.toLowerCase().includes('already verified')) {
+        toast.success('Your email is already verified! Redirecting to login...');
+        setTimeout(() => navigate('/login'), 1500);
+        return;
+      }
+      toast.error(errMsg);
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -100,43 +127,43 @@ const MobileVerification = () => {
             transition={{ duration: 0.5 }}
             className="w-full max-w-md"
           >
-            <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm border dark:border-zinc-800 transition-colors duration-500">
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-100 dark:border-zinc-800 transition-colors duration-500">
               {/* Back Button */}
               <button
                 onClick={() => navigate(-1)}
-                className="mb-6 flex items-center text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                className="mb-4 flex items-center text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
                 <FiArrowLeft className="mr-2" size={20} />
                 <span className="text-sm font-medium">Back</span>
               </button>
 
               {/* Header */}
-              <div className="text-center mb-8">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-50 mb-6">Verification</h1>
+              <div className="text-center mb-6">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-50 mb-4">Verification</h1>
 
                 {/* Verification Icon */}
-                <div className="flex justify-center mb-6">
+                <div className="flex justify-center mb-4">
                   <div className="relative">
-                    <div className="w-20 h-20 rounded-full bg-purple-100 dark:bg-purple-950/40 flex items-center justify-center">
-                      <div className="w-16 h-16 rounded-full bg-purple-200 dark:bg-purple-900/30 flex items-center justify-center">
-                        <div className="w-12 h-12 rounded-full bg-purple-500 flex items-center justify-center">
-                          <FiCheck className="text-white" size={24} />
+                    <div className="w-16 h-16 rounded-full bg-red-50 dark:bg-red-950/40 flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                        <div className="w-9 h-9 rounded-full bg-[#AE020B] flex items-center justify-center shadow-md shadow-red-900/20">
+                          <FiCheck className="text-white" size={18} />
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-zinc-200 mb-2">Verification code</h2>
-                <p className="text-sm text-gray-600 dark:text-zinc-400">
-                  Enter the verification code we've sent to your{' '}
-                  <span className="font-medium text-gray-900 dark:text-zinc-100">{email || 'email'}</span>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-zinc-200 mb-1">Verification code</h2>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-zinc-400 max-w-xs mx-auto">
+                  Enter the 6-digit verification code sent to <br />
+                  <span className="font-semibold text-gray-900 dark:text-zinc-100 break-all">{email || 'your email'}</span>
                 </p>
               </div>
 
               {/* Code Input Form */}
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="flex justify-center gap-3">
+                <div className="flex justify-center items-center gap-1.5 sm:gap-2.5">
                   {codes.map((code, index) => (
                     <input
                       key={index}
@@ -148,9 +175,9 @@ const MobileVerification = () => {
                       onChange={(e) => handleChange(index, e.target.value)}
                       onKeyDown={(e) => handleKeyDown(index, e)}
                       onPaste={index === 0 ? handlePaste : undefined}
-                      className={`w-14 h-14 rounded-full border-2 text-center text-xl font-semibold focus:outline-none transition-all ${code
-                          ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/20 text-purple-700 dark:text-purple-300'
-                          : 'border-gray-200 dark:border-zinc-800 focus:border-purple-500 text-gray-900 dark:text-white bg-white dark:bg-zinc-950'
+                      className={`w-11 h-12 sm:w-12 sm:h-14 rounded-xl border-2 text-center text-lg sm:text-xl font-bold focus:outline-none transition-all ${code
+                          ? 'border-[#AE020B] bg-red-50/60 dark:bg-red-950/20 text-[#AE020B] dark:text-red-400 shadow-sm'
+                          : 'border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] dark:focus:border-[#AE020B] focus:ring-2 focus:ring-[#AE020B]/20 text-gray-900 dark:text-white bg-white dark:bg-zinc-950'
                         }`}
                     />
                   ))}
@@ -160,7 +187,7 @@ const MobileVerification = () => {
                 <button
                   type="submit"
                   disabled={isLoading || codes.some(code => !code)}
-                  className="w-full bg-primary-500 hover:bg-primary-600 text-white py-3.5 rounded-xl font-semibold text-base transition-all duration-300 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-[#AE020B] hover:bg-[#8d0208] text-white py-3.5 rounded-xl font-semibold text-base transition-all duration-300 hover:shadow-lg hover:shadow-red-900/20 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? 'Verifying...' : 'Confirm'}
                 </button>
@@ -171,10 +198,12 @@ const MobileVerification = () => {
                 <p className="text-sm text-gray-600 dark:text-zinc-400">
                   Didn't receive the code?{' '}
                   <button
+                    type="button"
                     onClick={handleResend}
-                    className="text-primary-600 dark:text-primary-400 hover:text-primary-700 font-semibold"
+                    disabled={resendCooldown > 0 || isResending}
+                    className="text-[#AE020B] dark:text-red-400 hover:text-[#8d0208] dark:hover:text-red-300 font-semibold transition-colors disabled:text-gray-400 dark:disabled:text-zinc-600 disabled:cursor-not-allowed"
                   >
-                    Resend
+                    {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : (isResending ? 'Sending...' : 'Resend')}
                   </button>
                 </p>
               </div>

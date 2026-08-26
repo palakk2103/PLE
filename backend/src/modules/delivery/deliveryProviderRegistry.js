@@ -27,6 +27,10 @@ class DeliveryProviderRegistry {
             return this.providers.get('internal');
         }
 
+        if (targetName === 'courier' || targetName === 'delivery') {
+            return this.providers.get('shiprocket') || this.providers.get('internal');
+        }
+
         const provider = this.providers.get(targetName);
         if (!provider) {
             console.warn(`[DeliveryProviderRegistry] Provider '${targetName}' not found. Falling back to internal.`);

@@ -6,6 +6,7 @@ import { generateTokens } from '../../../utils/generateToken.js';
 import { signPreAuthToken, send2FAOtp } from '../../../services/twoFactor.service.js';
 import { sendOTP } from '../../../services/otp.service.js';
 import { sendEmail } from '../../../services/email.service.js';
+import { getOtpEmailTemplate } from '../../../utils/emailTemplates.js';
 import { initiateProfileUpdateOTP, verifyProfileUpdateOTP, resendProfileUpdateOTP } from '../../../services/profileOtp.service.js';
 import {
     uploadLocalFileToCloudinaryAndCleanup,
@@ -233,11 +234,20 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     await user.save({ validateBeforeSave: false });
 
     try {
+        const html = getOtpEmailTemplate({
+            otp,
+            title: 'Peoples League of Electronics',
+            subtitle: 'Password Reset',
+            purpose: 'password reset request',
+            recipientName: user.name || '',
+            expiryMinutes: 10
+        });
+
         await sendEmail({
             to: user.email,
-            subject: 'Password reset OTP',
+            subject: `Password Reset OTP - ${otp}`,
             text: `Your password reset OTP is ${otp}. It expires in 10 minutes.`,
-            html: `<p>Your password reset OTP is <strong>${otp}</strong>. It expires in 10 minutes.</p>`,
+            html,
         });
     } catch (err) {
         console.warn(`[User Forgot Password] Email send failed for ${user.email}: ${err.message}`);
