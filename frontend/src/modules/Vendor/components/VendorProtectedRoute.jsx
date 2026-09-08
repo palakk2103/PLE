@@ -14,23 +14,30 @@ const decodeJwtPayload = (token) => {
 };
 
 const VendorProtectedRoute = ({ children }) => {
-  const { isAuthenticated, token } = useVendorAuthStore();
+  const { isAuthenticated, token, refreshToken } = useVendorAuthStore();
   const location = useLocation();
   const accessToken =
     token ||
-    sessionStorage.getItem('vendor-token') ||
-    localStorage.getItem('vendor-token');
+    localStorage.getItem('vendor-token') ||
+    sessionStorage.getItem('vendor-token');
+  const activeRefreshToken =
+    refreshToken ||
+    localStorage.getItem('vendor-refresh-token') ||
+    sessionStorage.getItem('vendor-refresh-token');
   const payload = decodeJwtPayload(accessToken);
   const role = String(payload?.role || '').toLowerCase();
   const tokenExpiryMs =
     typeof payload?.exp === 'number' ? payload.exp * 1000 : null;
   const isExpired = tokenExpiryMs ? Date.now() >= tokenExpiryMs : false;
 
-  if (!isAuthenticated || !accessToken) {
+  if (!isAuthenticated && !accessToken && !activeRefreshToken) {
     return <Navigate to="/vendor/login" state={{ from: location }} replace />;
   }
 
-  if (isExpired) {
+  // If accessToken is expired but a refreshToken exists, silently refresh in the background
+  if (isExpired && activeRefreshToken) {
+    useVendorAuthStore.getState().refreshSession().catch(() => {});
+  } else if (isExpired && !activeRefreshToken) {
     useVendorAuthStore.getState().logout();
     return <Navigate to="/vendor/login" state={{ from: location }} replace />;
   }

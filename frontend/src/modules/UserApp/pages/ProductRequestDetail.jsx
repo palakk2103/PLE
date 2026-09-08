@@ -2,14 +2,25 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { FiArrowLeft, FiCalendar, FiCheckCircle, FiInfo, FiTag, FiShoppingBag, FiTruck } from "react-icons/fi";
 import { motion } from "framer-motion";
+import toast from "react-hot-toast";
 import MobileLayout from "../components/Layout/MobileLayout";
 import PageTransition from "../../../shared/components/PageTransition";
 import api from "../../../shared/utils/api";
 
 const ProductRequestDetail = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { id } = useParams();
   const [request, setRequest] = useState(null);
+  const isB2B = location.pathname.startsWith("/b2b-dashboard");
+
+  const handleBack = () => {
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate(isB2B ? "/b2b-dashboard/product-requests" : "/product-requests", { replace: true });
+    }
+  };
 
   useEffect(() => {
     fetchRequestDetail();
@@ -39,7 +50,7 @@ const ProductRequestDetail = () => {
           <div className="text-center">
             <h2 className="text-xl font-bold text-gray-800">Request not found</h2>
             <button
-              onClick={() => navigate("/product-requests")}
+              onClick={handleBack}
               className="mt-4 px-6 py-2 bg-[#7B0A0A] hover:bg-[#AE020B] text-white rounded-xl font-bold text-sm transition-colors"
             >
               Back to Requests
@@ -51,16 +62,6 @@ const ProductRequestDetail = () => {
   }
 
   // Predefined timeline steps to show on the stepper
-  const allSteps = [
-    { status: "Submitted", label: "Request Submitted" },
-    { status: "Under Review", label: "Under Review" },
-    { status: "Seller Responded", label: "Seller Responded" },
-    { status: "Accepted", label: "Accepted" },
-    { status: "Product Added", label: "Product Added" }
-  ];
-
-  const isB2B = useLocation().pathname.startsWith("/b2b-dashboard");
-
   const timelineSteps = [
     { status: "Submitted", label: "Request Submitted" },
     { status: "Under Review", label: "Under Review" },
@@ -117,7 +118,7 @@ const ProductRequestDetail = () => {
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
         <button
-          onClick={() => navigate(isB2B ? "/b2b-dashboard/product-requests" : "/product-requests")}
+          onClick={handleBack}
           className="p-2 hover:bg-gray-200 rounded-full transition-colors bg-white shadow-sm border border-gray-200"
         >
           <FiArrowLeft className="text-xl text-gray-700" />

@@ -2,8 +2,9 @@ import { createPortal } from "react-dom";
 import { useCartStore, useUIStore } from "../../../../shared/store/useStore";
 import { FiShoppingBag, FiChevronRight } from "react-icons/fi";
 import { formatPrice } from "../../../../shared/utils/helpers";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
+import useKeyboardVisible from "../../../../shared/hooks/useKeyboardVisible";
 
 const MobileCartBar = () => {
   const { items, getTotal } = useCartStore();
@@ -14,6 +15,7 @@ const MobileCartBar = () => {
   const itemCount = useCartStore((state) => state.getItemCount());
   const total = getTotal();
   const [pulseAnimation, setPulseAnimation] = useState(false);
+  const isKeyboardVisible = useKeyboardVisible();
 
   useEffect(() => {
     if (cartAnimationTrigger > 0) {
@@ -22,7 +24,7 @@ const MobileCartBar = () => {
     }
   }, [cartAnimationTrigger]);
 
-  if (itemCount === 0) {
+  if (itemCount === 0 || isKeyboardVisible) {
     return null;
   }
 

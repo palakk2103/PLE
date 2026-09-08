@@ -350,17 +350,17 @@ const ProductCard = memo(({ product, hideRating = false, isFlashSale = false, sh
 
           {/* Price */}
           {!isBusiness ? (
-            <div className="flex flex-col items-start gap-0 md:flex-row md:items-end md:gap-2 lg:gap-1.5 mb-1.5 md:mb-3 lg:mb-2 mt-auto">
-              <span className={`text-xs md:text-xl font-black ${isFlashSale ? "text-red-600" : "text-gray-900"}`}>
+            <div className="flex flex-wrap items-baseline gap-1 md:gap-1.5 mb-1.5 md:mb-3 lg:mb-2 mt-auto">
+              <span className={`text-xs xs:text-sm md:text-base lg:text-lg font-black ${isFlashSale ? "text-red-600" : "text-gray-900"}`}>
                 {formatPrice(product?.price)}
               </span>
               {product?.originalPrice && (
-                <span className="text-[9px] md:text-xs text-gray-400 line-through font-medium leading-none mb-0.5">
+                <span className="text-[9px] xs:text-[10px] md:text-xs text-gray-400 line-through font-medium leading-none">
                   {formatPrice(product.originalPrice)}
                 </span>
               )}
               {product?.condition && product.condition !== "brand_new" && product?.originalPrice && (
-                <span className="text-[9px] md:text-xs text-green-600 font-black leading-none mb-0.5">
+                <span className="text-[8px] xs:text-[9px] md:text-xs text-green-600 font-bold leading-none">
                   (Save {formatPrice(product.originalPrice - product.price)})
                 </span>
               )}
@@ -380,7 +380,7 @@ const ProductCard = memo(({ product, hideRating = false, isFlashSale = false, sh
               }}
               whileTap={{ scale: 0.95 }}
               style={{ touchAction: "manipulation" }}
-              className="w-full py-2 md:py-2.5 lg:py-2 rounded-full font-bold text-xs md:text-sm bg-[#7B0A0A] hover:bg-[#AE020B] text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-1.5"
+              className="w-full py-1.5 xs:py-2 md:py-2.5 rounded-full font-bold text-[11px] xs:text-xs md:text-sm bg-[#7B0A0A] hover:bg-[#AE020B] text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-1.5"
             >
               <span>Order Bulk</span>
               <FiArrowRight className="text-xs md:text-base" />
@@ -392,7 +392,7 @@ const ProductCard = memo(({ product, hideRating = false, isFlashSale = false, sh
               onClick={handleRemoveFromCart}
               whileTap={{ scale: 0.95 }}
               style={{ touchAction: "manipulation" }}
-              className="w-full py-2 md:py-2.5 lg:py-2 rounded-full font-bold text-xs md:text-sm bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 transition-all duration-300 flex items-center justify-center gap-1.5"
+              className="w-full py-1.5 xs:py-2 md:py-2.5 rounded-full font-bold text-[11px] xs:text-xs md:text-sm bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 transition-all duration-300 flex items-center justify-center gap-1.5"
             >
               <FiTrash2 className="text-xs md:text-base" />
               <span>Remove</span>
@@ -413,7 +413,7 @@ const ProductCard = memo(({ product, hideRating = false, isFlashSale = false, sh
                   : {}
               }
               style={{ willChange: "transform", transform: "translateZ(0)", touchAction: "manipulation" }}
-              className={`w-full py-2 md:py-2.5 lg:py-2 rounded-full font-bold text-[10px] md:text-sm transition-all duration-300 flex items-center justify-center gap-1.5 ${
+              className={`w-full py-1.5 xs:py-2 md:py-2.5 rounded-full font-bold text-[10px] xs:text-xs md:text-sm transition-all duration-300 flex items-center justify-center gap-1 sm:gap-1.5 ${
                 product?.stock === "out_of_stock"
                   ? "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
                   : isFlashSale

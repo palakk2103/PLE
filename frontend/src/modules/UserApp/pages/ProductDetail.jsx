@@ -1509,7 +1509,7 @@ const MobileProductDetail = () => {
 
       {/* Sticky Bottom Action Bar (Mobile Only) */}
       {/* Mobile Bottom Sticky Action Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-[9999] safe-area-bottom shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+      <div data-bottom-sticky-bar className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-[9999] safe-area-bottom shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
         <div className="flex items-center gap-2.5 w-full">
           {rawIsBusiness && (
             <>

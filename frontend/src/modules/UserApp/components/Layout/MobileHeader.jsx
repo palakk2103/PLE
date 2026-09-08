@@ -310,7 +310,7 @@ const MobileHeader = () => {
   const headerContent = (
     <motion.header
       key="mobile-header" // Stable key to prevent re-mounting
-      className="fixed top-0 left-0 right-0 z-[9999] shadow-none overflow-visible md:hidden"
+      className="fixed top-0 left-0 right-0 z-[9999] shadow-none overflow-visible md:hidden safe-area-top"
       style={{
         background: headerBackground,
         transition: "background 0.5s ease-in-out",
@@ -325,11 +325,11 @@ const MobileHeader = () => {
         damping: 30,
         mass: 0.8,
       }}>
-      <div className="px-4 py-1.5 overflow-visible">
+      <div className="px-2 xs:px-3 sm:px-4 py-1.5 overflow-visible">
         {/* First Row: Location & Actions */}
         <motion.div
           ref={topRowRef}
-          className="flex items-center justify-between gap-3 mb-2"
+          className="flex items-center justify-between gap-1.5 sm:gap-3 mb-2"
           initial={false}
           animate={{
             opacity: isTopRowVisible ? 1 : 0,
@@ -343,14 +343,14 @@ const MobileHeader = () => {
           style={{
             pointerEvents: isTopRowVisible ? "auto" : "none",
           }}>
-          {/* Left Group: Hamburger + Location Bar (shifted slightly right) */}
-          <div className="flex items-center gap-1.5 min-w-0 flex-1 pl-3">
+          {/* Left Group: Hamburger + Location Bar */}
+          <div className="flex items-center gap-1 sm:gap-1.5 min-w-0 flex-1">
             {/* Hamburger Menu Icon */}
             <button
               onClick={() => setIsSidebarOpen(true)}
-              className="p-2 hover:bg-white/10 rounded-lg transition-all duration-300 text-white flex items-center justify-center flex-shrink-0"
+              className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-all duration-300 text-white flex items-center justify-center flex-shrink-0"
               title="Menu">
-              <FiMenu className="text-2xl" />
+              <FiMenu className="text-xl sm:text-2xl" />
             </button>
 
             {/* Dynamic Location Selection Bar */}

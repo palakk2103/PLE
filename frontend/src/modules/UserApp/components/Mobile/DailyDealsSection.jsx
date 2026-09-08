@@ -87,35 +87,35 @@ const DailyDealsSection = ({ products = null }) => {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-[#1A1A1A] rounded-xl p-4 shadow-2xl border-2 border-white/50 dark:border-[rgba(123, 10, 10,0.25)]">
-            <div className="mb-2">
-              <p className="text-xs font-semibold text-gray-700 dark:text-[#AAAAAA] mb-2 ml-11">
+            className="bg-white dark:bg-[#1A1A1A] rounded-xl p-3 sm:p-4 shadow-2xl border-2 border-white/50 dark:border-[rgba(123, 10, 10,0.25)]">
+            <div className="mb-1 sm:mb-2">
+              <p className="text-[11px] sm:text-xs font-semibold text-gray-700 dark:text-[#AAAAAA] mb-1.5 sm:mb-2 ml-8 sm:ml-11">
                 Deal ends in
               </p>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 <div className="bg-gradient-to-br from-[#7B0A0A] to-[#AE020B] dark:from-[#7B0A0A] dark:to-[#AA1010] rounded-md p-1.5 shadow-md dark:shadow-[0_0_10px_rgba(123, 10, 10,0.3)] transform translate-y-[2px]">
-                  <FiClock className="text-white text-base" />
+                  <FiClock className="text-white text-sm sm:text-base" />
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="bg-gradient-to-br from-[#7B0A0A] to-[#AE020B] dark:from-[#7B0A0A] dark:to-[#AA1010] text-white rounded-lg px-2.5 py-1.5 min-w-[2.8rem] text-center shadow-lg dark:shadow-[0_4px_12px_rgba(123, 10, 10,0.30)] border border-white/20 dark:border-[rgba(123, 10, 10,0.30)]">
-                    <div className="text-base font-extrabold leading-tight">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <div className="bg-gradient-to-br from-[#7B0A0A] to-[#AE020B] dark:from-[#7B0A0A] dark:to-[#AA1010] text-white rounded-lg px-2 sm:px-2.5 py-1 sm:py-1.5 min-w-[2.4rem] sm:min-w-[2.8rem] text-center shadow-lg dark:shadow-[0_4px_12px_rgba(123, 10, 10,0.30)] border border-white/20 dark:border-[rgba(123, 10, 10,0.30)]">
+                    <div className="text-sm sm:text-base font-extrabold leading-tight">
                       {formatTime(timeLeft.hours)}
                     </div>
-                    <div className="text-[8px] opacity-90 font-medium uppercase">Hrs</div>
+                    <div className="text-[7px] sm:text-[8px] opacity-90 font-medium uppercase">Hrs</div>
                   </div>
-                  <span className="text-[#7B0A0A] font-bold text-lg">:</span>
-                  <div className="bg-gradient-to-br from-[#7B0A0A] to-[#AE020B] dark:from-[#7B0A0A] dark:to-[#AA1010] text-white rounded-lg px-2.5 py-1.5 min-w-[2.8rem] text-center shadow-lg dark:shadow-[0_4px_12px_rgba(123, 10, 10,0.30)] border border-white/20 dark:border-[rgba(123, 10, 10,0.30)]">
-                    <div className="text-base font-extrabold leading-tight">
+                  <span className="text-[#7B0A0A] font-bold text-base sm:text-lg">:</span>
+                  <div className="bg-gradient-to-br from-[#7B0A0A] to-[#AE020B] dark:from-[#7B0A0A] dark:to-[#AA1010] text-white rounded-lg px-2 sm:px-2.5 py-1 sm:py-1.5 min-w-[2.4rem] sm:min-w-[2.8rem] text-center shadow-lg dark:shadow-[0_4px_12px_rgba(123, 10, 10,0.30)] border border-white/20 dark:border-[rgba(123, 10, 10,0.30)]">
+                    <div className="text-sm sm:text-base font-extrabold leading-tight">
                       {formatTime(timeLeft.minutes)}
                     </div>
-                    <div className="text-[8px] opacity-90 font-medium uppercase">Min</div>
+                    <div className="text-[7px] sm:text-[8px] opacity-90 font-medium uppercase">Min</div>
                   </div>
-                  <span className="text-[#7B0A0A] font-bold text-lg">:</span>
-                  <div className="bg-gradient-to-br from-[#7B0A0A] to-[#AE020B] dark:from-[#7B0A0A] dark:to-[#AA1010] text-white rounded-lg px-2.5 py-1.5 min-w-[2.8rem] text-center shadow-lg dark:shadow-[0_4px_12px_rgba(123, 10, 10,0.30)] border border-white/20 dark:border-[rgba(123, 10, 10,0.30)] animate-pulse">
-                    <div className="text-base font-extrabold leading-tight">
+                  <span className="text-[#7B0A0A] font-bold text-base sm:text-lg">:</span>
+                  <div className="bg-gradient-to-br from-[#7B0A0A] to-[#AE020B] dark:from-[#7B0A0A] dark:to-[#AA1010] text-white rounded-lg px-2 sm:px-2.5 py-1 sm:py-1.5 min-w-[2.4rem] sm:min-w-[2.8rem] text-center shadow-lg dark:shadow-[0_4px_12px_rgba(123, 10, 10,0.30)] border border-white/20 dark:border-[rgba(123, 10, 10,0.30)] animate-pulse">
+                    <div className="text-sm sm:text-base font-extrabold leading-tight">
                       {formatTime(timeLeft.seconds)}
                     </div>
-                    <div className="text-[8px] opacity-90 font-medium uppercase">Sec</div>
+                    <div className="text-[7px] sm:text-[8px] opacity-90 font-medium uppercase">Sec</div>
                   </div>
                 </div>
               </div>
@@ -124,7 +124,7 @@ const DailyDealsSection = ({ products = null }) => {
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 xs:gap-3 sm:gap-4 md:gap-6">
           {dailyDeals.map((product, index) => (
             <motion.div
               key={product.id}

@@ -175,10 +175,10 @@ export const useDeliveryAuthStore = create(
             throw new Error('Invalid login response from server.');
           }
 
-          sessionStorage.setItem('delivery-token', accessToken);
-          sessionStorage.setItem('delivery-refresh-token', refreshToken);
-          localStorage.removeItem('delivery-token');
-          localStorage.removeItem('delivery-refresh-token');
+          localStorage.setItem('delivery-token', accessToken);
+          localStorage.setItem('delivery-refresh-token', refreshToken);
+          sessionStorage.removeItem('delivery-token');
+          sessionStorage.removeItem('delivery-refresh-token');
 
           let enriched = loginDeliveryBoy;
           try {
@@ -221,10 +221,10 @@ export const useDeliveryAuthStore = create(
           const accessToken = "mock.eyJyb2xlIjoiZGVsaXZlcnkiLCJleHAiOjI1MjQ2MDgwMDB9.signature";
           const refreshToken = "mock.eyJyb2xlIjoiZGVsaXZlcnkiLCJleHAiOjI1MjQ2MDgwMDB9.signature";
 
-          sessionStorage.setItem('delivery-token', accessToken);
-          sessionStorage.setItem('delivery-refresh-token', refreshToken);
-          localStorage.removeItem('delivery-token');
-          localStorage.removeItem('delivery-refresh-token');
+          localStorage.setItem('delivery-token', accessToken);
+          localStorage.setItem('delivery-refresh-token', refreshToken);
+          sessionStorage.removeItem('delivery-token');
+          sessionStorage.removeItem('delivery-refresh-token');
 
           set({
             deliveryBoy: mockDeliveryBoy,
@@ -251,8 +251,10 @@ export const useDeliveryAuthStore = create(
             throw new Error('Invalid verification response from server.');
           }
 
-          sessionStorage.setItem('delivery-token', accessToken);
-          sessionStorage.setItem('delivery-refresh-token', refreshToken);
+          localStorage.setItem('delivery-token', accessToken);
+          localStorage.setItem('delivery-refresh-token', refreshToken);
+          sessionStorage.removeItem('delivery-token');
+          sessionStorage.removeItem('delivery-refresh-token');
 
           set({
             deliveryBoy: loginDeliveryBoy,
@@ -517,26 +519,70 @@ export const useDeliveryAuthStore = create(
         return true;
       },
 
+      // Silently refresh delivery session using refresh token
+      refreshSession: async () => {
+        const refreshToken = localStorage.getItem('delivery-refresh-token') || sessionStorage.getItem('delivery-refresh-token');
+        if (!refreshToken) return false;
+        try {
+          const response = await api.post('/delivery/auth/refresh', { refreshToken });
+          const payload = response?.data?.data || response?.data || response;
+          const accessToken = payload?.accessToken;
+          const newRefreshToken = payload?.refreshToken;
+          if (accessToken) {
+            set({
+              token: accessToken,
+              refreshToken: newRefreshToken || refreshToken,
+              isAuthenticated: true,
+            });
+            localStorage.setItem('delivery-token', accessToken);
+            if (newRefreshToken) {
+              localStorage.setItem('delivery-refresh-token', newRefreshToken);
+            }
+            return true;
+          }
+          return false;
+        } catch (err) {
+          console.warn('Delivery silent refresh failed:', err);
+          if (err?.response?.status === 401) {
+            get().logout();
+          }
+          return false;
+        }
+      },
+
       // Initialize delivery auth state from localStorage
       initialize: () => {
-        const token = sessionStorage.getItem('delivery-token') || localStorage.getItem('delivery-token');
-        if (token) {
-          const storedState = JSON.parse(
-            sessionStorage.getItem('delivery-auth-storage') || 
-            localStorage.getItem('delivery-auth-storage') || '{}'
-          );
-          const refreshToken = sessionStorage.getItem('delivery-refresh-token') || localStorage.getItem('delivery-refresh-token');
+        // Migrate legacy sessionStorage
+        const sessionTok = sessionStorage.getItem('delivery-token');
+        const sessionRef = sessionStorage.getItem('delivery-refresh-token');
+        const sessionAuth = sessionStorage.getItem('delivery-auth-storage');
+        if (sessionTok && !localStorage.getItem('delivery-token')) {
+          localStorage.setItem('delivery-token', sessionTok);
+          if (sessionRef) localStorage.setItem('delivery-refresh-token', sessionRef);
+          if (sessionAuth && !localStorage.getItem('delivery-auth-storage')) {
+            localStorage.setItem('delivery-auth-storage', sessionAuth);
+          }
+        }
+
+        const token = localStorage.getItem('delivery-token') || sessionStorage.getItem('delivery-token');
+        const refreshToken = localStorage.getItem('delivery-refresh-token') || sessionStorage.getItem('delivery-refresh-token');
+        const storedState = JSON.parse(
+          localStorage.getItem('delivery-auth-storage') || 
+          sessionStorage.getItem('delivery-auth-storage') || '{}'
+        );
+
+        if (token || refreshToken) {
           if (storedState.state?.deliveryBoy) {
             set({
               deliveryBoy: normalizeDeliveryBoy(storedState.state.deliveryBoy),
-              token,
+              token: token || null,
               refreshToken: refreshToken || null,
               isAuthenticated: true,
               isLoading: false,
               isLoadingOrders: false,
               isLoadingOrder: false,
               isUpdatingOrderStatus: false,
-              isUpdatingStatus: false, // Reset stale disk-persisted loading flags
+              isUpdatingStatus: false,
             });
           }
         } else {
@@ -552,7 +598,7 @@ export const useDeliveryAuthStore = create(
     }),
     {
       name: 'delivery-auth-storage',
-      storage: createJSONStorage(() => sessionStorage),
+      storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         deliveryBoy: state.deliveryBoy,
         token: state.token,

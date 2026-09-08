@@ -8,10 +8,27 @@ import { useThemeStore } from '../../../shared/store/themeStore';
 import pleLogo from '../../../assets/PLEwhite.png';
 import splashVideo from '../../../assets/splashVideo.mp4';
 
+import { useAuthStore } from '../../../shared/store/authStore';
+import { useB2BAdminStore } from '../../B2BAdmin/store/b2bAdminStore';
+
 const PortalSelection = () => {
   const navigate = useNavigate();
   const setUserRole = useB2bStore((state) => state.setUserRole);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isB2BAuthenticated = useB2BAdminStore((state) => state.isAuthenticated);
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  const b2bToken = localStorage.getItem('b2bAdminToken') || sessionStorage.getItem('b2bAdminToken');
+
+  // If user is already authenticated with a saved token, skip selection and navigate directly to /home
+  useEffect(() => {
+    if ((isAuthenticated && token) || (isB2BAuthenticated && b2bToken)) {
+      navigate('/home', { replace: true });
+    }
+  }, [isAuthenticated, isB2BAuthenticated, token, b2bToken, navigate]);
+
   const [showSplash, setShowSplash] = useState(() => {
+    // If user is logged in, don't show splash
+    if ((isAuthenticated && token) || (isB2BAuthenticated && b2bToken)) return false;
     const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
     if (isDesktop) return false;
     return !sessionStorage.getItem('splash-shown');

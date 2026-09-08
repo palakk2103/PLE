@@ -12,32 +12,7 @@ const DEFAULT_BUSINESS_PROFILE = {
   businessPhone: '9876543210',
 };
 
-const DEFAULT_QUOTATIONS = [
-  {
-    id: 'RFQ-8932',
-    date: '23 May 2026',
-    productId: 1,
-    productName: 'Fresh Alphonso Mangoes (Premium)',
-    quantity: 150,
-    unit: 'Dozen',
-    status: 'Approved',
-    targetPrice: 400,
-    quotedPrice: 420,
-    notes: 'Require wooden crate packaging.',
-  },
-  {
-    id: 'RFQ-8910',
-    date: '21 May 2026',
-    productId: 3,
-    productName: 'Organic Bananas',
-    quantity: 300,
-    unit: 'Kg',
-    status: 'Pending',
-    targetPrice: 25,
-    quotedPrice: null,
-    notes: 'Delivery needed by end of next week.',
-  },
-];
+const DEFAULT_QUOTATIONS = [];
 
 const DEFAULT_STOCK_REQUESTS = [
   {

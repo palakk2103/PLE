@@ -14,20 +14,24 @@ const decodeJwtPayload = (token) => {
 };
 
 const DeliveryProtectedRoute = ({ children }) => {
-  const { isAuthenticated, token } = useDeliveryAuthStore();
+  const { isAuthenticated, token, refreshToken } = useDeliveryAuthStore();
   const location = useLocation();
-  const accessToken = token || sessionStorage.getItem('delivery-token') || localStorage.getItem('delivery-token');
+  const accessToken = token || localStorage.getItem('delivery-token') || sessionStorage.getItem('delivery-token');
+  const activeRefreshToken = refreshToken || localStorage.getItem('delivery-refresh-token') || sessionStorage.getItem('delivery-refresh-token');
   const payload = decodeJwtPayload(accessToken);
   const role = String(payload?.role || '').toLowerCase();
   const tokenExpiryMs =
     typeof payload?.exp === 'number' ? payload.exp * 1000 : null;
   const isExpired = tokenExpiryMs ? Date.now() >= tokenExpiryMs : false;
 
-  if (!isAuthenticated || !accessToken) {
+  if (!isAuthenticated && !accessToken && !activeRefreshToken) {
     return <Navigate to="/delivery/login" state={{ from: location }} replace />;
   }
 
-  if (isExpired) {
+  // If accessToken is expired but a refreshToken exists, silently refresh in the background
+  if (isExpired && activeRefreshToken) {
+    useDeliveryAuthStore.getState().refreshSession().catch(() => {});
+  } else if (isExpired && !activeRefreshToken) {
     useDeliveryAuthStore.getState().logout();
     return <Navigate to="/delivery/login" state={{ from: location }} replace />;
   }

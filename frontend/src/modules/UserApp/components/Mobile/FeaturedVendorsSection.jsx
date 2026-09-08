@@ -15,7 +15,7 @@ const FeaturedVendorsSection = ({ vendors = null }) => {
   if (featuredVendors.length === 0) return null;
 
   return (
-    <div className="px-4 py-4">
+    <div className="px-1 sm:px-2 py-4">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-xl font-bold text-gray-800 dark:text-white">Best Sellers</h2>
@@ -30,7 +30,7 @@ const FeaturedVendorsSection = ({ vendors = null }) => {
         </Link>
       </div>
 
-      <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4">
+      <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 px-1">
         {featuredVendors.map((vendor, index) => (
           <VendorShowcaseCard key={vendor.id} vendor={vendor} index={index} />
         ))}

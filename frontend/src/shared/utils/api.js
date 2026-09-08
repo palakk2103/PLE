@@ -80,11 +80,8 @@ const getStorageItem = (key) => {
 
 const setStorageItem = (key, value) => {
   if (typeof window === 'undefined') return;
-  if (localStorage.getItem(key) !== null) {
-    localStorage.setItem(key, value);
-  } else {
-    sessionStorage.setItem(key, value);
-  }
+  localStorage.setItem(key, value);
+  sessionStorage.removeItem(key);
 };
 
 const removeStorageItem = (key) => {
@@ -395,33 +392,44 @@ api.interceptors.response.use(
       }
     }
 
+    const status = error.response?.status;
     const message =
       error.response?.data?.message ||
+      error.response?.data?.error ||
       error.message ||
-      'Something went wrong';
-    toast.error(message);
+      '';
 
-    if (error.response?.status === 401) {
+    // Do not show error toast on silent 401 background checks or cancelled requests
+    if (status !== 401 && message && !axios.isCancel(error)) {
+      toast.error(message);
+    }
+
+    if (status === 401) {
+      const hadAuthHeader = !!(originalRequest.headers?.Authorization || originalRequest.headers?.authorization);
       const activeScope = pathScope;
-      await clearScopeAuth(scope);
-      if (scope !== activeScope) {
-        return Promise.reject(error);
-      }
+      
+      // Only clear scope auth if the request was actually authenticated and refresh failed
+      if (hadAuthHeader) {
+        await clearScopeAuth(scope);
+        if (scope !== activeScope) {
+          return Promise.reject(error);
+        }
 
-      const routeConfig = AUTH_SCOPES[scope];
-      if (scope === 'user') {
-        const isAuthPage =
-          currentPath === '/login' ||
-          currentPath === '/register' ||
-          currentPath === '/verification' ||
-          currentPath === '/forgot-password' ||
-          currentPath === '/reset-password';
-        if (!isAuthPage) {
+        const routeConfig = AUTH_SCOPES[scope];
+        if (scope === 'user') {
+          const isAuthPage =
+            currentPath === '/login' ||
+            currentPath === '/register' ||
+            currentPath === '/verification' ||
+            currentPath === '/forgot-password' ||
+            currentPath === '/reset-password';
+          if (!isAuthPage) {
+            redirectTo(routeConfig.loginPath);
+          }
+        } else if (currentPath.startsWith(routeConfig.areaPrefix) && currentPath !== routeConfig.loginPath) {
+          toast.error('Session expired. Please login again.');
           redirectTo(routeConfig.loginPath);
         }
-      } else if (currentPath.startsWith(routeConfig.areaPrefix) && currentPath !== routeConfig.loginPath) {
-        toast.error('Session expired. Please login again.');
-        redirectTo(routeConfig.loginPath);
       }
     }
 

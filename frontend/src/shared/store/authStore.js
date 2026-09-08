@@ -15,37 +15,6 @@ const withTimeout = (promise, ms = 15000) => {
   ]);
 };
 
-
-const dynamicAuthStorage = {
-  getItem: (name) => {
-    if (typeof window === 'undefined') return null;
-    const local = localStorage.getItem(name);
-    if (local) return local;
-    return sessionStorage.getItem(name);
-  },
-  setItem: (name, value) => {
-    if (typeof window === 'undefined') return;
-    try {
-      const parsed = JSON.parse(value);
-      const rememberMe = parsed?.state?.rememberMe;
-      if (rememberMe) {
-        localStorage.setItem(name, value);
-        sessionStorage.removeItem(name);
-      } else {
-        sessionStorage.setItem(name, value);
-        localStorage.removeItem(name);
-      }
-    } catch {
-      sessionStorage.setItem(name, value);
-    }
-  },
-  removeItem: (name) => {
-    if (typeof window === 'undefined') return;
-    localStorage.removeItem(name);
-    sessionStorage.removeItem(name);
-  }
-};
-
 export const useAuthStore = create(
   persist(
     (set, get) => ({
@@ -55,9 +24,9 @@ export const useAuthStore = create(
       isAuthenticated: false,
       isLoading: false,
       pendingEmail: null,
-      rememberMe: false,
+      rememberMe: true,
 
-      login: async (email, password, rememberMe = false) => {
+      login: async (email, password, rememberMe = true) => {
         set({ isLoading: true });
         const normalizedEmail = String(email || '').trim().toLowerCase();
         try {
@@ -90,15 +59,14 @@ export const useAuthStore = create(
             isAuthenticated: true,
             pendingEmail: null,
             isLoading: false,
-            rememberMe,
+            rememberMe: true,
           });
 
-          const storage = rememberMe ? localStorage : sessionStorage;
-          const otherStorage = rememberMe ? sessionStorage : localStorage;
-          storage.setItem('token', accessToken);
-          storage.setItem('refresh-token', refreshToken);
-          otherStorage.removeItem('token');
-          otherStorage.removeItem('refresh-token');
+          // Always persist auth tokens in localStorage so app restarts stay logged in
+          localStorage.setItem('token', accessToken);
+          localStorage.setItem('refresh-token', refreshToken);
+          sessionStorage.removeItem('token');
+          sessionStorage.removeItem('refresh-token');
 
           return { success: true, user: user };
         } catch (error) {
@@ -141,10 +109,13 @@ export const useAuthStore = create(
             isAuthenticated: true,
             pendingEmail: null,
             isLoading: false,
+            rememberMe: true,
           });
 
-          sessionStorage.setItem('token', accessToken);
-          sessionStorage.setItem('refresh-token', refreshToken);
+          localStorage.setItem('token', accessToken);
+          localStorage.setItem('refresh-token', refreshToken);
+          sessionStorage.removeItem('token');
+          sessionStorage.removeItem('refresh-token');
 
           return { success: true, user };
         } catch (error) {
@@ -237,7 +208,6 @@ export const useAuthStore = create(
             throw new Error('Invalid OTP verification response from server.');
           }
 
-          const rememberMe = get().rememberMe || false;
           set({
             user,
             token: accessToken,
@@ -245,15 +215,14 @@ export const useAuthStore = create(
             isAuthenticated: true,
             pendingEmail: null,
             isLoading: false,
-            rememberMe,
+            rememberMe: true,
           });
 
-          const storage = rememberMe ? localStorage : sessionStorage;
-          const otherStorage = rememberMe ? sessionStorage : localStorage;
-          storage.setItem('token', accessToken);
-          storage.setItem('refresh-token', refreshToken);
-          otherStorage.removeItem('token');
-          otherStorage.removeItem('refresh-token');
+          // Always persist auth tokens in localStorage so app restarts stay logged in
+          localStorage.setItem('token', accessToken);
+          localStorage.setItem('refresh-token', refreshToken);
+          sessionStorage.removeItem('token');
+          sessionStorage.removeItem('refresh-token');
           return { success: true, user };
         } catch (error) {
           set({ isLoading: false });
@@ -362,7 +331,7 @@ export const useAuthStore = create(
         } catch (e) {}
       },
 
-      // Update user profile (initiates OTP flow)
+      // Update user profile directly without OTP
       updateProfile: async (profileData) => {
         set({ isLoading: true });
         try {
@@ -372,8 +341,19 @@ export const useAuthStore = create(
             gender: profileData?.gender,
             dob: profileData?.dob,
           });
-          set({ isLoading: false });
-          return { success: true, pendingUpdateId: response.data?.pendingUpdateId };
+          const payload = response?.data ?? response;
+          const currentUser = get().user || {};
+          const updatedUser = {
+            ...currentUser,
+            ...payload,
+            email: currentUser.email || payload?.email,
+          };
+
+          set({
+            user: updatedUser,
+            isLoading: false,
+          });
+          return { success: true, user: updatedUser };
         } catch (error) {
           set({ isLoading: false });
           throw error;
@@ -473,24 +453,70 @@ export const useAuthStore = create(
         }
       },
 
-      // Initialize auth state from dynamic storage
+      // Silently refresh user session using refresh token
+      refreshSession: async () => {
+        const refreshToken = localStorage.getItem('refresh-token') || sessionStorage.getItem('refresh-token');
+        if (!refreshToken) {
+          return false;
+        }
+        try {
+          const response = await api.post('/user/auth/refresh', { refreshToken });
+          const payload = response?.data?.data || response?.data || response;
+          const accessToken = payload?.accessToken;
+          const newRefreshToken = payload?.refreshToken;
+          if (accessToken) {
+            set({
+              token: accessToken,
+              refreshToken: newRefreshToken || refreshToken,
+              isAuthenticated: true,
+            });
+            localStorage.setItem('token', accessToken);
+            if (newRefreshToken) {
+              localStorage.setItem('refresh-token', newRefreshToken);
+            }
+            return true;
+          }
+          return false;
+        } catch (err) {
+          console.warn('Silent session refresh failed:', err);
+          if (err?.response?.status === 401) {
+            get().logout();
+          }
+          return false;
+        }
+      },
+
+      // Initialize auth state from localStorage
       initialize: () => {
+        // Migrate any session storage token to localStorage if exists
+        const sessionTok = sessionStorage.getItem('token');
+        const sessionRefresh = sessionStorage.getItem('refresh-token');
+        const sessionAuthStorage = sessionStorage.getItem('auth-storage');
+        if (sessionTok && !localStorage.getItem('token')) {
+          localStorage.setItem('token', sessionTok);
+          if (sessionRefresh) localStorage.setItem('refresh-token', sessionRefresh);
+          if (sessionAuthStorage && !localStorage.getItem('auth-storage')) {
+            localStorage.setItem('auth-storage', sessionAuthStorage);
+          }
+        }
+
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-        if (token) {
-          const storedState = JSON.parse(
-            localStorage.getItem('auth-storage') || 
-            sessionStorage.getItem('auth-storage') || 
-            '{}'
-          );
-          const refreshToken = localStorage.getItem('refresh-token') || sessionStorage.getItem('refresh-token');
+        const refreshToken = localStorage.getItem('refresh-token') || sessionStorage.getItem('refresh-token');
+        const storedState = JSON.parse(
+          localStorage.getItem('auth-storage') || 
+          sessionStorage.getItem('auth-storage') || 
+          '{}'
+        );
+
+        if (token || refreshToken) {
           if (storedState.state?.user) {
             set({
               user: storedState.state.user,
-              token,
+              token: token || null,
               refreshToken: refreshToken || null,
               isAuthenticated: true,
-              isLoading: false, // Reset stale disk-persisted loading state
-              rememberMe: storedState.state.rememberMe || false,
+              isLoading: false,
+              rememberMe: true,
             });
           }
         } else {
@@ -500,7 +526,7 @@ export const useAuthStore = create(
     }),
     {
       name: 'auth-storage',
-      storage: createJSONStorage(() => dynamicAuthStorage),
+      storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         user: state.user,
         token: state.token,

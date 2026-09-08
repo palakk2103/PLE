@@ -15,20 +15,24 @@ const decodeJwtPayload = (token) => {
 };
 
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, user, token } = useAuthStore();
+  const { isAuthenticated, user, token, refreshToken } = useAuthStore();
   const location = useLocation();
-  const accessToken = token || localStorage.getItem('token');
+  const accessToken = token || localStorage.getItem('token') || sessionStorage.getItem('token');
+  const activeRefreshToken = refreshToken || localStorage.getItem('refresh-token') || sessionStorage.getItem('refresh-token');
   const tokenPayload = decodeJwtPayload(accessToken);
   const resolvedRole = String(user?.role || tokenPayload?.role || '').toLowerCase();
   const tokenExpiryMs =
     typeof tokenPayload?.exp === 'number' ? tokenPayload.exp * 1000 : null;
   const isExpired = tokenExpiryMs ? Date.now() >= tokenExpiryMs : false;
 
-  if (!isAuthenticated || !accessToken) {
+  if (!isAuthenticated && !accessToken && !activeRefreshToken) {
     return <Navigate to="/" state={{ from: location }} replace />;
   }
 
-  if (isExpired) {
+  // If accessToken is expired but a refreshToken exists, silently refresh in the background
+  if (isExpired && activeRefreshToken) {
+    useAuthStore.getState().refreshSession().catch(() => {});
+  } else if (isExpired && !activeRefreshToken) {
     useAuthStore.getState().logout();
     return <Navigate to="/" state={{ from: location }} replace />;
   }

@@ -143,8 +143,8 @@ const AnimatedBanner = ({ banners = null }) => {
   }, [resolvedBanners.length]);
 
   return (
-    <div className="px-4 py-3">
-      <div className="relative w-full h-32 rounded-2xl overflow-hidden shadow-xl dark:shadow-[0_4px_25px_rgba(0,0,0,0.4)]">
+    <div className="px-1 sm:px-2 py-2 sm:py-3 select-none" onDragStart={(e) => e.preventDefault()}>
+      <div className="relative w-full h-32 sm:h-36 md:h-40 rounded-2xl overflow-hidden shadow-xl dark:shadow-[0_4px_25px_rgba(0,0,0,0.4)] select-none banner-container" onDragStart={(e) => e.preventDefault()}>
         <AnimatePresence mode="wait">
           {resolvedBanners.map((banner, index) => {
             if (index !== currentBanner) return null;
@@ -153,6 +153,7 @@ const AnimatedBanner = ({ banners = null }) => {
             return (
               <motion.div
                 key={banner.id}
+                onDragStart={(e) => e.preventDefault()}
                 initial={{ opacity: 0, scale: 1.1, x: "100%" }}
                 animate={{ opacity: 1, scale: 1, x: 0 }}
                 exit={{ opacity: 0, scale: 0.95, x: "-100%" }}
@@ -161,19 +162,21 @@ const AnimatedBanner = ({ banners = null }) => {
                   ease: [0.25, 0.1, 0.25, 1],
                 }}
                 style={{ willChange: "transform, opacity" }}
-                className={`absolute inset-0 bg-gradient-to-br ${banner.gradient} ${getDarkGradient(banner.title)} p-3 relative dark:border dark:border-white/5`}>
+                className={`absolute inset-0 bg-gradient-to-br ${banner.gradient} ${getDarkGradient(banner.title)} p-3 sm:p-4 relative dark:border dark:border-white/5 select-none`}>
                 {/* 3D Depth Parallax Background */}
-                <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 select-none">
                   {/* Layer 1: Background (Blurred Product) */}
                   <motion.div
                     initial={{ opacity: 0, scale: 1.5, rotate: -5, x: 50 }}
                     animate={{ opacity: 0.2, scale: 1.8, rotate: 0, x: 0 }}
                     transition={{ duration: 10, repeat: Infinity, repeatType: "reverse" }}
-                    className="absolute right-[-10%] top-[-10%] w-[120%] h-[120%]"
+                    className="absolute right-[-10%] top-[-10%] w-[120%] h-[120%] select-none pointer-events-none"
                   >
                     <img
                       src={banner.heroImage}
-                      className="w-full h-full object-contain blur-2xl opacity-40 brightness-150 dark:brightness-75"
+                      draggable={false}
+                      onDragStart={(e) => e.preventDefault()}
+                      className="w-full h-full object-contain blur-2xl opacity-40 brightness-150 dark:brightness-75 select-none pointer-events-none"
                       alt=""
                     />
                   </motion.div>
@@ -197,7 +200,7 @@ const AnimatedBanner = ({ banners = null }) => {
                         repeat: Infinity,
                         delay: i * 0.5
                       }}
-                      className="absolute w-1 h-1 bg-white dark:bg-dark-accent rounded-full blur-[1px]"
+                      className="absolute w-1 h-1 bg-white dark:bg-dark-accent rounded-full blur-[1px] select-none pointer-events-none"
                       style={{
                         right: `${10 + (i * 15)}%`,
                         top: `${20 + (i * 10)}%`,
@@ -206,7 +209,7 @@ const AnimatedBanner = ({ banners = null }) => {
                   ))}
 
                   {/* Layer 3: Foreground (Sharp Hero Product) */}
-                  <div className={`absolute right-[5%] top-1/2 -translate-y-1/2 w-32 h-32 flex items-center justify-center ${banner.id === 2 ? 'pb-6' : ''}`}>
+                  <div className={`absolute right-[2%] sm:right-[5%] top-1/2 -translate-y-1/2 w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 flex items-center justify-center pointer-events-none select-none ${banner.id === 2 ? 'pb-4 sm:pb-6' : ''}`}>
                     <motion.div
                       initial={{ opacity: 0, x: 100, scale: 0.5, rotate: 10 }}
                       animate={{ opacity: 1, x: 0, scale: 1.1, rotate: 0 }}
@@ -216,11 +219,14 @@ const AnimatedBanner = ({ banners = null }) => {
                         damping: 12,
                         delay: 0.2
                       }}
+                      className="select-none pointer-events-none"
                     >
                       <motion.img
                         src={banner.heroImage}
                         alt="Hero Product"
-                        className="w-full h-full object-contain drop-shadow-[0_20px_30px_rgba(0,0,0,0.5)] dark:drop-shadow-[0_15px_20px_rgba(192,122,61,0.25)]"
+                        draggable={false}
+                        onDragStart={(e) => e.preventDefault()}
+                        className="w-full h-full object-contain drop-shadow-[0_20px_30px_rgba(0,0,0,0.5)] dark:drop-shadow-[0_15px_20px_rgba(192,122,61,0.25)] select-none pointer-events-none"
                         animate={{
                           y: [0, -5, 0],
                           rotate: [0, 2, -2, 0]
@@ -240,13 +246,13 @@ const AnimatedBanner = ({ banners = null }) => {
                   type="button"
                   onClick={() => handleBannerClick(banner.link)}
                   disabled={!banner.link}
-                  className="relative z-10 h-full flex pt-2 justify-between group">
-                  <div className="flex-1">
+                  className="relative z-10 h-full flex pt-2 justify-between group select-none cursor-pointer">
+                  <div className="flex-1 select-none">
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 }}
-                      className="flex items-center gap-2 mb-0">
+                      className="flex items-center gap-2 mb-0 select-none">
                       <motion.div
                         animate={{
                           scale: [1, 1.2, 1],
@@ -260,7 +266,7 @@ const AnimatedBanner = ({ banners = null }) => {
                         <Icon className="text-white dark:text-dark-accent text-lg drop-shadow-lg" />
                       </motion.div>
                       <motion.span
-                        className="text-white/90 dark:text-[#DDDDDD] text-xs font-medium"
+                        className="text-white/90 dark:text-[#DDDDDD] text-xs font-medium select-none"
                         animate={{
                           opacity: [0.9, 1, 0.9],
                         }}
@@ -277,7 +283,7 @@ const AnimatedBanner = ({ banners = null }) => {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3 }}
-                      className="text-white dark:text-[#FFFFFF] text-xl font-extrabold mb-0 drop-shadow-lg relative inline-block">
+                      className="text-white dark:text-[#FFFFFF] text-xl font-extrabold mb-0 drop-shadow-lg relative inline-block select-none">
                       {banner.title}
                     </motion.h3>
 
@@ -285,7 +291,7 @@ const AnimatedBanner = ({ banners = null }) => {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.4 }}
-                      className="text-white/90 dark:text-[#AAAAAA] text-xs mb-1">
+                      className="text-white/90 dark:text-[#AAAAAA] text-xs mb-1 select-none">
                       {banner.description}
                     </motion.p>
 
@@ -297,9 +303,9 @@ const AnimatedBanner = ({ banners = null }) => {
                         willChange: "transform",
                         transform: "translateZ(0)",
                       }}
-                      className="inline-flex items-center gap-2 bg-[#7B0A0A] hover:bg-[#AE020B] px-4 py-1.5 rounded-full relative overflow-hidden shadow-md dark:border dark:border-[#7B0A0A]/50 transition-colors duration-200"
+                      className="inline-flex items-center gap-2 bg-[#7B0A0A] hover:bg-[#AE020B] px-4 py-1.5 rounded-full relative overflow-hidden shadow-md dark:border dark:border-[#7B0A0A]/50 transition-colors duration-200 select-none"
                       whileTap={{ scale: 0.95 }}>
-                      <span className="text-white dark:text-[#FFFFFF] font-bold text-sm relative z-10">
+                      <span className="text-white dark:text-[#FFFFFF] font-bold text-sm relative z-10 select-none">
                         {banner.discount}
                       </span>
                       <FiArrowRight className="text-white dark:text-[#FFFFFF] text-sm relative z-10" />

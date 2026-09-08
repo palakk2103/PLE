@@ -6,9 +6,23 @@ import { useB2bStore } from '../../../shared/store/b2bStore';
 import { useThemeStore } from '../../../shared/store/themeStore';
 import pleLogo from '../../../assets/PLEwhite.png';
 
+import { useAuthStore } from '../../../shared/store/authStore';
+import { useB2BAdminStore } from '../../B2BAdmin/store/b2bAdminStore';
+
 const PortalWelcome = ({ type }) => {
   const navigate = useNavigate();
   const setUserRole = useB2bStore((state) => state.setUserRole);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isB2BAuthenticated = useB2BAdminStore((state) => state.isAuthenticated);
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  const b2bToken = localStorage.getItem('b2bAdminToken') || sessionStorage.getItem('b2bAdminToken');
+
+  React.useEffect(() => {
+    if ((isAuthenticated && token) || (isB2BAuthenticated && b2bToken)) {
+      navigate('/home', { replace: true });
+    }
+  }, [isAuthenticated, isB2BAuthenticated, token, b2bToken, navigate]);
+
   const { theme } = useThemeStore();
   const isDarkMode = theme === 'dark';
 

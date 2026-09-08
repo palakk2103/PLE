@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import mongoose from 'mongoose';
 import asyncHandler from '../utils/asyncHandler.js';
 import ApiResponse from '../utils/ApiResponse.js';
 import ApiError from '../utils/ApiError.js';
@@ -194,13 +195,50 @@ const listProducts = asyncHandler(async (req, res) => {
     };
 
     if (category) {
-        const categoryId = String(category);
-        const childCategories = await Category.find({ parentId: categoryId }).select('_id');
-        const categoryIds = [categoryId, ...childCategories.map((cat) => String(cat._id))];
-        filter.categoryId = { $in: categoryIds };
+        const categoryId = String(category).trim();
+        if (mongoose.Types.ObjectId.isValid(categoryId)) {
+            const childCategories = await Category.find({ parentId: categoryId }).select('_id');
+            const categoryIds = [categoryId, ...childCategories.map((cat) => String(cat._id))];
+            filter.categoryId = { $in: categoryIds };
+        } else {
+            const catDoc = await Category.findOne({
+                $or: [
+                    { slug: categoryId.toLowerCase() },
+                    { name: new RegExp(`^${categoryId}$`, 'i') },
+                ],
+            }).select('_id');
+
+            if (catDoc) {
+                const childCategories = await Category.find({ parentId: catDoc._id }).select('_id');
+                const categoryIds = [String(catDoc._id), ...childCategories.map((cat) => String(cat._id))];
+                filter.categoryId = { $in: categoryIds };
+            } else {
+                filter.categoryId = new mongoose.Types.ObjectId();
+            }
+        }
     }
-    if (brand) filter.brandId = brand;
-    if (vendor) filter.vendorId = vendor;
+    if (brand) {
+        const brandId = String(brand).trim();
+        if (mongoose.Types.ObjectId.isValid(brandId)) {
+            filter.brandId = brandId;
+        } else {
+            const brandDoc = await Brand.findOne({
+                $or: [
+                    { slug: brandId.toLowerCase() },
+                    { name: new RegExp(`^${brandId}$`, 'i') },
+                ],
+            }).select('_id');
+            filter.brandId = brandDoc ? brandDoc._id : new mongoose.Types.ObjectId();
+        }
+    }
+    if (vendor) {
+        const vendorId = String(vendor).trim();
+        if (mongoose.Types.ObjectId.isValid(vendorId)) {
+            filter.vendorId = vendorId;
+        } else {
+            filter.vendorId = new mongoose.Types.ObjectId();
+        }
+    }
     if (flashSale === 'true') filter.flashSale = true;
     if (isNewArrival === 'true') filter.isNewArrival = true;
     if (minPrice || maxPrice) filter.price = { ...(minPrice && { $gte: Number(minPrice) }), ...(maxPrice && { $lte: Number(maxPrice) }) };
@@ -783,7 +821,11 @@ router.get('/portfolio-page', getPortfolioPage);
 // GET /api/public/agreement-template/active (public agreement template)
 router.get('/agreement-template/active', asyncHandler(async (req, res) => {
     const { default: AgreementTemplate } = await import('../models/AgreementTemplate.model.js');
-    const template = await AgreementTemplate.findOne({ templateKey: 'B2B_ACCEPTANCE_EXECUTION', status: 'Active' }).sort({ createdAt: -1 });
+    const templateKey = req.query.templateKey || 'B2B_ACCEPTANCE_EXECUTION';
+    let template = await AgreementTemplate.findOne({ templateKey, status: 'Active' }).sort({ createdAt: -1 });
+    if (!template && templateKey === 'B2B_ACCEPTANCE_EXECUTION') {
+        template = await AgreementTemplate.findOne({ status: 'Active' }).sort({ createdAt: -1 });
+    }
     res.status(200).json(new ApiResponse(200, template, 'Active agreement template fetched.'));
 }));
 

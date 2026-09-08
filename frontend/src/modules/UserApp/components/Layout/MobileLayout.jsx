@@ -9,6 +9,7 @@ import MobileBottomNav from './MobileBottomNav';
 import MobileCartBar from './MobileCartBar';
 import CartDrawer from '../../../../shared/components/Cart/CartDrawer';
 import useMobileHeaderHeight from '../../hooks/useMobileHeaderHeight';
+import useKeyboardVisible from '../../../../shared/hooks/useKeyboardVisible';
 import { useUIStore } from '../../../../shared/store/useStore';
 import { useB2bStore } from '../../../../shared/store/b2bStore';
 
@@ -16,6 +17,7 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true, noPa
   const location = useLocation();
   const headerHeight = useMobileHeaderHeight();
   const isBusiness = useB2bStore((state) => state.userRole === 'business_buyer');
+  const isKeyboardVisible = useKeyboardVisible();
 
   const pathname = location.pathname.toLowerCase();
 
@@ -85,14 +87,14 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true, noPa
 
       const paddingClasses = shouldNoPadding 
         ? "px-0" 
-        : (isBusiness ? "px-4 md:px-2 lg:px-3 xl:px-4" : "px-4 md:px-8 lg:px-12 xl:px-16");
+        : (isBusiness ? "px-2 xs:px-3 sm:px-4 md:px-4 lg:px-6 xl:px-8" : "px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 xl:px-12");
 
       return (
         <>
           {!isAuthPage && !isCheckoutPage && !isProfileOptionPage && !isOrderConfirmationPage && !isTrackOrderPage && <DesktopHeader />}
           {shouldShowHeader && <MobileHeader />}
           <main
-            className={`min-h-screen w-full overflow-x-hidden ${paddingClasses} ${shouldShowBottomNav ? 'pb-20' : ''} ${showCartBar ? 'pb-24' : ''}`}
+            className={`min-h-screen w-full max-w-full overflow-x-hidden ${paddingClasses} ${shouldShowBottomNav && !isKeyboardVisible ? 'pb-[calc(5rem+env(safe-area-inset-bottom,0px))]' : ''} ${showCartBar && !isKeyboardVisible ? 'pb-[calc(6rem+env(safe-area-inset-bottom,0px))]' : ''}`}
             style={{ paddingTop: shouldShowHeader ? `${headerHeight}px` : '0px' }}
           >
             {children}

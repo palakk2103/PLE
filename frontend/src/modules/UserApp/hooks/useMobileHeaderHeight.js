@@ -1,47 +1,55 @@
-import { useState, useEffect } from 'react';
+import { useState, useLayoutEffect, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
+const getInitialHeaderHeight = () => {
+  if (typeof document === 'undefined') return 64;
+  const header = document.querySelector('header[class*="fixed"]') || document.querySelector('header');
+  return header?.offsetHeight || 64;
+};
+
 /**
- * Hook to calculate the height of the mobile header dynamically
- * This is useful for adding padding-top to mobile page content
+ * Hook to calculate the height of the header synchronously & dynamically.
+ * Eliminates layout jumping on initial page render.
  */
 const useMobileHeaderHeight = () => {
-  const [headerHeight, setHeaderHeight] = useState(64); // Default fallback
+  const [headerHeight, setHeaderHeight] = useState(getInitialHeaderHeight);
   const location = useLocation();
 
-  useEffect(() => {
-    const header = document.querySelector('header[class*="fixed"]');
+  // Use layout effect to sync height before browser paint
+  const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
+
+  useIsomorphicLayoutEffect(() => {
+    const updateHeight = () => {
+      const header = document.querySelector('header[class*="fixed"]') || document.querySelector('header');
+      if (header && header.offsetHeight > 0) {
+        setHeaderHeight((prev) => (prev !== header.offsetHeight ? header.offsetHeight : prev));
+      }
+    };
+
+    updateHeight();
+
+    const header = document.querySelector('header[class*="fixed"]') || document.querySelector('header');
     if (!header) return;
 
-    // Set initial height
-    setHeaderHeight(header.offsetHeight);
-
-    // Set up observer to track any height change dynamically
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        setHeaderHeight(entry.target.offsetHeight);
-      }
-    });
-
-    resizeObserver.observe(header);
-
-    // Run fallback checks just in case
-    const timeoutId = setTimeout(() => {
-      if (header) setHeaderHeight(header.offsetHeight);
-    }, 100);
-    const timeoutId2 = setTimeout(() => {
-      if (header) setHeaderHeight(header.offsetHeight);
-    }, 500);
+    let resizeObserver = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const height = Math.round(entry.contentRect?.height || entry.target?.offsetHeight || 0);
+          if (height > 0) {
+            setHeaderHeight((prev) => (prev !== height ? height : prev));
+          }
+        }
+      });
+      resizeObserver.observe(header);
+    }
 
     return () => {
-      resizeObserver.disconnect();
-      clearTimeout(timeoutId);
-      clearTimeout(timeoutId2);
+      if (resizeObserver) resizeObserver.disconnect();
     };
-  }, [location.pathname]); // Re-bind observer if route changes
+  }, [location.pathname]);
 
   return headerHeight;
 };
 
 export default useMobileHeaderHeight;
-

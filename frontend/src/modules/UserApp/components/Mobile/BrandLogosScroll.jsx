@@ -31,7 +31,9 @@ const BrandLogosScroll = ({ brands = null }) => {
                                     <img
                                         src={brand.logo}
                                         alt={brand.name}
-                                        className="w-full h-full object-contain dark:invert"
+                                        draggable={false}
+                                        onDragStart={(e) => e.preventDefault()}
+                                        className="w-full h-full object-contain dark:invert pointer-events-none select-none"
                                         onError={(e) => {
                                             e.target.src = 'https://via.placeholder.com/120x80?text=Brand';
                                         }}
@@ -47,26 +49,10 @@ const BrandLogosScroll = ({ brands = null }) => {
                 </div>
             </div>
 
-            {/* Mobile Layout - Unchanged */}
+            {/* Mobile Layout */}
             <div className="md:hidden w-full">
-                <style>{`
-          @media (min-width: 1024px) {
-            .brand-card-desktop {
-              width: 5rem !important;
-              min-width: 5rem !important;
-              max-width: 5rem !important;
-            }
-          }
-          @media (min-width: 1280px) {
-            .brand-card-desktop {
-              width: 6rem !important;
-              min-width: 6rem !important;
-              max-width: 6rem !important;
-            }
-          }
-        `}</style>
                 <div className="w-full overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
-                    <div className="flex gap-3 sm:gap-4 lg:gap-3 min-w-max px-4 pb-2">
+                    <div className="flex gap-2.5 xs:gap-3 sm:gap-4 min-w-max px-2 xs:px-3 sm:px-4 pb-2">
                         {displayBrands.map((brand, index) => (
                             <motion.div
                                 key={brand.id}
@@ -74,12 +60,7 @@ const BrandLogosScroll = ({ brands = null }) => {
                                 whileInView={{ opacity: 1, x: 0 }}
                                 viewport={{ once: true, margin: "-50px" }}
                                 transition={{ delay: index * 0.05, duration: 0.3 }}
-                                className="flex-shrink-0 flex flex-col items-center brand-card-desktop"
-                                style={{
-                                    width: 'calc((100vw - 2rem - 0.75rem * 3) / 4)',
-                                    minWidth: 'calc((100vw - 2rem - 0.75rem * 3) / 4)',
-                                    maxWidth: 'calc((100vw - 2rem - 0.75rem * 3) / 4)',
-                                }}
+                                className="flex-shrink-0 flex flex-col items-center w-16 xs:w-20 sm:w-24"
                             >
                                 <div
                                     onClick={() => navigate(`/brand/${brand.id}`)}
@@ -87,14 +68,16 @@ const BrandLogosScroll = ({ brands = null }) => {
                                     <img
                                         src={brand.logo}
                                         alt={brand.name}
-                                        className="w-[85%] h-[85%] object-contain dark:brightness-90"
+                                        draggable={false}
+                                        onDragStart={(e) => e.preventDefault()}
+                                        className="w-[85%] h-[85%] object-contain dark:brightness-90 pointer-events-none select-none"
                                         onError={(e) => {
-                                            e.target.src = 'https://via.placeholder.com/120x80?text=Brand';
+                                             e.target.src = 'https://via.placeholder.com/120x80?text=Brand';
                                         }}
                                         loading="lazy"
                                     />
                                 </div>
-                                <p className="text-[11px] font-bold text-gray-800 dark:text-white text-center transition-colors truncate w-full px-1 mt-1">
+                                <p className="text-[10px] xs:text-[11px] font-bold text-gray-800 dark:text-white text-center transition-colors truncate w-full px-0.5 mt-0.5">
                                     {brand.name}
                                 </p>
                             </motion.div>

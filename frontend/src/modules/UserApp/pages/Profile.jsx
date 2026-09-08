@@ -344,10 +344,7 @@ const MobileProfile = () => {
         gender: data?.gender,
         dob: data?.dob,
       });
-      if (res?.success && res.pendingUpdateId) {
-        setPendingUpdateId(res.pendingUpdateId);
-        setShowOtpModal(true);
-      } else {
+      if (res?.success) {
         toast.success("Profile updated successfully!");
       }
     } catch (error) {
@@ -428,11 +425,43 @@ const MobileProfile = () => {
     if (isBusiness) {
       return [
         {
+          id: "b2b-dashboard",
+          label: "B2B Dashboard",
+          icon: FiTrendingUp,
+          color: "text-[#7B0A0A]",
+          bg: "bg-[#7B0A0A]/10",
+          link: "/b2b-dashboard",
+        },
+        {
           id: "summary",
-          label: "Summary",
+          label: "Business Summary",
           icon: FiBriefcase,
           color: "text-[#7B0A0A]",
           bg: "bg-[#7B0A0A]/10",
+        },
+        {
+          id: "rfqs",
+          label: "My RFQs & Quotations",
+          icon: FiFileText,
+          color: "text-[#7B0A0A]",
+          bg: "bg-[#7B0A0A]/10",
+          link: "/b2b-dashboard/rfqs",
+        },
+        {
+          id: "b2b-orders",
+          label: "Purchase Orders",
+          icon: FiPackage,
+          color: "text-[#7B0A0A]",
+          bg: "bg-[#7B0A0A]/10",
+          link: "/b2b-dashboard/purchase-orders",
+        },
+        {
+          id: "company-profile",
+          label: "Company Profile",
+          icon: FiBriefcase,
+          color: "text-[#7B0A0A]",
+          bg: "bg-[#7B0A0A]/10",
+          link: "/b2b-dashboard/company-profile",
         },
         {
           id: "personal",
@@ -812,22 +841,42 @@ const MobileProfile = () => {
                       )}
                     </div>
                     <h2 className="text-xl font-extrabold text-gray-800 mb-1 max-w-full break-words">
-                      {user?.name}
+                      {user?.name || "Guest Account"}
                     </h2>
                     <p className="text-gray-500 text-sm mb-2 font-medium max-w-full break-all">
-                      {isB2BUser ? (company?.businessEmail || user?.email) : user?.email}
+                      {user ? (isB2BUser ? (company?.businessEmail || user?.email) : user?.email) : "Log in to view your orders, quotes, and settings"}
                     </p>
 
                     {/* B2B Business Account Badge */}
-                    <B2BBusinessBadge className="mb-4" />
+                    {user && <B2BBusinessBadge className="mb-4" />}
 
-                    <div className="flex gap-2 w-full">
-                      <button
-                        onClick={() => setActiveTab("personal")}
-                        className="flex-1 py-3 rounded-xl bg-red-50 text-[#7B0A0A] font-bold text-sm border border-red-200 hover:bg-red-100 transition-colors"
-                      >
-                        View Profile
-                      </button>
+                    <div className="flex gap-2 w-full mt-2">
+                      {user ? (
+                        <>
+                          <button
+                            onClick={() => setActiveTab("personal")}
+                            className="flex-1 py-3 rounded-xl bg-red-50 text-[#7B0A0A] font-bold text-sm border border-red-200 hover:bg-red-100 transition-colors"
+                          >
+                            View Profile
+                          </button>
+                          {isBusiness && (
+                            <button
+                              onClick={() => navigate("/b2b-dashboard")}
+                              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#7B0A0A] to-[#AE020B] text-white font-bold text-sm hover:brightness-110 transition-all shadow-md flex items-center justify-center gap-1.5"
+                            >
+                              <FiTrendingUp className="text-base" />
+                              <span>B2B Dashboard</span>
+                            </button>
+                          )}
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => navigate("/login")}
+                          className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#7B0A0A] to-[#AE020B] text-white font-bold text-sm hover:brightness-110 transition-all shadow-md"
+                        >
+                          Sign In / Register
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -2160,23 +2209,6 @@ const MobileProfile = () => {
             </div>
           )}
         </AnimatePresence>
-        
-        <OTPVerificationModal
-          isOpen={showOtpModal}
-          onClose={() => {
-            setShowOtpModal(false);
-            setPendingUpdateId(null);
-          }}
-          email={user?.email}
-          onVerify={async (otp) => {
-            await verifyProfileOTP(pendingUpdateId, otp);
-            toast.success("Profile updated successfully!");
-          }}
-          onResend={async () => {
-            await resendProfileOTP(pendingUpdateId);
-            toast.success("OTP resent successfully!");
-          }}
-        />
       </MobileLayout>
     </PageTransition>
   );

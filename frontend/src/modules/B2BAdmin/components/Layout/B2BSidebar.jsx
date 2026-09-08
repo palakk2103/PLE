@@ -33,7 +33,7 @@ const B2BSidebar = ({ isOpen, setIsOpen, isMobile }) => {
   });
 
   const handleLogout = () => {
-    performUserLogout('/');
+    performUserLogout('/profile');
   };
 
   return (

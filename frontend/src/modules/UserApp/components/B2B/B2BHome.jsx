@@ -19,7 +19,8 @@ import {
   FiHome,
   FiTruck,
   FiPhone,
-  FiPlus
+  FiPlus,
+  FiTrendingUp
 } from "react-icons/fi";
 import { toast } from "react-hot-toast";
 import { motion } from "framer-motion";
@@ -38,6 +39,8 @@ import { useCategoryStore } from "../../../../shared/store/categoryStore";
 import { categories as fallbackCategories } from "../../../../data/categories";
 import { useThemeStore } from "../../../../shared/store/themeStore";
 import { useAuthStore } from "../../../../shared/store/authStore";
+import { useB2BAdminStore } from "../../../B2BAdmin/store/b2bAdminStore";
+import { useB2bStore } from "../../../../shared/store/b2bStore";
 import { getPlaceholderImage } from "../../../../shared/utils/helpers";
 
 const B2BHome = ({
@@ -60,6 +63,68 @@ const B2BHome = ({
 
   const { theme } = useThemeStore();
   const isDark = theme === "dark";
+
+  const { user, isAuthenticated } = useAuthStore();
+  const { companyProfile, fetchCompanyProfile } = useB2BAdminStore();
+  const { companies } = useB2bStore();
+
+  const isB2BAdmin = user?.role === 'b2bAdmin' || user?.role === 'b2b_admin';
+  const isB2BEmployee = user?.role === 'b2bEmployee' || user?.role === 'b2b_employee';
+  const isB2BUser = isB2BAdmin || isB2BEmployee;
+
+  useEffect(() => {
+    if (isB2BUser && fetchCompanyProfile) {
+      fetchCompanyProfile();
+    }
+  }, [isB2BUser, fetchCompanyProfile]);
+
+  const company = isB2BUser
+    ? companyProfile
+    : (user?.companyId || user?.companyName || user?.email
+        ? companies?.find(c => c.id === user?.companyId || (user?.companyName && c.companyName === user?.companyName) || (user?.email && c.admin?.email?.toLowerCase() === user?.email?.toLowerCase()))
+        : null);
+
+  const displayCompanyName =
+    company?.companyName ||
+    user?.companyName ||
+    user?.company?.name ||
+    user?.company?.companyName ||
+    (user?.name ? `${user.name}'s Enterprise` : "Business Account");
+
+  const displayGSTIN =
+    company?.gstNumber ||
+    company?.gstin ||
+    user?.gstin ||
+    user?.gstNumber ||
+    user?.company?.gstNumber ||
+    user?.company?.gstin ||
+    "";
+
+  const displayAdminName =
+    user?.name ||
+    company?.admin?.name ||
+    "Business User";
+
+  const displayRole =
+    isB2BAdmin
+      ? "Super Admin"
+      : isB2BEmployee
+      ? (user?.designation || "B2B Member")
+      : user?.role === "customer"
+      ? "Customer (B2B)"
+      : (user?.role || "Business Member");
+
+  const displayMemberSince = (() => {
+    const rawDate = user?.createdAt || company?.createdAt;
+    if (rawDate) {
+      try {
+        return new Date(rawDate).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+      } catch (e) {
+        return "Member";
+      }
+    }
+    return "Member";
+  })();
 
   const { categories: allCategories, initialize: initCategories, getRootCategories } = useCategoryStore();
 
@@ -102,8 +167,7 @@ const B2BHome = ({
 
 
 
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const user = useAuthStore((state) => state.user);
+
 
   const handleUploadBOQ = () => {
     if (!isAuthenticated) {
@@ -390,7 +454,7 @@ const B2BHome = ({
                     <FiPlus className="text-lg" />
                   </div>
                   <div className="min-w-0">
-                    <h4 className={`text-xs font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Request Product</h4>
+                    <h4 className={`text-xs font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Source Now</h4>
                     <p className={`text-[10px] mt-0.5 leading-tight ${isDark ? "text-zinc-500" : "text-gray-500"}`}>Request custom or unlisted items</p>
                   </div>
                 </div>
@@ -613,11 +677,13 @@ const B2BHome = ({
                   </div>
                   <div className="min-w-0">
                     <h4 className={`text-xs font-bold truncate leading-tight ${isDark ? "text-white" : "text-gray-900"}`}>
-                      {user?.companyName || user?.company?.name || user?.company || "Zaid Enterprises Pvt. Ltd."}
+                      {displayCompanyName}
                     </h4>
                     <p className={`text-[10px] mt-0.5 flex items-center gap-1.5 ${isDark ? "text-zinc-500" : "text-gray-500"}`}>
-                      <span>GSTIN: {user?.gstin || user?.company?.gstin || "29ABCDE1234F1Z5"}</span>
-                      <span className="w-3.5 h-3.5 rounded-full bg-green-500/20 text-green-500 flex items-center justify-center text-[8px] font-bold">✔</span>
+                      <span>GSTIN: {displayGSTIN || "Not Configured"}</span>
+                      {displayGSTIN && (
+                        <span className="w-3.5 h-3.5 rounded-full bg-green-500/20 text-green-500 flex items-center justify-center text-[8px] font-bold">✔</span>
+                      )}
                     </p>
                   </div>
                 </div>
@@ -626,11 +692,11 @@ const B2BHome = ({
                 <div className="mt-5 space-y-3">
                   <div className={`flex items-center justify-between text-xs py-1 border-b ${isDark ? "border-zinc-900/50" : "border-gray-100"}`}>
                     <span className="text-zinc-500">Admin</span>
-                    <span className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>{user?.name || "info"}</span>
+                    <span className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>{displayAdminName}</span>
                   </div>
                   <div className={`flex items-center justify-between text-xs py-1 border-b ${isDark ? "border-zinc-900/50" : "border-gray-100"}`}>
                     <span className="text-zinc-500">Role</span>
-                    <span className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>Super Admin</span>
+                    <span className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>{displayRole}</span>
                   </div>
                   <div className={`flex items-center justify-between text-xs py-1 border-b ${isDark ? "border-zinc-900/50" : "border-gray-100"}`}>
                     <span className="text-zinc-500">Purchases History</span>
@@ -638,7 +704,7 @@ const B2BHome = ({
                   </div>
                   <div className="flex items-center justify-between text-xs py-1">
                     <span className="text-zinc-500">Member Since</span>
-                    <span className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>June 2024</span>
+                    <span className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>{displayMemberSince}</span>
                   </div>
                 </div>
 
@@ -666,8 +732,7 @@ const B2BHome = ({
           {/* Quick Action Cards Row (4 cards) */}
           <div className="grid grid-cols-4 gap-5">
             <div 
-              onClick={handleRfqClick}
-              className={`rounded-2xl p-5 cursor-pointer transition-all flex items-start gap-4 border ${
+              className={`rounded-2xl p-5 transition-all flex items-start gap-4 border ${
                 isDark 
                   ? "bg-zinc-955 border-zinc-900 hover:border-zinc-800 text-white" 
                   : "bg-white border-gray-200 hover:border-gray-350 text-gray-800"
@@ -678,11 +743,11 @@ const B2BHome = ({
                   ? "bg-red-955/20 border-red-900/10 text-red-500" 
                   : "bg-red-50 border-red-100/50 text-red-605"
               }`}>
-                <FiFileText className="text-lg" />
+                <FiTrendingUp className="text-lg" />
               </div>
               <div className="min-w-0">
-                <h4 className={`text-sm font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Request a Quote</h4>
-                <p className="text-xs text-zinc-505 mt-1 leading-relaxed">Upload your requirement or BOQ and get best quotes.</p>
+                <h4 className={`text-sm font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Wholesale Pricing</h4>
+                <p className="text-xs text-zinc-505 mt-1 leading-relaxed">Verified tier discounts & bulk volume rates on all catalog items.</p>
               </div>
             </div>
 
@@ -702,7 +767,7 @@ const B2BHome = ({
                 <FiPlus className="text-lg" />
               </div>
               <div className="min-w-0">
-                <h4 className={`text-sm font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Request Product</h4>
+                <h4 className={`text-sm font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Source Now</h4>
                 <p className="text-xs text-zinc-505 mt-1 leading-relaxed">Request custom or unlisted items.</p>
               </div>
             </div>

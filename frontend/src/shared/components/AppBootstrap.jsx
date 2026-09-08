@@ -71,6 +71,7 @@ const AppBootstrap = () => {
     // Self-healing synchronization for B2B session states
     try {
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      const refreshToken = localStorage.getItem('refresh-token') || sessionStorage.getItem('refresh-token');
       const b2bToken = localStorage.getItem('b2bAdminToken') || sessionStorage.getItem('b2bAdminToken');
       const mainAuth = useAuthStore.getState();
       const b2bAuth = useB2BAdminStore.getState();
@@ -78,7 +79,7 @@ const AppBootstrap = () => {
       const role = mainAuth.user?.role;
       const isB2BUser = role === 'b2bAdmin' || role === 'b2bEmployee' || mainAuth.user?.isEmployee;
 
-      if (!token && !b2bToken) {
+      if (!token && !b2bToken && !refreshToken) {
         if (mainAuth.isAuthenticated) {
           try { mainAuth.logout(); } catch (e) {}
         }

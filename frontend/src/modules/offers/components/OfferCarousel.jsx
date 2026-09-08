@@ -81,14 +81,16 @@ export const OfferCarousel = ({ offers = [], onOfferClick }) => {
     <div
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      className="relative w-full h-40 md:h-56 lg:h-64 rounded-none md:rounded-2xl overflow-hidden bg-[#120D0B] border border-white/[0.06] select-none group shadow-lg"
+      onDragStart={(e) => e.preventDefault()}
+      className="relative w-full h-40 md:h-56 lg:h-64 rounded-none md:rounded-2xl overflow-hidden bg-[#120D0B] border border-white/[0.06] select-none group shadow-lg carousel-container"
     >
       <div
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
+        onDragStart={(e) => e.preventDefault()}
         onClick={() => onOfferClick && onOfferClick(currentOffer)}
-        className="w-full h-full cursor-pointer relative"
+        className="w-full h-full cursor-pointer relative select-none"
       >
         <AnimatePresence mode="wait">
           <motion.div
@@ -97,40 +99,42 @@ export const OfferCarousel = ({ offers = [], onOfferClick }) => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.4 }}
-            className="w-full h-full relative"
+            className="w-full h-full relative select-none"
           >
             {currentOffer.bannerImage ? (
               <img
                 src={currentOffer.bannerImage}
                 alt={currentOffer.title}
-                className="w-full h-full object-cover opacity-60"
+                draggable={false}
+                onDragStart={(e) => e.preventDefault()}
+                className="w-full h-full object-cover opacity-60 pointer-events-none select-none"
               />
             ) : (
-              <div className="w-full h-full bg-gradient-to-r from-[#1A1310] to-[#2A1F1A]" />
+              <div className="w-full h-full bg-gradient-to-r from-[#1A1310] to-[#2A1F1A] pointer-events-none select-none" />
             )}
 
-            <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/35 to-transparent flex flex-col justify-center px-6 md:px-12 text-left">
-              <div className="flex items-center gap-2">
-                <span className={`text-[9px] md:text-xs font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${getBadgeStyle(currentOffer.offerType)}`}>
+            <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/35 to-transparent flex flex-col justify-center px-6 md:px-12 text-left pointer-events-none select-none">
+              <div className="flex items-center gap-2 select-none">
+                <span className={`text-[9px] md:text-xs font-black uppercase tracking-wider px-2 py-0.5 rounded-full select-none ${getBadgeStyle(currentOffer.offerType)}`}>
                   {currentOffer.offerType}
                 </span>
                 {currentOffer.discountValue > 0 && (
-                  <span className="text-[9px] md:text-xs font-black uppercase tracking-wider text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded-full">
+                  <span className="text-[9px] md:text-xs font-black uppercase tracking-wider text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded-full select-none">
                     {currentOffer.discountType === "Percentage" ? `${currentOffer.discountValue}% OFF` : `₹${currentOffer.discountValue} OFF`}
                   </span>
                 )}
               </div>
 
-              <h2 className="text-base md:text-2xl font-black text-white leading-tight mt-2.5">
+              <h2 className="text-base md:text-2xl font-black text-white leading-tight mt-2.5 select-none">
                 {currentOffer.title}
               </h2>
-              <p className="text-xs md:text-sm text-gray-300 font-medium mt-1">
+              <p className="text-xs md:text-sm text-gray-300 font-medium mt-1 select-none">
                 {currentOffer.subtitle}
               </p>
 
               {currentOffer.couponCode && (
-                <div className="mt-3">
-                  <span className="text-[10px] md:text-xs font-mono font-bold text-white bg-white/20 border border-white/20 px-2.5 py-1 rounded-lg">
+                <div className="mt-3 select-none">
+                  <span className="text-[10px] md:text-xs font-mono font-bold text-white bg-white/20 border border-white/20 px-2.5 py-1 rounded-lg select-none">
                     CODE: {currentOffer.couponCode}
                   </span>
                 </div>

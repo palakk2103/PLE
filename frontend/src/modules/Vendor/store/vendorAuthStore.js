@@ -19,7 +19,7 @@ export const useVendorAuthStore = create(
       isLoading: false,
 
       // Vendor login action
-      login: async (email, password, rememberMe = false) => {
+      login: async (email, password) => {
         set({ isLoading: true });
         try {
           const response = await api.post("/vendor/auth/login", {
@@ -48,11 +48,11 @@ export const useVendorAuthStore = create(
             isLoading: false,
           });
 
-          // Store token for vendor API requests
-          sessionStorage.setItem("vendor-token", accessToken);
-          sessionStorage.setItem("vendor-refresh-token", refreshToken);
-          localStorage.removeItem("vendor-token");
-          localStorage.removeItem("vendor-refresh-token");
+          // Store token in localStorage for persistent vendor session
+          localStorage.setItem("vendor-token", accessToken);
+          localStorage.setItem("vendor-refresh-token", refreshToken);
+          sessionStorage.removeItem("vendor-token");
+          sessionStorage.removeItem("vendor-refresh-token");
 
           return { success: true, vendor };
         } catch (error) {
@@ -82,8 +82,10 @@ export const useVendorAuthStore = create(
             isLoading: false,
           });
 
-          sessionStorage.setItem("vendor-token", accessToken);
-          sessionStorage.setItem("vendor-refresh-token", refreshToken);
+          localStorage.setItem("vendor-token", accessToken);
+          localStorage.setItem("vendor-refresh-token", refreshToken);
+          sessionStorage.removeItem("vendor-token");
+          sessionStorage.removeItem("vendor-refresh-token");
 
           return { success: true, vendor };
         } catch (error) {
@@ -246,23 +248,67 @@ export const useVendorAuthStore = create(
         return null;
       },
 
+      // Silent refresh for vendor session
+      refreshSession: async () => {
+        const refreshToken = localStorage.getItem("vendor-refresh-token") || sessionStorage.getItem("vendor-refresh-token");
+        if (!refreshToken) return false;
+        try {
+          const response = await api.post("/vendor/auth/refresh", { refreshToken });
+          const authData = response?.data?.data || response?.data || response;
+          const accessToken = authData?.accessToken;
+          const newRefreshToken = authData?.refreshToken;
+          if (accessToken) {
+            set({
+              token: accessToken,
+              refreshToken: newRefreshToken || refreshToken,
+              isAuthenticated: true,
+            });
+            localStorage.setItem("vendor-token", accessToken);
+            if (newRefreshToken) {
+              localStorage.setItem("vendor-refresh-token", newRefreshToken);
+            }
+            return true;
+          }
+          return false;
+        } catch (err) {
+          console.warn("Vendor silent refresh failed:", err);
+          if (err?.response?.status === 401) {
+            get().logout();
+          }
+          return false;
+        }
+      },
+
       // Initialize vendor auth state from localStorage
       initialize: () => {
-        const token = sessionStorage.getItem("vendor-token") || localStorage.getItem("vendor-token");
-        if (token) {
-          const storedState = JSON.parse(
-            sessionStorage.getItem("vendor-auth-storage") ||
-            localStorage.getItem("vendor-auth-storage") || "{}"
-          );
-          const refreshToken = sessionStorage.getItem("vendor-refresh-token") || localStorage.getItem("vendor-refresh-token");
-          const persistedVendor = storedState.state?.vendor || null;
+        // Migrate legacy sessionStorage
+        const sessionTok = sessionStorage.getItem("vendor-token");
+        const sessionRef = sessionStorage.getItem("vendor-refresh-token");
+        const sessionAuth = sessionStorage.getItem("vendor-auth-storage");
+        if (sessionTok && !localStorage.getItem("vendor-token")) {
+          localStorage.setItem("vendor-token", sessionTok);
+          if (sessionRef) localStorage.setItem("vendor-refresh-token", sessionRef);
+          if (sessionAuth && !localStorage.getItem("vendor-auth-storage")) {
+            localStorage.setItem("vendor-auth-storage", sessionAuth);
+          }
+        }
+
+        const token = localStorage.getItem("vendor-token") || sessionStorage.getItem("vendor-token");
+        const refreshToken = localStorage.getItem("vendor-refresh-token") || sessionStorage.getItem("vendor-refresh-token");
+        const storedState = JSON.parse(
+          localStorage.getItem("vendor-auth-storage") ||
+          sessionStorage.getItem("vendor-auth-storage") || "{}"
+        );
+
+        const persistedVendor = storedState.state?.vendor || null;
+        if (token || refreshToken) {
           if (persistedVendor) {
             set({
               vendor: persistedVendor,
-              token,
+              token: token || null,
               refreshToken: refreshToken || null,
               isAuthenticated: true,
-              isLoading: false, // Reset stale disk-persisted loading state
+              isLoading: false,
             });
             // Automatically sync fresh permissions from database
             get().refreshProfile();
@@ -274,7 +320,7 @@ export const useVendorAuthStore = create(
     }),
     {
       name: "vendor-auth-storage",
-      storage: createJSONStorage(() => sessionStorage),
+      storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         vendor: state.vendor,
         token: state.token,

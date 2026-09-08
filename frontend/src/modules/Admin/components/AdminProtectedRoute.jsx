@@ -14,20 +14,24 @@ const decodeJwtPayload = (token) => {
 };
 
 const AdminProtectedRoute = ({ children }) => {
-  const { isAuthenticated, token } = useAdminAuthStore();
+  const { isAuthenticated, token, refreshToken } = useAdminAuthStore();
   const location = useLocation();
   const accessToken = token || localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
+  const activeRefreshToken = refreshToken || localStorage.getItem('adminRefreshToken') || sessionStorage.getItem('adminRefreshToken');
   const payload = decodeJwtPayload(accessToken);
   const role = String(payload?.role || '').toLowerCase();
   const tokenExpiryMs =
     typeof payload?.exp === 'number' ? payload.exp * 1000 : null;
   const isExpired = tokenExpiryMs ? Date.now() >= tokenExpiryMs : false;
 
-  if (!isAuthenticated || !accessToken) {
+  if (!isAuthenticated && !accessToken && !activeRefreshToken) {
     return <Navigate to="/admin/login" state={{ from: location }} replace />;
   }
 
-  if (isExpired) {
+  // If accessToken is expired but a refreshToken exists, silently refresh in the background
+  if (isExpired && activeRefreshToken) {
+    useAdminAuthStore.getState().refreshSession().catch(() => {});
+  } else if (isExpired && !activeRefreshToken) {
     useAdminAuthStore.getState().logout();
     return <Navigate to="/admin/login" state={{ from: location }} replace />;
   }

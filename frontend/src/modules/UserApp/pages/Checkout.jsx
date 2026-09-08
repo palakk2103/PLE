@@ -1296,20 +1296,20 @@ const MobileCheckout = () => {
             </div>
 
             {/* Navigation Buttons (Mobile Fixed Bottom) */}
-            <div className="fixed bottom-16 left-0 right-0 bg-white border-t border-gray-200 p-4 z-40 safe-area-bottom lg:hidden">
-              <div className="flex gap-3">
+            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 sm:p-4 z-40 safe-area-bottom lg:hidden shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+              <div className="flex gap-2 sm:gap-3">
                 {step > 1 && (
                   <button
                     type="button"
                     onClick={() => setStep(step - 1)}
-                    className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300 transition-colors">
+                    className="px-4 sm:px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300 transition-colors text-sm sm:text-base">
                     Back
                   </button>
                 )}
                 <button
                   type="submit"
                   disabled={step === 2 && isPlacingOrder}
-                  className="flex-1 gradient-green text-white py-3 rounded-xl font-semibold hover:shadow-glow-green transition-all duration-300">
+                  className="flex-1 gradient-green text-white py-3 rounded-xl font-semibold hover:shadow-glow-green transition-all duration-300 text-sm sm:text-base">
                   {step === 2 ? (isPlacingOrder ? "Placing..." : "Place Order") : "Continue"}
                 </button>
               </div>

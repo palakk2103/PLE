@@ -11,12 +11,15 @@ import {
   FiArrowLeft,
   FiChevronRight,
   FiLogIn,
+  FiNavigation,
+  FiLoader,
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAddressStore } from "../../../../shared/store/addressStore";
 import { useAuthStore } from "../../../../shared/store/authStore";
+import { useLocationStore } from "../../../../shared/store/locationStore";
 
 const AddressBottomSheet = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
@@ -31,6 +34,12 @@ const AddressBottomSheet = ({ isOpen, onClose }) => {
     isLoading,
   } = useAddressStore();
 
+  const {
+    currentLocation,
+    isDetecting,
+    detectCurrentLocation,
+  } = useLocationStore();
+
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState(null);
 
@@ -38,6 +47,7 @@ const AddressBottomSheet = ({ isOpen, onClose }) => {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm();
 
@@ -47,11 +57,41 @@ const AddressBottomSheet = ({ isOpen, onClose }) => {
     }
   }, [isOpen, fetchAddresses]);
 
+  // Handle Detect Current Location Click (Listing view)
+  const handleUseCurrentLocation = async () => {
+    try {
+      const loc = await detectCurrentLocation({ enableHighAccuracy: true });
+      const display = [loc.area, loc.city].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join(', ');
+      toast.success(`Location detected: ${display || 'Current Location'}`);
+      onClose();
+    } catch (error) {
+      toast.error(error?.message || "Could not fetch current location.");
+    }
+  };
+
+  // Handle Auto-fill in Form view
+  const handleAutofillCurrentLocation = async () => {
+    try {
+      const loc = await detectCurrentLocation({ enableHighAccuracy: true });
+      if (loc.address) setValue("address", loc.address, { shouldValidate: true });
+      if (loc.city) setValue("city", loc.city, { shouldValidate: true });
+      if (loc.state) setValue("state", loc.state, { shouldValidate: true });
+      if (loc.zipCode) setValue("zipCode", loc.zipCode, { shouldValidate: true });
+      if (loc.country) setValue("country", loc.country, { shouldValidate: true });
+      if (!editingAddress) {
+        setValue("name", loc.area || "Home", { shouldValidate: true });
+      }
+      toast.success("Exact address auto-filled from GPS!");
+    } catch (error) {
+      toast.error(error?.message || "Failed to fetch GPS coordinates.");
+    }
+  };
+
   // Handle Form Submit
   const onSubmit = async (data) => {
     try {
       if (editingAddress) {
-        await updateAddress(editingAddress.id, data);
+        await updateAddress(editingAddress.id || editingAddress._id, data);
         toast.success("Address updated successfully!");
       } else {
         await addAddress(data);
@@ -137,7 +177,7 @@ const AddressBottomSheet = ({ isOpen, onClose }) => {
                   {isFormOpen ? (
                     /* Inline Add/Edit Address Form */
                     <div>
-                      <div className="flex items-center gap-3 mb-6">
+                      <div className="flex items-center gap-3 mb-4">
                         <button
                           type="button"
                           onClick={resetForm}
@@ -149,6 +189,26 @@ const AddressBottomSheet = ({ isOpen, onClose }) => {
                           {editingAddress ? "Edit Address" : "Add Address"}
                         </h3>
                       </div>
+
+                      {/* GPS Autofill Button */}
+                      <button
+                        type="button"
+                        onClick={handleAutofillCurrentLocation}
+                        disabled={isDetecting}
+                        className="w-full mb-4 py-2.5 px-4 bg-rose-50 dark:bg-rose-950/40 border border-dashed border-[#AE020B]/40 hover:border-[#AE020B] rounded-xl flex items-center justify-center gap-2 text-[#AE020B] font-bold text-xs transition-all shadow-sm active:scale-[0.98] disabled:opacity-50"
+                      >
+                        {isDetecting ? (
+                          <>
+                            <FiLoader className="animate-spin text-base" />
+                            <span>Detecting exact GPS address...</span>
+                          </>
+                        ) : (
+                          <>
+                            <FiNavigation className="text-base text-[#AE020B]" />
+                            <span>Use Current Location (Auto-fill fields)</span>
+                          </>
+                        )}
+                      </button>
 
                       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                         <div>
@@ -317,6 +377,42 @@ const AddressBottomSheet = ({ isOpen, onClose }) => {
                         </button>
                       </div>
 
+                      {/* Prominent Use Current Location Card */}
+                      <div
+                        onClick={handleUseCurrentLocation}
+                        className="mb-4 p-3.5 bg-gradient-to-r from-rose-500/10 via-rose-500/5 to-transparent border border-rose-200 dark:border-rose-900/40 rounded-2xl flex items-center justify-between gap-3 cursor-pointer hover:bg-rose-500/15 transition-all group active:scale-[0.98]"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-10 h-10 rounded-full bg-[#AE020B] text-white flex items-center justify-center shrink-0 shadow-md shadow-rose-500/20 group-hover:scale-105 transition-transform">
+                            {isDetecting ? (
+                              <FiLoader className="animate-spin text-lg" />
+                            ) : (
+                              <FiNavigation className="text-lg" />
+                            )}
+                          </div>
+                          <div className="min-w-0 text-left">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-extrabold text-sm text-gray-900 dark:text-gray-100 leading-none">
+                                {isDetecting ? "Detecting GPS Location..." : "Use Current Location"}
+                              </span>
+                              <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                            </div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">
+                              {currentLocation?.fullAddress || currentLocation?.formattedAddress || "Enable GPS for accurate delivery detection"}
+                            </p>
+                          </div>
+                        </div>
+                        <FiChevronRight className="text-gray-400 group-hover:text-[#AE020B] transition-colors shrink-0" />
+                      </div>
+
+                      <div className="relative flex py-1 items-center mb-3">
+                        <div className="flex-grow border-t border-gray-200 dark:border-neutral-800"></div>
+                        <span className="flex-shrink mx-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                          Or Saved Addresses
+                        </span>
+                        <div className="flex-grow border-t border-gray-200 dark:border-neutral-800"></div>
+                      </div>
+
                       {isLoading && addresses.length === 0 ? (
                         <div className="py-12 text-center text-gray-500">Loading addresses...</div>
                       ) : addresses.length === 0 ? (
@@ -334,10 +430,10 @@ const AddressBottomSheet = ({ isOpen, onClose }) => {
                         </div>
                       ) : (
                         <div className="space-y-3 mt-4">
-                          {addresses.map((address) => (
+                          {addresses.map((address, idx) => (
                             <div
-                              key={address.id}
-                              onClick={() => selectAddress(address.id)}
+                              key={address.id || address._id || idx}
+                              onClick={() => selectAddress(address.id || address._id)}
                               className={`flex items-start gap-3 p-4 rounded-2xl border transition-all cursor-pointer ${
                                 address.isDefault
                                   ? "bg-rose-50/50 dark:bg-rose-950/10 border-[#AE020B]/30"
@@ -385,7 +481,7 @@ const AddressBottomSheet = ({ isOpen, onClose }) => {
                                   <FiEdit className="text-xs" />
                                 </button>
                                 <button
-                                  onClick={(e) => handleDelete(e, address.id)}
+                                  onClick={(e) => handleDelete(e, address.id || address._id)}
                                   className="p-2 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-900 rounded-lg text-rose-600 dark:text-rose-400 transition-colors"
                                   title="Delete"
                                 >

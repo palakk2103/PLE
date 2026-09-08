@@ -50,21 +50,21 @@ const MobileRegister = ({ isB2BRoute }) => {
   useEffect(() => {
     api.get('/agreement-template/active')
       .then(res => {
-        if (res.data?.data) {
-          setActiveTemplate(res.data.data);
+        const template = res?.data?.data || res?.data || res;
+        if (template && (template.url || template._id)) {
+          setActiveTemplate(template);
         }
       })
       .catch(err => console.warn('Failed to load active platform template', err));
   }, []);
 
-
-
   useEffect(() => {
     api.get('/settings/b2b').then(res => {
-      if (res.data?.data) {
+      const settings = res?.data?.data || res?.data || res;
+      if (settings && typeof settings === 'object') {
         setB2bSettings({
-          requireGST: res.data.data.requireGST !== false,
-          requirePAN: res.data.data.requirePAN !== false
+          requireGST: settings.requireGST !== false,
+          requirePAN: settings.requirePAN !== false
         });
       }
     }).catch(err => console.error('Failed to load b2b settings', err));
@@ -156,14 +156,15 @@ const MobileRegister = ({ isB2BRoute }) => {
       const response = await api.post('/b2b-user/auth/upload-agreement', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      if (response?.data?.data) {
-        setUploadedAgreement(response.data.data);
+      const data = response?.data?.data || response?.data || response;
+      if (data && data.url) {
+        setUploadedAgreement(data);
         toast.success('Signed agreement uploaded successfully!');
       } else {
         toast.error('Failed to upload signed agreement.');
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to upload signed agreement.');
+      toast.error(error.response?.data?.message || error?.message || 'Failed to upload signed agreement.');
     } finally {
       setUploadingAgreement(false);
     }
@@ -501,15 +502,28 @@ const MobileRegister = ({ isB2BRoute }) => {
                         </p>
                         
                         {activeTemplate ? (
-                          <a
-                            href={activeTemplate.url}
-                            download={activeTemplate.fileName}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:underline bg-blue-50 dark:bg-blue-950/20 px-3 py-1.5 rounded-lg border border-blue-100 dark:border-blue-900/30 transition-colors"
-                          >
-                            <FiDownload /> Download Agreement Template
-                          </a>
+                          <div className="flex items-center justify-between p-3 bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-900/40 rounded-xl">
+                            <div className="flex items-center gap-2 overflow-hidden mr-2">
+                              <FiFileText className="text-emerald-600 dark:text-emerald-400 text-lg shrink-0" />
+                              <div className="overflow-hidden">
+                                <p className="text-xs font-bold text-gray-800 dark:text-zinc-100 truncate">
+                                  {activeTemplate.fileName || activeTemplate.templateName || 'Acceptance & Execution Agreement.pdf'}
+                                </p>
+                                <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                                  Official Platform Template (v{activeTemplate.version || 1})
+                                </p>
+                              </div>
+                            </div>
+                            <a
+                              href={activeTemplate.url}
+                              download={activeTemplate.fileName || 'Acceptance_Agreement.pdf'}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="shrink-0 inline-flex items-center gap-1 text-xs font-bold text-white bg-[#AE020B] hover:bg-[#8d0208] px-3 py-1.5 rounded-lg transition-colors shadow-sm"
+                            >
+                              <FiDownload /> Download
+                            </a>
+                          </div>
                         ) : (
                           <p className="text-xs text-amber-600 dark:text-amber-500 font-semibold flex items-center gap-1 bg-amber-50 dark:bg-amber-950/10 p-2 border border-amber-100 dark:border-amber-900/30 rounded-lg">
                             ⚠️ Platform Agreement template is currently not configured by the Admin. Please contact support.

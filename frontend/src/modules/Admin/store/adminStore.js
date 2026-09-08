@@ -24,11 +24,11 @@ export const useAdminAuthStore = create(
           }
           const { accessToken, refreshToken, admin } = data;
 
-          // Store token under 'adminToken' key (used by adminService interceptor)
-          sessionStorage.setItem('adminToken', accessToken);
-          sessionStorage.setItem('adminRefreshToken', refreshToken);
-          localStorage.removeItem('adminToken');
-          localStorage.removeItem('adminRefreshToken');
+          // Store token under 'adminToken' key in localStorage
+          localStorage.setItem('adminToken', accessToken);
+          localStorage.setItem('adminRefreshToken', refreshToken);
+          sessionStorage.removeItem('adminToken');
+          sessionStorage.removeItem('adminRefreshToken');
 
           set({
             admin,
@@ -52,8 +52,10 @@ export const useAdminAuthStore = create(
           const data = response.data || response;
           const { accessToken, refreshToken, admin } = data;
 
-          sessionStorage.setItem('adminToken', accessToken);
-          sessionStorage.setItem('adminRefreshToken', refreshToken);
+          localStorage.setItem('adminToken', accessToken);
+          localStorage.setItem('adminRefreshToken', refreshToken);
+          sessionStorage.removeItem('adminToken');
+          sessionStorage.removeItem('adminRefreshToken');
 
           set({
             admin,
@@ -70,9 +72,40 @@ export const useAdminAuthStore = create(
         }
       },
 
+      // Silent refresh for admin session
+      refreshSession: async () => {
+        const refreshToken = localStorage.getItem('adminRefreshToken') || sessionStorage.getItem('adminRefreshToken');
+        if (!refreshToken) return false;
+        try {
+          const response = await api.post('/admin/auth/refresh', { refreshToken });
+          const data = response?.data?.data || response?.data || response;
+          const accessToken = data?.accessToken;
+          const newRefreshToken = data?.refreshToken;
+          if (accessToken) {
+            set({
+              token: accessToken,
+              refreshToken: newRefreshToken || refreshToken,
+              isAuthenticated: true,
+            });
+            localStorage.setItem('adminToken', accessToken);
+            if (newRefreshToken) {
+              localStorage.setItem('adminRefreshToken', newRefreshToken);
+            }
+            return true;
+          }
+          return false;
+        } catch (err) {
+          console.warn('Admin silent refresh failed:', err);
+          if (err?.response?.status === 401) {
+            get().logout();
+          }
+          return false;
+        }
+      },
+
       // Admin logout
       logout: () => {
-        const refreshToken = sessionStorage.getItem('adminRefreshToken') || localStorage.getItem('adminRefreshToken');
+        const refreshToken = localStorage.getItem('adminRefreshToken') || sessionStorage.getItem('adminRefreshToken');
         if (refreshToken) {
           api.post('/admin/auth/logout', { refreshToken }).catch(() => {});
         }
@@ -86,21 +119,34 @@ export const useAdminAuthStore = create(
 
       // Initialize admin auth state from localStorage
       initialize: () => {
-        const token = sessionStorage.getItem('adminToken') || localStorage.getItem('adminToken');
-        if (token) {
-          const storedState = JSON.parse(
-            sessionStorage.getItem('admin-auth-storage') || 
-            localStorage.getItem('admin-auth-storage') || 
-            '{}'
-          );
-          const refreshToken = sessionStorage.getItem('adminRefreshToken') || localStorage.getItem('adminRefreshToken');
+        // Migrate legacy sessionStorage
+        const sessionTok = sessionStorage.getItem('adminToken');
+        const sessionRef = sessionStorage.getItem('adminRefreshToken');
+        const sessionAuth = sessionStorage.getItem('admin-auth-storage');
+        if (sessionTok && !localStorage.getItem('adminToken')) {
+          localStorage.setItem('adminToken', sessionTok);
+          if (sessionRef) localStorage.setItem('adminRefreshToken', sessionRef);
+          if (sessionAuth && !localStorage.getItem('admin-auth-storage')) {
+            localStorage.setItem('admin-auth-storage', sessionAuth);
+          }
+        }
+
+        const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
+        const refreshToken = localStorage.getItem('adminRefreshToken') || sessionStorage.getItem('adminRefreshToken');
+        const storedState = JSON.parse(
+          localStorage.getItem('admin-auth-storage') || 
+          sessionStorage.getItem('admin-auth-storage') || 
+          '{}'
+        );
+
+        if (token || refreshToken) {
           if (storedState.state?.admin) {
             set({
               admin: storedState.state.admin,
-              token,
+              token: token || null,
               refreshToken: refreshToken || null,
               isAuthenticated: true,
-              isLoading: false, // Reset stale disk loading states
+              isLoading: false,
             });
           }
         } else {
@@ -110,7 +156,7 @@ export const useAdminAuthStore = create(
     }),
     {
       name: 'admin-auth-storage',
-      storage: createJSONStorage(() => sessionStorage),
+      storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         admin: state.admin,
         token: state.token,

@@ -122,7 +122,7 @@ const NewArrivalsSection = ({ products = null }) => {
         </div>
 
         {/* Products Grid - Image Only */}
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-3 md:gap-4">
+        <div className="grid grid-cols-3 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5 xs:gap-3 md:gap-4">
           {newArrivals.map((product, index) => {
             const productLink = `/product/${product.id}`;
             return (

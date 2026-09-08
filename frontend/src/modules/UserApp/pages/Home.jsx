@@ -538,68 +538,92 @@ const MobileHome = () => {
   // Minimum swipe distance (in pixels) to trigger slide change
   const minSwipeDistance = 50;
 
-  const onTouchStart = (e) => {
-    e.stopPropagation(); // Prevent pull-to-refresh from interfering
+  const startDrag = (clientX) => {
     setTouchEnd(null);
     setIsDraggingSlide(false);
-    const touch = e.targetTouches[0];
-    setTouchStart(touch.clientX);
+    setTouchStart(clientX);
     setDragOffset(0);
     setAutoSlidePaused(true);
   };
 
-  const onTouchMove = (e) => {
+  const moveDrag = (clientX, containerWidth = 400) => {
     if (touchStart === null) return;
-    e.stopPropagation(); // Prevent pull-to-refresh from interfering
-    const touch = e.targetTouches[0];
-    const currentX = touch.clientX;
-    // Calculate difference: positive when swiping left, negative when swiping right
-    const diff = touchStart - currentX;
+    const diff = touchStart - clientX;
     if (Math.abs(diff) > 8) {
       setIsDraggingSlide(true);
     }
-    // Constrain the drag offset to prevent over-dragging
-    // Use container width for better responsiveness
-    const containerWidth = e.currentTarget?.offsetWidth || 400;
-    const maxDrag = containerWidth * 0.5; // Maximum drag distance (50% of container)
-    // dragOffset: positive = swiping left (show next), negative = swiping right (show previous)
+    const maxDrag = containerWidth * 0.5;
     setDragOffset(Math.max(-maxDrag, Math.min(maxDrag, diff)));
-    setTouchEnd(currentX);
+    setTouchEnd(clientX);
   };
 
-  const onTouchEnd = (e) => {
-    if (e) e.stopPropagation(); // Prevent pull-to-refresh from interfering
-
+  const endDrag = () => {
     if (touchStart === null) {
       setAutoSlidePaused(false);
       return;
     }
 
-    // Calculate swipe distance: positive = left swipe, negative = right swipe
     const distance = touchStart - (touchEnd || touchStart);
-    const isLeftSwipe = distance > minSwipeDistance; // Finger moved left = show next slide
-    const isRightSwipe = distance < -minSwipeDistance; // Finger moved right = show previous slide
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
 
     if (isLeftSwipe) {
-      // Swipe left (finger moved left) - go to next slide (slide moves left)
       setCurrentSlide((prev) => (prev + 1) % slides.length);
     } else if (isRightSwipe) {
-      // Swipe right (finger moved right) - go to previous slide (slide moves right)
       setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
     }
 
-    // Reset touch state
     setTouchStart(null);
     setTouchEnd(null);
     setDragOffset(0);
 
-    // Resume auto-slide after a short delay
     setTimeout(() => {
       setAutoSlidePaused(false);
     }, 2000);
     setTimeout(() => {
       setIsDraggingSlide(false);
-    }, 150);
+    }, 200);
+  };
+
+  const onTouchStart = (e) => {
+    e.stopPropagation();
+    startDrag(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e) => {
+    if (touchStart === null) return;
+    e.stopPropagation();
+    const containerWidth = e.currentTarget?.offsetWidth || 400;
+    moveDrag(e.targetTouches[0].clientX, containerWidth);
+  };
+
+  const onTouchEnd = (e) => {
+    if (e) e.stopPropagation();
+    endDrag();
+  };
+
+  const onMouseDown = (e) => {
+    e.preventDefault();
+    startDrag(e.clientX);
+  };
+
+  const onMouseMove = (e) => {
+    if (touchStart === null) return;
+    e.preventDefault();
+    const containerWidth = e.currentTarget?.offsetWidth || 400;
+    moveDrag(e.clientX, containerWidth);
+  };
+
+  const onMouseUp = () => {
+    if (touchStart !== null) {
+      endDrag();
+    }
+  };
+
+  const onMouseLeave = () => {
+    if (touchStart !== null) {
+      endDrag();
+    }
   };
 
   const handleSlideClick = (slide) => {
@@ -611,7 +635,7 @@ const MobileHome = () => {
       window.open(target, "_blank", "noopener,noreferrer");
       return;
     }
-    if (isSafeInternalPath(target)) {
+    if (isSafeInternalPath(target) && isKnownInternalRoute(target)) {
       navigate(target);
     }
   };
@@ -709,21 +733,23 @@ const MobileHome = () => {
           {activeCategoryId && activeCategory ? (
             <div className="w-full min-h-screen bg-gray-50 pb-20">
               {/* Category banner */}
-              <div className="px-4 pt-2">
-                <div className="relative rounded-2xl overflow-hidden shadow-sm aspect-[16/9] md:aspect-[21/9]">
+              <div className="px-4 pt-2 select-none">
+                <div className="relative rounded-2xl overflow-hidden shadow-sm aspect-[16/9] md:aspect-[21/9] select-none banner-container">
                   <img
                     src={categoryBanners[activeCategoryKey]?.image || activeCategory.image || heroSlide1}
                     alt={activeCategory.name}
-                    className="w-full h-full object-cover"
+                    draggable={false}
+                    onDragStart={(e) => e.preventDefault()}
+                    className="w-full h-full object-cover pointer-events-none select-none"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent flex flex-col justify-center px-6 text-left">
-                    <span className="text-[10px] uppercase tracking-wider font-extrabold text-yellow-400 mb-1">
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent flex flex-col justify-center px-6 text-left pointer-events-none select-none">
+                    <span className="text-[10px] uppercase tracking-wider font-extrabold text-yellow-400 mb-1 select-none">
                       Special Offer
                     </span>
-                    <h2 className="text-xl md:text-3xl font-black text-white leading-tight">
+                    <h2 className="text-xl md:text-3xl font-black text-white leading-tight select-none">
                       {categoryBanners[activeCategoryKey]?.title || `${activeCategory.name} Sale`}
                     </h2>
-                    <p className="text-xs md:text-sm text-white/90 font-medium mt-1">
+                    <p className="text-xs md:text-sm text-white/90 font-medium mt-1 select-none">
                       {categoryBanners[activeCategoryKey]?.subtitle || "Limited time picks!"}
                     </p>
                   </div>
@@ -780,18 +806,25 @@ const MobileHome = () => {
               <div className="px-4 py-4">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                   <div
-                    className="relative w-full h-48 md:h-80 lg:h-[400px] xl:h-[450px] rounded-xl md:rounded-2xl overflow-hidden lg:col-span-2"
+                    className="relative w-full h-48 md:h-80 lg:h-[400px] xl:h-[450px] rounded-xl md:rounded-2xl overflow-hidden lg:col-span-2 select-none banner-container"
                     data-carousel
                     onTouchStart={onTouchStart}
                     onTouchMove={onTouchMove}
                     onTouchEnd={onTouchEnd}
-                    style={{ touchAction: "pan-y", userSelect: "none" }}>
+                    onMouseDown={onMouseDown}
+                    onMouseMove={onMouseMove}
+                    onMouseUp={onMouseUp}
+                    onMouseLeave={onMouseLeave}
+                    onDragStart={(e) => e.preventDefault()}
+                    style={{ touchAction: "pan-y", userSelect: "none", cursor: "grab" }}>
                     {/* Slider Container - All slides in a row */}
                     <motion.div
-                      className="flex h-full"
+                      className="flex h-full select-none"
+                      onDragStart={(e) => e.preventDefault()}
                       style={{
                         width: `${slides.length * 100}%`,
                         height: "100%",
+                        userSelect: "none",
                       }}
                       animate={{
                         x:
@@ -808,12 +841,14 @@ const MobileHome = () => {
                       {slides.map((slide, index) => (
                         <div
                           key={index}
-                          className="flex-shrink-0"
+                          className="flex-shrink-0 select-none banner-slide"
                           onClick={() => handleSlideClick(slide)}
+                          onDragStart={(e) => e.preventDefault()}
                           style={{
                             width: `${100 / slides.length}%`,
                             height: "100%",
-                            cursor: slide?.link ? "pointer" : "default",
+                            cursor: slide?.link ? "pointer" : "grab",
+                            userSelect: "none",
                           }}>
                           <LazyImage
                             src={slide.image}
@@ -957,7 +992,7 @@ const MobileHome = () => {
               <NewArrivalsSection products={computedNewArrivals} />
 
               {/* Most Popular */}
-              <div className="px-4 py-4">
+              <div className="px-1 sm:px-2 md:px-4 py-4">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-bold text-gray-800 dark:text-white">
                     <span>Most </span>
@@ -969,11 +1004,10 @@ const MobileHome = () => {
                     See All
                   </Link>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 xs:gap-3 md:gap-4">
                   {computedMostPopular.map((product, index) => (
                     <motion.div
                       key={product.id}
-                      className={index === 5 ? "xl:hidden" : ""}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}>
@@ -988,7 +1022,7 @@ const MobileHome = () => {
 
               {/* Flash Sale */}
               {computedFlashSale.length > 0 && (
-                <div className="px-4 py-4 bg-gradient-to-br from-red-50 to-orange-50 dark:from-transparent dark:to-transparent dark:bg-none">
+                <div className="px-1 sm:px-2 md:px-4 py-4 bg-gradient-to-br from-red-50 to-orange-50 dark:from-transparent dark:to-transparent dark:bg-none">
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h2 className="text-xl font-bold text-gray-800 dark:text-white">
@@ -1002,11 +1036,10 @@ const MobileHome = () => {
                       See All
                     </Link>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 xs:gap-3 md:gap-4">
                     {computedFlashSale.map((product, index) => (
                       <motion.div
                         key={product.id}
-                        className={index === 5 ? "xl:hidden" : ""}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.05 }}>
@@ -1018,7 +1051,7 @@ const MobileHome = () => {
               )}
 
               {/* Trending Items */}
-              <div className="px-4 py-4">
+              <div className="px-1 sm:px-2 md:px-4 py-4">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-bold text-gray-800 dark:text-white">Trending Now</h2>
                   <Link
@@ -1027,11 +1060,10 @@ const MobileHome = () => {
                     See All
                   </Link>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 xs:gap-3 md:gap-4">
                   {computedTrending.map((product, index) => (
                     <motion.div
                       key={product.id}
-                      className={index === 5 ? "hidden xl:block 2xl:hidden" : ""}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}>

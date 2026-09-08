@@ -19,8 +19,9 @@ const PendingB2BApprovals = () => {
     initialize();
     api.get('/agreement-template/active')
       .then(res => {
-        if (res.data?.data) {
-          setPlatformTemplate(res.data.data);
+        const template = res?.data?.data || res?.data || res;
+        if (template && (template.url || template._id)) {
+          setPlatformTemplate(template);
         }
       })
       .catch(err => console.warn('Failed to load platform template for comparison', err));

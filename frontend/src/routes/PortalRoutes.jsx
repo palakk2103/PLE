@@ -344,9 +344,7 @@ export default function PortalRoutes() {
         path="/profile"
         element={
           <RouteWrapper>
-            <ProtectedRoute>
-              <MobileProfile />
-            </ProtectedRoute>
+            <MobileProfile />
           </RouteWrapper>
         }
       />
@@ -581,6 +579,16 @@ export default function PortalRoutes() {
       />
       <Route
         path="/product-request/new"
+        element={
+          <RouteWrapper>
+            <ProtectedRoute>
+              <UserProductRequestForm />
+            </ProtectedRoute>
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/product-requests/new"
         element={
           <RouteWrapper>
             <ProtectedRoute>

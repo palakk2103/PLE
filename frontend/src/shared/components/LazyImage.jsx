@@ -74,10 +74,10 @@ const LazyImage = ({
   };
 
   return (
-    <div className={`relative overflow-hidden ${className || ""}`} ref={imgRef}>
+    <div className={`relative overflow-hidden select-none ${className || ""}`} ref={imgRef}>
       {/* Placeholder/Blur effect */}
       {!isLoaded && !hasError && (
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300 animate-pulse"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300 animate-pulse pointer-events-none select-none"></div>
       )}
 
       {/* Actual Image */}
@@ -85,7 +85,9 @@ const LazyImage = ({
         <img
           src={imageSrc}
           alt={alt}
-          className={`transition-opacity duration-300 ${
+          draggable={false}
+          onDragStart={(e) => e.preventDefault()}
+          className={`transition-opacity duration-300 select-none ${
             isLoaded ? "opacity-100" : "opacity-0"
           } ${className || ""}`}
           onLoad={handleLoad}
@@ -97,7 +99,7 @@ const LazyImage = ({
 
       {/* Error Fallback - Only show if both original and placeholder failed */}
       {hasError && fallbackSrc && (
-        <div className="absolute inset-0 bg-gray-200 flex items-center justify-center">
+        <div className="absolute inset-0 bg-gray-200 flex items-center justify-center select-none pointer-events-none">
           <span className="text-gray-400 text-xs">Failed to load</span>
         </div>
       )}

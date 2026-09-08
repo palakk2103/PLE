@@ -119,8 +119,9 @@ const AddProduct = () => {
     initCategories();
     initBrands();
     api.get('/settings/b2b').then(res => {
-      if (res.data?.data) {
-        setB2bSettings(res.data.data);
+      const s = res?.data?.data || res?.data || res;
+      if (s) {
+        setB2bSettings(s);
       }
     }).catch(err => console.error('Failed to load b2b settings', err));
   }, [initCategories, initBrands]);

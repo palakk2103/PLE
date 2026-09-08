@@ -84,6 +84,16 @@ const ProductRequestForm = () => {
     setImagePreview("");
   };
 
+  const isB2B = location.pathname.startsWith("/b2b-dashboard");
+
+  const handleBack = () => {
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate(isB2B ? "/b2b-dashboard/product-requests" : "/product-requests", { replace: true });
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -139,7 +149,7 @@ const ProductRequestForm = () => {
 
       if (res.success || res.statusCode === 201) {
         toast.success("Product request submitted successfully!");
-        navigate(isB2B ? "/b2b-dashboard/product-requests" : "/product-requests");
+        navigate(isB2B ? "/b2b-dashboard/product-requests" : "/product-requests", { replace: true });
       }
     } catch (error) {
       console.error(error);
@@ -147,14 +157,12 @@ const ProductRequestForm = () => {
     }
   };
 
-  const isB2B = location.pathname.startsWith("/b2b-dashboard");
-
   const content = (
     <div className={`w-full pb-24 max-w-2xl mx-auto min-h-screen px-4 py-6 ${isB2B ? 'bg-white rounded-3xl border border-gray-150 p-6 shadow-sm mt-4' : 'bg-gray-50'}`}>
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
         <button
-          onClick={() => navigate(-1)}
+          onClick={handleBack}
           className="p-2 hover:bg-gray-200 rounded-full transition-colors bg-white shadow-sm border border-gray-200"
         >
           <FiArrowLeft className="text-xl text-gray-700" />

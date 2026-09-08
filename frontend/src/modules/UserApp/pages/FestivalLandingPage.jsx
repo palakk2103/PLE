@@ -154,21 +154,23 @@ const FestivalLandingPage = () => {
           </div>
 
           {/* Festival Banner */}
-          <div className="mx-2 mt-4 relative rounded-2xl overflow-hidden shadow-md group">
-            <div className="absolute inset-0 bg-gradient-to-r from-red-600/90 to-amber-600/90 z-10 mix-blend-multiply" />
+          <div className="mx-2 mt-4 relative rounded-2xl overflow-hidden shadow-md group select-none banner-container">
+            <div className="absolute inset-0 bg-gradient-to-r from-red-600/90 to-amber-600/90 z-10 mix-blend-multiply pointer-events-none select-none" />
             <img
               src={activeCampaign.bannerConfig?.image || "https://images.unsplash.com/photo-1605152276897-4f618f831968?w=1200&auto=format&fit=crop&q=80"}
               alt={activeCampaign.name}
-              className="w-full h-48 md:h-64 object-cover transform group-hover:scale-105 transition-transform duration-700"
+              draggable={false}
+              onDragStart={(e) => e.preventDefault()}
+              className="w-full h-48 md:h-64 object-cover transform group-hover:scale-105 transition-transform duration-700 pointer-events-none select-none"
             />
-            <div className="absolute inset-0 z-20 flex flex-col justify-center px-6 md:px-12 text-white">
-              <span className="bg-yellow-400 text-red-950 text-xs font-black px-2.5 py-1 rounded-full w-max uppercase tracking-wider mb-2 animate-bounce">
+            <div className="absolute inset-0 z-20 flex flex-col justify-center px-6 md:px-12 text-white pointer-events-none select-none">
+              <span className="bg-yellow-400 text-red-950 text-xs font-black px-2.5 py-1 rounded-full w-max uppercase tracking-wider mb-2 animate-bounce select-none">
                 {discountText}
               </span>
-              <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-2 uppercase drop-shadow-md">
+              <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-2 uppercase drop-shadow-md select-none">
                 {activeCampaign.bannerConfig?.title || activeCampaign.name}
               </h2>
-              <p className="text-sm md:text-base text-white/90 font-medium max-w-md drop-shadow-sm">
+              <p className="text-sm md:text-base text-white/90 font-medium max-w-md drop-shadow-sm select-none">
                 {activeCampaign.bannerConfig?.subtitle || activeCampaign.description}
               </p>
             </div>

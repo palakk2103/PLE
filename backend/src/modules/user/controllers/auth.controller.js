@@ -311,25 +311,20 @@ export const updateProfile = asyncHandler(async (req, res) => {
     const normalizedName = String(name || '').trim();
     const normalizedPhone = String(phone || '').replace(/\D/g, '').slice(-10);
 
-    const updatePayload = {
-        name: normalizedName,
-        phone: normalizedPhone || undefined,
-        gender: gender || "",
-        dob: dob || "",
-    };
+    const updatePayload = {};
+    if (normalizedName) updatePayload.name = normalizedName;
+    if (phone !== undefined) updatePayload.phone = normalizedPhone || "";
+    if (gender !== undefined) updatePayload.gender = gender || "";
+    if (dob !== undefined) updatePayload.dob = dob || "";
 
-    const user = await User.findById(req.user.id);
+    const user = await User.findByIdAndUpdate(
+        req.user.id,
+        { $set: updatePayload },
+        { new: true, runValidators: true }
+    );
     if (!user) throw new ApiError(404, 'User not found.');
 
-    const pendingUpdateId = await initiateProfileUpdateOTP({
-        userId: user._id,
-        userModel: 'User',
-        role: user.role,
-        email: user.email,
-        pendingData: updatePayload
-    });
-
-    res.status(200).json(new ApiResponse(200, { pendingUpdateId }, 'OTP sent to your registered email to verify changes.'));
+    res.status(200).json(new ApiResponse(200, user, 'Profile updated successfully.'));
 });
 
 // POST /api/user/auth/profile/verify-otp
