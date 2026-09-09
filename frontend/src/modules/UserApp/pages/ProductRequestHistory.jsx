@@ -63,10 +63,17 @@ const ProductRequestHistory = () => {
       Submitted: "bg-blue-50 text-blue-700 border-blue-200",
       "Under Review": "bg-yellow-50 text-yellow-750 border-yellow-200",
       "Vendor Sourcing": "bg-purple-50 text-purple-700 border-purple-250",
+      "Vendor Window Open": "bg-orange-50 text-orange-700 border-orange-200 animate-pulse",
+      "Vendor Accepted": "bg-blue-50 text-blue-700 border-blue-200",
+      "Quotation Submitted": "bg-indigo-50 text-indigo-700 border-indigo-200 font-black",
+      "Quotation Approved": "bg-emerald-50 text-emerald-700 border-emerald-250 font-black",
       "Final Proposal": "bg-indigo-50 text-indigo-700 border-indigo-200 animate-pulse",
       Confirmed: "bg-emerald-50 text-emerald-700 border-emerald-250 font-black",
       Accepted: "bg-green-50 text-green-700 border-green-200",
+      Completed: "bg-emerald-50 text-emerald-700 border-emerald-250 font-black",
       Rejected: "bg-red-50 text-red-700 border-red-200",
+      "Vendor Window Expired": "bg-red-50 text-red-700 border-red-200",
+      "Fulfillment Window Expired": "bg-red-50 text-red-700 border-red-200"
     };
     return map[status] || "bg-gray-50 text-gray-700 border-gray-200";
   };
@@ -124,12 +131,17 @@ const ProductRequestHistory = () => {
           >
             <option value="All">All Statuses</option>
             <option value="Submitted">Submitted</option>
+            <option value="Vendor Window Open">Vendor Window Open</option>
+            <option value="Vendor Accepted">Vendor Accepted</option>
+            <option value="Quotation Submitted">Quotation Received</option>
+            <option value="Quotation Approved">Quotation Approved</option>
             <option value="Under Review">Under Review</option>
             <option value="Vendor Sourcing">Vendor Sourcing</option>
             <option value="Final Proposal">Proposal Ready</option>
             <option value="Confirmed">Confirmed</option>
-            <option value="Rejected">Rejected</option>
             <option value="Completed">Completed</option>
+            <option value="Rejected">Rejected</option>
+            <option value="Vendor Window Expired">Window Expired</option>
             <option value="Cancelled">Cancelled</option>
           </select>
         </div>

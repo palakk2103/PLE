@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
@@ -6,6 +7,7 @@ import Notification from '../../../models/Notification.model.js';
 import Vendor from '../../../models/Vendor.model.js';
 import ManagedShop from '../../../models/ManagedShop.model.js';
 import ManagedVendorUser from '../../../models/ManagedVendorUser.model.js';
+import { moderateMessage, MODERATION_ACTION } from '../../../services/chatModeration.service.js';
 
 // Custom helper since we need REQ- format
 const generateRequestId = () => {
@@ -217,10 +219,19 @@ export const getUserProductRequests = asyncHandler(async (req, res) => {
 // @access  Private (B2B User/Admin)
 export const getProductRequestById = asyncHandler(async (req, res) => {
     const userId = req.user.id || req.user._id;
-    const request = await ProductRequest.findOne({ 
-        requestId: req.params.id, 
-        userId 
-    }).populate({
+    const idParam = req.params.id;
+    const queryConditions = [{ requestId: idParam }];
+    if (mongoose.isValidObjectId(idParam)) {
+        queryConditions.push({ _id: idParam });
+    }
+
+    const isAdmin = req.user.role === 'admin' || req.user.role === 'super_admin';
+    const filter = {
+        $or: queryConditions,
+        ...(isAdmin ? {} : { userId })
+    };
+
+    const request = await ProductRequest.findOne(filter).populate({
         path: 'targetEntityId',
         select: 'storeName storeLogo rating address name logo location'
     });
@@ -345,3 +356,430 @@ export const confirmProductRequestProposal = asyncHandler(async (req, res) => {
         new ApiResponse(200, { request, order }, 'Proposal accepted and order created')
     );
 });
+
+// @desc    User approves vendor quotation (Vendor Window flow)
+// @route   POST /api/user/product-requests/:id/approve-quotation
+// @access  Private (User)
+export const approveQuotation = asyncHandler(async (req, res) => {
+    const userId = req.user.id || req.user._id;
+
+    const request = await ProductRequest.findOne({ requestId: req.params.id });
+    if (!request) throw new ApiError(404, 'Product request not found.');
+
+    if (String(request.userId) !== String(userId)) {
+        throw new ApiError(403, 'You do not own this product request.');
+    }
+
+    if (request.status !== 'Quotation Submitted') {
+        throw new ApiError(400, 'No pending vendor quotation to approve.');
+    }
+
+    const latestQuotation = request.vendorQuotations
+        .filter(q => String(q.vendorId) === String(request.acceptedVendorId))
+        .sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt))[0];
+
+    if (!latestQuotation) {
+        throw new ApiError(400, 'No quotation from the accepted vendor found.');
+    }
+
+    // Mark quotation as accepted
+    latestQuotation.status = 'Accepted';
+    latestQuotation.respondedAt = new Date();
+
+    // Map to selectedFulfillment for compatibility with existing flow
+    request.selectedFulfillment = {
+        pleQuantity: 0,
+        vendors: [{ vendorId: latestQuotation.vendorId, quantity: request.quantity, price: latestQuotation.unitPrice }],
+        finalPrice: latestQuotation.totalPrice,
+        estimatedDelivery: latestQuotation.deliveryEstimate ? new Date(latestQuotation.deliveryEstimate) : undefined,
+        notes: latestQuotation.notes
+    };
+
+    request.status = 'Customer Approved';
+    const now = new Date();
+    request.timeline.push({
+        status: 'Customer Approved',
+        date: now,
+        comment: `Customer approved vendor quotation at ₹${latestQuotation.totalPrice}. Ready for Admin to finalize.`
+    });
+    request.auditLog.push({
+        action: 'CUSTOMER_APPROVED_QUOTATION',
+        performedBy: userId,
+        performerType: 'User',
+        timestamp: now,
+        reason: `Buyer approved vendor quotation at ₹${latestQuotation.totalPrice}.`
+    });
+
+    await request.save();
+
+    // Notify Admin
+    await Notification.create({
+        recipientType: 'admin',
+        type: 'system',
+        title: 'Customer Approved Vendor Quotation',
+        message: `Customer approved the vendor quotation for "${request.productName}" at ₹${latestQuotation.totalPrice}. Admin action may be required to finalize.`,
+        data: { relatedId: request._id.toString(), onModel: 'ProductRequest', requestId: request.requestId }
+    });
+
+    // Notify vendor
+    await Notification.create({
+        recipientId: request.acceptedVendorId,
+        recipientType: 'vendor',
+        type: 'system',
+        title: 'Your Quotation Was Approved',
+        message: `The customer approved your quotation for "${request.productName}" at ₹${latestQuotation.totalPrice}. Please proceed with fulfillment.`,
+        data: { relatedId: request._id.toString(), onModel: 'ProductRequest', requestId: request.requestId }
+    });
+
+    res.status(200).json(
+        new ApiResponse(200, request, 'Quotation approved. Admin will finalize the order.')
+    );
+});
+
+// @desc    User rejects vendor quotation (Vendor Window flow)
+// @route   POST /api/user/product-requests/:id/reject-quotation
+// @access  Private (User)
+export const rejectQuotation = asyncHandler(async (req, res) => {
+    const { reason } = req.body;
+    const userId = req.user.id || req.user._id;
+
+    const request = await ProductRequest.findOne({ requestId: req.params.id });
+    if (!request) throw new ApiError(404, 'Product request not found.');
+
+    if (String(request.userId) !== String(userId)) {
+        throw new ApiError(403, 'You do not own this product request.');
+    }
+
+    if (request.status !== 'Quotation Submitted') {
+        throw new ApiError(400, 'No pending vendor quotation to reject.');
+    }
+
+    // Mark latest quotation as rejected
+    const latestQuotation = request.vendorQuotations
+        .filter(q => String(q.vendorId) === String(request.acceptedVendorId))
+        .sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt))[0];
+
+    if (latestQuotation) {
+        latestQuotation.status = 'Rejected';
+        latestQuotation.respondedAt = new Date();
+    }
+
+    request.status = 'Vendor Accepted'; // Back to vendor fulfillment stage
+    const now = new Date();
+    const rejectReason = reason || 'Customer rejected the quotation.';
+    request.timeline.push({
+        status: 'Vendor Accepted',
+        date: now,
+        comment: `Customer rejected the vendor quotation. ${rejectReason} Vendor may resubmit.`
+    });
+    request.auditLog.push({
+        action: 'CUSTOMER_REJECTED_QUOTATION',
+        performedBy: userId,
+        performerType: 'User',
+        timestamp: now,
+        reason: rejectReason
+    });
+
+    await request.save();
+
+    // Notify vendor
+    await Notification.create({
+        recipientId: request.acceptedVendorId,
+        recipientType: 'vendor',
+        type: 'system',
+        title: 'Quotation Rejected by Customer',
+        message: `The customer rejected your quotation for "${request.productName}". Reason: ${rejectReason}. Please revise and resubmit.`,
+        data: { relatedId: request._id.toString(), onModel: 'ProductRequest', requestId: request.requestId }
+    });
+
+    res.status(200).json(
+        new ApiResponse(200, request, 'Quotation rejected. Vendor can resubmit a revised quotation.')
+    );
+});
+
+// @desc    User requests changes / negotiation on vendor quotation
+// @route   POST /api/user/product-requests/:id/request-changes
+// @access  Private (User)
+export const requestChanges = asyncHandler(async (req, res) => {
+    const { message, desiredPrice, desiredDelivery } = req.body;
+    const userId = req.user.id || req.user._id;
+
+    if (!message) throw new ApiError(400, 'Please provide a message describing the requested changes.');
+
+    // ── Moderation Layer ──────────────────────────────────────
+    const moderationResult = moderateMessage(message);
+    if (moderationResult.action === MODERATION_ACTION.BLOCK) {
+        return res.status(422).json({
+            success: false,
+            code: 'MESSAGE_BLOCKED',
+            category: moderationResult.category,
+            message: moderationResult.userMessage,
+        });
+    }
+
+    const request = await ProductRequest.findOne({ requestId: req.params.id });
+    if (!request) throw new ApiError(404, 'Product request not found.');
+
+    if (String(request.userId) !== String(userId)) {
+        throw new ApiError(403, 'You do not own this product request.');
+    }
+
+    if (!['Quotation Submitted', 'Vendor Accepted'].includes(request.status)) {
+        throw new ApiError(400, 'Cannot request changes at this stage.');
+    }
+
+    // Mark latest quotation as negotiation requested
+    const latestQuotation = request.vendorQuotations
+        .filter(q => String(q.vendorId) === String(request.acceptedVendorId))
+        .sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt))[0];
+
+    if (latestQuotation) {
+        latestQuotation.status = 'NegotiationRequested';
+        latestQuotation.respondedAt = new Date();
+    }
+
+    request.status = 'Negotiation';
+    const now = new Date();
+    const changeDetail = `${message}${desiredPrice ? ` | Desired price: ₹${desiredPrice}` : ''}${desiredDelivery ? ` | Desired delivery: ${desiredDelivery}` : ''}`;
+    request.timeline.push({
+        status: 'Negotiation',
+        date: now,
+        comment: `Customer requested changes: ${changeDetail}`
+    });
+    request.auditLog.push({
+        action: 'CUSTOMER_REQUESTED_CHANGES',
+        performedBy: userId,
+        performerType: 'User',
+        timestamp: now,
+        reason: changeDetail
+    });
+
+    await request.save();
+
+    // Notify vendor
+    await Notification.create({
+        recipientId: request.acceptedVendorId,
+        recipientType: 'vendor',
+        type: 'system',
+        title: 'Customer Requested Changes',
+        message: `The customer has requested changes on the quotation for "${request.productName}": ${message}`,
+        data: { relatedId: request._id.toString(), onModel: 'ProductRequest', requestId: request.requestId }
+    });
+
+    res.status(200).json(
+        new ApiResponse(200, request, 'Change request submitted to vendor.')
+    );
+});
+
+// @desc    Customer approves vendor extension request
+// @route   POST /api/user/product-requests/:id/extension/approve
+// @access  Private (User)
+export const approveExtension = asyncHandler(async (req, res) => {
+    const userId = req.user.id || req.user._id;
+
+    // ── Pre-check: request exists and belongs to this user ──────────────────────
+    const idParam = req.params.id;
+    const queryConditions = [{ requestId: idParam }];
+    if (mongoose.isValidObjectId(idParam)) {
+        queryConditions.push({ _id: idParam });
+    }
+    const preCheck = await ProductRequest.findOne({ $or: queryConditions });
+    if (!preCheck) throw new ApiError(404, 'Product request not found.');
+    if (String(preCheck.userId) !== String(userId)) {
+        throw new ApiError(403, 'You are not authorized to respond to this extension request.');
+    }
+    if (!preCheck.extensionRequest || preCheck.extensionRequest.status !== 'PENDING') {
+        throw new ApiError(400, 'There is no pending extension request to approve.');
+    }
+
+    const now = new Date();
+    const { requestedDays, currentDeadline, proposedDeadline, reason, requestedAt } = preCheck.extensionRequest;
+    const approvedDeadline = proposedDeadline;
+
+    // ── Atomic approve — prevents duplicate approval race condition ──────────────
+    const updated = await ProductRequest.findOneAndUpdate(
+        {
+            _id: preCheck._id,
+            userId,
+            'extensionRequest.status': 'PENDING'
+        },
+        {
+            $set: {
+                // Update the live fulfillment deadline to the approved new deadline
+                vendorFulfillmentExpiresAt: approvedDeadline,
+                // Archive the extension request details
+                'extensionRequest.status': 'APPROVED',
+                'extensionRequest.respondedAt': now,
+                'extensionRequest.respondedBy': userId
+            },
+            $push: {
+                extensionHistory: {
+                    requestedDays,
+                    previousDeadline: currentDeadline,
+                    proposedDeadline,
+                    approvedDeadline,
+                    reason,
+                    status: 'APPROVED',
+                    requestedAt,
+                    respondedAt: now,
+                    respondedBy: userId
+                },
+                timeline: {
+                    status: preCheck.status,
+                    date: now,
+                    comment: `Customer approved vendor extension request. Fulfillment deadline extended by ${requestedDays} day(s). New deadline: ${approvedDeadline.toDateString()}.`
+                },
+                auditLog: {
+                    action: 'EXTENSION_APPROVED',
+                    performedBy: userId,
+                    performerType: 'User',
+                    timestamp: now,
+                    reason: `Customer approved extension. Previous deadline: ${currentDeadline?.toISOString()}. New active deadline: ${approvedDeadline.toISOString()}.`
+                }
+            }
+        },
+        { new: true }
+    );
+
+    if (!updated) {
+        throw new ApiError(409, 'The extension request has already been responded to or no longer exists. Please refresh.');
+    }
+
+    // ── Notifications ───────────────────────────────────────────────────────────
+    // Notify vendor
+    await Notification.create({
+        recipientId: updated.acceptedVendorId,
+        recipientType: 'vendor',
+        type: 'system',
+        title: 'Extension Request Approved ✅',
+        message: `Your extension request for product request "${updated.productName}" (${updated.requestId}) has been approved. Your new fulfillment deadline is ${approvedDeadline.toDateString()}.`,
+        data: {
+            relatedId: updated._id.toString(),
+            onModel: 'ProductRequest',
+            requestId: updated.requestId
+        }
+    });
+
+    // Notify Admin
+    await Notification.create({
+        recipientType: 'admin',
+        type: 'system',
+        title: 'Extension Approved — Deadline Extended',
+        message: `Customer approved vendor extension for "${updated.productName}" (${updated.requestId}). New fulfillment deadline: ${approvedDeadline.toDateString()}.`,
+        data: {
+            relatedId: updated._id.toString(),
+            onModel: 'ProductRequest',
+            requestId: updated.requestId
+        }
+    });
+
+    res.status(200).json(
+        new ApiResponse(200, updated, `Extension approved. New fulfillment deadline: ${approvedDeadline.toDateString()}.`)
+    );
+});
+
+// @desc    Customer rejects vendor extension request
+// @route   POST /api/user/product-requests/:id/extension/reject
+// @access  Private (User)
+export const rejectExtension = asyncHandler(async (req, res) => {
+    const userId = req.user.id || req.user._id;
+
+    // ── Pre-check ────────────────────────────────────────────────────────────────
+    const idParam = req.params.id;
+    const queryConditions = [{ requestId: idParam }];
+    if (mongoose.isValidObjectId(idParam)) {
+        queryConditions.push({ _id: idParam });
+    }
+    const preCheck = await ProductRequest.findOne({ $or: queryConditions });
+    if (!preCheck) throw new ApiError(404, 'Product request not found.');
+    if (String(preCheck.userId) !== String(userId)) {
+        throw new ApiError(403, 'You are not authorized to respond to this extension request.');
+    }
+    if (!preCheck.extensionRequest || preCheck.extensionRequest.status !== 'PENDING') {
+        throw new ApiError(400, 'There is no pending extension request to reject.');
+    }
+
+    const now = new Date();
+    const { requestedDays, currentDeadline, proposedDeadline, reason, requestedAt } = preCheck.extensionRequest;
+
+    // ── Atomic reject ───────────────────────────────────────────────────────────
+    const updated = await ProductRequest.findOneAndUpdate(
+        {
+            _id: preCheck._id,
+            userId,
+            'extensionRequest.status': 'PENDING'
+        },
+        {
+            $set: {
+                // vendorFulfillmentExpiresAt is NOT changed — original deadline remains
+                'extensionRequest.status': 'REJECTED',
+                'extensionRequest.respondedAt': now,
+                'extensionRequest.respondedBy': userId
+            },
+            $push: {
+                extensionHistory: {
+                    requestedDays,
+                    previousDeadline: currentDeadline,
+                    proposedDeadline,
+                    approvedDeadline: null,
+                    reason,
+                    status: 'REJECTED',
+                    requestedAt,
+                    respondedAt: now,
+                    respondedBy: userId
+                },
+                timeline: {
+                    status: preCheck.status,
+                    date: now,
+                    comment: `Customer rejected vendor extension request. Original fulfillment deadline remains unchanged: ${currentDeadline?.toDateString()}.`
+                },
+                auditLog: {
+                    action: 'EXTENSION_REJECTED',
+                    performedBy: userId,
+                    performerType: 'User',
+                    timestamp: now,
+                    reason: `Customer rejected extension of ${requestedDays} day(s). Original deadline: ${currentDeadline?.toISOString()} remains active.`
+                }
+            }
+        },
+        { new: true }
+    );
+
+    if (!updated) {
+        throw new ApiError(409, 'The extension request has already been responded to or no longer exists. Please refresh.');
+    }
+
+    // ── Notifications ───────────────────────────────────────────────────────────
+    // Notify vendor
+    await Notification.create({
+        recipientId: updated.acceptedVendorId,
+        recipientType: 'vendor',
+        type: 'system',
+        title: 'Extension Request Rejected',
+        message: `Your extension request for product request "${updated.productName}" (${updated.requestId}) has been rejected. The original fulfillment deadline of ${currentDeadline?.toDateString()} remains unchanged.`,
+        data: {
+            relatedId: updated._id.toString(),
+            onModel: 'ProductRequest',
+            requestId: updated.requestId
+        }
+    });
+
+    // Notify Admin
+    await Notification.create({
+        recipientType: 'admin',
+        type: 'system',
+        title: 'Extension Request Rejected by Customer',
+        message: `Customer rejected vendor extension for "${updated.productName}" (${updated.requestId}). Original deadline unchanged.`,
+        data: {
+            relatedId: updated._id.toString(),
+            onModel: 'ProductRequest',
+            requestId: updated.requestId
+        }
+    });
+
+    res.status(200).json(
+        new ApiResponse(200, updated, 'Extension rejected. Original fulfillment deadline remains unchanged.')
+    );
+});
+
+

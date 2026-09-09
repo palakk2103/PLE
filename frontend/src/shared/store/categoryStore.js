@@ -6,6 +6,7 @@ import {
   getPublicCategories,
   createCategory,
   updateCategory,
+  reviewCategory,
   deleteCategory,
   reorderCategories as reorderCategoriesApi,
 } from '../../modules/Admin/services/adminService';
@@ -91,6 +92,30 @@ export const useCategoryStore = create(
             isLoading: false
           }));
           toast.success('Category updated successfully');
+          return updatedCategory;
+        } catch (error) {
+          set({ isLoading: false });
+          throw error;
+        }
+      },
+
+      // Review Category (Admin approval / rejection)
+      reviewCategory: async (id, { status, reason, autoActivateProducts = true }) => {
+        set({ isLoading: true });
+        try {
+          const response = await reviewCategory(id, { status, reason, autoActivateProducts });
+          const updatedCategory = {
+            ...response.data,
+            id: response.data._id,
+          };
+
+          set((state) => ({
+            categories: state.categories.map((cat) =>
+              String(cat.id) === String(id) ? updatedCategory : cat
+            ),
+            isLoading: false,
+          }));
+          toast.success(`Category ${status === 'approved' ? 'approved' : 'rejected'} successfully`);
           return updatedCategory;
         } catch (error) {
           set({ isLoading: false });

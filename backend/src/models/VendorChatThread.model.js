@@ -34,11 +34,27 @@ const vendorChatThreadSchema = new mongoose.Schema(
             default: 'active',
             index: true,
         },
+        // Optional: link thread to a ProductRequest (Vendor Window chat)
+        productRequestRef: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'ProductRequest',
+            default: null,
+            index: true,
+        },
+        productRequestId: { type: String, default: '' }, // requestId string for display
     },
     { timestamps: true }
 );
 
-vendorChatThreadSchema.index({ vendorId: 1, customerUserId: 1, orderRef: 1 }, { unique: true });
+vendorChatThreadSchema.index(
+    { vendorId: 1, customerUserId: 1, orderRef: 1 }, 
+    { unique: true, partialFilterExpression: { orderRef: { $type: "objectId" } } }
+);
+
+vendorChatThreadSchema.index(
+    { vendorId: 1, productRequestRef: 1 }, 
+    { unique: true, partialFilterExpression: { productRequestRef: { $type: "objectId" } } }
+);
 
 const VendorChatThread = mongoose.models.VendorChatThread || mongoose.model('VendorChatThread', vendorChatThreadSchema);
 export { VendorChatThread };

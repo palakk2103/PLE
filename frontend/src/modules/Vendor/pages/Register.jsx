@@ -334,7 +334,8 @@ const VendorRegister = () => {
       toast.success(result.message || 'Registration successful!');
       navigate('/vendor/verification', { state: { email: formData.email } });
     } catch (error) {
-      toast.error(error.message || 'Registration failed. Please try again.');
+      const errorMsg = error.response?.data?.message || error.message || 'Registration failed. Please try again.';
+      toast.error(errorMsg);
     }
   };
 

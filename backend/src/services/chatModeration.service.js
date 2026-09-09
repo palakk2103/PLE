@@ -65,22 +65,34 @@ export function normalizeText(text) {
 }
 
 /**
- * Strip separators (spaces, dashes, dots) between digits.
+ * Strip separators (spaces, dashes, dots, commas, slashes) between digits.
  * Used specifically for phone-number detection.
  * Example: "98765 43210" → "9876543210"
- * Example: "98765-43210" → "9876543210"
+ * Example: "9 8 7 6 5 4 3 2 1 0" → "9876543210"
  */
 function collapseDigitSeparators(text) {
-    // Only collapse separators that are strictly between digit characters
-    return text.replace(/(\d)[\s\-.](\d)/g, '$1$2')
-               .replace(/(\d)[\s\-.](\d)/g, '$1$2') // run twice for "9 8 7 6..."
-               .replace(/(\d)[\s\-.](\d)/g, '$1$2')
-               .replace(/(\d)[\s\-.](\d)/g, '$1$2')
-               .replace(/(\d)[\s\-.](\d)/g, '$1$2')
-               .replace(/(\d)[\s\-.](\d)/g, '$1$2')
-               .replace(/(\d)[\s\-.](\d)/g, '$1$2')
-               .replace(/(\d)[\s\-.](\d)/g, '$1$2')
-               .replace(/(\d)[\s\-.](\d)/g, '$1$2');
+    const chars = new Set([' ', '\t', '\n', '\r', '-', '_', '.', ',', '/', '|', '*', '~', '(', ')', '+', '=', ':']);
+    let res = '';
+    for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (chars.has(c)) {
+            let prevIsDigit = false;
+            for (let j = res.length - 1; j >= 0; j--) {
+                if (/\d/.test(res[j])) { prevIsDigit = true; break; }
+                if (!chars.has(res[j])) break;
+            }
+            let nextIsDigit = false;
+            for (let k = i + 1; k < text.length; k++) {
+                if (/\d/.test(text[k])) { nextIsDigit = true; break; }
+                if (!chars.has(text[k])) break;
+            }
+            if (prevIsDigit && nextIsDigit) {
+                continue; // strip separator between adjacent digits
+            }
+        }
+        res += c;
+    }
+    return res;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -88,49 +100,55 @@ function collapseDigitSeparators(text) {
 // ─────────────────────────────────────────────────────────────
 
 /**
- * Context indicators that a number is NOT a phone number.
- * If any of these precede or follow the digit sequence, we skip detection.
+ * Context indicators that a number is a genuine product attribute (price, quantity, weight, dimensions).
+ * Note: 'no.' or 'number' is strictly excluded from whitelist to prevent bypasses like 'my no 9876543210'.
  */
-const PRODUCT_CONTEXT_BEFORE = /(?:₹|rs\.?|inr|#|order|product|model|qty|quantity|kg|gram|gm|litre|ltr|ml|piece|pcs|pack|packet|set|box|unit|no\.?|serial|code|pin|otp|id|batch)\s*$/i;
-const PRODUCT_CONTEXT_AFTER  = /^\s*(?:kg|gram|gm|litre|ltr|ml|piece|pcs|pack|packet|set|box|unit|%|rs\.?|₹|inr|-|\+)/i;
+const PRODUCT_CONTEXT_BEFORE = /(?:₹|rs\.?|inr|usd|\$|qty|quantity|kg|gram|gm|litre|ltr|ml|piece|pcs|pack|packet|set|box|boxes|unit|units|pincode|pin\s*code|discount)\s*$/i;
+const PRODUCT_CONTEXT_AFTER  = /^\s*(?:kg|gram|gm|litre|ltr|ml|piece|pcs|pack|packet|set|box|boxes|unit|units|%|rs\.?|₹|inr|days|day|hours|hrs)/i;
+const CONTACT_CONTEXT_BEFORE = /(?:phone|ph|mob|mobile|contact|call|whatsapp|wa|cell|telephone|msg|sms|dm|dial|number|mera\s*no|apna\s*no|no\.?|num\.?)\s*:?\s*$/i;
 
 /**
- * Detects Indian mobile numbers:
+ * Detects Indian mobile numbers & formatted contact numbers:
  * - 10 digits starting with 6-9
- * - Optional +91 / 0 prefix
- * - Handles spaces/dashes between digits
- *
- * Returns true if a high-confidence phone number is detected
- * (i.e., not preceded/followed by product context).
+ * - Optional +91 / 91 / 0 prefix
+ * - Handles spaces, dashes, commas, slashes between digits
+ * - Distinguishes between contact numbers and product quantities/prices
  */
 export function detectPhoneNumber(text) {
     const norm = normalizeText(text);
     const collapsed = collapseDigitSeparators(norm);
 
     // Pattern: optional (+91 or 91 or 0) + 10 digits starting with [6-9]
-    const phonePattern = /(?:\+91|91|0)?([6-9]\d{9})/g;
+    const phonePattern = /(?:(?:\+91|91|0))?([6-9]\d{9})(?!\d)/g;
 
     let match;
     while ((match = phonePattern.exec(collapsed)) !== null) {
-        const digitSeq = match[1]; // the 10-digit part
+        const fullMatch = match[0];
+        const digitSeq = match[1];
         const matchStart = match.index;
-        const matchEnd   = match.index + match[0].length;
+        const matchEnd   = match.index + fullMatch.length;
 
-        const before = collapsed.slice(0, matchStart);
-        const after  = collapsed.slice(matchEnd);
+        const before = collapsed.slice(0, matchStart).trim();
+        const after  = collapsed.slice(matchEnd).trim();
 
-        // Skip if surrounded by product-context tokens
+        // 1. If preceded by an explicit contact keyword (e.g., 'call', 'ph no:', 'whatsapp'), always block
+        if (CONTACT_CONTEXT_BEFORE.test(before)) {
+            return true;
+        }
+
+        // 2. Skip if surrounded by genuine product-context tokens (e.g. ₹9876543210 or 9876543210 pcs)
         if (PRODUCT_CONTEXT_BEFORE.test(before)) continue;
         if (PRODUCT_CONTEXT_AFTER.test(after))  continue;
 
-        // Skip very short numbers misidentified (shouldn't happen with 10-digit regex, but safety)
-        if (digitSeq.length !== 10) continue;
-
-        // Skip if this looks like an order ID or product ID (surrounded by # or alphanumeric ID context)
+        // 3. Skip if this is inside an order/hash identifier context
         if (/[#\/]/.test(before.slice(-2))) continue;
 
-        return true;
+        // 4. Valid standalone 10-digit mobile number
+        if (digitSeq.length === 10) {
+            return true;
+        }
     }
+
     return false;
 }
 

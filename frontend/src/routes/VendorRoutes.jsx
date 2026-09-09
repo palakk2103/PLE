@@ -159,6 +159,7 @@ export default function VendorRoutes() {
         <Route path="product-requests" element={<VendorProductRequests />} />
         <Route path="product-enquiries" element={<VendorProductEnquiries />} />
         <Route path="admin-chat" element={<ManagedVendorAdminChat />} />
+        <Route path="chat" element={<VendorChat />} />
         <Route path="profile" element={<VendorProfileSettings />} />
       </Route>
     </Routes>

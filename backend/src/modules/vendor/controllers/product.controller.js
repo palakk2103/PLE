@@ -219,6 +219,85 @@ const calculateVariantAggregateStock = (variants = {}) => {
     }, 0);
 };
 
+const resolveCategoryForVendorProduct = async (vendorUser, categoryId, subcategoryId, customCategoryName, isCustomCategory, customParentCategoryId) => {
+    const trimmedCustomName = String(customCategoryName || '').trim();
+    const isManaged = vendorUser.role === 'managed_vendor';
+
+    if (isCustomCategory || (trimmedCustomName && !categoryId)) {
+        if (!trimmedCustomName) {
+            throw new ApiError(400, 'Custom category name is required when requesting a new category.');
+        }
+
+        const escaped = trimmedCustomName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const query = { name: { $regex: new RegExp(`^${escaped}$`, 'i') } };
+        if (customParentCategoryId) {
+            query.parentId = customParentCategoryId;
+        }
+
+        const existingCategory = await Category.findOne(query);
+
+        if (existingCategory) {
+            const isApproved = existingCategory.status === 'approved' || (existingCategory.isActive && !existingCategory.status);
+            return {
+                categoryId: existingCategory.parentId ? existingCategory.parentId : existingCategory._id,
+                subcategoryId: existingCategory.parentId ? existingCategory._id : null,
+                categoryApprovalStatus: isApproved ? 'approved' : (existingCategory.status || 'pending'),
+                customCategoryName: existingCategory.name,
+                customParentCategoryId: existingCategory.parentId || null,
+                needsCategoryReview: !isApproved,
+            };
+        }
+
+        const newCategory = await Category.create({
+            name: trimmedCustomName,
+            slug: slugify(trimmedCustomName) + '-' + Date.now(),
+            status: 'pending',
+            isActive: false,
+            parentId: customParentCategoryId || null,
+            requestedBy: isManaged ? undefined : vendorUser.id,
+            requestedByShop: isManaged ? vendorUser.shopId : undefined,
+        });
+
+        return {
+            categoryId: customParentCategoryId ? customParentCategoryId : newCategory._id,
+            subcategoryId: customParentCategoryId ? newCategory._id : null,
+            categoryApprovalStatus: 'pending',
+            customCategoryName: trimmedCustomName,
+            customParentCategoryId: customParentCategoryId || null,
+            needsCategoryReview: true,
+        };
+    }
+
+    const targetCategoryId = subcategoryId || categoryId;
+    if (targetCategoryId) {
+        const catDoc = await Category.findById(targetCategoryId);
+        if (catDoc) {
+            const isApproved = catDoc.status === 'approved' || (catDoc.isActive && !catDoc.status);
+            return {
+                categoryId: catDoc.parentId ? catDoc.parentId : catDoc._id,
+                subcategoryId: catDoc.parentId ? catDoc._id : null,
+                categoryApprovalStatus: isApproved ? 'approved' : (catDoc.status || 'pending'),
+                customCategoryName: catDoc.name,
+                customParentCategoryId: catDoc.parentId || null,
+                needsCategoryReview: !isApproved,
+            };
+        }
+    }
+
+    if (!categoryId) {
+        throw new ApiError(400, 'Product category is required.');
+    }
+
+    return {
+        categoryId: categoryId || null,
+        subcategoryId: subcategoryId || null,
+        categoryApprovalStatus: 'none',
+        customCategoryName: '',
+        customParentCategoryId: null,
+        needsCategoryReview: false,
+    };
+};
+
 const resolveBrandForVendorProduct = async (vendorUser, brandId, customBrandName, isCustomBrand) => {
     const trimmedCustomName = String(customBrandName || '').trim();
     const isManaged = vendorUser.role === 'managed_vendor';
@@ -296,7 +375,7 @@ export const getVendorProducts = asyncHandler(async (req, res) => {
     if (approvalStatus) filter.approvalStatus = approvalStatus;
 
     const products = await Product.find(filter)
-        .populate('categoryId', 'name gstRate')
+        .populate('categoryId', 'name gstRate status')
         .populate('brandId', 'name status logo')
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -312,7 +391,7 @@ export const getVendorProductById = asyncHandler(async (req, res) => {
         : { _id: req.params.id, vendorId: req.user.id };
 
     const product = await Product.findOne(query)
-        .populate('categoryId', 'name parentId gstRate')
+        .populate('categoryId', 'name parentId gstRate status')
         .populate('brandId', 'name status logo');
     if (!product) throw new ApiError(404, 'Product not found or access denied.');
     res.status(200).json(new ApiResponse(200, product, 'Product fetched.'));
@@ -328,9 +407,31 @@ export const getVendorBrandRequests = asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(200, brands, 'Vendor brand requests fetched.'));
 });
 
+// GET /api/vendor/category-requests
+export const getVendorCategoryRequests = asyncHandler(async (req, res) => {
+    const filter = req.user.role === 'managed_vendor'
+        ? { requestedByShop: req.user.shopId }
+        : { requestedBy: req.user.id };
+
+    const categories = await Category.find(filter).populate('parentId', 'name').sort({ createdAt: -1 });
+    res.status(200).json(new ApiResponse(200, categories, 'Vendor category requests fetched.'));
+});
+
 // POST /api/vendor/products
 export const createProduct = asyncHandler(async (req, res) => {
-    const { name, isCustomBrand, customBrandName: inputCustomBrandName, ...rest } = req.body;
+    const {
+        name,
+        isCustomCategory,
+        customCategoryName: inputCustomCategoryName,
+        customParentCategoryId,
+        categoryId: inputCategoryId,
+        subcategoryId: inputSubcategoryId,
+        isCustomBrand,
+        customBrandName: inputCustomBrandName,
+        brandId: inputBrandId,
+        ...rest
+    } = req.body;
+
     if (!name) throw new ApiError(400, 'Product name is required.');
     const slug = slugify(name) + '-' + Date.now();
     const stockQuantity = Number(rest.stockQuantity ?? 0);
@@ -359,12 +460,32 @@ export const createProduct = asyncHandler(async (req, res) => {
         await checkB2BPermission(req.user.id, targetSalesChannel);
     }
 
-    const { brandId: resolvedBrandId, brandApprovalStatus, customBrandName, needsBrandReview } =
-        await resolveBrandForVendorProduct(req.user, rest.brandId, inputCustomBrandName, isCustomBrand);
+    const {
+        categoryId: resolvedCategoryId,
+        categoryApprovalStatus,
+        customCategoryName,
+        needsCategoryReview,
+    } = await resolveCategoryForVendorProduct(
+        req.user,
+        inputCategoryId,
+        inputSubcategoryId,
+        inputCustomCategoryName,
+        isCustomCategory,
+        customParentCategoryId
+    );
 
-    const shouldBePending = isManaged || needsBrandReview;
+    const { brandId: resolvedBrandId, brandApprovalStatus, customBrandName, needsBrandReview } =
+        await resolveBrandForVendorProduct(req.user, inputBrandId, inputCustomBrandName, isCustomBrand);
+
+    const shouldBePending = isManaged || needsBrandReview || needsCategoryReview;
+
+    const reasons = [];
+    if (needsCategoryReview) reasons.push(`Custom category request: "${customCategoryName}"`);
+    if (needsBrandReview) reasons.push(`Custom brand request: "${customBrandName}"`);
+    if (isManaged) reasons.push('Managed vendor submission');
 
     const product = await Product.create({
+        ...rest,
         name,
         slug,
         vendorId: isManaged ? undefined : req.user.id,
@@ -372,6 +493,10 @@ export const createProduct = asyncHandler(async (req, res) => {
         vendorUserId: isManaged ? req.user.id : undefined,
         createdBy: req.user.id,
         approvalStatus: shouldBePending ? 'pending' : 'approved',
+        categoryApprovalStatus,
+        customCategoryName: customCategoryName || undefined,
+        customParentCategoryId: customParentCategoryId || undefined,
+        categoryId: resolvedCategoryId,
         brandApprovalStatus,
         customBrandName: customBrandName || undefined,
         brandId: resolvedBrandId || undefined,
@@ -381,12 +506,10 @@ export const createProduct = asyncHandler(async (req, res) => {
             userId: req.user.id,
             userType: isManaged ? 'managed_vendor' : 'vendor',
             timestamp: new Date(),
-            reason: needsBrandReview
-                ? `Product submitted for review with custom brand request: "${customBrandName}"`
-                : (isManaged ? 'Product submitted for admin review' : 'Product created')
+            reason: reasons.length > 0
+                ? `Product submitted for review with ${reasons.join(', ')}`
+                : 'Product created',
         }],
-        ...rest,
-        brandId: resolvedBrandId || undefined,
         salesChannel: targetSalesChannel,
         price,
         variants: normalizedVariants,
@@ -411,10 +534,6 @@ export const updateProduct = asyncHandler(async (req, res) => {
         if (!['pending', 'rejected'].includes(product.approvalStatus)) {
             throw new ApiError(403, 'You cannot edit approved or live products.');
         }
-        // If product was rejected, editing resubmits it for review
-        if (product.approvalStatus === 'rejected') {
-            product.approvalStatus = 'pending';
-        }
     } else {
         const incomingChannel = req.body.salesChannel || product.salesChannel;
         if (req.body.salesChannel && ['B2B', 'BOTH'].includes(req.body.salesChannel)) {
@@ -423,7 +542,50 @@ export const updateProduct = asyncHandler(async (req, res) => {
     }
 
     const isManaged = req.user.role === 'managed_vendor';
-    let brandReviewNeeded = false;
+    let reviewNeeded = false;
+
+    // Apply generic fields first (excluding category/brand overrides)
+    const {
+        categoryId: _catId,
+        subcategoryId: _subCatId,
+        isCustomCategory: _isCustCat,
+        customCategoryName: _custCatName,
+        customParentCategoryId: _custParCatId,
+        brandId: _brId,
+        isCustomBrand: _isCustBr,
+        customBrandName: _custBrName,
+        ...otherFields
+    } = req.body;
+
+    Object.assign(product, otherFields);
+
+    if (
+        req.body.isCustomCategory !== undefined ||
+        req.body.customCategoryName !== undefined ||
+        req.body.categoryId !== undefined ||
+        req.body.subcategoryId !== undefined
+    ) {
+        const {
+            categoryId: resolvedCategoryId,
+            categoryApprovalStatus,
+            customCategoryName,
+            needsCategoryReview,
+        } = await resolveCategoryForVendorProduct(
+            req.user,
+            req.body.categoryId,
+            req.body.subcategoryId,
+            req.body.customCategoryName,
+            req.body.isCustomCategory,
+            req.body.customParentCategoryId
+        );
+        product.categoryId = resolvedCategoryId;
+        product.categoryApprovalStatus = categoryApprovalStatus;
+        product.customCategoryName = customCategoryName || undefined;
+        product.customParentCategoryId = req.body.customParentCategoryId || undefined;
+        if (needsCategoryReview) {
+            reviewNeeded = true;
+        }
+    }
 
     if (req.body.isCustomBrand !== undefined || req.body.customBrandName !== undefined || req.body.brandId !== undefined) {
         const { brandId: resolvedBrandId, brandApprovalStatus, customBrandName, needsBrandReview } =
@@ -431,14 +593,16 @@ export const updateProduct = asyncHandler(async (req, res) => {
         product.brandId = resolvedBrandId || undefined;
         product.brandApprovalStatus = brandApprovalStatus;
         product.customBrandName = customBrandName || undefined;
-        brandReviewNeeded = needsBrandReview;
         if (needsBrandReview) {
-            product.approvalStatus = 'pending';
-            product.isActive = false;
+            reviewNeeded = true;
         }
     }
 
-    Object.assign(product, req.body);
+    if (reviewNeeded) {
+        product.approvalStatus = 'pending';
+        product.isActive = false;
+    }
+
     if (Object.prototype.hasOwnProperty.call(req.body, 'faqs')) {
         product.faqs = sanitizeFaqs(req.body.faqs);
     }

@@ -130,6 +130,9 @@ const productSchema = new mongoose.Schema(
         approvalStatus: { type: String, enum: ['draft', 'pending', 'approved', 'rejected', 'archived'], default: 'approved', index: true },
         brandApprovalStatus: { type: String, enum: ['none', 'pending', 'approved', 'rejected'], default: 'none', index: true },
         customBrandName: { type: String, trim: true },
+        categoryApprovalStatus: { type: String, enum: ['none', 'pending', 'approved', 'rejected'], default: 'none', index: true },
+        customCategoryName: { type: String, trim: true },
+        customParentCategoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
         rejectionReason: { type: String },
         auditLog: [{
             action: { type: String },

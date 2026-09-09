@@ -181,14 +181,98 @@ const productRequestSchema = new mongoose.Schema({
             'Completed',
             'Rejected', 
             'Product Added', 
-            'Cancelled'
+            'Cancelled',
+            // --- Vendor Window statuses (new) ---
+            'Vendor Window Open',
+            'Vendor Accepted',
+            'Vendor Fulfillment',
+            'Vendor Released',
+            'Quotation Submitted',
+            'Negotiation',
+            'Customer Approved',
+            'Expired'
         ],
         default: 'Submitted',
         index: true
     },
+    // ─── Vendor Window Fields ──────────────────────────────────────────────────
+    windowStatus: {
+        type: String,
+        enum: ['NONE', 'OPEN', 'VENDOR_LOCKED', 'REOPENED', 'EXPIRED', 'CLOSED'],
+        default: 'NONE',
+        index: true
+    },
+    windowOpenedAt: { type: Date, default: null },
+    windowExpiresAt: { type: Date, default: null, index: true },
+    // ─── Vendor Lock Fields ────────────────────────────────────────────────────
+    acceptedVendorId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Vendor',
+        default: null,
+        index: true
+    },
+    vendorAcceptedAt: { type: Date, default: null },
+    vendorFulfillmentExpiresAt: { type: Date, default: null, index: true },
+    vendorFulfillmentStatus: {
+        type: String,
+        enum: ['NONE', 'IN_PROGRESS', 'RELEASED', 'FULFILLED'],
+        default: 'NONE'
+    },
+    releasedVendors: [{
+        vendorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vendor' },
+        releasedAt: { type: Date, default: Date.now },
+        reason: { type: String }
+    }],
+    // ─── Chat & Quotation Fields ───────────────────────────────────────────────
+    chatThreadId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'VendorChatThread',
+        default: null
+    },
+    vendorQuotations: [{
+        vendorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vendor', required: true },
+        unitPrice: { type: Number, required: true },
+        totalPrice: { type: Number, required: true },
+        deliveryEstimate: { type: String },
+        additionalTerms: { type: String },
+        notes: { type: String },
+        status: {
+            type: String,
+            enum: ['Pending', 'Accepted', 'Rejected', 'NegotiationRequested'],
+            default: 'Pending'
+        },
+        submittedAt: { type: Date, default: Date.now },
+        respondedAt: { type: Date }
+    }],
     timeline: [timelineSchema],
     sellerResponses: [sellerResponseSchema],
-    auditLog: [auditLogSchema]
+    auditLog: [auditLogSchema],
+    // ─── Vendor Extension Request Fields ──────────────────────────────────────
+    extensionRequest: {
+        status: {
+            type: String,
+            enum: ['NONE', 'PENDING', 'APPROVED', 'REJECTED'],
+            default: 'NONE'
+        },
+        requestedDays: { type: Number },
+        currentDeadline: { type: Date },
+        proposedDeadline: { type: Date },
+        reason: { type: String, trim: true },
+        requestedAt: { type: Date },
+        respondedAt: { type: Date },
+        respondedBy: { type: mongoose.Schema.Types.ObjectId }
+    },
+    extensionHistory: [{
+        requestedDays: { type: Number },
+        previousDeadline: { type: Date },
+        proposedDeadline: { type: Date },
+        approvedDeadline: { type: Date },
+        reason: { type: String },
+        status: { type: String, enum: ['APPROVED', 'REJECTED'] },
+        requestedAt: { type: Date },
+        respondedAt: { type: Date },
+        respondedBy: { type: mongoose.Schema.Types.ObjectId }
+    }]
 }, { timestamps: true });
 
 // Compounding index for user and dates

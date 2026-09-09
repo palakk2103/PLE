@@ -192,6 +192,7 @@ const listProducts = asyncHandler(async (req, res) => {
         isActive: true,
         approvalStatus: { $ne: 'pending' },
         brandApprovalStatus: { $ne: 'pending' },
+        categoryApprovalStatus: { $ne: 'pending' },
     };
 
     if (category) {
@@ -391,19 +392,28 @@ const getProductDetail = asyncHandler(async (req, res) => {
 router.get('/products/:id', getProductDetail);
 
 // GET /api/categories (public)
-router.get('/categories/all', asyncHandler(async (req, res) => {
-    const categories = await Category.find({ isActive: true }).sort({ order: 1 });
+const getPublicCategoriesList = asyncHandler(async (req, res) => {
+    const categories = await Category.find({
+        isActive: true,
+        $or: [{ status: 'approved' }, { status: { $exists: false } }],
+    }).sort({ order: 1 });
     res.status(200).json(new ApiResponse(200, categories, 'Categories fetched.'));
-}));
+});
 
-// GET /api/brands/all (public)
-router.get('/brands/all', asyncHandler(async (req, res) => {
+router.get('/categories', getPublicCategoriesList);
+router.get('/categories/all', getPublicCategoriesList);
+
+const getPublicBrandsList = asyncHandler(async (req, res) => {
     const brands = await Brand.find({
         isActive: true,
         $or: [{ status: 'approved' }, { status: { $exists: false } }],
     }).sort({ displayOrder: 1, name: 1 });
     res.status(200).json(new ApiResponse(200, brands, 'Brands fetched.'));
-}));
+});
+
+// GET /api/brands & /api/brands/all (public)
+router.get('/brands', getPublicBrandsList);
+router.get('/brands/all', getPublicBrandsList);
 
 // GET /api/campaigns (public)
 router.get('/campaigns', asyncHandler(async (req, res) => {

@@ -85,6 +85,7 @@ router.patch('/products/:id/review', ...adminAuth, catalogController.reviewProdu
 router.get('/categories', ...adminAuth, catalogController.getAllCategories);
 router.post('/categories', ...adminAuth, validate(createCategorySchema), catalogController.createCategory);
 router.patch('/categories/reorder', ...adminAuth, validate(reorderCategoriesSchema), catalogController.reorderCategories);
+router.patch('/categories/:id/review', ...adminAuth, validate(categoryIdParamSchema, 'params'), catalogController.reviewCategory);
 router.put('/categories/:id', ...adminAuth, validate(categoryIdParamSchema, 'params'), validate(updateCategorySchema), catalogController.updateCategory);
 router.delete('/categories/:id', ...adminAuth, validate(categoryIdParamSchema, 'params'), catalogController.deleteCategory);
 
@@ -256,6 +257,11 @@ router.delete('/product-requests/:id', ...adminAuth, productRequestController.de
 router.get('/product-requests/:id/sourcing-check', ...adminAuth, productRequestController.sourcingCheck);
 router.post('/product-requests/:id/assign-sourcing', ...adminAuth, productRequestController.assignSourcing);
 router.post('/product-requests/:id/select-fulfillment', ...adminAuth, productRequestController.selectFulfillment);
+// --- Vendor Window routes (new) ---
+router.get('/product-requests/:id', ...adminAuth, productRequestController.getProductRequestById);
+router.post('/product-requests/:id/open-vendor-window', ...adminAuth, productRequestController.openVendorWindow);
+router.post('/product-requests/:id/close-vendor-window', ...adminAuth, productRequestController.closeVendorWindow);
+router.post('/product-requests/:id/select-vendor-quotation', ...adminAuth, productRequestController.selectVendorQuotation);
 
 // Product Enquiries
 router.get('/enquiries', ...adminAuth, productEnquiryController.getAdminEnquiries);

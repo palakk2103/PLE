@@ -417,8 +417,135 @@ export const updateTaxPricingRules = asyncHandler(async (req, res) => {
 
 // GET /api/admin/categories
 export const getAllCategories = asyncHandler(async (req, res) => {
-    const categories = await Category.find().sort({ order: 1, name: 1 });
-    res.status(200).json(new ApiResponse(200, categories, 'Categories fetched.'));
+    const { status, search } = req.query;
+    const filter = {};
+
+    if (status && status !== 'all') {
+        if (status === 'approved') {
+            filter.$or = [{ status: 'approved' }, { status: { $exists: false } }];
+        } else {
+            filter.status = status;
+        }
+    }
+
+    if (search) {
+        filter.name = { $regex: String(search).trim(), $options: 'i' };
+    }
+
+    const categories = await Category.find(filter)
+        .populate('requestedBy', 'storeName email phone contactPerson')
+        .populate('requestedByShop', 'name logo')
+        .populate('reviewedBy', 'name email')
+        .populate('parentId', 'name')
+        .sort({ order: 1, createdAt: -1 });
+
+    const categoryIds = categories.map((c) => c._id);
+    const productCounts = await Product.aggregate([
+        { $match: { categoryId: { $in: categoryIds } } },
+        { $group: { _id: '$categoryId', count: { $sum: 1 } } },
+    ]);
+    const countMap = Object.fromEntries(productCounts.map((p) => [String(p._id), p.count]));
+
+    const categoriesWithCounts = categories.map((c) => ({
+        ...c.toObject(),
+        productCount: countMap[String(c._id)] || 0,
+    }));
+
+    res.status(200).json(new ApiResponse(200, categoriesWithCounts, 'Categories fetched.'));
+});
+
+// PATCH /api/admin/categories/:id/review
+export const reviewCategory = asyncHandler(async (req, res) => {
+    const { status, reason, autoActivateProducts = true } = req.body;
+
+    if (!['approved', 'rejected'].includes(status)) {
+        throw new ApiError(400, 'Invalid review status. Must be approved or rejected.');
+    }
+
+    const category = await Category.findById(req.params.id);
+    if (!category) throw new ApiError(404, 'Category not found.');
+
+    category.status = status;
+    category.reviewedBy = req.user.id;
+    category.reviewedAt = new Date();
+
+    if (status === 'approved') {
+        category.isActive = true;
+        category.rejectionReason = undefined;
+
+        if (autoActivateProducts) {
+            await Product.updateMany(
+                { categoryId: category._id, approvalStatus: 'pending' },
+                {
+                    $set: {
+                        approvalStatus: 'approved',
+                        categoryApprovalStatus: 'approved',
+                        isActive: true,
+                        approvedBy: req.user.id,
+                        approvalDate: new Date(),
+                    },
+                    $push: {
+                        auditLog: {
+                            action: 'approved',
+                            userId: req.user.id,
+                            userType: 'admin',
+                            timestamp: new Date(),
+                            reason: `Category "${category.name}" approved by admin`,
+                        },
+                    },
+                }
+            );
+        }
+
+        if (category.requestedBy) {
+            await createNotification({
+                recipientId: category.requestedBy,
+                recipientType: 'vendor',
+                title: 'Category Request Approved! 🎉',
+                message: `Your category request for "${category.name}" has been approved. Products linked to this category are now active and available for listing.`,
+                type: 'system',
+                data: { categoryId: category._id, categoryName: category.name, status: 'approved' },
+            }).catch((err) => console.error('Notification error:', err));
+        }
+    } else {
+        category.isActive = false;
+        category.rejectionReason = reason || 'Category request rejected by admin.';
+
+        await Product.updateMany(
+            { categoryId: category._id, approvalStatus: 'pending' },
+            {
+                $set: {
+                    approvalStatus: 'rejected',
+                    categoryApprovalStatus: 'rejected',
+                    rejectionReason: category.rejectionReason,
+                    isActive: false,
+                },
+                $push: {
+                    auditLog: {
+                        action: 'rejected',
+                        userId: req.user.id,
+                        userType: 'admin',
+                        timestamp: new Date(),
+                        reason: `Category "${category.name}" rejected: ${category.rejectionReason}`,
+                    },
+                },
+            }
+        );
+
+        if (category.requestedBy) {
+            await createNotification({
+                recipientId: category.requestedBy,
+                recipientType: 'vendor',
+                title: 'Category Request Update',
+                message: `Your category request for "${category.name}" was not approved. Reason: ${category.rejectionReason}`,
+                type: 'system',
+                data: { categoryId: category._id, categoryName: category.name, status: 'rejected', rejectionReason: category.rejectionReason },
+            }).catch((err) => console.error('Notification error:', err));
+        }
+    }
+
+    await category.save();
+    res.status(200).json(new ApiResponse(200, category, `Category successfully ${status}.`));
 });
 
 // POST /api/admin/categories
@@ -687,6 +814,7 @@ export const reviewProduct = asyncHandler(async (req, res) => {
         b2bMinOrderQty,
         b2bBulkPricingSlabs,
         approveBrand = true,
+        approveCategory = true,
     } = req.body;
 
     if (!['approved', 'rejected'].includes(status)) {
@@ -706,6 +834,9 @@ export const reviewProduct = asyncHandler(async (req, res) => {
         if (product.brandApprovalStatus === 'pending') {
             product.brandApprovalStatus = 'rejected';
         }
+        if (product.categoryApprovalStatus === 'pending') {
+            product.categoryApprovalStatus = 'rejected';
+        }
     } else {
         product.rejectionReason = undefined;
         product.isActive = true;
@@ -713,16 +844,52 @@ export const reviewProduct = asyncHandler(async (req, res) => {
         if (product.brandApprovalStatus === 'pending') {
             product.brandApprovalStatus = 'approved';
         }
+        if (product.categoryApprovalStatus === 'pending') {
+            product.categoryApprovalStatus = 'approved';
+        }
+
+        // If product has a linked category that is currently pending approval, approve the category
+        if (product.categoryId && approveCategory) {
+            const linkedCategory = await Category.findById(product.categoryId);
+            if (linkedCategory && linkedCategory.status === 'pending') {
+                linkedCategory.status = 'approved';
+                linkedCategory.isActive = true;
+                linkedCategory.reviewedBy = req.user.id;
+                linkedCategory.reviewedAt = new Date();
+                await linkedCategory.save();
+
+                if (linkedCategory.requestedBy) {
+                    await createNotification({
+                        recipientId: linkedCategory.requestedBy,
+                        recipientType: 'vendor',
+                        title: 'Category Approved! 🎉',
+                        message: `Your category "${linkedCategory.name}" was approved during product review.`,
+                        type: 'system',
+                        data: { categoryId: linkedCategory._id, categoryName: linkedCategory.name, status: 'approved' },
+                    }).catch((err) => console.error('Notification error:', err));
+                }
+            }
+        }
 
         // If product has a linked brand that is currently pending approval, approve the brand
-        if (product.brandId && approveBrand) {
-            const linkedBrand = await Brand.findById(product.brandId);
-            if (linkedBrand && linkedBrand.status === 'pending') {
+        let targetBrandId = product.brandId;
+        if (!targetBrandId && product.customBrandName) {
+            const escaped = product.customBrandName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const matchedBrand = await Brand.findOne({ name: { $regex: new RegExp(`^${escaped}$`, 'i') } });
+            if (matchedBrand) {
+                targetBrandId = matchedBrand._id;
+                product.brandId = matchedBrand._id;
+            }
+        }
+        if (targetBrandId && approveBrand) {
+            const linkedBrand = await Brand.findById(targetBrandId);
+            if (linkedBrand && (linkedBrand.status === 'pending' || !linkedBrand.isActive)) {
                 linkedBrand.status = 'approved';
                 linkedBrand.isActive = true;
                 linkedBrand.reviewedBy = req.user.id;
                 linkedBrand.reviewedAt = new Date();
                 await linkedBrand.save();
+                product.brandId = linkedBrand._id;
 
                 if (linkedBrand.requestedBy) {
                     await createNotification({

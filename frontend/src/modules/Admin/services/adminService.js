@@ -95,8 +95,8 @@ export const updateTaxPricingRules = (data) =>
     api.put('/admin/products/tax-pricing-rules', data);
 
 // ─── Categories ───────────────────────────────────────────────────────────────
-export const getAllCategories = () =>
-    api.get('/admin/categories');
+export const getAllCategories = (params = {}) =>
+    api.get('/admin/categories', { params });
 
 export const getPublicCategories = () =>
     api.get('/categories/all');
@@ -106,6 +106,9 @@ export const createCategory = (data) =>
 
 export const updateCategory = (id, data) =>
     api.put(`/admin/categories/${id}`, data);
+
+export const reviewCategory = (id, data) =>
+    api.patch(`/admin/categories/${id}/review`, data);
 
 export const deleteCategory = (id) =>
     api.delete(`/admin/categories/${id}`);

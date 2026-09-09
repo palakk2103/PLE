@@ -13,15 +13,20 @@ export const useBrandStore = create(
       initialize: async () => {
         set({ isLoading: true });
         try {
-          const isVendorArea =
+          const isAdminArea =
             typeof window !== 'undefined' &&
-            window.location.pathname.startsWith('/vendor');
-          const response = isVendorArea
-            ? await getPublicBrands()
-            : await getAllBrands();
-          const normalizedBrands = response.data.map(brand => ({
+            window.location.pathname.startsWith('/admin');
+          const response = isAdminArea
+            ? await getAllBrands()
+            : await getPublicBrands();
+          const rawList = Array.isArray(response?.data)
+            ? response.data
+            : Array.isArray(response)
+            ? response
+            : [];
+          const normalizedBrands = rawList.map(brand => ({
             ...brand,
-            id: brand._id // Ensure UI compatibility by aliasing _id to id
+            id: brand._id || brand.id // Ensure UI compatibility by aliasing _id to id
           }));
           set({ brands: normalizedBrands, isLoading: false });
         } catch (error) {

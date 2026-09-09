@@ -87,6 +87,7 @@ router.post('/b2b-application/upload-document', ...strictVendorAuth, uploadDocum
 // Products
 router.get('/products', ...vendorAuth, productController.getVendorProducts);
 router.get('/brand-requests', ...vendorAuth, productController.getVendorBrandRequests);
+router.get('/category-requests', ...vendorAuth, productController.getVendorCategoryRequests);
 router.post('/products/bulk', ...vendorAuth, productController.createBulkProducts);
 router.get('/products/:id', ...vendorAuth, validate(productIdParamSchema, 'params'), productController.getVendorProductById);
 router.post('/products', ...vendorAuth, validate(createProductSchema), productController.createProduct);
@@ -191,6 +192,13 @@ router.put('/enquiries/:id/reply', ...strictVendorAuth, vendorEnquiryController.
 import * as vendorProductRequestController from '../controllers/productRequest.controller.js';
 router.get('/product-requests', ...strictVendorAuth, vendorProductRequestController.getVendorProductRequests);
 router.put('/product-requests/:id/respond', ...strictVendorAuth, vendorProductRequestController.respondToProductRequest);
+// --- Vendor Window routes (new) ---
+router.post('/product-requests/:id/accept-window', ...strictVendorAuth, vendorProductRequestController.acceptVendorWindow);
+router.post('/product-requests/:id/release', ...strictVendorAuth, vendorProductRequestController.releaseRequest);
+router.post('/product-requests/:id/submit-quotation', ...strictVendorAuth, vendorProductRequestController.submitQuotation);
+router.post('/product-requests/:id/fulfill', ...strictVendorAuth, vendorProductRequestController.markFulfilled);
+router.post('/product-requests/:id/request-extension', ...strictVendorAuth, vendorProductRequestController.requestExtension);
+router.post('/product-requests/:id/chat/initiate', ...strictVendorAuth, chatController.initiateProductRequestChat);
 
 // Managed Vendor Chat with Admin
 import * as managedVendorChatController from '../controllers/managedVendorChat.controller.js';

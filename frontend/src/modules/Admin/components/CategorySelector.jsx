@@ -7,6 +7,10 @@ const CategorySelector = ({
   value,
   subcategoryId,
   onChange,
+  isCustomCategory = false,
+  customCategoryName = "",
+  customParentCategoryId = "",
+  allowCustom = true,
   required = false,
   className = "",
   isRefurbished = false,
@@ -24,10 +28,12 @@ const CategorySelector = ({
   const subcategoryDropdownRef = useRef(null);
   const closeTimeoutRef = useRef(null);
 
+  const isCustomActive = isCustomCategory || value === "__custom__";
+
   // Get root categories (parent categories)
   const rootCategories = useMemo(() => {
     return getRootCategories().filter((cat) => {
-      const activeMatch = cat.isActive !== false;
+      const activeMatch = cat.isActive !== false && cat.status !== 'rejected';
       const refurbishedMatch = isRefurbished
         ? cat.isRefurbishedCategory === true
         : !cat.isRefurbishedCategory;
@@ -36,7 +42,7 @@ const CategorySelector = ({
   }, [categories, getRootCategories, isRefurbished]);
 
   // Get selected category and subcategory info
-  const selectedCategory = value ? getCategoryById(value) : null;
+  const selectedCategory = value && value !== "__custom__" ? getCategoryById(value) : null;
   const selectedSubcategory = subcategoryId
     ? getCategoryById(subcategoryId)
     : null;
@@ -48,7 +54,7 @@ const CategorySelector = ({
   const hoveredSubcategories = useMemo(() => {
     if (!hoveredCategoryId) return [];
     return getCategoriesByParent(hoveredCategoryId).filter((cat) => {
-      const activeMatch = cat.isActive !== false;
+      const activeMatch = cat.isActive !== false && cat.status !== 'rejected';
       const refurbishedMatch = isRefurbished
         ? cat.isRefurbishedCategory === true
         : !cat.isRefurbishedCategory;
@@ -65,7 +71,6 @@ const CategorySelector = ({
       ) {
         setIsOpen(false);
         setHoveredCategoryId(null);
-        // Clear any pending timeout
         if (closeTimeoutRef.current) {
           clearTimeout(closeTimeoutRef.current);
           closeTimeoutRef.current = null;
@@ -77,7 +82,6 @@ const CategorySelector = ({
       document.addEventListener("mousedown", handleClickOutside);
       return () => {
         document.removeEventListener("mousedown", handleClickOutside);
-        // Cleanup timeout on unmount
         if (closeTimeoutRef.current) {
           clearTimeout(closeTimeoutRef.current);
           closeTimeoutRef.current = null;
@@ -86,7 +90,6 @@ const CategorySelector = ({
     }
   }, [isOpen]);
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (closeTimeoutRef.current) {
@@ -96,7 +99,7 @@ const CategorySelector = ({
     };
   }, []);
 
-  // Position subcategory dropdown to the right of parent dropdown
+  // Position subcategory dropdown
   useEffect(() => {
     if (
       hoveredCategoryId &&
@@ -115,32 +118,20 @@ const CategorySelector = ({
         const elementRect = hoveredElement.getBoundingClientRect();
         const dropdown = subcategoryDropdownRef.current;
         const viewportWidth = window.innerWidth;
-        const dropdownWidth = 200; // min-w-[200px]
+        const dropdownWidth = 200;
 
-        // Position to the right of the parent dropdown container
-        // Calculate left position relative to container
-        let left = parentDropdownRect.right - containerRect.left + 8; // Right edge of parent dropdown + gap
-        // Calculate top position to align with hovered item, relative to container
+        let left = parentDropdownRect.right - containerRect.left + 8;
         let top = elementRect.top - containerRect.top;
 
-        // Check if dropdown would overflow viewport, adjust if needed
         const rightEdge = parentDropdownRect.right + dropdownWidth + 8;
         if (rightEdge > viewportWidth - 20) {
-          // Position to the left of parent dropdown instead
           left =
             parentDropdownRect.left - containerRect.left - dropdownWidth - 8;
         }
 
-        // Ensure dropdown doesn't go above or below viewport
-        if (top < 0) {
-          top = 0;
-        }
-
-        // Ensure dropdown doesn't go below the parent dropdown
-        const maxTop = parentDropdownRect.height - 40; // Leave some space
-        if (top > maxTop) {
-          top = maxTop;
-        }
+        if (top < 0) top = 0;
+        const maxTop = parentDropdownRect.height - 40;
+        if (top > maxTop) top = maxTop;
 
         dropdown.style.top = `${top}px`;
         dropdown.style.left = `${left}px`;
@@ -149,7 +140,24 @@ const CategorySelector = ({
   }, [hoveredCategoryId, isOpen]);
 
   const handleCategorySelect = (categoryId) => {
-    // Clear subcategory when selecting a new parent
+    onChange({
+      target: {
+        name: "isCustomCategory",
+        value: false,
+      },
+    });
+    onChange({
+      target: {
+        name: "customCategoryName",
+        value: "",
+      },
+    });
+    onChange({
+      target: {
+        name: "customParentCategoryId",
+        value: "",
+      },
+    });
     onChange({
       target: {
         name: "categoryId",
@@ -169,6 +177,24 @@ const CategorySelector = ({
   const handleSubcategorySelect = (subcategoryId, parentId) => {
     onChange({
       target: {
+        name: "isCustomCategory",
+        value: false,
+      },
+    });
+    onChange({
+      target: {
+        name: "customCategoryName",
+        value: "",
+      },
+    });
+    onChange({
+      target: {
+        name: "customParentCategoryId",
+        value: "",
+      },
+    });
+    onChange({
+      target: {
         name: "categoryId",
         value: parentId,
       },
@@ -183,8 +209,67 @@ const CategorySelector = ({
     setHoveredCategoryId(null);
   };
 
+  const handleStartCustomCategory = () => {
+    onChange({
+      target: {
+        name: "isCustomCategory",
+        value: true,
+      },
+    });
+    onChange({
+      target: {
+        name: "categoryId",
+        value: "__custom__",
+      },
+    });
+    onChange({
+      target: {
+        name: "subcategoryId",
+        value: "",
+      },
+    });
+    setIsOpen(false);
+    setHoveredCategoryId(null);
+  };
+
+  const handleCancelCustomCategory = () => {
+    onChange({
+      target: {
+        name: "isCustomCategory",
+        value: false,
+      },
+    });
+    onChange({
+      target: {
+        name: "customCategoryName",
+        value: "",
+      },
+    });
+    onChange({
+      target: {
+        name: "customParentCategoryId",
+        value: "",
+      },
+    });
+    onChange({
+      target: {
+        name: "categoryId",
+        value: "",
+      },
+    });
+    onChange({
+      target: {
+        name: "subcategoryId",
+        value: "",
+      },
+    });
+  };
+
   // Display text
   const displayText = useMemo(() => {
+    if (isCustomActive) {
+      return customCategoryName ? `Custom: ${customCategoryName}` : "✨ Add Custom Category (Under Review)";
+    }
     if (selectedSubcategory && parentCategory) {
       return `${parentCategory.name} (${selectedSubcategory.name})`;
     }
@@ -192,38 +277,120 @@ const CategorySelector = ({
       return selectedCategory.name;
     }
     return "Select Category";
-  }, [selectedCategory, selectedSubcategory, parentCategory]);
+  }, [selectedCategory, selectedSubcategory, parentCategory, isCustomActive, customCategoryName]);
 
   return (
     <div ref={containerRef} className={`relative ${className}`}>
+      {/* Category Header Row with "+ Not Listed" Quick Trigger */}
+      <div className="flex items-center justify-between mb-1">
+        <label className="block text-xs font-semibold text-gray-700">
+          Category {required && <span className="text-red-500">*</span>}
+        </label>
+        {allowCustom && !isCustomActive && (
+          <button
+            type="button"
+            onClick={handleStartCustomCategory}
+            className="text-[11px] font-semibold text-primary-600 hover:text-primary-700 underline flex items-center gap-1"
+          >
+            + Category not listed?
+          </button>
+        )}
+      </div>
+
       {/* Selected Value Display */}
-      <button
-        type="button"
-        onClick={() => {
-          setIsOpen(!isOpen);
-          // Clear any pending timeout when toggling
-          if (closeTimeoutRef.current) {
-            clearTimeout(closeTimeoutRef.current);
-            closeTimeoutRef.current = null;
-          }
-          if (!isOpen) {
-            setHoveredCategoryId(null);
-          }
-        }}
-        className={`w-full px-4 py-2.5 text-left border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white flex items-center justify-between transition-all duration-200 hover:border-primary-400 ${
-          !value ? "text-gray-500" : "text-gray-900"
-        }`}>
-        <span className="truncate">{displayText}</span>
-        <FiChevronDown
-          className={`ml-2 text-gray-500 transition-transform ${
-            isOpen ? "transform rotate-180" : ""
-          }`}
-        />
-      </button>
+      {!isCustomActive ? (
+        <button
+          type="button"
+          onClick={() => {
+            setIsOpen(!isOpen);
+            if (closeTimeoutRef.current) {
+              clearTimeout(closeTimeoutRef.current);
+              closeTimeoutRef.current = null;
+            }
+            if (!isOpen) {
+              setHoveredCategoryId(null);
+            }
+          }}
+          className={`w-full px-4 py-2.5 text-left border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white flex items-center justify-between transition-all duration-200 hover:border-primary-400 ${
+            !value ? "text-gray-500" : "text-gray-900"
+          }`}>
+          <span className="truncate">{displayText}</span>
+          <FiChevronDown
+            className={`ml-2 text-gray-500 transition-transform ${
+              isOpen ? "transform rotate-180" : ""
+            }`}
+          />
+        </button>
+      ) : (
+        /* Custom Category Form Box */
+        <div className="p-3.5 bg-gradient-to-r from-emerald-50 via-teal-50/50 to-blue-50/30 border border-emerald-200 rounded-xl space-y-3 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-bold text-emerald-950">Custom Category Request</span>
+              <span className="text-[10px] font-medium px-2 py-0.5 bg-emerald-200/70 text-emerald-900 rounded-md">
+                Admin Approval Required
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={handleCancelCustomCategory}
+              className="text-xs text-gray-500 hover:text-gray-700 font-medium hover:underline"
+            >
+              Cancel & Pick Existing
+            </button>
+          </div>
+
+          <div className="space-y-2">
+            <div>
+              <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                Category Type / Parent <span className="text-gray-400 font-normal">(Optional)</span>
+              </label>
+              <select
+                value={customParentCategoryId || ""}
+                onChange={(e) =>
+                  onChange({
+                    target: {
+                      name: "customParentCategoryId",
+                      value: e.target.value,
+                    },
+                  })
+                }
+                className="w-full px-3 py-1.5 text-xs bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                <option value="">Top-Level Main Category (New Category)</option>
+                {rootCategories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    Subcategory under: {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                Custom Category Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="customCategoryName"
+                value={customCategoryName || ""}
+                onChange={onChange}
+                placeholder="e.g. Smart Wearables, Organic Honey, Solar Gadgets"
+                className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                required={isCustomActive}
+              />
+            </div>
+          </div>
+
+          <p className="text-[11px] text-gray-500">
+            Once approved by Admin, this category will become live for your product and available for all vendors.
+          </p>
+        </div>
+      )}
 
       {/* Dropdown */}
       <AnimatePresence>
-        {isOpen && (
+        {isOpen && !isCustomActive && (
           <>
             {/* Backdrop for mobile */}
             <motion.div
@@ -247,6 +414,16 @@ const CategorySelector = ({
               transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
               className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl max-h-60 overflow-y-auto">
               <div className="py-1">
+                {allowCustom && (
+                  <div
+                    onClick={handleStartCustomCategory}
+                    className="px-4 py-2.5 cursor-pointer flex items-center justify-between bg-emerald-50/70 hover:bg-emerald-100/70 text-emerald-800 font-semibold text-xs border-b border-emerald-100 transition-colors duration-150"
+                  >
+                    <span>✨ + Add Custom Category (Not Listed)</span>
+                    <span className="text-[10px] bg-emerald-200/80 px-1.5 py-0.5 rounded text-emerald-900">New</span>
+                  </div>
+                )}
+
                 {rootCategories.length === 0 ? (
                   <div className="px-4 py-2 text-sm text-gray-500 text-center">
                     No categories available
@@ -255,10 +432,9 @@ const CategorySelector = ({
                   rootCategories.map((category) => {
                     const subcategories = getCategoriesByParent(
                       category.id
-                    ).filter((cat) => cat.isActive !== false);
+                    ).filter((cat) => cat.isActive !== false && cat.status !== 'rejected');
                     const hasSubcategories = subcategories.length > 0;
                     const isSelected = value === category.id && !subcategoryId;
-                    const isHovered = hoveredCategoryId === category.id;
 
                     return (
                       <div key={category.id} data-category-id={category.id}>
@@ -270,7 +446,7 @@ const CategorySelector = ({
                           }}
                           className={`px-4 py-2 cursor-pointer flex items-center justify-between transition-colors duration-150 ${
                             isSelected
-                              ? "bg-primary-50 text-primary-600"
+                              ? "bg-primary-50 text-primary-600 font-medium"
                               : "text-gray-900"
                           }`}
                           onClick={() => {
@@ -278,7 +454,6 @@ const CategorySelector = ({
                           }}
                           onMouseEnter={() => {
                             if (hasSubcategories) {
-                              // Clear any pending close timeout
                               if (closeTimeoutRef.current) {
                                 clearTimeout(closeTimeoutRef.current);
                                 closeTimeoutRef.current = null;
@@ -287,11 +462,9 @@ const CategorySelector = ({
                             }
                           }}
                           onMouseLeave={(e) => {
-                            // Clear any existing timeout
                             if (closeTimeoutRef.current) {
                               clearTimeout(closeTimeoutRef.current);
                             }
-                            // 0.20 second delay before closing subcategory dropdown
                             closeTimeoutRef.current = setTimeout(() => {
                               if (subcategoryDropdownRef.current) {
                                 const rect =
@@ -310,7 +483,7 @@ const CategorySelector = ({
                                 setHoveredCategoryId(null);
                               }
                               closeTimeoutRef.current = null;
-                            }, 200); // 0.20 seconds = 200ms
+                            }, 200);
                           }}>
                           <span className="flex-1">{category.name}</span>
                           {hasSubcategories && (
@@ -324,7 +497,7 @@ const CategorySelector = ({
               </div>
             </motion.div>
 
-            {/* Subcategories Dropdown - Positioned to the right of parent dropdown */}
+            {/* Subcategories Dropdown */}
             {hoveredCategoryId && hoveredSubcategories.length > 0 && (
               <motion.div
                 ref={subcategoryDropdownRef}
@@ -334,7 +507,6 @@ const CategorySelector = ({
                 transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
                 className="absolute bg-white border border-gray-200 rounded-xl shadow-xl min-w-[200px] z-[60]"
                 onMouseEnter={() => {
-                  // Clear any pending close timeout when entering subcategory dropdown
                   if (closeTimeoutRef.current) {
                     clearTimeout(closeTimeoutRef.current);
                     closeTimeoutRef.current = null;
@@ -342,14 +514,13 @@ const CategorySelector = ({
                   setHoveredCategoryId(hoveredCategoryId);
                 }}
                 onMouseLeave={() => {
-                  // 0.20 second delay before closing
                   if (closeTimeoutRef.current) {
                     clearTimeout(closeTimeoutRef.current);
                   }
                   closeTimeoutRef.current = setTimeout(() => {
                     setHoveredCategoryId(null);
                     closeTimeoutRef.current = null;
-                  }, 200); // 0.20 seconds = 200ms
+                  }, 200);
                 }}>
                 <div className="py-1 max-h-60 overflow-y-auto">
                   {hoveredSubcategories.map((subcategory) => {
@@ -370,7 +541,7 @@ const CategorySelector = ({
                         }}
                         className={`px-4 py-2 cursor-pointer transition-colors duration-150 ${
                           isSubSelected
-                            ? "bg-primary-50 text-primary-600"
+                            ? "bg-primary-50 text-primary-600 font-medium"
                             : "text-gray-900"
                         }`}>
                         {subcategory.name}
@@ -386,7 +557,11 @@ const CategorySelector = ({
 
       {/* Hidden input for form validation */}
       {required && (
-        <input type="hidden" value={value || ""} required={required} />
+        <input
+          type="hidden"
+          value={isCustomActive ? (customCategoryName || "") : (value || "")}
+          required={required}
+        />
       )}
     </div>
   );

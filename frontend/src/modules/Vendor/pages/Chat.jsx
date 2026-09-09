@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { FiMessageCircle, FiSend, FiUser, FiSearch, FiArrowLeft } from "react-icons/fi";
 import { motion } from "framer-motion";
 import Badge from "../../../shared/components/Badge";
@@ -14,6 +15,10 @@ import {
 
 const Chat = () => {
   const { vendor } = useVendorAuthStore();
+  const [searchParams] = useSearchParams();
+  const targetThreadId = searchParams.get("threadId");
+  const targetRequestId = searchParams.get("requestId");
+
   const [chats, setChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -43,6 +48,22 @@ const Chat = () => {
   useEffect(() => {
     fetchThreads();
   }, [fetchThreads]);
+
+  // Auto-select chat when navigating with threadId or requestId
+  useEffect(() => {
+    if (chats.length > 0 && !selectedChat) {
+      let target = null;
+      if (targetThreadId) {
+        target = chats.find((c) => String(c._id) === String(targetThreadId));
+      }
+      if (!target && targetRequestId) {
+        target = chats.find((c) => String(c.productRequestId) === String(targetRequestId));
+      }
+      if (target) {
+        handleSelectChat(target);
+      }
+    }
+  }, [chats, targetThreadId, targetRequestId, selectedChat]);
 
   useEffect(() => {
     if (!selectedChat?._id) {
@@ -148,11 +169,13 @@ const Chat = () => {
     () =>
       chats.filter((chat) => {
         const orderText = String(chat.orderDisplayId || "").toLowerCase();
+        const requestText = String(chat.productRequestId || "").toLowerCase();
         const customerText = String(chat.customerName || "").toLowerCase();
         const matchesSearch =
           !searchQuery ||
           customerText.includes(searchQuery.toLowerCase()) ||
-          orderText.includes(searchQuery.toLowerCase());
+          orderText.includes(searchQuery.toLowerCase()) ||
+          requestText.includes(searchQuery.toLowerCase());
         const matchesStatus =
           filterStatus === "all" || chat.status === filterStatus;
         return matchesSearch && matchesStatus;
@@ -260,9 +283,13 @@ const Chat = () => {
                             {chat.customerName}
                           </h3>
                           <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
-                            {chat.orderDisplayId
-                              ? `Order: ${chat.orderDisplayId}`
-                              : chat.customerEmail}
+                            {chat.productRequestId ? (
+                              <span className="text-indigo-600 font-semibold">📦 Req: {chat.productRequestId}</span>
+                            ) : chat.orderDisplayId ? (
+                              `Order: ${chat.orderDisplayId}`
+                            ) : (
+                              chat.customerEmail
+                            )}
                           </p>
                         </div>
                       </div>
@@ -313,9 +340,13 @@ const Chat = () => {
                       {selectedChat.customerName}
                     </h3>
                     <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
-                      {selectedChat.orderDisplayId
-                        ? `Order: ${selectedChat.orderDisplayId}`
-                        : selectedChat.customerEmail}
+                      {selectedChat.productRequestId ? (
+                        <span className="text-indigo-600 font-semibold">📦 Product Request: {selectedChat.productRequestId}</span>
+                      ) : selectedChat.orderDisplayId ? (
+                        `Order: ${selectedChat.orderDisplayId}`
+                      ) : (
+                        selectedChat.customerEmail
+                      )}
                     </p>
                   </div>
                 </div>

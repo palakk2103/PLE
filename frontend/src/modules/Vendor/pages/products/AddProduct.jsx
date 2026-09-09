@@ -42,6 +42,9 @@ const AddProduct = () => {
     images: [],
     categoryId: null,
     subcategoryId: null,
+    isCustomCategory: false,
+    customCategoryName: "",
+    customParentCategoryId: "",
     brandId: null,
     isCustomBrand: false,
     customBrandName: "",
@@ -501,6 +504,17 @@ const AddProduct = () => {
       }
     }
 
+    const isCustomCategoryActive = formData.isCustomCategory || formData.categoryId === "__custom__";
+    if (isCustomCategoryActive && !formData.customCategoryName?.trim()) {
+      toast.error("Please enter a custom category name");
+      return;
+    }
+
+    if (!isCustomCategoryActive && !finalCategoryId) {
+      toast.error("Please select a category");
+      return;
+    }
+
     const isCustomBrandActive = formData.isCustomBrand || formData.brandId === "__custom__";
     if (isCustomBrandActive && !formData.customBrandName?.trim()) {
       toast.error("Please enter a custom brand name");
@@ -517,8 +531,11 @@ const AddProduct = () => {
       warrantyPeriod: formData.warrantyPeriod || null,
       guaranteePeriod: formData.guaranteePeriod || null,
       hsnCode: formData.hsnCode || null,
-      categoryId: finalCategoryId,
-      subcategoryId: formData.subcategoryId ? formData.subcategoryId : null,
+      categoryId: isCustomCategoryActive ? null : finalCategoryId,
+      subcategoryId: isCustomCategoryActive ? null : (formData.subcategoryId ? formData.subcategoryId : null),
+      isCustomCategory: isCustomCategoryActive,
+      customCategoryName: isCustomCategoryActive ? formData.customCategoryName.trim() : null,
+      customParentCategoryId: isCustomCategoryActive && formData.customParentCategoryId ? formData.customParentCategoryId : null,
       brandId: isCustomBrandActive ? null : (formData.brandId || null),
       isCustomBrand: isCustomBrandActive,
       customBrandName: isCustomBrandActive ? formData.customBrandName.trim() : null,
@@ -677,13 +694,13 @@ const AddProduct = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                Category <span className="text-red-500">*</span>
-              </label>
               <CategorySelector
                 value={formData.categoryId}
                 subcategoryId={formData.subcategoryId}
                 onChange={handleChange}
+                isCustomCategory={formData.isCustomCategory}
+                customCategoryName={formData.customCategoryName}
+                customParentCategoryId={formData.customParentCategoryId}
                 isRefurbished={formData.condition && formData.condition !== 'brand_new'}
                 required
               />
@@ -716,7 +733,7 @@ const AddProduct = () => {
                   { value: "__custom__", label: "✨ + Add Custom Brand (Not Listed)" },
                   ...brands
                     .filter((brand) => brand.isActive !== false && brand.status !== 'rejected')
-                    .map((brand) => ({ value: String(brand.id), label: brand.name })),
+                    .map((brand) => ({ value: String(brand.id || brand._id), label: brand.name })),
                 ]}
               />
 

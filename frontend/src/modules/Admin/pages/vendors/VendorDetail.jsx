@@ -15,6 +15,7 @@ import {
   FiTrendingUp,
   FiUser,
   FiFileText,
+  FiShield,
 } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { useVendorStore } from "../../store/vendorStore";

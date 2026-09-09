@@ -128,6 +128,12 @@ router.post('/product-requests', ...customerAuth, productRequestController.creat
 router.get('/product-requests', ...customerAuth, productRequestController.getUserProductRequests);
 router.get('/product-requests/:id', ...customerAuth, productRequestController.getProductRequestById);
 router.post('/product-requests/:id/confirm', ...customerAuth, productRequestController.confirmProductRequestProposal);
+// --- Vendor Window quotation response routes (new) ---
+router.post('/product-requests/:id/approve-quotation', ...customerAuth, productRequestController.approveQuotation);
+router.post('/product-requests/:id/reject-quotation', ...customerAuth, productRequestController.rejectQuotation);
+router.post('/product-requests/:id/request-changes', ...customerAuth, productRequestController.requestChanges);
+router.post('/product-requests/:id/extension/approve', ...customerAuth, productRequestController.approveExtension);
+router.post('/product-requests/:id/extension/reject', ...customerAuth, productRequestController.rejectExtension);
 
 // Chat routes (protected)
 import * as customerChatController from '../controllers/customerChat.controller.js';

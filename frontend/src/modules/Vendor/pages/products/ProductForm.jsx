@@ -47,6 +47,9 @@ const ProductForm = () => {
     images: [],
     categoryId: null,
     subcategoryId: null,
+    isCustomCategory: false,
+    customCategoryName: "",
+    customParentCategoryId: "",
     brandId: null,
     isCustomBrand: false,
     customBrandName: "",
@@ -175,6 +178,9 @@ const ProductForm = () => {
     const isBrandPending = product.brandApprovalStatus === 'pending' || Boolean(product.customBrandName) || (typeof product.brandId === 'object' && product.brandId?.status === 'pending');
     const resolvedCustomBrandName = product.customBrandName || (typeof product.brandId === 'object' ? product.brandId?.name : '');
 
+    const isCategoryPending = product.categoryApprovalStatus === 'pending' || Boolean(product.customCategoryName) || (typeof product.categoryId === 'object' && product.categoryId?.status === 'pending');
+    const resolvedCustomCategoryName = product.customCategoryName || (typeof product.categoryId === 'object' ? product.categoryId?.name : '');
+
     setFormData({
       name: product.name || "",
       unit: product.unit || "",
@@ -182,12 +188,15 @@ const ProductForm = () => {
       originalPrice: product.originalPrice || product.price || "",
       image: product.image || "",
       images: product.images || [],
-      categoryId: isSubcategory
-        ? normalizedParentCategoryId
-        : normalizedCategoryId || null,
-      subcategoryId: isSubcategory
-        ? normalizedCategoryId
-        : normalizedSubcategoryId || null,
+      categoryId: isCategoryPending
+        ? "__custom__"
+        : (isSubcategory ? normalizedParentCategoryId : (normalizedCategoryId || null)),
+      subcategoryId: isCategoryPending
+        ? null
+        : (isSubcategory ? normalizedCategoryId : (normalizedSubcategoryId || null)),
+      isCustomCategory: isCategoryPending,
+      customCategoryName: resolvedCustomCategoryName || "",
+      customParentCategoryId: product.customParentCategoryId || (isSubcategory ? normalizedParentCategoryId : ""),
       brandId: isBrandPending ? "__custom__" : (normalizedBrandId || null),
       isCustomBrand: isBrandPending,
       customBrandName: resolvedCustomBrandName || "",
@@ -615,6 +624,17 @@ const ProductForm = () => {
       }
     }
 
+    const isCustomCategoryActive = formData.isCustomCategory || formData.categoryId === "__custom__";
+    if (isCustomCategoryActive && !formData.customCategoryName?.trim()) {
+      toast.error("Please enter a custom category name");
+      return;
+    }
+
+    if (!isCustomCategoryActive && !finalCategoryId) {
+      toast.error("Please select a category");
+      return;
+    }
+
     const isCustomBrandActive = formData.isCustomBrand || formData.brandId === "__custom__";
     if (isCustomBrandActive && !formData.customBrandName?.trim()) {
       toast.error("Please enter a custom brand name");
@@ -628,8 +648,11 @@ const ProductForm = () => {
       stockQuantity: parsedStockQuantity,
       totalAllowedQuantity: parsedTotalAllowedQuantity,
       minimumOrderQuantity: parsedMinimumOrderQuantity,
-      categoryId: finalCategoryId,
-      subcategoryId: formData.subcategoryId ? formData.subcategoryId : null,
+      categoryId: isCustomCategoryActive ? null : finalCategoryId,
+      subcategoryId: isCustomCategoryActive ? null : (formData.subcategoryId ? formData.subcategoryId : null),
+      isCustomCategory: isCustomCategoryActive,
+      customCategoryName: isCustomCategoryActive ? formData.customCategoryName.trim() : null,
+      customParentCategoryId: isCustomCategoryActive && formData.customParentCategoryId ? formData.customParentCategoryId : null,
       brandId: isCustomBrandActive ? null : (formData.brandId || null),
       isCustomBrand: isCustomBrandActive,
       customBrandName: isCustomBrandActive ? formData.customBrandName.trim() : null,
@@ -794,13 +817,13 @@ const ProductForm = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                Category <span className="text-red-500">*</span>
-              </label>
               <CategorySelector
                 value={formData.categoryId}
                 subcategoryId={formData.subcategoryId}
                 onChange={handleChange}
+                isCustomCategory={formData.isCustomCategory}
+                customCategoryName={formData.customCategoryName}
+                customParentCategoryId={formData.customParentCategoryId}
                 isRefurbished={formData.condition && formData.condition !== 'brand_new'}
                 required
               />
@@ -833,7 +856,7 @@ const ProductForm = () => {
                   { value: "__custom__", label: "✨ + Add Custom Brand (Not Listed)" },
                   ...brands
                     .filter((brand) => brand.isActive !== false && brand.status !== 'rejected')
-                    .map((brand) => ({ value: String(brand.id), label: brand.name })),
+                    .map((brand) => ({ value: String(brand.id || brand._id), label: brand.name })),
                 ]}
               />
 

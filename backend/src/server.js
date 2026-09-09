@@ -32,6 +32,10 @@ const startServer = async () => {
     
     const { migrateBusinessVerification } = await import('./utils/migrateBusinessVerification.js');
     await migrateBusinessVerification();
+
+    // Start vendor window expiry service (runs every 1 hour)
+    const { startProductRequestExpiryService } = await import('./services/productRequestExpiry.service.js');
+    startProductRequestExpiryService();
     
     const server = http.createServer(app);
     initSocket(server);

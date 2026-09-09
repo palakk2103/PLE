@@ -52,8 +52,8 @@ const ProductApprovals = () => {
 
   const fetchFiltersData = async () => {
     try {
-      const catRes = await api.get("/categories");
-      setCategories(catRes.data?.categories || catRes.data || []);
+      const catRes = await api.get("/admin/categories");
+      setCategories(catRes.data?.data || catRes.data?.categories || catRes.data || []);
       
       const shopRes = await api.get("/admin/managed-shops");
       setShops(shopRes.data?.data || shopRes.data || []);
@@ -103,9 +103,11 @@ const ProductApprovals = () => {
     try {
       await api.patch(`/admin/products/${id}/review`, {
         status: "approved",
+        approveBrand: true,
+        approveCategory: true,
         ...editForm,
       });
-      toast.success("Product approved and live!");
+      toast.success("Product approved and live with Category & Brand!");
       setSelectedProduct(null);
       fetchProducts();
     } catch (err) {
@@ -385,13 +387,28 @@ const ProductApprovals = () => {
                   </div>
                 </div>
 
-                {(selectedProduct.brandApprovalStatus === 'pending' || selectedProduct.customBrandName) && (
+                {(selectedProduct.categoryApprovalStatus === 'pending' || selectedProduct.customCategoryName || (typeof selectedProduct.categoryId === 'object' && selectedProduct.categoryId?.status === 'pending')) && (
+                  <div className="p-3.5 bg-gradient-to-r from-emerald-50 to-teal-50/50 border border-emerald-200 rounded-xl space-y-1.5 shadow-xs">
+                    <div className="flex items-center gap-2">
+                      <FiLayers className="w-4 h-4 text-emerald-600" />
+                      <span className="text-xs font-bold text-emerald-900">Custom Category Request:</span>
+                      <span className="px-2 py-0.5 bg-emerald-200/80 text-emerald-950 font-extrabold text-xs rounded-md shadow-2xs">
+                        {selectedProduct.customCategoryName || (typeof selectedProduct.categoryId === 'object' ? selectedProduct.categoryId?.name : '')}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-emerald-800 font-medium leading-relaxed">
+                      Approving this product will automatically approve this category into the master catalog, publishing the category to the storefront and adding it to dropdowns for all vendors.
+                    </p>
+                  </div>
+                )}
+
+                {(selectedProduct.brandApprovalStatus === 'pending' || selectedProduct.customBrandName || (typeof selectedProduct.brandId === 'object' && selectedProduct.brandId?.status === 'pending')) && (
                   <div className="p-3.5 bg-gradient-to-r from-amber-50 to-orange-50/50 border border-amber-200 rounded-xl space-y-1.5 shadow-xs">
                     <div className="flex items-center gap-2">
                       <FiTag className="w-4 h-4 text-amber-600" />
                       <span className="text-xs font-bold text-amber-900">Custom Brand Request:</span>
                       <span className="px-2 py-0.5 bg-amber-200/80 text-amber-950 font-extrabold text-xs rounded-md shadow-2xs">
-                        {selectedProduct.customBrandName || selectedProduct.brandId?.name}
+                        {selectedProduct.customBrandName || (typeof selectedProduct.brandId === 'object' ? selectedProduct.brandId?.name : '')}
                       </span>
                     </div>
                     <p className="text-[11px] text-amber-800 font-medium leading-relaxed">
