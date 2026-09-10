@@ -73,9 +73,11 @@ export default function Home() {
   };
 
   // Sort and filter visible sections, ensuring pricing is removed
-  const visibleSections = [...sections]
-    .sort((a, b) => a.order - b.order)
-    .filter((sec) => sec.visible && sec.id !== 'pricing');
+  const visibleSections = Array.isArray(sections)
+    ? [...sections]
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+        .filter((sec) => sec && sec.visible && sec.id !== 'pricing')
+    : [];
 
   return (
     <motion.div
