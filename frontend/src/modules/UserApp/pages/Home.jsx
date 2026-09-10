@@ -710,7 +710,7 @@ const MobileHome = () => {
 
           {/* Slim RFQ Strip for B2B Users */}
           {isBusiness && (
-            <div className="px-4 pt-2">
+            <div className="px-2.5 sm:px-4 md:px-0 pt-2">
               <div className="bg-gradient-to-r from-[#AE020B] to-[#7B0A0A] rounded-xl px-4 py-2 text-white shadow-sm flex items-center justify-between gap-3 bg-[#AE020B]">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="bg-white/20 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md tracking-wider hidden xs:inline-block shrink-0">
@@ -733,7 +733,7 @@ const MobileHome = () => {
           {activeCategoryId && activeCategory ? (
             <div className="w-full min-h-screen bg-gray-50 pb-20">
               {/* Category banner */}
-              <div className="px-4 pt-2 select-none">
+              <div className="px-2.5 sm:px-4 md:px-0 pt-2 select-none">
                 <div className="relative rounded-2xl overflow-hidden shadow-sm aspect-[16/9] md:aspect-[21/9] select-none banner-container">
                   <img
                     src={categoryBanners[activeCategoryKey]?.image || activeCategory.image || heroSlide1}
@@ -757,7 +757,7 @@ const MobileHome = () => {
               </div>
 
               {/* Subcategories Circles Grid */}
-              <div className="px-4 py-6">
+              <div className="px-2.5 sm:px-4 md:px-0 py-4 md:py-6">
                 <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 bg-white p-4 rounded-2xl shadow-sm">
                   {((subcategories.length > 0 ? subcategories : fallbackSubcategories[activeCategoryKey]) || []).map((sub) => (
                     <Link
@@ -781,7 +781,7 @@ const MobileHome = () => {
               </div>
 
               {/* Shop for Loved Ones Section / Curated Products */}
-              <div className="px-4 py-2">
+              <div className="px-2.5 sm:px-4 md:px-0 py-2">
                 <h3 className="text-base font-extrabold text-gray-900 mb-3 tracking-tight">
                   Shop for loved ones!
                 </h3>
@@ -803,7 +803,7 @@ const MobileHome = () => {
           ) : (
             <>
               {/* Hero Banner */}
-              <div className="px-4 py-4">
+              <div className="px-2.5 sm:px-4 md:px-0 py-2 sm:py-3 md:py-4">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                   <div
                     className="relative w-full h-48 md:h-80 lg:h-[400px] xl:h-[450px] rounded-xl md:rounded-2xl overflow-hidden lg:col-span-2 select-none banner-container"
@@ -923,7 +923,7 @@ const MobileHome = () => {
               <MobileCategoryGrid />
 
               {/* Request Product Button (Mobile only) */}
-              <div className="px-4 py-2 block lg:hidden">
+              <div className="px-2.5 sm:px-4 md:px-0 py-2 block lg:hidden">
                 <button
                   type="button"
                   onClick={() => navigate("/product-request/new")}
@@ -942,7 +942,7 @@ const MobileHome = () => {
 
               {/* Refurbished & Renewed Deals */}
               {refurbishedRootCategories && refurbishedRootCategories.length > 0 && (
-                <div className="px-4 py-6 bg-gradient-to-br from-cyan-50/20 to-blue-50/20 dark:from-cyan-950/10 dark:to-blue-950/10 border-t border-b border-gray-100 dark:border-gray-900 my-4">
+                <div className="px-2.5 sm:px-4 md:px-0 py-4 md:py-6 bg-gradient-to-br from-cyan-50/20 to-blue-50/20 dark:from-cyan-950/10 dark:to-blue-950/10 border-t border-b border-gray-100 dark:border-gray-900 my-4">
                   <div className="flex items-center justify-between gap-4 mb-4">
                     <div className="min-w-0">
                       <h2 className="text-xl font-black text-gray-800 dark:text-white flex items-center gap-2 truncate">
@@ -992,7 +992,7 @@ const MobileHome = () => {
               <NewArrivalsSection products={computedNewArrivals} />
 
               {/* Most Popular */}
-              <div className="px-1 sm:px-2 md:px-4 py-4">
+              <div className="px-2.5 sm:px-4 md:px-0 py-4">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-bold text-gray-800 dark:text-white">
                     <span>Most </span>
@@ -1022,7 +1022,7 @@ const MobileHome = () => {
 
               {/* Flash Sale */}
               {computedFlashSale.length > 0 && (
-                <div className="px-1 sm:px-2 md:px-4 py-4 bg-gradient-to-br from-red-50 to-orange-50 dark:from-transparent dark:to-transparent dark:bg-none">
+                <div className="px-2.5 sm:px-4 md:px-0 py-4 bg-gradient-to-br from-red-50 to-orange-50 dark:from-transparent dark:to-transparent dark:bg-none">
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h2 className="text-xl font-bold text-gray-800 dark:text-white">
@@ -1051,7 +1051,7 @@ const MobileHome = () => {
               )}
 
               {/* Trending Items */}
-              <div className="px-1 sm:px-2 md:px-4 py-4">
+              <div className="px-2.5 sm:px-4 md:px-0 py-4">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-bold text-gray-800 dark:text-white">Trending Now</h2>
                   <Link

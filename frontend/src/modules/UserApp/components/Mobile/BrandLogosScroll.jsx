@@ -52,7 +52,7 @@ const BrandLogosScroll = ({ brands = null }) => {
             {/* Mobile Layout */}
             <div className="md:hidden w-full">
                 <div className="w-full overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
-                    <div className="flex gap-2.5 xs:gap-3 sm:gap-4 min-w-max px-2 xs:px-3 sm:px-4 pb-2">
+                    <div className="flex gap-2.5 xs:gap-3 sm:gap-4 min-w-max px-2.5 sm:px-4 pb-2">
                         {displayBrands.map((brand, index) => (
                             <motion.div
                                 key={brand.id}

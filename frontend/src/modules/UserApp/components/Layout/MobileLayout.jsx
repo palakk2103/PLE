@@ -1,12 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useLocation, Link } from 'react-router-dom';
-import { createPortal } from 'react-dom';
-import { FiEdit3 } from 'react-icons/fi';
+import { useLocation } from 'react-router-dom';
 import MobileHeader from './MobileHeader';
 import DesktopHeader from './DesktopHeader';
 import DesktopFooter from './DesktopFooter';
 import MobileBottomNav from './MobileBottomNav';
-import MobileCartBar from './MobileCartBar';
 import CartDrawer from '../../../../shared/components/Cart/CartDrawer';
 import useMobileHeaderHeight from '../../hooks/useMobileHeaderHeight';
 import useKeyboardVisible from '../../../../shared/hooks/useKeyboardVisible';
@@ -18,6 +15,13 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true, noPa
   const headerHeight = useMobileHeaderHeight();
   const isBusiness = useB2bStore((state) => state.userRole === 'business_buyer');
   const isKeyboardVisible = useKeyboardVisible();
+  const [isDesktop, setIsDesktop] = useState(() => typeof window !== 'undefined' ? window.innerWidth >= 768 : false);
+
+  useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth >= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const pathname = location.pathname.toLowerCase();
 
@@ -83,47 +87,25 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true, noPa
     };
   }, []);
 
-      const isLegalPath = pathname.startsWith('/legal/') || pathname === '/privacy-policy' || pathname === '/support' || pathname === '/terms-and-conditions' || pathname === '/user-agreement' || pathname === '/return-policy' || pathname === '/warranty-policy' || pathname === '/business-onboarding-policy' || pathname === '/execution-acceptance-policy';
+  const paddingClasses = shouldNoPadding 
+    ? "px-0" 
+    : (isBusiness ? "px-0 md:px-4 lg:px-6 xl:px-8" : "px-0 md:px-6 lg:px-8 xl:px-12");
 
-      const paddingClasses = shouldNoPadding 
-        ? "px-0" 
-        : (isBusiness ? "px-2 xs:px-3 sm:px-4 md:px-4 lg:px-6 xl:px-8" : "px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 xl:px-12");
-
-      return (
-        <>
-          {!isAuthPage && !isCheckoutPage && !isProfileOptionPage && !isOrderConfirmationPage && !isTrackOrderPage && <DesktopHeader />}
-          {shouldShowHeader && <MobileHeader />}
-          <main
-            className={`min-h-screen w-full max-w-full overflow-x-hidden ${paddingClasses} ${shouldShowBottomNav && !isKeyboardVisible ? 'pb-[calc(5rem+env(safe-area-inset-bottom,0px))]' : ''} ${showCartBar && !isKeyboardVisible ? 'pb-[calc(6rem+env(safe-area-inset-bottom,0px))]' : ''}`}
-            style={{ paddingTop: shouldShowHeader ? `${headerHeight}px` : '0px' }}
-          >
-            {children}
-          </main>
-          {!isAuthPage && !isCheckoutPage && <DesktopFooter />}
-          {shouldShowBottomNav && <MobileBottomNav />}
-          <CartDrawer />
-
-          {/* 
-          {!isAuthPage && !isCheckoutPage && !isLegalPath && createPortal(
-            <Link
-              to="/product-request/new"
-          className="fixed right-4 z-[9998] safe-area-bottom px-5 py-3 rounded-full text-white shadow-2xl flex items-center justify-center gap-2 hover:scale-105 active:scale-[0.95] transition-all duration-300 group font-bold text-xs"
-          style={{ 
-            bottom: pathname.startsWith('/product/') ? "calc(6.5rem + 10px)" : "calc(4rem + 10px)",
-            background: "linear-gradient(135deg, #9B1C1C 0%, #7B0A0A 50%, #4C0505 100%)"
-          }}
-          title="Can't find a product? Request it!"
-        >
-          <FiEdit3 className="text-sm shrink-0" />
-          <span>Request Product</span>
-        </Link>,
-        document.body
-      )}
-      */}
+  return (
+    <>
+      {!isAuthPage && !isCheckoutPage && !isProfileOptionPage && !isOrderConfirmationPage && !isTrackOrderPage && <DesktopHeader />}
+      {shouldShowHeader && <MobileHeader />}
+      <main
+        className={`min-h-screen w-full max-w-full overflow-x-hidden ${paddingClasses} ${shouldShowBottomNav && !isKeyboardVisible ? 'pb-[calc(5rem+env(safe-area-inset-bottom,0px))]' : ''} ${showCartBar && !isKeyboardVisible ? 'pb-[calc(6rem+env(safe-area-inset-bottom,0px))]' : ''}`}
+        style={{ paddingTop: (shouldShowHeader && !isDesktop) ? `${headerHeight}px` : '0px' }}
+      >
+        {children}
+      </main>
+      {!isAuthPage && !isCheckoutPage && <DesktopFooter />}
+      {shouldShowBottomNav && <MobileBottomNav />}
+      <CartDrawer />
     </>
   );
 };
 
 export default MobileLayout;
-
-

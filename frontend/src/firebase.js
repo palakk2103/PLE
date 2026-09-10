@@ -11,7 +11,14 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-const app = initializeApp(firebaseConfig);
-const messaging = getMessaging(app);
+let messaging = null;
+try {
+  const app = initializeApp(firebaseConfig);
+  if (typeof window !== 'undefined' && 'serviceWorker' in navigator && 'Notification' in window) {
+    messaging = getMessaging(app);
+  }
+} catch (error) {
+  console.warn('Firebase Messaging not supported or failed to initialize:', error);
+}
 
 export { messaging, getToken, onMessage };

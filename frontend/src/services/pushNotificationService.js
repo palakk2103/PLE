@@ -36,6 +36,7 @@ export async function requestNotificationPermission() {
 
 // Get FCM token
 export async function getFCMToken() {
+  if (!messaging) return null;
   try {
     const registration = await registerServiceWorker();
     await registration.update(); // Update service worker
@@ -54,12 +55,13 @@ export async function getFCMToken() {
     }
   } catch (error) {
     console.error('❌ Error getting FCM token:', error);
-    throw error;
+    return null;
   }
 }
 
 // Register FCM token with backend
 export async function registerFCMToken(forceUpdate = false) {
+  if (!messaging) return null;
   try {
     // Check if already registered
     const savedToken = localStorage.getItem('fcm_token_web');
@@ -124,23 +126,29 @@ export async function unregisterFCMToken() {
 
 // Setup foreground notification handler
 export function setupForegroundNotificationHandler(handler) {
-  return onMessage(messaging, (payload) => {
-    console.log('📬 Foreground message received:', payload);
-    
-    // Show notification
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification(payload.notification.title, {
-        body: payload.notification.body,
-        icon: payload.notification.icon || '/favicon.png',
-        data: payload.data
-      });
-    }
-    
-    // Call custom handler
-    if (handler) {
-      handler(payload);
-    }
-  });
+  if (!messaging) return () => {};
+  try {
+    return onMessage(messaging, (payload) => {
+      console.log('📬 Foreground message received:', payload);
+      
+      // Show notification
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(payload.notification.title, {
+          body: payload.notification.body,
+          icon: payload.notification.icon || '/favicon.png',
+          data: payload.data
+        });
+      }
+      
+      // Call custom handler
+      if (handler) {
+        handler(payload);
+      }
+    });
+  } catch (error) {
+    console.warn('Failed to attach foreground message listener:', error);
+    return () => {};
+  }
 }
 
 // Initialize push notifications

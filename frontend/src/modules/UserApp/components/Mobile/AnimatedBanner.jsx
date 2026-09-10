@@ -143,7 +143,7 @@ const AnimatedBanner = ({ banners = null }) => {
   }, [resolvedBanners.length]);
 
   return (
-    <div className="px-1 sm:px-2 py-2 sm:py-3 select-none" onDragStart={(e) => e.preventDefault()}>
+    <div className="px-2.5 sm:px-4 md:px-0 py-2 sm:py-3 select-none" onDragStart={(e) => e.preventDefault()}>
       <div className="relative w-full h-32 sm:h-36 md:h-40 rounded-2xl overflow-hidden shadow-xl dark:shadow-[0_4px_25px_rgba(0,0,0,0.4)] select-none banner-container" onDragStart={(e) => e.preventDefault()}>
         <AnimatePresence mode="wait">
           {resolvedBanners.map((banner, index) => {

@@ -303,14 +303,14 @@ const MobileRegister = ({ isB2BRoute }) => {
   return (
     <PageTransition>
       <MobileLayout showBottomNav={false} showCartBar={false}>
-        <div className="w-full min-h-screen flex items-start justify-center px-4 pt-6 pb-8 bg-gray-50 dark:bg-zinc-950 transition-colors duration-500">
+        <div className="w-full min-h-screen flex items-start justify-center px-3.5 py-4 sm:px-4 sm:pt-6 pb-8 bg-gray-50 dark:bg-zinc-950 transition-colors duration-500">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             className="w-full max-w-md"
           >
-            <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm relative border dark:border-zinc-800 transition-colors duration-500">
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 sm:p-6 shadow-sm relative border dark:border-zinc-800 transition-colors duration-500">
               <button
                 onClick={() => {
                   if (isBusinessMode && b2bStep > 1) {
@@ -319,22 +319,20 @@ const MobileRegister = ({ isB2BRoute }) => {
                     navigate(-1);
                   }
                 }}
-                className="absolute left-6 top-6 text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white transition-colors p-1 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full"
+                className="absolute left-4 top-4 md:left-6 md:top-6 text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white transition-colors p-1 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full"
                 title="Go Back"
               >
-                <FiArrowLeft className="text-xl" />
+                <FiArrowLeft className="text-lg md:text-xl" />
               </button>
 
-              <div className="text-center mb-6">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-50 mb-2">Get Started Now</h1>
-                <p className="text-sm text-gray-600 dark:text-zinc-400">Create an account to unlock full portal features</p>
+              <div className="text-center mb-4 md:mb-6 pt-1">
+                <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-zinc-50 mb-1 md:mb-2">Get Started Now</h1>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-zinc-400">Create an account to unlock full portal features</p>
               </div>
 
-
-
               {isBusinessMode && (
-                <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-xl text-center">
-                  <p className="text-xs text-[#AE020B] dark:text-red-400 font-bold">
+                <div className="mb-4 md:mb-6 p-3 md:p-4 bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-xl text-center">
+                  <p className="text-[11px] md:text-xs text-[#AE020B] dark:text-red-400 font-bold">
                     ✨ Step {b2bStep} of 3: {b2bStep === 1 ? 'Company Details' : b2bStep === 2 ? 'Company Admin Details' : 'Add Employees (Optional)'}
                   </p>
                   <div className="w-full bg-gray-200 dark:bg-zinc-800 h-1.5 rounded-full mt-2 overflow-hidden">
@@ -347,103 +345,105 @@ const MobileRegister = ({ isB2BRoute }) => {
               )}
 
               {!isBusinessMode && (
-                <form onSubmit={handleSubmitB2C(onB2CSubmit)} className="space-y-5">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">First Name</label>
-                    <div className="relative">
-                      <FiUser className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500" />
-                      <input
-                        type="text"
-                        {...registerB2C('firstName', {
-                          required: 'First name is required',
-                          minLength: { value: 2, message: 'Must be at least 2 characters' },
-                        })}
-                        className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white ${b2cErrors.firstName ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-zinc-800 focus:border-[#AE020B]'} focus:outline-none transition-colors text-base`}
-                        placeholder="Raj"
-                      />
+                <form onSubmit={handleSubmitB2C(onB2CSubmit)} className="space-y-3 md:space-y-4">
+                  <div className="grid grid-cols-2 gap-2.5 md:gap-4">
+                    <div>
+                      <label className="block text-xs md:text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1 md:mb-1.5">First Name</label>
+                      <div className="relative">
+                        <FiUser className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 text-xs md:text-base" />
+                        <input
+                          type="text"
+                          {...registerB2C('firstName', {
+                            required: 'First name is required',
+                            minLength: { value: 2, message: 'Must be at least 2 characters' },
+                          })}
+                          className={`w-full pl-8 md:pl-12 pr-2.5 md:pr-4 py-2.5 md:py-3 rounded-xl border-2 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white ${b2cErrors.firstName ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-zinc-800 focus:border-[#AE020B]'} focus:outline-none transition-colors text-xs md:text-base`}
+                          placeholder="Raj"
+                        />
+                      </div>
+                      {b2cErrors.firstName && <p className="mt-1 text-[11px] md:text-sm text-red-650">{b2cErrors.firstName.message}</p>}
                     </div>
-                    {b2cErrors.firstName && <p className="mt-1 text-sm text-red-650">{b2cErrors.firstName.message}</p>}
+
+                    <div>
+                      <label className="block text-xs md:text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1 md:mb-1.5">Last Name</label>
+                      <div className="relative">
+                        <FiUser className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 text-xs md:text-base" />
+                        <input
+                          type="text"
+                          {...registerB2C('lastName', {
+                            required: 'Last name is required',
+                            minLength: { value: 2, message: 'Must be at least 2 characters' },
+                          })}
+                          className={`w-full pl-8 md:pl-12 pr-2.5 md:pr-4 py-2.5 md:py-3 rounded-xl border-2 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white ${b2cErrors.lastName ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-zinc-800 focus:border-[#AE020B]'} focus:outline-none transition-colors text-xs md:text-base`}
+                          placeholder="Sarkar"
+                        />
+                      </div>
+                      {b2cErrors.lastName && <p className="mt-1 text-[11px] md:text-sm text-red-650">{b2cErrors.lastName.message}</p>}
+                    </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">Last Name</label>
+                    <label className="block text-xs md:text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1 md:mb-1.5">Email</label>
                     <div className="relative">
-                      <FiUser className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500" />
-                      <input
-                        type="text"
-                        {...registerB2C('lastName', {
-                          required: 'Last name is required',
-                          minLength: { value: 2, message: 'Must be at least 2 characters' },
-                        })}
-                        className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white ${b2cErrors.lastName ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-zinc-800 focus:border-[#AE020B]'} focus:outline-none transition-colors text-base`}
-                        placeholder="Sarkar"
-                      />
-                    </div>
-                    {b2cErrors.lastName && <p className="mt-1 text-sm text-red-650">{b2cErrors.lastName.message}</p>}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">Email</label>
-                    <div className="relative">
-                      <FiMail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500" />
+                      <FiMail className="absolute left-3.5 md:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 text-xs md:text-base" />
                       <input
                         type="email"
                         {...registerB2C('email', {
                           required: 'Email is required',
                           validate: (value) => isValidEmail(value) || 'Please enter a valid email',
                         })}
-                        className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white ${b2cErrors.email ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-zinc-800 focus:border-[#AE020B]'} focus:outline-none transition-colors text-base`}
+                        className={`w-full pl-9 md:pl-12 pr-3 md:pr-4 py-2.5 md:py-3 rounded-xl border-2 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white ${b2cErrors.email ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-zinc-800 focus:border-[#AE020B]'} focus:outline-none transition-colors text-xs md:text-base`}
                         placeholder="sarkarraj0766@gmail.com"
                       />
                     </div>
-                    {b2cErrors.email && <p className="mt-1 text-sm text-red-655">{b2cErrors.email.message}</p>}
+                    {b2cErrors.email && <p className="mt-1 text-[11px] md:text-sm text-red-655">{b2cErrors.email.message}</p>}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">Phone Number</label>
+                    <label className="block text-xs md:text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1 md:mb-1.5">Phone Number</label>
                     <div className="relative">
-                      <FiPhone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500" />
+                      <FiPhone className="absolute left-3.5 md:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 text-xs md:text-base" />
                       <input
                         type="tel"
                         {...registerB2C('phone', {
                           required: 'Phone number is required',
                           validate: (value) => isValidPhone(value) || 'Please enter a valid phone number',
                         })}
-                        className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white ${b2cErrors.phone ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-zinc-800 focus:border-[#AE020B]'} focus:outline-none transition-colors text-base`}
+                        className={`w-full pl-9 md:pl-12 pr-3 md:pr-4 py-2.5 md:py-3 rounded-xl border-2 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white ${b2cErrors.phone ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-zinc-800 focus:border-[#AE020B]'} focus:outline-none transition-colors text-xs md:text-base`}
                         placeholder="9876543210"
                       />
                     </div>
-                    {b2cErrors.phone && <p className="mt-1 text-sm text-red-655">{b2cErrors.phone.message}</p>}
+                    {b2cErrors.phone && <p className="mt-1 text-[11px] md:text-sm text-red-655">{b2cErrors.phone.message}</p>}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">Password</label>
+                    <label className="block text-xs md:text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1 md:mb-1.5">Password</label>
                     <div className="relative">
-                      <FiLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500" />
+                      <FiLock className="absolute left-3.5 md:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 text-xs md:text-base" />
                       <input
                         type={showPassword ? 'text' : 'password'}
                         {...registerB2C('password', {
                           required: 'Password is required',
                           minLength: { value: 6, message: 'Password must be at least 6 characters' },
                         })}
-                        className={`w-full pl-12 pr-12 py-3 rounded-xl border-2 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white ${b2cErrors.password ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-zinc-800 focus:border-[#AE020B]'} focus:outline-none transition-colors text-base`}
+                        className={`w-full pl-9 md:pl-12 pr-10 md:pr-12 py-2.5 md:py-3 rounded-xl border-2 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white ${b2cErrors.password ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-zinc-800 focus:border-[#AE020B]'} focus:outline-none transition-colors text-xs md:text-base`}
                         placeholder="Create a password"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        className="absolute right-3.5 md:right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                       >
-                        {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+                        {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
                       </button>
                     </div>
-                    {b2cErrors.password && <p className="mt-1 text-sm text-red-655">{b2cErrors.password.message}</p>}
+                    {b2cErrors.password && <p className="mt-1 text-[11px] md:text-sm text-red-655">{b2cErrors.password.message}</p>}
                   </div>
 
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full bg-[#AE020B] hover:bg-[#8d0208] text-white py-3.5 rounded-xl font-semibold text-base transition-all duration-300 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-[#AE020B] hover:bg-[#8d0208] text-white py-2.5 md:py-3.5 rounded-xl font-bold text-xs md:text-base transition-all duration-300 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider active:scale-[0.99]"
                   >
                     {isLoading ? 'Creating Account...' : 'Sign Up'}
                   </button>
@@ -451,32 +451,32 @@ const MobileRegister = ({ isB2BRoute }) => {
               )}
 
               {isBusinessMode && (
-                <form onSubmit={handleB2BSubmit} className="space-y-5">
+                <form onSubmit={handleB2BSubmit} className="space-y-3.5 md:space-y-5">
                   {b2bStep === 1 && (
-                    <div className="space-y-4">
+                    <div className="space-y-3 md:space-y-4">
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1.5">Company Name *</label>
-                        <input type="text" name="companyName" value={b2bData.companyName} onChange={handleB2bChange} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-base" placeholder="Apex General Enterprises" />
+                        <label className="block text-xs md:text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1 md:mb-1.5">Company Name *</label>
+                        <input type="text" name="companyName" value={b2bData.companyName} onChange={handleB2bChange} className="w-full px-3.5 md:px-4 py-2.5 md:py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-xs md:text-base" placeholder="Apex General Enterprises" />
                       </div>
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1.5">GST Number {b2bSettings.requireGST ? '*' : '(Optional)'}</label>
-                        <input type="text" name="gstNumber" value={b2bData.gstNumber} onChange={handleB2bChange} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-base font-mono uppercase" placeholder="27AAPCG9838F1Z1" />
+                        <label className="block text-xs md:text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1 md:mb-1.5">GST Number {b2bSettings.requireGST ? '*' : '(Optional)'}</label>
+                        <input type="text" name="gstNumber" value={b2bData.gstNumber} onChange={handleB2bChange} className="w-full px-3.5 md:px-4 py-2.5 md:py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-xs md:text-base font-mono uppercase" placeholder="27AAPCG9838F1Z1" />
                       </div>
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1.5">Business Email *</label>
-                        <input type="email" name="businessEmail" value={b2bData.businessEmail} onChange={handleB2bChange} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-base" placeholder="procurement@apexenterprises.in" />
+                        <label className="block text-xs md:text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1 md:mb-1.5">Business Email *</label>
+                        <input type="email" name="businessEmail" value={b2bData.businessEmail} onChange={handleB2bChange} className="w-full px-3.5 md:px-4 py-2.5 md:py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-xs md:text-base" placeholder="procurement@apexenterprises.in" />
                       </div>
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1.5">Business Phone *</label>
-                        <input type="tel" name="businessPhone" value={b2bData.businessPhone} onChange={handleB2bChange} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-base" placeholder="9876543210" />
+                        <label className="block text-xs md:text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1 md:mb-1.5">Business Phone *</label>
+                        <input type="tel" name="businessPhone" value={b2bData.businessPhone} onChange={handleB2bChange} className="w-full px-3.5 md:px-4 py-2.5 md:py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-xs md:text-base" placeholder="9876543210" />
                       </div>
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1.5">Company Address *</label>
-                        <textarea name="businessAddress" rows={2} value={b2bData.businessAddress} onChange={handleB2bChange} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-base" placeholder="404 Business Hub, BKC, Mumbai" />
+                        <label className="block text-xs md:text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1 md:mb-1.5">Company Address *</label>
+                        <textarea name="businessAddress" rows={2} value={b2bData.businessAddress} onChange={handleB2bChange} className="w-full px-3.5 md:px-4 py-2.5 md:py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-xs md:text-base" placeholder="404 Business Hub, BKC, Mumbai" />
                       </div>
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1.5">Company Type *</label>
-                        <select name="businessType" value={b2bData.businessType} onChange={handleB2bChange} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-base">
+                        <label className="block text-xs md:text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1 md:mb-1.5">Company Type *</label>
+                        <select name="businessType" value={b2bData.businessType} onChange={handleB2bChange} className="w-full px-3.5 md:px-4 py-2.5 md:py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-xs md:text-base">
                           <option value="">Select Company Type</option>
                           <option value="Proprietorship">Proprietorship</option>
                           <option value="Partnership Firm">Partnership Firm</option>
@@ -488,28 +488,28 @@ const MobileRegister = ({ isB2BRoute }) => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1.5">Website (Optional)</label>
-                        <input type="text" name="website" value={b2bData.website} onChange={handleB2bChange} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-base" placeholder="https://apexenterprises.in" />
+                        <label className="block text-xs md:text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1 md:mb-1.5">Website (Optional)</label>
+                        <input type="text" name="website" value={b2bData.website} onChange={handleB2bChange} className="w-full px-3.5 md:px-4 py-2.5 md:py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-xs md:text-base" placeholder="https://apexenterprises.in" />
                       </div>
 
                       {/* Acceptance & Execution Agreement Section */}
-                      <div className="border-t dark:border-zinc-800 pt-4 space-y-3">
-                        <h3 className="text-sm font-bold text-gray-800 dark:text-zinc-150 flex items-center gap-1.5">
+                      <div className="border-t dark:border-zinc-800 pt-3 md:pt-4 space-y-2.5 md:space-y-3">
+                        <h3 className="text-xs md:text-sm font-bold text-gray-800 dark:text-zinc-150 flex items-center gap-1.5">
                           <FiFileText className="text-[#AE020B]" /> Acceptance & Execution Agreement
                         </h3>
-                        <p className="text-xs text-gray-500 dark:text-zinc-400">
+                        <p className="text-[11px] md:text-xs text-gray-500 dark:text-zinc-400">
                           Please download the Platform Agreement template, sign it, apply your official company seal, and upload the signed PDF below.
                         </p>
                         
                         {activeTemplate ? (
-                          <div className="flex items-center justify-between p-3 bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-900/40 rounded-xl">
+                          <div className="flex items-center justify-between p-2.5 md:p-3 bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-900/40 rounded-xl">
                             <div className="flex items-center gap-2 overflow-hidden mr-2">
-                              <FiFileText className="text-emerald-600 dark:text-emerald-400 text-lg shrink-0" />
+                              <FiFileText className="text-emerald-600 dark:text-emerald-400 text-base md:text-lg shrink-0" />
                               <div className="overflow-hidden">
-                                <p className="text-xs font-bold text-gray-800 dark:text-zinc-100 truncate">
+                                <p className="text-[11px] md:text-xs font-bold text-gray-800 dark:text-zinc-100 truncate">
                                   {activeTemplate.fileName || activeTemplate.templateName || 'Acceptance & Execution Agreement.pdf'}
                                 </p>
-                                <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                                <p className="text-[9px] md:text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
                                   Official Platform Template (v{activeTemplate.version || 1})
                                 </p>
                               </div>
@@ -519,13 +519,13 @@ const MobileRegister = ({ isB2BRoute }) => {
                               download={activeTemplate.fileName || 'Acceptance_Agreement.pdf'}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="shrink-0 inline-flex items-center gap-1 text-xs font-bold text-white bg-[#AE020B] hover:bg-[#8d0208] px-3 py-1.5 rounded-lg transition-colors shadow-sm"
+                              className="shrink-0 inline-flex items-center gap-1 text-[11px] md:text-xs font-bold text-white bg-[#AE020B] hover:bg-[#8d0208] px-2.5 md:px-3 py-1.5 rounded-lg transition-colors shadow-sm"
                             >
                               <FiDownload /> Download
                             </a>
                           </div>
                         ) : (
-                          <p className="text-xs text-amber-600 dark:text-amber-500 font-semibold flex items-center gap-1 bg-amber-50 dark:bg-amber-950/10 p-2 border border-amber-100 dark:border-amber-900/30 rounded-lg">
+                          <p className="text-[11px] md:text-xs text-amber-600 dark:text-amber-500 font-semibold flex items-center gap-1 bg-amber-50 dark:bg-amber-950/10 p-2 border border-amber-100 dark:border-amber-900/30 rounded-lg">
                             ⚠️ Platform Agreement template is currently not configured by the Admin. Please contact support.
                           </p>
                         )}
@@ -542,7 +542,7 @@ const MobileRegister = ({ isB2BRoute }) => {
                             }
                           }}
                           onClick={() => document.getElementById('agreement-upload-input').click()}
-                          className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
+                          className={`border-2 border-dashed rounded-xl p-4 md:p-6 text-center cursor-pointer transition-colors ${
                             dragOverAgreement
                               ? 'border-[#AE020B] bg-red-50/10'
                               : 'border-gray-200 dark:border-zinc-800 hover:border-[#AE020B]'
@@ -560,7 +560,7 @@ const MobileRegister = ({ isB2BRoute }) => {
                               }
                             }}
                           />
-                          <FiUploadCloud className="text-3xl text-gray-400 dark:text-zinc-650 mx-auto mb-2" />
+                          <FiUploadCloud className="text-2xl md:text-3xl text-gray-400 dark:text-zinc-650 mx-auto mb-1.5 md:mb-2" />
                           <p className="text-xs font-bold text-gray-700 dark:text-zinc-350">
                             Drag & Drop Signed PDF or Browse
                           </p>
@@ -576,9 +576,9 @@ const MobileRegister = ({ isB2BRoute }) => {
                         )}
 
                         {uploadedAgreement && (
-                          <div className="bg-gray-50 dark:bg-zinc-900 p-3 rounded-lg border dark:border-zinc-850 flex items-center justify-between">
+                          <div className="bg-gray-50 dark:bg-zinc-900 p-2.5 md:p-3 rounded-lg border dark:border-zinc-850 flex items-center justify-between">
                             <div className="flex items-center gap-2 max-w-[80%]">
-                              <FiFileText className="text-xl text-[#AE020B]" />
+                              <FiFileText className="text-lg md:text-xl text-[#AE020B]" />
                               <div className="overflow-hidden">
                                 <p className="text-xs font-bold text-gray-800 dark:text-zinc-200 truncate">
                                   {uploadedAgreement.fileName}
@@ -600,95 +600,95 @@ const MobileRegister = ({ isB2BRoute }) => {
                         )}
                       </div>
 
-                      <button type="button" onClick={() => { if (validateStep1()) setB2bStep(2); }} className="w-full bg-[#AE020B] hover:bg-[#8d0208] text-white py-3.5 rounded-xl font-semibold text-base transition-all duration-300">Next: Admin Information</button>
+                      <button type="button" onClick={() => { if (validateStep1()) setB2bStep(2); }} className="w-full bg-[#AE020B] hover:bg-[#8d0208] text-white py-2.5 md:py-3.5 rounded-xl font-bold text-xs md:text-base transition-all duration-300 uppercase tracking-wider active:scale-[0.99]">Next: Admin Information</button>
                     </div>
                   )}
 
-
                   {b2bStep === 2 && (
-                    <div className="space-y-4">
+                    <div className="space-y-3 md:space-y-4">
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1.5">Admin Name *</label>
-                        <input type="text" name="adminName" value={b2bData.adminName} onChange={handleB2bChange} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-base" placeholder="Sarkar Raj" />
+                        <label className="block text-xs md:text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1 md:mb-1.5">Admin Name *</label>
+                        <input type="text" name="adminName" value={b2bData.adminName} onChange={handleB2bChange} className="w-full px-3.5 md:px-4 py-2.5 md:py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-xs md:text-base" placeholder="Sarkar Raj" />
                       </div>
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1.5">Admin Email *</label>
-                        <input type="email" name="adminEmail" value={b2bData.adminEmail} onChange={handleB2bChange} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-base" placeholder="admin@apexenterprises.in" />
+                        <label className="block text-xs md:text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1 md:mb-1.5">Admin Email *</label>
+                        <input type="email" name="adminEmail" value={b2bData.adminEmail} onChange={handleB2bChange} className="w-full px-3.5 md:px-4 py-2.5 md:py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-xs md:text-base" placeholder="admin@apexenterprises.in" />
                       </div>
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1.5">Admin Phone *</label>
-                        <input type="tel" name="adminPhone" value={b2bData.adminPhone} onChange={handleB2bChange} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-base" placeholder="9876543210" />
+                        <label className="block text-xs md:text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1 md:mb-1.5">Admin Phone *</label>
+                        <input type="tel" name="adminPhone" value={b2bData.adminPhone} onChange={handleB2bChange} className="w-full px-3.5 md:px-4 py-2.5 md:py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-xs md:text-base" placeholder="9876543210" />
                       </div>
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1.5">Password *</label>
+                        <label className="block text-xs md:text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1 md:mb-1.5">Password *</label>
                         <div className="relative">
-                          <input type={showPassword ? 'text' : 'password'} name="password" value={b2bData.password} onChange={handleB2bChange} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-base" placeholder="Create admin password" />
-                          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"><FiEye /></button>
-                        </div>
-                      </div>                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1.5">Confirm Password *</label>
-                        <div className="relative">
-                          <input type={showConfirmPassword ? 'text' : 'password'} name="confirmPassword" value={b2bData.confirmPassword} onChange={handleB2bChange} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-base" placeholder="Confirm admin password" />
-                          <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"><FiEye /></button>
+                          <input type={showPassword ? 'text' : 'password'} name="password" value={b2bData.password} onChange={handleB2bChange} className="w-full pl-3.5 md:pl-4 pr-10 md:pr-12 py-2.5 md:py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-xs md:text-base" placeholder="Create admin password" />
+                          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 md:right-4 top-1/2 transform -translate-y-1/2 text-gray-400"><FiEye size={18} /></button>
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1.5">Company Owner Secret Key *</label>
+                        <label className="block text-xs md:text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1 md:mb-1.5">Confirm Password *</label>
                         <div className="relative">
-                          <input type={showSecretKey ? 'text' : 'password'} name="secretKey" value={b2bData.secretKey} onChange={handleB2bChange} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-base" placeholder="Min 6 characters (For handover protection)" />
-                          <button type="button" onClick={() => setShowSecretKey(!showSecretKey)} className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+                          <input type={showConfirmPassword ? 'text' : 'password'} name="confirmPassword" value={b2bData.confirmPassword} onChange={handleB2bChange} className="w-full pl-3.5 md:pl-4 pr-10 md:pr-12 py-2.5 md:py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-xs md:text-base" placeholder="Confirm admin password" />
+                          <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3.5 md:right-4 top-1/2 transform -translate-y-1/2 text-gray-400"><FiEye size={18} /></button>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs md:text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1 md:mb-1.5">Company Owner Secret Key *</label>
+                        <div className="relative">
+                          <input type={showSecretKey ? 'text' : 'password'} name="secretKey" value={b2bData.secretKey} onChange={handleB2bChange} className="w-full pl-3.5 md:pl-4 pr-10 md:pr-12 py-2.5 md:py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-xs md:text-base" placeholder="Min 6 characters (For handover protection)" />
+                          <button type="button" onClick={() => setShowSecretKey(!showSecretKey)} className="absolute right-3.5 md:right-4 top-1/2 transform -translate-y-1/2 text-gray-400">
                             {showSecretKey ? <FiEyeOff size={18} /> : <FiEye size={18} />}
                           </button>
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1.5">Confirm Secret Key *</label>
+                        <label className="block text-xs md:text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1 md:mb-1.5">Confirm Secret Key *</label>
                         <div className="relative">
-                          <input type={showConfirmSecretKey ? 'text' : 'password'} name="confirmSecretKey" value={b2bData.confirmSecretKey} onChange={handleB2bChange} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-base" placeholder="Confirm Owner Secret Key" />
-                          <button type="button" onClick={() => setShowConfirmSecretKey(!showConfirmSecretKey)} className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+                          <input type={showConfirmSecretKey ? 'text' : 'password'} name="confirmSecretKey" value={b2bData.confirmSecretKey} onChange={handleB2bChange} className="w-full pl-3.5 md:pl-4 pr-10 md:pr-12 py-2.5 md:py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-xs md:text-base" placeholder="Confirm Owner Secret Key" />
+                          <button type="button" onClick={() => setShowConfirmSecretKey(!showConfirmSecretKey)} className="absolute right-3.5 md:right-4 top-1/2 transform -translate-y-1/2 text-gray-400">
                             {showConfirmSecretKey ? <FiEyeOff size={18} /> : <FiEye size={18} />}
                           </button>
                         </div>
                       </div>
-                      <div className="flex gap-3 pt-2">
-                        <button type="button" onClick={() => setB2bStep(1)} className="flex-1 border-2 border-gray-200 dark:border-zinc-800 hover:bg-gray-50 text-gray-700 py-3 rounded-xl font-bold text-sm">Back</button>
-                        <button type="button" onClick={() => { if (validateStep2()) setB2bStep(3); }} className="flex-1 bg-[#AE020B] hover:bg-[#8d0208] text-white py-3 rounded-xl font-bold text-sm">Next: Employees</button>
+                      <div className="flex gap-2.5 md:gap-3 pt-2">
+                        <button type="button" onClick={() => setB2bStep(1)} className="flex-1 border-2 border-gray-200 dark:border-zinc-800 hover:bg-gray-50 text-gray-700 py-2.5 md:py-3 rounded-xl font-bold text-xs md:text-sm">Back</button>
+                        <button type="button" onClick={() => { if (validateStep2()) setB2bStep(3); }} className="flex-1 bg-[#AE020B] hover:bg-[#8d0208] text-white py-2.5 md:py-3 rounded-xl font-bold text-xs md:text-sm">Next: Employees</button>
                       </div>
                     </div>
                   )}
 
                   {b2bStep === 3 && (
-                    <div className="space-y-4 text-xs font-semibold">
-                      <div className="border border-gray-150 p-4 rounded-xl bg-gray-50 dark:bg-zinc-900 space-y-3">
-                        <h3 className="font-bold text-sm text-gray-800 dark:text-zinc-100 flex items-center gap-1.5">Add Employee</h3>
+                    <div className="space-y-3.5 md:space-y-4 text-xs font-semibold">
+                      <div className="border border-gray-150 p-3.5 md:p-4 rounded-xl bg-gray-50 dark:bg-zinc-900 space-y-2.5 md:space-y-3">
+                        <h3 className="font-bold text-xs md:text-sm text-gray-800 dark:text-zinc-100 flex items-center gap-1.5">Add Employee</h3>
                         <div>
                           <label className="block text-gray-600 dark:text-zinc-400 mb-1">Employee Name *</label>
-                          <input type="text" name="name" value={empInput.name} onChange={handleEmpChange} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white" placeholder="John Doe" />
+                          <input type="text" name="name" value={empInput.name} onChange={handleEmpChange} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white text-xs" placeholder="John Doe" />
                         </div>
                         <div>
                           <label className="block text-gray-600 dark:text-zinc-400 mb-1">Employee Email *</label>
-                          <input type="email" name="email" value={empInput.email} onChange={handleEmpChange} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white" placeholder="john@apexenterprises.in" />
+                          <input type="email" name="email" value={empInput.email} onChange={handleEmpChange} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white text-xs" placeholder="john@apexenterprises.in" />
                         </div>
                         <div>
                           <label className="block text-gray-600 dark:text-zinc-400 mb-1">Employee Phone *</label>
-                          <input type="tel" name="phone" value={empInput.phone} onChange={handleEmpChange} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white" placeholder="9876500003" />
+                          <input type="tel" name="phone" value={empInput.phone} onChange={handleEmpChange} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white text-xs" placeholder="9876500003" />
                         </div>
                         <div>
                           <label className="block text-gray-600 dark:text-zinc-400 mb-1">Designation *</label>
-                          <input type="text" name="designation" value={empInput.designation} onChange={handleEmpChange} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white" placeholder="Purchase Manager" />
+                          <input type="text" name="designation" value={empInput.designation} onChange={handleEmpChange} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white text-xs" placeholder="Purchase Manager" />
                         </div>
                         <div>
                           <label className="block text-gray-600 dark:text-zinc-400 mb-1">Department</label>
-                          <input type="text" name="department" value={empInput.department} onChange={handleEmpChange} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white" placeholder="E.g. Procurement" />
+                          <input type="text" name="department" value={empInput.department} onChange={handleEmpChange} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white text-xs" placeholder="E.g. Procurement" />
                         </div>
                         <div>
                           <label className="block text-gray-600 dark:text-zinc-400 mb-1">Address</label>
-                          <textarea name="address" value={empInput.address} onChange={handleEmpChange} rows="2" className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white" placeholder="Employee Address"></textarea>
+                          <textarea name="address" value={empInput.address} onChange={handleEmpChange} rows="2" className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white text-xs" placeholder="Employee Address"></textarea>
                         </div>
                         <div>
                           <label className="block text-gray-600 dark:text-zinc-400 mb-1">Password *</label>
                           <div className="relative">
-                            <input type={showEmpPassword ? 'text' : 'password'} name="password" value={empInput.password || ''} onChange={(e) => setEmpInput(prev => ({ ...prev, password: e.target.value }))} className="w-full pl-3 pr-10 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white" placeholder="Employee password" />
+                            <input type={showEmpPassword ? 'text' : 'password'} name="password" value={empInput.password || ''} onChange={(e) => setEmpInput(prev => ({ ...prev, password: e.target.value }))} className="w-full pl-3 pr-10 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white text-xs" placeholder="Employee password" />
                             <button type="button" onClick={() => setShowEmpPassword(!showEmpPassword)} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
                               {showEmpPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
                             </button>
@@ -697,7 +697,7 @@ const MobileRegister = ({ isB2BRoute }) => {
                         <div>
                           <label className="block text-gray-600 dark:text-zinc-400 mb-1">Confirm Password *</label>
                           <div className="relative">
-                            <input type={showEmpConfirmPassword ? 'text' : 'password'} value={empConfirmPassword} onChange={(e) => setEmpConfirmPassword(e.target.value)} className="w-full pl-3 pr-10 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white" placeholder="Confirm password" />
+                            <input type={showEmpConfirmPassword ? 'text' : 'password'} value={empConfirmPassword} onChange={(e) => setEmpConfirmPassword(e.target.value)} className="w-full pl-3 pr-10 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white text-xs" placeholder="Confirm password" />
                             <button type="button" onClick={() => setShowEmpConfirmPassword(!showEmpConfirmPassword)} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
                               {showEmpConfirmPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
                             </button>
@@ -753,13 +753,13 @@ const MobileRegister = ({ isB2BRoute }) => {
                         </div>
                       )}
 
-                      <div className="flex flex-col gap-3 pt-2">
-                        <div className="flex gap-3">
-                          <button type="button" onClick={() => setB2bStep(2)} className="flex-1 border-2 border-gray-200 dark:border-zinc-800 hover:bg-gray-50 text-gray-750 py-3 rounded-xl font-bold text-sm">Back</button>
-                          <button type="submit" disabled={isB2BLoading} className="flex-1 bg-[#AE020B] hover:bg-[#8d0208] text-white py-3 rounded-xl font-bold text-sm">{isB2BLoading ? 'Registering...' : 'Register Company'}</button>
+                      <div className="flex flex-col gap-2.5 md:gap-3 pt-2">
+                        <div className="flex gap-2.5 md:gap-3">
+                          <button type="button" onClick={() => setB2bStep(2)} className="flex-1 border-2 border-gray-200 dark:border-zinc-800 hover:bg-gray-50 text-gray-750 py-2.5 md:py-3 rounded-xl font-bold text-xs md:text-sm">Back</button>
+                          <button type="submit" disabled={isB2BLoading} className="flex-1 bg-[#AE020B] hover:bg-[#8d0208] text-white py-2.5 md:py-3 rounded-xl font-bold text-xs md:text-sm">{isB2BLoading ? 'Registering...' : 'Register Company'}</button>
                         </div>
                         {employees.length === 0 && (
-                          <button type="submit" disabled={isB2BLoading} className="w-full border-2 border-dashed border-[#AE020B] text-[#AE020B] hover:bg-red-50/50 dark:hover:bg-red-950/10 py-3 rounded-xl font-bold text-xs transition-colors">
+                          <button type="submit" disabled={isB2BLoading} className="w-full border-2 border-dashed border-[#AE020B] text-[#AE020B] hover:bg-red-50/50 dark:hover:bg-red-950/10 py-2.5 md:py-3 rounded-xl font-bold text-xs transition-colors">
                             {isB2BLoading ? 'Registering...' : 'Skip Employee Setup & Register Company'}
                           </button>
                         )}
@@ -769,14 +769,14 @@ const MobileRegister = ({ isB2BRoute }) => {
                 </form>
               )}
 
-              <div className="mt-6 text-center">
-                <p className="text-sm text-gray-600 dark:text-zinc-400">
+              <div className="mt-4 md:mt-6 text-center">
+                <p className="text-xs md:text-sm text-gray-600 dark:text-zinc-400">
                   Already have an account?{' '}
-                  <Link to={isBusinessMode ? "/b2b/login" : "/login"} className="text-[#AE020B] dark:text-red-400 hover:text-[#8d0208] font-semibold">Sign In</Link>
+                  <Link to={isBusinessMode ? "/b2b/login" : "/login"} className="text-[#AE020B] dark:text-red-400 hover:text-[#8d0208] font-bold">Sign In</Link>
                 </p>
               </div>
 
-              <div className="mt-6 text-center text-xs text-gray-500 dark:text-zinc-500 leading-relaxed px-4">
+              <div className="mt-3.5 md:mt-6 text-center text-[11px] md:text-xs text-gray-500 dark:text-zinc-500 leading-relaxed px-2 md:px-4">
                 By creating an account, you agree to our{' '}
                 <Link to="/terms-and-conditions" className="text-[#7B0A0A] dark:text-red-400 hover:text-[#AE020B] font-bold underline transition-colors">Terms & Conditions</Link>{' '}
                 and{' '}

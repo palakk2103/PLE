@@ -15,7 +15,7 @@ const FeaturedVendorsSection = ({ vendors = null }) => {
   if (featuredVendors.length === 0) return null;
 
   return (
-    <div className="px-1 sm:px-2 py-4">
+    <div className="px-2.5 sm:px-4 md:px-0 py-4">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-xl font-bold text-gray-800 dark:text-white">Best Sellers</h2>
