@@ -299,7 +299,7 @@ const RefurbishedCatalog = () => {
       <MobileLayout showBottomNav={true} showCartBar={true}>
         <div className="w-full flex flex-col min-h-[calc(100vh-64px)]">
           {/* Header */}
-          <div className="sticky top-0 z-40 bg-white border-b border-gray-200 px-4 py-3">
+          <div className="relative bg-white border-b border-gray-200 px-4 py-3">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => navigate(-1)}

@@ -175,7 +175,7 @@ const MobileFlashSale = () => {
     <PageTransition>
       <MobileLayout showBottomNav={true} showCartBar={true}>
         <div className="w-full pb-24 min-h-screen bg-gray-50 dark:bg-[#0D0D0D]">
-          <div className="px-4 py-4 bg-white dark:bg-[#0D0D0D] border-b border-gray-200 dark:border-[rgba(123, 10, 10,0.15)] sticky top-0 z-30">
+          <div className="px-4 py-4 bg-white dark:bg-[#0D0D0D] border-b border-gray-200 dark:border-[rgba(123, 10, 10,0.15)] relative">
             <div className="flex items-center gap-3 mb-3">
               <button onClick={() => navigate(-1)} className="p-2 hover:bg-gray-100 dark:hover:bg-[#222222] rounded-full transition-colors">
                 <FiArrowLeft className="text-xl text-gray-700 dark:text-white" />

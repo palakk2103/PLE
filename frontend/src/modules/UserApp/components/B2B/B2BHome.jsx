@@ -243,13 +243,13 @@ const B2BHome = ({
       `}</style>
 
       {/* Main Container */}
-      <div className="px-4 py-3 space-y-4 md:px-2 lg:px-3 xl:px-4 w-full max-w-full">
+      <div className="w-full max-w-full">
 
         {/* MOBILE ONLY TOP SECTION */}
-        <div className="block md:hidden space-y-2">
+        <div className="block md:hidden">
           {/* Red Background Top Section wrapper */}
           <div 
-            className="px-3 pt-1.5 pb-1.5 space-y-1.5 -mx-4 -mt-3 transition-colors duration-300"
+            className="w-full px-3 pt-1.5 pb-1.5 space-y-1.5 transition-colors duration-300"
             style={{
               background: theme === "dark" 
                 ? "linear-gradient(to bottom, #1A0A0A 0%, #140808 30%, #0D0D0D 100%)" 
@@ -320,62 +320,89 @@ const B2BHome = ({
             </div>
           </div>
 
-          {/* Fifth Row: Category Quick Nav Bar Wrapper (Allows independent background color styling) */}
+          {/* Fifth Row: Category Quick Nav Bar Wrapper */}
           <div 
-            className="px-3 py-1 -mx-4 !mt-0 transition-colors duration-300"
+            className="w-full px-3 py-1.5 transition-colors duration-300 border-b border-white/10"
             style={{
               background: theme === "dark" 
-                ? "linear-gradient(to bottom, #0D0D0D 0%, #000000 100%)" 
-                : "linear-gradient(to bottom, #4C0505 0%, #3B0202 100%)"
+                ? "linear-gradient(to bottom, #1A0A0A 0%, #140808 30%, #0D0D0D 100%)" 
+                : "linear-gradient(135deg, #9B1C1C 0%, #7B0A0A 50%, #4C0505 100%)"
             }}
           >
-            <div className="flex items-center justify-around py-1 border-b border-white/10">
-              {categoryTabs.map((tab) => {
-                const match = displayCategories.find(
-                  cat => cat.name?.toLowerCase().includes(tab.name.replace("'", "").toLowerCase().split(" ")[0])
-                );
-                const hasImage = tab.name !== "All" && match && match.image;
+            <div className="flex gap-4 overflow-x-auto scrollbar-hide py-0.5 items-center">
+              {/* "All" button */}
+              <button
+                onClick={() => {
+                  setActiveCategoryTab("All");
+                  navigate("/home");
+                }}
+                className="flex flex-col items-center gap-0.5 min-w-[48px] relative pb-1 cursor-pointer flex-shrink-0 focus:outline-none"
+              >
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center border overflow-hidden p-0.5 transition-all ${
+                  activeCategoryTab === "All" 
+                    ? "border-white bg-white text-[#AE020B] shadow-md" 
+                    : "border-white/20 bg-white/10 text-white/90 hover:bg-white/20"
+                }`}>
+                  <FiShoppingBag className="text-xs" />
+                </div>
+                <span className={`text-[9px] font-bold text-center transition-colors ${
+                  activeCategoryTab === "All" ? "text-white font-extrabold" : "text-white/70"
+                }`}>
+                  All
+                </span>
+                {activeCategoryTab === "All" && (
+                  <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-white rounded-full" />
+                )}
+              </button>
 
+              {/* Dynamic Categories */}
+              {displayCategories.map((category) => {
+                const isSelected = activeCategoryTab === category.name || activeCategoryTab === String(category.id);
                 return (
-                  <button 
-                    key={tab.name}
-                    onClick={() => setActiveCategoryTab(tab.name)}
-                    className="flex flex-col items-center gap-0.5 focus:outline-none relative"
+                  <button
+                    key={category.id}
+                    onClick={() => {
+                      setActiveCategoryTab(category.name);
+                      navigate(`/category/${category.id}`);
+                    }}
+                    className="flex flex-col items-center gap-0.5 min-w-[48px] relative pb-1 cursor-pointer flex-shrink-0 focus:outline-none"
                   >
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center border overflow-hidden p-0.5 transition-all ${
-                      activeCategoryTab === tab.name 
+                      isSelected 
                         ? "border-white bg-white text-[#AE020B] shadow-md" 
                         : "border-white/20 bg-white/10 text-white/90 hover:bg-white/20"
                     }`}>
-                      {tab.name === "All" ? (
-                        <FiShoppingBag className="text-xs" />
-                      ) : hasImage ? (
-                        <img 
-                          src={match.image} 
-                          alt={tab.name} 
+                      {category.image ? (
+                        <img
+                          src={category.image}
+                          alt={category.name}
                           className="w-full h-full object-contain rounded-full"
                           onError={(e) => {
                             e.target.onerror = null;
-                            e.target.src = getPlaceholderImage(32, 32, tab.name);
+                            e.target.src = getPlaceholderImage(32, 32, category.name);
                           }}
                         />
                       ) : (
-                        <span className="text-xs font-bold">{tab.name.charAt(0)}</span>
+                        <span className="text-xs font-bold text-white">{category.name?.charAt(0)}</span>
                       )}
                     </div>
-                    <span className={`text-[9px] font-semibold ${
-                      activeCategoryTab === tab.name ? "text-white font-extrabold" : "text-white/70"
+                    <span className={`text-[9px] font-semibold text-center transition-colors truncate max-w-[56px] ${
+                      isSelected ? "text-white font-extrabold" : "text-white/70"
                     }`}>
-                      {tab.name}
+                      {category.name}
                     </span>
-                    {activeCategoryTab === tab.name && (
-                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-white rounded-full" />
+                    {isSelected && (
+                      <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-white rounded-full" />
                     )}
                   </button>
                 );
               })}
             </div>
           </div>
+        </div>
+
+        {/* Content Body */}
+        <div className="px-4 py-3 space-y-4 md:px-2 lg:px-3 xl:px-4 w-full max-w-full">
 
 
 
@@ -498,7 +525,10 @@ const B2BHome = ({
                   <h3 className={`text-sm font-bold tracking-wide uppercase ${isDark ? "text-white" : "text-gray-900"}`}>
                     POPULAR CATEGORIES
                   </h3>
-                  <button className="text-xs font-bold text-[#AE020B] flex items-center gap-0.5 hover:underline">
+                  <button 
+                    onClick={() => navigate('/categories')}
+                    className="text-xs font-bold text-[#AE020B] flex items-center gap-0.5 hover:underline cursor-pointer"
+                  >
                     View All <FiChevronRight className="mt-0.5" />
                   </button>
                 </div>
@@ -507,7 +537,7 @@ const B2BHome = ({
                     return (
                       <Link
                         key={cat.id}
-                        to={`/home?category=${cat.id}`}
+                        to={`/category/${cat.id}`}
                         className="flex flex-col items-center gap-1.5 flex-shrink-0"
                       >
                         <div className={`w-14 h-14 rounded-full border flex items-center justify-center p-1.5 overflow-hidden transition-all ${
@@ -819,11 +849,19 @@ const B2BHome = ({
             </div>
             
             <div className="grid grid-cols-9 gap-4">
-              {exploreCategories.map((cat) => (
-                <div
-                  key={cat.name}
-                  onClick={() => navigate(`/search?query=${cat.name}`)}
-                  className={`rounded-2xl p-3 text-center cursor-pointer hover:scale-102 transition-all flex flex-col items-center justify-between group border ${
+              {exploreCategories.map((cat) => {
+                const match = displayCategories.find(c => c.name?.toLowerCase().includes(cat.name.toLowerCase()) || cat.name.toLowerCase().includes(c.name?.toLowerCase()));
+                return (
+                  <div
+                    key={cat.name}
+                    onClick={() => {
+                      if (match?.id) {
+                        navigate(`/category/${match.id}`);
+                      } else {
+                        navigate(`/search?query=${cat.name}`);
+                      }
+                    }}
+                    className={`rounded-2xl p-3 text-center cursor-pointer hover:scale-102 transition-all flex flex-col items-center justify-between group border ${
                     isDark 
                       ? "bg-zinc-955 border-zinc-900 hover:border-zinc-800 text-white" 
                       : "bg-white border-gray-200 hover:border-gray-300 text-gray-800"
@@ -844,7 +882,8 @@ const B2BHome = ({
                     {cat.name}
                   </span>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -1030,7 +1069,7 @@ const B2BHome = ({
           </div>
         )}
 
-      </div>
+        </div>
 
       {/* General B2B Request Quote Modal */}
       <B2BRequestQuoteModal

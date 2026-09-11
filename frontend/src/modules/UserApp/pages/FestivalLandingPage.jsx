@@ -113,7 +113,7 @@ const FestivalLandingPage = () => {
       <MobileLayout showBottomNav={true} showCartBar={true}>
         <div className="w-full pb-24 dark:bg-neutral-900 min-h-screen">
           {/* Header Bar */}
-          <div className="mx-2 mt-2 px-4 py-4 bg-white dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 rounded-2xl flex items-center justify-between shadow-sm">
+          <div className="mx-2 mt-3 sm:mt-4 px-4 py-4 bg-white dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 rounded-2xl flex items-center justify-between shadow-sm">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => navigate(-1)}
