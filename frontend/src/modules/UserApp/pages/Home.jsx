@@ -733,7 +733,7 @@ const MobileHome = () => {
           {activeCategoryId && activeCategory ? (
             <div className="w-full min-h-screen bg-gray-50 pb-20">
               {/* Category banner */}
-              <div className="px-2.5 sm:px-4 md:px-0 pt-2 select-none">
+              <div className="px-2.5 sm:px-4 md:px-0 pt-3.5 sm:pt-4 md:pt-2 select-none">
                 <div className="relative rounded-2xl overflow-hidden shadow-sm aspect-[16/9] md:aspect-[21/9] select-none banner-container">
                   <img
                     src={categoryBanners[activeCategoryKey]?.image || activeCategory.image || heroSlide1}
@@ -803,7 +803,7 @@ const MobileHome = () => {
           ) : (
             <>
               {/* Hero Banner */}
-              <div className="px-2.5 sm:px-4 md:px-0 py-2 sm:py-3 md:py-4">
+              <div className="px-2.5 sm:px-4 md:px-0 pt-3.5 pb-2 sm:pt-4 sm:pb-3 md:py-4">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                   <div
                     className="relative w-full h-48 md:h-80 lg:h-[400px] xl:h-[450px] rounded-xl md:rounded-2xl overflow-hidden lg:col-span-2 select-none banner-container"

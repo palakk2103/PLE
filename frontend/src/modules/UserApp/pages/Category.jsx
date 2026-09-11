@@ -80,7 +80,7 @@ const MobileCategory = () => {
   const navigate = useNavigate();
   const handleBack = useSafeBack('/home');
   const categoryId = normalizeId(id);
-  const { categories, initialize, getCategoryById } = useCategoryStore();
+  const { categories, isLoading: isCategoriesLoading, initialize, getCategoryById } = useCategoryStore();
 
   const [selectedCategoryOffer, setSelectedCategoryOffer] = useState(null);
   // Get active offers for the specific category
@@ -260,6 +260,18 @@ const MobileCategory = () => {
   }, [showFilters]);
 
   if (!category) {
+    if (isCategoriesLoading || categories.length === 0) {
+      return (
+        <PageTransition>
+          <MobileLayout showBottomNav={true} showCartBar={false}>
+            <div className="flex items-center justify-center min-h-[60vh] px-4">
+              <div className="w-8 h-8 rounded-full border-2 border-[#7B0A0A] border-t-transparent animate-spin" />
+            </div>
+          </MobileLayout>
+        </PageTransition>
+      );
+    }
+
     return (
       <PageTransition>
         <MobileLayout showBottomNav={false} showCartBar={false}>

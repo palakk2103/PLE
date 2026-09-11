@@ -175,7 +175,7 @@ const MobileDailyDeals = () => {
     <PageTransition>
       <MobileLayout showBottomNav={true} showCartBar={true}>
         <div className="w-full pb-24 dark:bg-[#0D0D0D] dark:min-h-screen">
-          <div className="px-4 py-4 bg-white dark:bg-[#0D0D0D] border-b border-gray-200 dark:border-[rgba(123, 10, 10,0.15)] sticky top-0 z-30">
+          <div className="px-4 py-4 bg-white dark:bg-[#0D0D0D] border-b border-gray-200 dark:border-[rgba(123, 10, 10,0.15)] relative">
             <div className="flex items-center gap-3 mb-3">
               <button
                 onClick={() => navigate(-1)}

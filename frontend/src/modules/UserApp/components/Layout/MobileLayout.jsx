@@ -10,7 +10,7 @@ import useKeyboardVisible from '../../../../shared/hooks/useKeyboardVisible';
 import { useUIStore } from '../../../../shared/store/useStore';
 import { useB2bStore } from '../../../../shared/store/b2bStore';
 
-const MobileLayout = ({ children, showBottomNav = true, showCartBar = true, noPadding = null }) => {
+const MobileLayout = ({ children, showBottomNav = true, showCartBar = true, noPadding = null, showHeader = true }) => {
   const location = useLocation();
   const headerHeight = useMobileHeaderHeight();
   const isBusiness = useB2bStore((state) => state.userRole === 'business_buyer');
@@ -35,6 +35,7 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true, noPa
   const isCheckoutPage = pathname === '/checkout';
   const isOrderConfirmationPage = pathname.startsWith('/order-confirmation');
   const isTrackOrderPage = pathname.startsWith('/track-order');
+  const isProductDetailPage = pathname.startsWith('/product/');
   const isLocationSelectorOpen = useUIStore((state) => state.isLocationSelectorOpen);
 
   const isProfileOptionPage = 
@@ -69,15 +70,11 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true, noPa
   
   // Respect the showBottomNav prop and hide on auth pages or when location selector is open
   const shouldShowBottomNav = showBottomNav && !isAuthPage && !isLocationSelectorOpen;
-  // Hide header on categories, search, wishlist, profile, returns, order confirmation, track order, and auth pages
-  const shouldShowHeader = !isAuthPage &&
-    pathname !== '/categories' &&
-    pathname !== '/search' &&
-    pathname !== '/refurbished-categories' &&
-    !isProfileOptionPage &&
-    !isCheckoutPage &&
-    !isOrderConfirmationPage &&
-    !isTrackOrderPage;
+  
+  const isHomePage = pathname === '/' || pathname === '/home' || pathname === '/festival' || pathname === '/festival-sale';
+
+  // Only show top MobileHeader on the Home page (hide on all sub-pages like category, product detail, offers, deals, etc.)
+  const shouldShowHeader = showHeader && !isAuthPage && isHomePage;
 
   // Ensure body scroll is restored when component mounts
   useEffect(() => {

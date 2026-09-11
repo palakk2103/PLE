@@ -464,7 +464,7 @@ const MobileProductDetail = () => {
   if (!product) {
     return (
       <PageTransition>
-        <MobileLayout showBottomNav={false} showCartBar={false}>
+        <MobileLayout showHeader={false} showBottomNav={false} showCartBar={false}>
           <div className="flex items-center justify-center min-h-[60vh] px-4">
             <div className="text-center">
               {isLoadingProduct ? (
@@ -730,7 +730,7 @@ const MobileProductDetail = () => {
         />
       )}
       <PageTransition>
-      <MobileLayout showBottomNav={false} showCartBar={true}>
+      <MobileLayout showHeader={false} showBottomNav={false} showCartBar={true}>
         <div className="w-full pb-24 lg:pb-12 max-w-7xl mx-auto">
           {/* Back Button */}
           <div className="px-4 pt-2 lg:pt-8 lg:px-8 mb-2">
@@ -747,7 +747,7 @@ const MobileProductDetail = () => {
 
           <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-16 lg:px-8 lg:items-start">
             {/* Left Column: Product Image */}
-            <div className="px-4 py-2 lg:p-0 sticky top-24 mb-6 lg:mb-0 relative">
+            <div className="px-4 py-2 lg:p-0 relative lg:sticky lg:top-24 mb-6 lg:mb-0">
               <div className="relative group">
                 <ImageGallery
                   images={productImages}

@@ -325,11 +325,11 @@ const MobileHeader = () => {
         damping: 30,
         mass: 0.8,
       }}>
-      <div className="px-2 xs:px-3 sm:px-4 py-1.5 overflow-visible">
+      <div className="px-2 xs:px-3 sm:px-4 pt-0.5 pb-1 sm:py-1.5 overflow-visible">
         {/* First Row: Location & Actions */}
         <motion.div
           ref={topRowRef}
-          className="flex items-center justify-between gap-1.5 sm:gap-3 mb-2"
+          className="flex items-center justify-between gap-1.5 sm:gap-3 mb-1.5"
           initial={false}
           animate={{
             opacity: isTopRowVisible ? 1 : 0,
@@ -573,7 +573,7 @@ const MobileHeader = () => {
 
 
       {/* Row 2: Location, Theme, Profile and Cart Actions in specified B2B sequence */}
-      <div className="flex items-center justify-between px-4 py-3 bg-transparent">
+      <div className="flex items-center justify-between px-3 pt-1 pb-1.5 bg-transparent">
         <div className="flex items-center gap-1.5 min-w-0 flex-grow">
           {/* 1. Hamburger Icon */}
           <button 
@@ -638,6 +638,10 @@ const MobileHeader = () => {
       </div>
     </motion.header>
   );
+
+  if (location.pathname.toLowerCase().includes('/product/')) {
+    return null;
+  }
 
   // Use portal to render outside of transformed containers (like PageTransition)
   return (

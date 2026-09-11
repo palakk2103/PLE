@@ -2,6 +2,24 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import {
+  FiX,
+  FiUser,
+  FiShoppingBag,
+  FiHeart,
+  FiMapPin,
+  FiMessageSquare,
+  FiRefreshCw,
+  FiFileText,
+  FiBell,
+  FiTag,
+  FiHelpCircle,
+  FiTool,
+  FiGift,
+  FiChevronDown,
+  FiSettings,
+  FiLogOut
+} from 'react-icons/fi';
 import { useCategoryStore } from '../store/categoryStore';
 import { useCampaignStore } from '../store/campaignStore';
 import { categories as fallbackCategories } from '../../data/categories';

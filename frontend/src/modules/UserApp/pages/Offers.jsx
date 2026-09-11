@@ -234,7 +234,7 @@ const MobileOffers = () => {
     <PageTransition>
       <MobileLayout showBottomNav={true} showCartBar={true}>
         <div className="w-full pb-24">
-          <div className="mx-2 mt-2 px-4 py-6 bg-gradient-to-r from-red-50 to-orange-50 border border-gray-100 rounded-2xl sticky top-2 z-30 shadow-md">
+          <div className="mx-2 mt-3 sm:mt-4 px-4 py-6 bg-gradient-to-r from-red-50 to-orange-50 border border-gray-100 rounded-2xl relative shadow-md">
             <div className="flex items-center gap-3 mb-3">
               <button
                 onClick={() => navigate(-1)}

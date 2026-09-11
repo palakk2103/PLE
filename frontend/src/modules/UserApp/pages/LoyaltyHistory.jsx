@@ -26,7 +26,7 @@ const LoyaltyHistory = () => {
       <MobileLayout showBottomNav={true} showCartBar={false}>
         <div className="w-full pb-24">
           {/* Header */}
-          <div className="px-4 py-4 bg-white border-b border-gray-200 sticky top-0 z-30 flex items-center gap-3">
+          <div className="px-4 py-4 bg-white border-b border-gray-200 relative flex items-center gap-3">
             <button
               onClick={() => {
                 if (window.history.state && window.history.state.idx > 0) {

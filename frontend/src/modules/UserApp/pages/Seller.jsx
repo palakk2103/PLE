@@ -278,7 +278,7 @@ const Seller = () => {
                 <div className="w-full bg-gray-50 min-h-screen">
                     <div className="w-full pb-24 lg:pb-12 max-w-7xl mx-auto px-4 md:px-6">
                     {/* Header */}
-                    <div className="bg-white border-b border-gray-200 sticky top-0 z-30">
+                    <div className="bg-white border-b border-gray-200 relative">
                         <div className="px-2 md:px-4 py-2 md:py-4">
                             <div className="flex items-center gap-3 mb-4">
                                 <button
