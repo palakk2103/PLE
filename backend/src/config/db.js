@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import https from 'https';
-import { MongoMemoryServer } from 'mongodb-memory-server';
 import Admin from '../models/Admin.model.js';
 import DeliveryBoy from '../models/DeliveryBoy.model.js';
 
@@ -214,6 +213,7 @@ to switch back to your persistent remote cluster.
     } catch (localError) {
       console.log('❌ Local MongoDB is not running. Attempting to spin up an in-memory MongoDB fallback server...');
       try {
+        const { MongoMemoryServer } = await import('mongodb-memory-server');
         mongoServer = await MongoMemoryServer.create();
         const mongoUri = mongoServer.getUri();
         const conn = await mongoose.connect(mongoUri);
