@@ -96,8 +96,14 @@ router.delete('/products/:id', ...vendorAuth, validate(productIdParamSchema, 'pa
 router.patch('/stock/:productId', ...vendorAuth, productController.updateStock);
 
 // Orders
+import * as invoiceController from '../../../controllers/invoice.controller.js';
 router.get('/orders', ...vendorAuth, orderController.getVendorOrders);
 router.post('/orders/bulk', ...vendorAuth, orderController.createBulkOrders);
+router.get('/orders/:id/invoice', ...vendorAuth, invoiceController.getVendorInvoice);
+router.get('/orders/:id/invoice/pdf', ...vendorAuth, invoiceController.downloadVendorInvoicePdf);
+router.get('/invoices', ...vendorAuth, invoiceController.getVendorInvoices);
+router.get('/invoices/:id', ...vendorAuth, invoiceController.getVendorInvoice);
+router.get('/invoices/:id/pdf', ...vendorAuth, invoiceController.downloadVendorInvoicePdf);
 router.get('/orders/:id', ...vendorAuth, orderController.getVendorOrderById);
 router.patch('/orders/:id/status', ...vendorAuth, orderController.updateOrderStatus);
 router.post('/orders/:id/shiprocket-shipment', ...vendorAuth, orderController.createShiprocketShipment);

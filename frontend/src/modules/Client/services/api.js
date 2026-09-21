@@ -1,15 +1,9 @@
 import axios from 'axios';
 import { useAdminStore } from '../store/useAdminStore';
-
-const getApiUrl = () => {
-  if (typeof window !== 'undefined') {
-    return `${window.location.protocol}//${window.location.hostname}:5000/api`;
-  }
-  return 'http://localhost:5000/api';
-};
+import { API_BASE_URL } from '../../../shared/utils/constants';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || getApiUrl(),
+  baseURL: API_BASE_URL,
   withCredentials: true, // IMPORTANT: Allows sending HTTP-only cookies
   headers: {
     'Content-Type': 'application/json',

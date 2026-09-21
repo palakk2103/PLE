@@ -11,11 +11,15 @@ import {
   FiDollarSign,
   FiPackage,
   FiCheckCircle,
+  FiAlertTriangle,
+  FiShield,
+  FiX
 } from "react-icons/fi";
 import api from "../../../../shared/utils/api";
 import toast from "react-hot-toast";
 import Badge from "../../../../shared/components/Badge";
 import socketService from "../../../../shared/utils/socket";
+import { getChatBlockMessage } from "../../../../shared/utils/chatModerationMessages";
 
 const VendorDirectRFQDetail = () => {
   const { id } = useParams();
@@ -30,6 +34,7 @@ const VendorDirectRFQDetail = () => {
   const [message, setMessage] = useState("");
   const [priceOffer, setPriceOffer] = useState("");
   const [sending, setSending] = useState(false);
+  const [warningBanner, setWarningBanner] = useState(null);
   const chatEndRef = useRef(null);
 
   const fetchDetail = async () => {
@@ -98,9 +103,20 @@ const VendorDirectRFQDetail = () => {
       await api.post(`/vendor/direct-rfq/${id}/message`, body);
       setMessage("");
       setPriceOffer("");
+      setWarningBanner(null);
       await fetchDetail();
     } catch (err) {
-      toast.error("Failed to send message");
+      const errData = err?.response?.data;
+      if (errData?.code === 'MESSAGE_BLOCKED') {
+        const warning = getChatBlockMessage(errData?.category);
+        setWarningBanner(warning);
+        toast.error(warning, {
+          duration: 6000,
+          style: { maxWidth: '360px', borderRadius: '12px' },
+        });
+      } else {
+        toast.error(errData?.message || "Failed to send message");
+      }
     } finally {
       setSending(false);
     }
@@ -399,13 +415,38 @@ const VendorDirectRFQDetail = () => {
               {/* Input */}
               <form
                 onSubmit={handleSendMessage}
-                className="p-4 border-t border-gray-150 bg-gray-50 flex flex-col gap-3"
+                className="p-4 border-t border-gray-150 bg-gray-50 flex flex-col gap-2.5"
               >
+                {/* Security Reminder */}
+                <div className="px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-1.5 text-[11px] text-amber-800 font-medium">
+                  <FiShield className="text-amber-600 flex-shrink-0 text-xs" />
+                  <span>Platform Policy: Direct payments or sharing phone numbers is strictly prohibited.</span>
+                </div>
+
+                {warningBanner && (
+                  <div className="p-2.5 bg-red-50 border border-red-200 text-red-900 rounded-xl text-xs flex items-start justify-between gap-2 shadow-xs animate-pulse">
+                    <div className="flex items-start gap-1.5">
+                      <FiAlertTriangle className="text-red-600 text-sm mt-0.5 flex-shrink-0" />
+                      <span className="font-medium leading-relaxed">{warningBanner}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setWarningBanner(null)}
+                      className="text-red-500 hover:text-red-800 p-0.5 flex-shrink-0"
+                    >
+                      <FiX className="text-xs" />
+                    </button>
+                  </div>
+                )}
+
                 <div className="flex items-center gap-3">
                   <textarea
                     rows={1}
                     value={message}
-                    onChange={(e) => setMessage(e.target.value)}
+                    onChange={(e) => {
+                      setMessage(e.target.value);
+                      if (warningBanner) setWarningBanner(null);
+                    }}
                     placeholder="Enter message for Employee..."
                     className="flex-1 bg-white border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#C07A3D] font-medium resize-none"
                   />

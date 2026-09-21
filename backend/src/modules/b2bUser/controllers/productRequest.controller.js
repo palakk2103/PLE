@@ -332,7 +332,8 @@ export const confirmProductRequestProposal = asyncHandler(async (req, res) => {
         paymentMethod: 'wallet', // Standard B2B wallet payment
         paymentStatus: 'pending',
         status: 'pending',
-        requestProductId: request._id
+        requestProductId: request._id,
+        orderType: 'product_request'
     });
 
     request.status = 'Confirmed';
@@ -351,6 +352,14 @@ export const confirmProductRequestProposal = asyncHandler(async (req, res) => {
     });
 
     await request.save();
+
+    // Automatically generate invoice idempotently
+    try {
+        const { generateInvoiceForOrder } = await import('../../../services/invoice.service.js');
+        await generateInvoiceForOrder(order._id);
+    } catch (invErr) {
+        console.error("Automatic invoice generation error on product request proposal:", invErr?.message);
+    }
 
     res.status(200).json(
         new ApiResponse(200, { request, order }, 'Proposal accepted and order created')

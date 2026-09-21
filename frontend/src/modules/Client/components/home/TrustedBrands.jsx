@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import { ArrowRight, Award } from 'lucide-react';
+import { API_BASE_URL } from '../../../../shared/utils/constants';
 
 export default function TrustedBrands() {
   const [brands, setBrands] = useState([]);
@@ -10,8 +11,7 @@ export default function TrustedBrands() {
   useEffect(() => {
     const fetchBrands = async () => {
       try {
-        const baseUrl = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:5000/api` : 'http://localhost:5000/api');
-        const res = await axios.get(`${baseUrl}/brands/all`);
+        const res = await axios.get(`${API_BASE_URL}/brands/all`);
         if (res.data?.success) {
           setBrands(res.data.data || []);
         } else {

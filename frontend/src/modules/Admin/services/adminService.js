@@ -151,6 +151,12 @@ export const verifyVendorBusiness = (id) =>
 export const rejectVendorBusiness = (id, remark) =>
     api.patch(`/admin/vendors/${id}/reject-business`, { remark });
 
+export const unflagVendor = (id, reason = '') =>
+    api.patch(`/admin/vendors/${id}/unflag`, { reason });
+
+export const flagVendor = (id, reason = '') =>
+    api.patch(`/admin/vendors/${id}/flag`, { reason });
+
 export const updateCommissionRate = (id, commissionRate) =>
     api.patch(`/admin/vendors/${id}/commission`, { commissionRate });
 

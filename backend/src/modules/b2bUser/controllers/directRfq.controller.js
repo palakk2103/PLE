@@ -5,6 +5,8 @@ import { ApiResponse } from '../../../utils/ApiResponse.js';
 import { asyncHandler } from '../../../utils/asyncHandler.js';
 import { getIO } from '../../../config/socket.js';
 import crypto from 'crypto';
+import { moderateMessage, MODERATION_ACTION } from '../../../services/chatModeration.service.js';
+import ChatViolation from '../../../models/ChatViolation.model.js';
 
 const generateId = () => `DRFQ-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
 
@@ -66,6 +68,36 @@ export const sendDirectMessage = asyncHandler(async (req, res) => {
 
     const drfq = await DirectRFQ.findById(id);
     if (!drfq) throw new ApiError(404, "Not found");
+
+    // ── Moderation Layer ──────────────────────────────────────
+    if (message && action !== 'accept') {
+        const moderationResult = moderateMessage(message);
+        if (moderationResult.action !== MODERATION_ACTION.ALLOW) {
+            try {
+                await ChatViolation.create({
+                    senderId:   req.user.id,
+                    senderType: 'customer',
+                    vendorId:   drfq.vendorId,
+                    category:   moderationResult.category,
+                    action:     moderationResult.action,
+                    direction:  'USER_TO_VENDOR',
+                    reason:     moderationResult.reason,
+                });
+            } catch (logErr) {
+                console.warn('Failed to log chat violation:', logErr.message);
+            }
+
+            if (moderationResult.action === MODERATION_ACTION.BLOCK) {
+                return res.status(422).json({
+                    success:  false,
+                    code:     'MESSAGE_BLOCKED',
+                    category: moderationResult.category,
+                    message:  moderationResult.userMessage,
+                });
+            }
+        }
+    }
+    // ── End Moderation ────────────────────────────────────────
 
     const newMsg = {
         senderId: req.user.id,

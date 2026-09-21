@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { FiArrowLeft, FiSend, FiUser, FiCheckCircle, FiStar } from "react-icons/fi";
+import { FiArrowLeft, FiSend, FiUser, FiCheckCircle, FiStar, FiAlertTriangle, FiX, FiShield } from "react-icons/fi";
 import { motion } from "framer-motion";
 import MobileLayout from "../components/Layout/MobileLayout";
 import PageTransition from "../../../shared/components/PageTransition";
@@ -18,6 +18,7 @@ const CustomerVendorChat = () => {
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [warningBanner, setWarningBanner] = useState(null);
   const chatEndRef = useRef(null);
   const isB2B = useB2bStore((state) => state.userRole === 'business_buyer');
 
@@ -111,14 +112,17 @@ const CustomerVendorChat = () => {
           return [...prev, created];
         });
         setNewMessage("");
+        setWarningBanner(null);
       }
     } catch (err) {
       // Handle moderation block specifically
       const errData = err?.response?.data;
       if (errData?.code === 'MESSAGE_BLOCKED') {
-        toast.error(getChatBlockMessage(errData?.category), {
+        const warning = getChatBlockMessage(errData?.category);
+        setWarningBanner(warning);
+        toast.error(warning, {
           duration: 6000,
-          style: { maxWidth: '340px' },
+          style: { maxWidth: '360px', borderRadius: '12px' },
         });
       } else {
         toast.error('Failed to send message.');
@@ -230,16 +234,41 @@ const CustomerVendorChat = () => {
               <div ref={chatEndRef} />
             </div>
 
+            {/* Safety Reminder */}
+            <div className="bg-amber-50/90 border-t border-b border-amber-200/60 px-4 py-1.5 flex items-center justify-center gap-1.5 text-[11px] text-amber-800 font-medium flex-shrink-0">
+              <FiShield className="text-amber-600 flex-shrink-0 text-xs" />
+              <span>Safety Tip: Never share phone numbers or make direct payments outside the app.</span>
+            </div>
+
             {/* Reply Form */}
             <form
               onSubmit={handleSend}
               className="bg-white border-t border-gray-200 px-4 py-3 flex-shrink-0 sticky bottom-0 z-20 shadow-md"
             >
+              {warningBanner && (
+                <div className="mb-2.5 p-2.5 bg-red-50 border border-red-200 text-red-900 rounded-xl text-xs flex items-start justify-between gap-2 shadow-xs animate-pulse">
+                  <div className="flex items-start gap-1.5">
+                    <FiAlertTriangle className="text-red-600 text-sm mt-0.5 flex-shrink-0" />
+                    <span className="font-medium leading-relaxed">{warningBanner}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setWarningBanner(null)}
+                    className="text-red-500 hover:text-red-800 p-0.5 flex-shrink-0"
+                  >
+                    <FiX className="text-xs" />
+                  </button>
+                </div>
+              )}
+
               <div className="flex items-center gap-2">
                 <input
                   type="text"
                   value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
+                  onChange={(e) => {
+                    setNewMessage(e.target.value);
+                    if (warningBanner) setWarningBanner(null);
+                  }}
                   placeholder="Ask about stock, sizes, custom orders..."
                   className="flex-1 bg-gray-50 border border-gray-250 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 font-medium"
                 />

@@ -4,6 +4,8 @@ import {
   getVendorById,
   updateVendorStatus as updateVendorStatusApi,
   updateCommissionRate as updateCommissionRateApi,
+  unflagVendor as unflagVendorApi,
+  flagVendor as flagVendorApi,
 } from "../services/adminService";
 
 const normalizeVendor = (vendor) => {
@@ -104,6 +106,32 @@ export const useVendorStore = create((set, get) => ({
       return true;
     } catch {
       console.warn("updateCommissionRate API failed.");
+      return false;
+    }
+  },
+
+  unflagVendor: async (id, reason = "") => {
+    try {
+      const response = await unflagVendorApi(id, reason);
+      const vendor = normalizeVendor(response?.data ?? response);
+      if (!vendor) return false;
+      await get().initialize();
+      return true;
+    } catch {
+      console.warn("unflagVendor API failed.");
+      return false;
+    }
+  },
+
+  flagVendor: async (id, reason = "") => {
+    try {
+      const response = await flagVendorApi(id, reason);
+      const vendor = normalizeVendor(response?.data ?? response);
+      if (!vendor) return false;
+      await get().initialize();
+      return true;
+    } catch {
+      console.warn("flagVendor API failed.");
       return false;
     }
   },

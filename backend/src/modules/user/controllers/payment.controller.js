@@ -7,6 +7,7 @@ import asyncHandler from '../../../utils/asyncHandler.js';
 import { createNotification } from '../../../services/notification.service.js';
 import { sendNotificationToUser } from '../../../utils/pushNotificationHelper.js';
 import { getIO } from '../../../config/socket.js';
+import { generateInvoiceForOrder } from '../../../services/invoice.service.js';
 
 // Verify Razorpay payment signature
 export const verifyPayment = asyncHandler(async (req, res) => {
@@ -131,6 +132,13 @@ export const verifyPayment = asyncHandler(async (req, res) => {
         }
     } catch (notificationErr) {
         console.error("Error sending payment success notifications:", notificationErr);
+    }
+
+    // Sync / update invoice with payment details
+    try {
+        await generateInvoiceForOrder(order._id);
+    } catch (invErr) {
+        console.error("Invoice sync error after payment verification:", invErr?.message);
     }
 
     res.status(200).json(new ApiResponse(200, order, 'Payment verified and order updated successfully.'));

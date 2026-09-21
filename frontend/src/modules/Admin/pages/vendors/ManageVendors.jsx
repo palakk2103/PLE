@@ -122,6 +122,8 @@ const ManageVendors = () => {
         filtered = filtered.filter((vendor) => vendor.verificationStatus === 'Approved');
       } else if (selectedStatus === 'rejected_verification') {
         filtered = filtered.filter((vendor) => vendor.verificationStatus === 'Rejected');
+      } else if (selectedStatus === 'flagged') {
+        filtered = filtered.filter((vendor) => vendor.isFlagged === true);
       } else {
         filtered = filtered.filter((vendor) => vendor.status === selectedStatus);
       }
@@ -227,17 +229,26 @@ const ManageVendors = () => {
       key: "status",
       label: "Account Status",
       sortable: true,
-      render: (value) => (
-        <Badge
-          variant={
-            value === "approved"
-              ? "success"
-              : value === "pending"
-                ? "warning"
-                : "error"
-          }>
-          {value?.toUpperCase() || "N/A"}
-        </Badge>
+      render: (value, row) => (
+        <div className="flex flex-col gap-1 items-start">
+          <Badge
+            variant={
+              value === "approved"
+                ? "success"
+                : value === "pending"
+                  ? "warning"
+                  : "error"
+            }>
+            {value?.toUpperCase() || "N/A"}
+          </Badge>
+          {row?.isFlagged && (
+            <span
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200"
+              title={row.flagReason || "Account flagged for unfulfilled request"}>
+              ⚠️ FLAGGED {row.strikeCount ? `(${row.strikeCount})` : ""}
+            </span>
+          )}
+        </div>
       ),
     },
     {
@@ -500,6 +511,7 @@ const ManageVendors = () => {
               onChange={(e) => setSelectedStatus(e.target.value)}
               options={[
                 { value: "all", label: "All Status" },
+                { value: "flagged", label: "⚠️ Flagged (Restricted)" },
                 { value: "approved", label: "Approved (Active)" },
                 { value: "pending", label: "Pending Approval" },
                 { value: "suspended", label: "Suspended" },

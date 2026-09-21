@@ -21,6 +21,7 @@ import { calculateVendorShippingForGroups } from '../../../services/vendorShippi
 import { getIO } from '../../../config/socket.js';
 import { sendNotificationToUser } from '../../../utils/pushNotificationHelper.js';
 import { resolveProductGST, calculateItemGST } from '../../../utils/gstUtils.js';
+import { generateInvoiceForOrder } from '../../../services/invoice.service.js';
 
 const normalizeVariantPart = (value) => String(value || '').trim().toLowerCase();
 const normalizeAxisName = (value) =>
@@ -576,6 +577,7 @@ export const placeOrder = asyncHandler(async (req, res) => {
                 walletTransactionId: walletTxId || undefined,
                 trackingNumber: generateTrackingNumber(),
                 estimatedDelivery: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // +5 days
+                orderType: (isB2B || !!req.user?.companyId) ? 'b2b' : 'b2c',
                 idempotencyKey: idempotencyKey || undefined,
                 idempotencyScope: idempotencyKey ? idempotencyScope : undefined,
             }], { session });
@@ -746,6 +748,13 @@ export const placeOrder = asyncHandler(async (req, res) => {
                 }
             } catch (err) {
                 console.error("Error in sending order notifications to vendors:", err);
+            }
+
+            // Generate invoice idempotently in background
+            try {
+                await generateInvoiceForOrder(order._id);
+            } catch (invErr) {
+                console.error("Automatic invoice generation error on placeOrder:", invErr?.message);
             }
         })();
     }

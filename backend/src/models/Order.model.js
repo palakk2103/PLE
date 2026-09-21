@@ -106,7 +106,14 @@ const orderSchema = new mongoose.Schema(
         isDeleted: { type: Boolean, default: false, index: true },
         deletedAt: Date,
         deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
-        requestProductId: { type: mongoose.Schema.Types.ObjectId, ref: 'ProductRequest', index: true }
+        requestProductId: { type: mongoose.Schema.Types.ObjectId, ref: 'ProductRequest', index: true },
+        rfqId: { type: mongoose.Schema.Types.ObjectId, ref: 'RFQ', index: true },
+        orderType: {
+            type: String,
+            enum: ['b2c', 'b2b', 'product_request', 'rfq'],
+            default: 'b2c',
+            index: true
+        }
     },
     { timestamps: true }
 );

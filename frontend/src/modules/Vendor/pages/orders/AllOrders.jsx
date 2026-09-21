@@ -22,6 +22,7 @@ const AllOrders = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
+  const [selectedOrderType, setSelectedOrderType] = useState('all');
 
   const vendorId = vendor?.id || vendor?._id;
 
@@ -81,8 +82,15 @@ const AllOrders = () => {
       });
     }
 
+    if (selectedOrderType !== 'all') {
+      filtered = filtered.filter((order) => {
+        const type = order.orderType || (order.requestProductId ? 'product_request' : (order.rfqId ? 'rfq' : (order.isB2b ? 'b2b' : 'b2c')));
+        return type === selectedOrderType;
+      });
+    }
+
     return filtered;
-  }, [orders, searchQuery, selectedStatus, vendorIdsToMatch]);
+  }, [orders, searchQuery, selectedStatus, selectedOrderType, vendorIdsToMatch]);
 
   // Get per-vendor subtotal from vendorItems
   const getVendorSubtotal = (order) => {
@@ -167,10 +175,17 @@ const AllOrders = () => {
       label: 'Type',
       sortable: true,
       render: (_, row) => {
-        const isB2b = row.isB2b || row.orderType === 'b2b';
+        const type = row.orderType || (row.requestProductId ? 'product_request' : (row.rfqId ? 'rfq' : (row.isB2b ? 'b2b' : 'b2c')));
+        const badges = {
+          b2c: { label: 'B2C', variant: 'success' },
+          b2b: { label: 'B2B', variant: 'warning' },
+          product_request: { label: 'PRODUCT REQ', variant: 'info' },
+          rfq: { label: 'RFQ', variant: 'purple' },
+        };
+        const b = badges[type] || badges.b2c;
         return (
-          <Badge variant={isB2b ? 'warning' : 'success'}>
-            {isB2b ? 'WHOLESALE' : 'RETAIL'}
+          <Badge variant={b.variant}>
+            {b.label}
           </Badge>
         );
       },
@@ -268,6 +283,21 @@ const AllOrders = () => {
                   { value: 'shipped', label: 'Shipped' },
                   { value: 'delivered', label: 'Delivered' },
                   { value: 'cancelled', label: 'Cancelled' },
+                ]}
+                className="w-full"
+              />
+            </div>
+
+            <div>
+              <AnimatedSelect
+                value={selectedOrderType}
+                onChange={(e) => setSelectedOrderType(e.target.value)}
+                options={[
+                  { value: 'all', label: 'All Types' },
+                  { value: 'b2c', label: 'B2C Orders' },
+                  { value: 'b2b', label: 'B2B Wholesale' },
+                  { value: 'product_request', label: 'Product Request' },
+                  { value: 'rfq', label: 'RFQ Orders' },
                 ]}
                 className="w-full"
               />

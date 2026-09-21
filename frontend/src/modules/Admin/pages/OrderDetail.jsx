@@ -13,11 +13,15 @@ import {
   FiTag,
   FiPackage,
   FiClock,
-  FiMail
+  FiMail,
+  FiFileText,
+  FiDownload
 } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import Badge from '../../../shared/components/Badge';
 import AnimatedSelect from '../components/AnimatedSelect';
+import InvoiceModal from '../../../shared/components/InvoiceModal';
+import api from '../../../shared/utils/api';
 import { formatCurrency, formatDateTime } from '../utils/adminHelpers';
 import { getOrderById, updateOrderStatus } from '../services/adminService';
 import toast from 'react-hot-toast';
@@ -28,6 +32,31 @@ const OrderDetail = () => {
   const [order, setOrder] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [status, setStatus] = useState('');
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+
+  const handleDownloadInvoice = async () => {
+    const cleanId = order?.orderId || order?.id || id;
+    const toastId = toast.loading('Downloading admin invoice...');
+    try {
+      const res = await api.get(`/admin/orders/${cleanId}/invoice/pdf`, { responseType: 'blob' });
+      const blob = res instanceof Blob ? res : new Blob([res?.data || res], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.setAttribute('download', `Admin-Invoice-${cleanId}.pdf`);
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }, 1500);
+      toast.success('Invoice downloaded successfully!', { id: toastId });
+    } catch (err) {
+      console.error('Invoice download error:', err);
+      toast.error('Failed to download invoice PDF.', { id: toastId });
+    }
+  };
 
   const [isLoading, setIsLoading] = useState(true);
 
@@ -137,7 +166,20 @@ const OrderDetail = () => {
             <FiArrowLeft className="text-lg text-gray-600" />
           </button>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-800">{order.id}</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-800">{order.id}</h1>
+              {(() => {
+                const type = order.orderType || (order.requestProductId ? 'product_request' : (order.rfqId ? 'rfq' : (order.isB2b ? 'b2b' : 'b2c')));
+                const badges = {
+                  b2c: { label: 'B2C RETAIL', variant: 'success' },
+                  b2b: { label: 'B2B WHOLESALE', variant: 'warning' },
+                  product_request: { label: 'PRODUCT REQUEST', variant: 'info' },
+                  rfq: { label: 'RFQ ORDER', variant: 'purple' },
+                };
+                const b = badges[type] || badges.b2c;
+                return <Badge variant={b.variant}>{b.label}</Badge>;
+              })()}
+            </div>
             <p className="text-xs text-gray-500">{formatDateTime(order.date)}</p>
           </div>
         </div>
@@ -164,6 +206,24 @@ const OrderDetail = () => {
             </>
           ) : (
             <>
+              <div className="flex items-center gap-1.5 mr-2">
+                <button
+                  type="button"
+                  onClick={() => setIsInvoiceModalOpen(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                >
+                  <FiFileText className="text-sm" />
+                  Invoice
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDownloadInvoice}
+                  className="flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors text-sm font-medium"
+                  title="Download PDF"
+                >
+                  <FiDownload className="text-sm" />
+                </button>
+              </div>
               <Badge variant={order.status}>{order.status}</Badge>
               <button
                 onClick={() => setIsEditing(true)}
@@ -487,6 +547,13 @@ const OrderDetail = () => {
           </div>
         </div>
       </div>
+
+      <InvoiceModal
+        isOpen={isInvoiceModalOpen}
+        onClose={() => setIsInvoiceModalOpen(false)}
+        orderId={order?.orderId || order?.id || id}
+        role="admin"
+      />
     </motion.div>
   );
 };

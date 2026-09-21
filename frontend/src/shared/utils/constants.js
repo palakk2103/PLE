@@ -1,14 +1,20 @@
 // API Configuration
 const getApiUrl = () => {
+  const envUrl = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '').trim();
   if (typeof window !== 'undefined') {
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      return `${window.location.protocol}//${window.location.hostname}:5000/api`;
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (isLocal) {
+      return envUrl || `${window.location.protocol}//${window.location.hostname}:5000/api`;
+    }
+    // In production, never allow baked-in localhost URLs to cause mixed content or connection errors
+    if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
+      return envUrl;
     }
     return `${window.location.origin}/api`;
   }
-  return 'http://localhost:5000/api';
+  return envUrl || 'http://localhost:5000/api';
 };
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || getApiUrl();
+export const API_BASE_URL = getApiUrl();
 export const AUTH_REDIRECT_LOCK_KEY = import.meta.env.VITE_AUTH_REDIRECT_LOCK_KEY || 'auth-redirect-lock';
 export const AUTH_REDIRECT_LOCK_MS = Number(import.meta.env.VITE_AUTH_REDIRECT_LOCK_MS || 1500);
 

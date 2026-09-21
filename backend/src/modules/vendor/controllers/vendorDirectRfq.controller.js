@@ -4,6 +4,8 @@ import { ApiError } from '../../../utils/ApiError.js';
 import { ApiResponse } from '../../../utils/ApiResponse.js';
 import { asyncHandler } from '../../../utils/asyncHandler.js';
 import { getIO } from '../../../config/socket.js';
+import { moderateMessage, MODERATION_ACTION } from '../../../services/chatModeration.service.js';
+import ChatViolation from '../../../models/ChatViolation.model.js';
 
 export const getVendorDirectRFQs = asyncHandler(async (req, res) => {
     const vendorId = req.user.id;
@@ -25,6 +27,36 @@ export const sendDirectMessage = asyncHandler(async (req, res) => {
 
     const drfq = await DirectRFQ.findById(id);
     if(!drfq) throw new ApiError(404, "Not found");
+
+    // ── Moderation Layer ──────────────────────────────────────
+    if (message && action !== 'accept' && action !== 'reject') {
+        const moderationResult = moderateMessage(message);
+        if (moderationResult.action !== MODERATION_ACTION.ALLOW) {
+            try {
+                await ChatViolation.create({
+                    senderId:   req.user.id,
+                    senderType: 'vendor',
+                    vendorId:   req.user.id,
+                    category:   moderationResult.category,
+                    action:     moderationResult.action,
+                    direction:  'VENDOR_TO_USER',
+                    reason:     moderationResult.reason,
+                });
+            } catch (logErr) {
+                console.warn('Failed to log chat violation:', logErr.message);
+            }
+
+            if (moderationResult.action === MODERATION_ACTION.BLOCK) {
+                return res.status(422).json({
+                    success:  false,
+                    code:     'MESSAGE_BLOCKED',
+                    category: moderationResult.category,
+                    message:  moderationResult.userMessage,
+                });
+            }
+        }
+    }
+    // ── End Moderation ────────────────────────────────────────
 
     const newMsg = {
         senderId: req.user.id,

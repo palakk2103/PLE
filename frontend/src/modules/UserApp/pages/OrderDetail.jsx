@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiPackage, FiTruck, FiMapPin, FiCreditCard, FiRotateCw, FiArrowLeft, FiShoppingBag, FiX, FiDownload } from 'react-icons/fi';
+import { FiPackage, FiTruck, FiMapPin, FiCreditCard, FiRotateCw, FiArrowLeft, FiShoppingBag, FiX, FiDownload, FiEye } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import MobileLayout from "../components/Layout/MobileLayout";
+import InvoiceModal from '../../../shared/components/InvoiceModal';
 import { useOrderStore } from '../../../shared/store/orderStore';
 import { useCartStore } from '../../../shared/store/useStore';
 import { formatPrice } from '../../../shared/utils/helpers';
@@ -35,6 +36,7 @@ const MobileOrderDetail = () => {
   const [returnVendorId, setReturnVendorId] = useState('');
   const [isSubmittingReturn, setIsSubmittingReturn] = useState(false);
   const [existingReturn, setExistingReturn] = useState(null);
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -58,53 +60,29 @@ const MobileOrderDetail = () => {
       }))
     : [];
 
-  const handleDownloadInvoice = () => {
+  const handleDownloadInvoice = async () => {
     if (!order) return;
-    const invoiceText = `
-INVOICE
-PLE E-Commerce Marketplace
-========================================
-Order ID: ${order.orderId || order.id}
-Tracking Number: ${order.trackingNumber || "N/A"}
-Date: ${new Date(order.date || order.createdAt).toLocaleString()}
-
-Customer Information:
-Name: ${order.shippingAddress?.name || "N/A"}
-Email: ${order.shippingAddress?.email || "N/A"}
-Phone: ${order.shippingAddress?.phone || "N/A"}
-
-Shipping Address:
-${order.shippingAddress?.address || "N/A"}
-${order.shippingAddress?.city || "N/A"}, ${order.shippingAddress?.state || "N/A"} ${order.shippingAddress?.zipCode || "N/A"}
-${order.shippingAddress?.country || "N/A"}
-
-Items:
-${orderItems.map(item => `- ${item.name} x${item.quantity} (GST ${item.gstRate !== undefined ? item.gstRate : 18}%) - ${formatPrice((item.price || 0) * (item.quantity || 1))}`).join("\n")}
-
-========================================
-Subtotal: ${formatPrice(order.subtotal)}
-Discount: -${formatPrice(order.discount || 0)}
-Tax: ${formatPrice(order.tax || 0)}
-Shipping: ${formatPrice(order.shipping || 0)}
-Total: ${formatPrice(order.total)}
-
-Payment Method: ${order.paymentMethod?.toUpperCase()}
-Payment Status: ${order.paymentStatus?.toUpperCase()}
-Transaction ID: ${order.paymentDetails?.razorpayPaymentId || "N/A"}
-========================================
-Thank you for shopping with us!
-`.trim();
-
-    const blob = new Blob([invoiceText], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `invoice-${order.orderId || order.id}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast.success("Invoice downloaded successfully!");
+    const cleanId = order.orderId || order.id || order._id;
+    const toastId = toast.loading("Downloading official invoice...");
+    try {
+      const res = await api.get(`/user/orders/${cleanId}/invoice/pdf`, { responseType: 'blob' });
+      const blob = res instanceof Blob ? res : new Blob([res?.data || res], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = url;
+      a.setAttribute("download", `Invoice-${cleanId}.pdf`);
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }, 1500);
+      toast.success("Invoice downloaded successfully!", { id: toastId });
+    } catch (err) {
+      console.error("Invoice download error:", err);
+      toast.error("Failed to download invoice PDF.", { id: toastId });
+    }
   };
 
   const handleRetryPayment = async () => {
@@ -483,15 +461,26 @@ Thank you for shopping with us!
                     <span>Order Date:</span>
                     <span className="font-semibold text-gray-800">{formatDate(order.date)}</span>
                   </div>
-                  <div className="pt-2 border-t border-gray-100 flex justify-between items-center">
-                    <span>Tax Invoice:</span>
-                    <button
-                      onClick={handleDownloadInvoice}
-                      className="flex items-center gap-1.5 text-xs font-bold text-[#7B0A0A] hover:text-[#AE020B]"
-                    >
-                      <FiDownload />
-                      Download Invoice
-                    </button>
+                  <div className="pt-2 border-t border-gray-100 flex flex-wrap justify-between items-center gap-2">
+                    <span className="text-xs text-gray-500 font-medium">Tax Invoice:</span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsInvoiceModalOpen(true)}
+                        className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
+                      >
+                        <FiEye className="w-3.5 h-3.5" />
+                        View
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleDownloadInvoice}
+                        className="flex items-center gap-1.5 text-xs font-bold text-[#7B0A0A] hover:text-[#AE020B] px-2.5 py-1 rounded-lg hover:bg-[#7B0A0A]/5 transition-colors"
+                      >
+                        <FiDownload />
+                        Download
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -663,6 +652,13 @@ Thank you for shopping with us!
               </motion.div>
             </motion.div>
           )}
+
+        <InvoiceModal
+          isOpen={isInvoiceModalOpen}
+          onClose={() => setIsInvoiceModalOpen(false)}
+          orderId={order?.orderId || order?.id}
+          role="customer"
+        />
       </MobileLayout>
     </PageTransition>
   );

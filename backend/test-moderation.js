@@ -59,6 +59,9 @@ test('+91 phone',               '+91 9876543210',                  MODERATION_AC
 test('Dashed phone',            '+91-9876543210',                  MODERATION_ACTION.BLOCK, MODERATION_CATEGORY.PHONE_NUMBER);
 test('Spaced phone',            '98765 43210 hai mera number',     MODERATION_ACTION.BLOCK, MODERATION_CATEGORY.PHONE_NUMBER);
 test('Phone in sentence',       'call me on 9812345678',           MODERATION_ACTION.BLOCK, MODERATION_CATEGORY.PHONE_NUMBER);
+test('Obfuscated letter O',     'call on 98765O43210',             MODERATION_ACTION.BLOCK, MODERATION_CATEGORY.PHONE_NUMBER);
+test('Spelled out digits',      'call nine eight seven six five four three two one zero', MODERATION_ACTION.BLOCK, MODERATION_CATEGORY.PHONE_NUMBER);
+test('Landline STD',            'call 011-23456789 office',        MODERATION_ACTION.BLOCK, MODERATION_CATEGORY.PHONE_NUMBER);
 
 // ── BLOCK Tests — UPI IDs ─────────────────────────────────────
 console.log('\n💳 BLOCK Tests — UPI IDs\n');

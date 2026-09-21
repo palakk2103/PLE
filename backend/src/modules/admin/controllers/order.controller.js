@@ -12,13 +12,30 @@ import { getIO } from '../../../config/socket.js';
 
 // GET /api/admin/orders
 export const getAllOrders = asyncHandler(async (req, res) => {
-    const { status, page = 1, limit = 20, search, startDate, endDate, userId } = req.query;
+    const { status, orderType, page = 1, limit = 20, search, startDate, endDate, userId } = req.query;
     const numericPage = Number(page) || 1;
     const numericLimit = Number(limit) || 20;
     const skip = (numericPage - 1) * numericLimit;
     const filter = { isDeleted: { $ne: true } };
 
     if (status && status !== 'all') filter.status = status;
+    if (orderType && orderType !== 'all') {
+        if (orderType === 'product_request') {
+            filter.$or = [{ orderType: 'product_request' }, { requestProductId: { $exists: true, $ne: null } }];
+        } else if (orderType === 'rfq') {
+            filter.$or = [{ orderType: 'rfq' }, { rfqId: { $exists: true, $ne: null } }];
+        } else if (orderType === 'b2b') {
+            filter.orderType = 'b2b';
+        } else if (orderType === 'b2c') {
+            filter.$and = [
+                { orderType: { $nin: ['b2b', 'product_request', 'rfq'] } },
+                { requestProductId: { $exists: false } },
+                { rfqId: { $exists: false } }
+            ];
+        } else {
+            filter.orderType = orderType;
+        }
+    }
     if (String(req.query.assignableOnly || '') === 'true' && !filter.status) {
         filter.status = { $in: ['pending', 'processing', 'shipped'] };
     }

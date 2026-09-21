@@ -111,6 +111,8 @@ router.patch('/vendors/:id/status', ...adminAuth, validate(vendorIdParamSchema, 
 router.patch('/vendors/:id/commission', ...adminAuth, validate(vendorIdParamSchema, 'params'), validate(vendorCommissionUpdateSchema), vendorController.updateCommissionRate);
 router.patch('/vendors/:id/verify-business', ...adminAuth, validate(vendorIdParamSchema, 'params'), vendorController.verifyVendorBusiness);
 router.patch('/vendors/:id/reject-business', ...adminAuth, validate(vendorIdParamSchema, 'params'), validate(vendorRejectBusinessSchema), vendorController.rejectVendorBusiness);
+router.patch('/vendors/:id/unflag', ...adminAuth, validate(vendorIdParamSchema, 'params'), vendorController.unflagVendor);
+router.patch('/vendors/:id/flag', ...adminAuth, validate(vendorIdParamSchema, 'params'), vendorController.flagVendor);
 
 // ─── Managed Shops & Vendors ───────────────────────────────────────────────
 router.post('/managed-shops', ...adminAuth, managedShopController.createShop);
@@ -294,7 +296,14 @@ router.get('/analytics/finance-summary', ...adminAuth, analyticsController.getFi
 router.get('/analytics/inventory-stats', ...adminAuth, analyticsController.getInventoryStats);
 
 // ─── Orders ───────────────────────────────────────────────────────────────────
+import * as invoiceController from '../../../controllers/invoice.controller.js';
 router.get('/orders', ...adminAuth, orderController.getAllOrders);
+router.get('/orders/:id/invoice', ...adminAuth, invoiceController.getAdminInvoice);
+router.get('/orders/:id/invoice/pdf', ...adminAuth, invoiceController.downloadAdminInvoicePdf);
+router.post('/orders/:id/invoice/regenerate', ...adminAuth, invoiceController.regenerateAdminInvoice);
+router.get('/invoices', ...adminAuth, invoiceController.getAllInvoices);
+router.get('/invoices/:id', ...adminAuth, invoiceController.getAdminInvoice);
+router.get('/invoices/:id/pdf', ...adminAuth, invoiceController.downloadAdminInvoicePdf);
 router.get('/orders/:id', ...adminAuth, orderController.getOrderById);
 router.patch('/orders/:id/status', ...adminAuth, orderController.updateOrderStatus);
 router.patch('/orders/:id/assign-delivery', ...adminAuth, orderController.assignDeliveryBoy);

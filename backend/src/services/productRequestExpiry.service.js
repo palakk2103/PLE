@@ -1,5 +1,6 @@
 import ProductRequest from '../models/ProductRequest.model.js';
 import Notification from '../models/Notification.model.js';
+import Vendor from '../models/Vendor.model.js';
 
 const CRON_INTERVAL_MS = 60 * 60 * 1000; // every 1 hour
 
@@ -70,10 +71,46 @@ const expireFulfillmentWindows = async () => {
                 }
             }
         );
-        await Notification.create({ recipientType: 'admin', type: 'system', title: 'Vendor Fulfillment Window Expired', message: `Vendor fulfillment window expired for "${req.productName}" (${req.requestId}). ${windowStillValid ? 'Reopened for other vendors.' : 'Overall window also expired — admin action required.'}`, data: { relatedId: req._id.toString(), onModel: 'ProductRequest', requestId: req.requestId } });
+        // Flag the vendor for holding and failing to fulfill the request
         if (req.acceptedVendorId) {
-            await Notification.create({ recipientId: req.acceptedVendorId, recipientType: 'vendor', type: 'system', title: 'Fulfillment Window Expired', message: `Your 7-day fulfillment window for "${req.productName}" has expired. The request has been released.`, data: { relatedId: req._id.toString(), onModel: 'ProductRequest' } });
+            const flagReason = `Auto-flagged: Failed to fulfill or release product request "${req.productName}" (${req.requestId}) within deadline.`;
+            try {
+                await Vendor.findByIdAndUpdate(req.acceptedVendorId, {
+                    $set: {
+                        isFlagged: true,
+                        flagReason,
+                        flaggedAt: now
+                    },
+                    $inc: { strikeCount: 1 },
+                    $push: {
+                        flagHistory: {
+                            reason: flagReason,
+                            flaggedAt: now,
+                            action: 'AUTO_FLAG'
+                        }
+                    }
+                });
+            } catch (flagErr) {
+                console.error(`[ProductRequestExpiry] Failed to flag vendor ${req.acceptedVendorId}:`, flagErr.message);
+            }
+
+            await Notification.create({
+                recipientId: req.acceptedVendorId,
+                recipientType: 'vendor',
+                type: 'system',
+                title: '⚠️ Account Flagged: Request Non-Fulfillment',
+                message: `Your account has been FLAGGED for failing to submit quotation or fulfill product request "${req.productName}". You are restricted from accepting new product requests until reviewed and unflagged by Administrator.`,
+                data: { relatedId: req._id.toString(), onModel: 'ProductRequest', requestId: req.requestId }
+            });
         }
+
+        await Notification.create({
+            recipientType: 'admin',
+            type: 'system',
+            title: 'Vendor Flagged & Request Window Expired',
+            message: `Vendor fulfillment window expired for "${req.productName}" (${req.requestId}). The vendor has been automatically FLAGGED. ${windowStillValid ? 'Window reopened for other vendors.' : 'Overall window also expired — admin action required.'}`,
+            data: { relatedId: req._id.toString(), onModel: 'ProductRequest', requestId: req.requestId }
+        });
         if (req.userId) {
             await Notification.create({ recipientId: req.userId, recipientType: 'user', type: 'system', title: 'Vendor Update on Your Request', message: windowStillValid ? `The vendor for "${req.productName}" did not respond in time. Finding another vendor.` : `The vendor for "${req.productName}" did not respond in time and the search window has expired. Please contact support.`, data: { relatedId: req._id.toString(), onModel: 'ProductRequest' } });
         }

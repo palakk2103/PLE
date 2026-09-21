@@ -234,6 +234,10 @@ export const acceptVendorWindow = asyncHandler(async (req, res) => {
         throw new ApiError(403, 'Only approved vendors can accept vendor windows.');
     }
 
+    if (vendorDoc.isFlagged) {
+        throw new ApiError(403, 'Your account is currently FLAGGED due to an unfulfilled product request deadline. You cannot accept new product requests until reviewed and unflagged by Administrator.');
+    }
+
     // Check if this vendor previously released this request (no re-entry by default)
     const requestCheck = await ProductRequest.findOne({ requestId: req.params.id });
     if (!requestCheck) {

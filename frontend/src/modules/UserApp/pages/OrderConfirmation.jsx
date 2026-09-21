@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { FiCheckCircle, FiTruck, FiEye } from 'react-icons/fi';
+import { FiCheckCircle, FiTruck, FiEye, FiFileText, FiDownload } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import MobileLayout from "../components/Layout/MobileLayout";
 import { useOrderStore } from '../../../shared/store/orderStore';
@@ -8,6 +8,9 @@ import { formatPrice } from '../../../shared/utils/helpers';
 import { formatVariantLabel } from '../../../shared/utils/variant';
 import PageTransition from '../../../shared/components/PageTransition';
 import LazyImage from '../../../shared/components/LazyImage';
+import InvoiceModal from '../../../shared/components/InvoiceModal';
+import api from '../../../shared/utils/api';
+import toast from 'react-hot-toast';
 
 const MobileOrderConfirmation = () => {
   const { orderId } = useParams();
@@ -18,6 +21,35 @@ const MobileOrderConfirmation = () => {
   const orderItems = Array.isArray(order?.items) ? order.items : [];
   const displayOrderId = order?.id || order?.orderId || orderId;
   const earnedPoints = parseInt(localStorage.getItem(`earned_points_${order?.id}`) || "0", 10);
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownloadInvoice = async () => {
+    if (!displayOrderId) return;
+    setDownloading(true);
+    const toastId = toast.loading("Downloading official invoice...");
+    try {
+      const res = await api.get(`/user/orders/${displayOrderId}/invoice/pdf`, { responseType: 'blob' });
+      const blob = res instanceof Blob ? res : new Blob([res?.data || res], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = url;
+      a.setAttribute("download", `Invoice-${displayOrderId}.pdf`);
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }, 1500);
+      toast.success("Invoice downloaded successfully!", { id: toastId });
+    } catch (err) {
+      console.error("Invoice download error:", err);
+      toast.error("Failed to download invoice PDF.", { id: toastId });
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -148,6 +180,28 @@ const MobileOrderConfirmation = () => {
                   <span className="text-gray-600">Payment Method</span>
                   <span className="font-semibold text-gray-800 capitalize">{order.paymentMethod || 'N/A'}</span>
                 </div>
+                <div className="flex justify-between items-center text-sm pt-2 border-t border-gray-100">
+                  <span className="text-gray-600 font-medium">Tax Invoice</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsInvoiceModalOpen(true)}
+                      className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
+                    >
+                      <FiFileText className="w-3.5 h-3.5" />
+                      View
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDownloadInvoice}
+                      disabled={downloading}
+                      className="flex items-center gap-1 text-xs font-bold text-[#7B0A0A] hover:text-[#AE020B] px-2.5 py-1 rounded-lg hover:bg-[#7B0A0A]/5 transition-colors"
+                    >
+                      <FiDownload className="w-3.5 h-3.5" />
+                      Download
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -193,6 +247,25 @@ const MobileOrderConfirmation = () => {
 
             {/* Actions */}
             <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setIsInvoiceModalOpen(true)}
+                  className="py-3 px-2 bg-white border border-gray-200 hover:border-gray-300 text-gray-800 rounded-xl font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-xs text-sm"
+                >
+                  <FiEye className="text-base text-gray-600" />
+                  View Invoice
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDownloadInvoice}
+                  disabled={downloading}
+                  className="py-3 px-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-xs text-sm disabled:opacity-50"
+                >
+                  <FiDownload className="text-base" />
+                  {downloading ? 'Downloading...' : 'Download PDF'}
+                </button>
+              </div>
               <Link
                 to={`/orders/${displayOrderId}`}
                 className="block w-full py-3 gradient-green text-white rounded-xl font-semibold text-center hover:shadow-glow-green transition-all"
@@ -220,6 +293,13 @@ const MobileOrderConfirmation = () => {
             </div>
           </div>
         </div>
+
+        <InvoiceModal
+          isOpen={isInvoiceModalOpen}
+          onClose={() => setIsInvoiceModalOpen(false)}
+          orderId={displayOrderId}
+          role="customer"
+        />
       </MobileLayout>
     </PageTransition>
   );

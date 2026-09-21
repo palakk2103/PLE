@@ -189,6 +189,39 @@ const VendorDashboard = () => {
         </div>
       </div>
 
+      {/* Account Flagged Warning Banner */}
+      {vendor?.isFlagged && (
+        <div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl mt-0.5">⚠️</span>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-rose-900 dark:text-rose-200 text-sm sm:text-base">
+                  Account Flagged — Action Required
+                </h3>
+                {vendor?.strikeCount > 0 && (
+                  <span className="bg-rose-200 dark:bg-rose-900 text-rose-800 dark:text-rose-200 text-xs px-2 py-0.5 rounded-full font-bold">
+                    {vendor.strikeCount} Strike(s)
+                  </span>
+                )}
+              </div>
+              <p className="text-xs sm:text-sm text-rose-700 dark:text-rose-300 mt-0.5">
+                {vendor?.flagReason || "Your account has been flagged due to unfulfilled product request deadline."}
+              </p>
+              <p className="text-xs text-rose-600 dark:text-rose-400 mt-0.5">
+                Accepting new bulk product requests is restricted. Please contact Administrator to unflag your account.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => navigate("/vendor/product-requests")}
+            className="self-start sm:self-center px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold transition-colors whitespace-nowrap"
+          >
+            View Requests
+          </button>
+        </div>
+      )}
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         {statCards.map((stat, index) => (

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
-import { FiMessageCircle, FiSend, FiUser, FiSearch, FiArrowLeft } from "react-icons/fi";
+import { FiMessageCircle, FiSend, FiUser, FiSearch, FiArrowLeft, FiAlertTriangle, FiX, FiShield } from "react-icons/fi";
 import { motion } from "framer-motion";
 import Badge from "../../../shared/components/Badge";
 import { useVendorAuthStore } from "../store/vendorAuthStore";
@@ -23,6 +23,7 @@ const Chat = () => {
   const [selectedChat, setSelectedChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
+  const [warningBanner, setWarningBanner] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [isLoadingChats, setIsLoadingChats] = useState(false);
@@ -116,6 +117,7 @@ const Chat = () => {
 
       if (created) {
         setMessages((prev) => [...prev, created]);
+        setWarningBanner(null);
       }
 
       setNewMessage("");
@@ -146,9 +148,11 @@ const Chat = () => {
       // Handle moderation block specifically
       const errData = err?.response?.data;
       if (errData?.code === 'MESSAGE_BLOCKED') {
-        toast.error(getChatBlockMessage(errData?.category), {
+        const warning = getChatBlockMessage(errData?.category);
+        setWarningBanner(warning);
+        toast.error(warning, {
           duration: 6000,
-          style: { maxWidth: '340px' },
+          style: { maxWidth: '360px', borderRadius: '12px' },
         });
       } else {
         toast.error('Failed to send message.');
@@ -395,19 +399,44 @@ const Chat = () => {
             </div>
 
             <div className="p-4 border-t border-gray-200">
+              {/* Security Policy Reminder */}
+              <div className="mb-2 px-3 py-1.5 bg-amber-50/90 border border-amber-200 rounded-lg flex items-center gap-1.5 text-[11px] text-amber-800 font-medium">
+                <FiShield className="text-amber-600 flex-shrink-0 text-xs" />
+                <span>Policy Reminder: Sharing phone numbers or requesting off-platform payments is strictly prohibited.</span>
+              </div>
+
+              {warningBanner && (
+                <div className="mb-2.5 p-2.5 bg-red-50 border border-red-200 text-red-900 rounded-xl text-xs flex items-start justify-between gap-2 shadow-xs animate-pulse">
+                  <div className="flex items-start gap-1.5">
+                    <FiAlertTriangle className="text-red-600 text-sm mt-0.5 flex-shrink-0" />
+                    <span className="font-medium leading-relaxed">{warningBanner}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setWarningBanner(null)}
+                    className="text-red-500 hover:text-red-800 p-0.5 flex-shrink-0"
+                  >
+                    <FiX className="text-xs" />
+                  </button>
+                </div>
+              )}
+
               <div className="flex items-center gap-2">
                 <input
                   type="text"
                   value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
+                  onChange={(e) => {
+                    setNewMessage(e.target.value);
+                    if (warningBanner) setWarningBanner(null);
+                  }}
                   onKeyDown={handleKeyPress}
                   placeholder="Type a message..."
-                  className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
                 />
                 <button
                   onClick={handleSendMessage}
-                  disabled={isSending}
-                  className="p-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-60"
+                  disabled={isSending || !newMessage.trim()}
+                  className="p-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
                 >
                   <FiSend />
                 </button>

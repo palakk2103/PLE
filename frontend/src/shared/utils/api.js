@@ -393,14 +393,36 @@ api.interceptors.response.use(
     }
 
     const status = error.response?.status;
-    const message =
+    const isNetworkError = !error.response || error.code === 'ERR_NETWORK' || error.message === 'Network Error';
+    const isGatewayError = status === 502 || status === 503 || status === 504;
+    
+    let rawMessage =
       error.response?.data?.message ||
       error.response?.data?.error ||
-      error.message ||
       '';
 
-    // Do not show error toast on silent 401 background checks or cancelled requests
-    if (status !== 401 && message && !axios.isCancel(error)) {
+    // If backend/nginx returned an HTML page (like 502 Bad Gateway HTML), don't show raw HTML
+    if (typeof rawMessage === 'string' && rawMessage.includes('<html')) {
+      rawMessage = '';
+    }
+
+    const message = rawMessage || (
+      isGatewayError
+        ? 'Server is temporarily unavailable. Please try again shortly.'
+        : isNetworkError
+          ? 'Unable to connect to server. Please check your internet connection or server status.'
+          : error.message || ''
+    );
+
+    // Prevent flooding multiple identical network error toasts within 3 seconds
+    const now = Date.now();
+    const isRecentNetworkToast = isNetworkError && (now - (window._lastNetworkErrorToastTime || 0) < 3000);
+
+    // Do not show error toast on silent 401 background checks, cancelled requests, or flood
+    if (status !== 401 && message && !axios.isCancel(error) && !isRecentNetworkToast) {
+      if (isNetworkError) {
+        window._lastNetworkErrorToastTime = now;
+      }
       toast.error(message);
     }
 

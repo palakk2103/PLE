@@ -51,8 +51,14 @@ export const getAllVendors = asyncHandler(async (req, res) => {
         filter.verificationStatus = 'Approved';
     } else if (status === 'rejected_verification') {
         filter.verificationStatus = 'Rejected';
+    } else if (status === 'flagged') {
+        filter.isFlagged = true;
     } else if (typeof status === 'string' && status !== 'all' && allowedStatuses.has(status)) {
         filter.status = status;
+    }
+
+    if (req.query.isFlagged !== undefined) {
+        filter.isFlagged = req.query.isFlagged === 'true' || req.query.isFlagged === true;
     }
 
     if (gstRegistered !== undefined) {
@@ -134,6 +140,103 @@ export const updateVendorStatus = asyncHandler(async (req, res) => {
     }
 
     res.status(200).json(new ApiResponse(200, toApiVendor(vendor), `Vendor ${status} successfully.`));
+});
+
+// PATCH /api/admin/vendors/:id/unflag
+export const unflagVendor = asyncHandler(async (req, res) => {
+    const { reason } = req.body;
+    const vendor = await Vendor.findById(req.params.id);
+    if (!vendor) throw new ApiError(404, 'Vendor not found.');
+
+    const unflagReason = reason?.trim() || 'Unflagged by Administrator after review.';
+    const adminId = req.user?._id || req.user?.id;
+
+    vendor.isFlagged = false;
+    vendor.flagReason = null;
+    vendor.flagHistory.push({
+        reason: unflagReason,
+        flaggedAt: vendor.flaggedAt || new Date(),
+        unflaggedAt: new Date(),
+        unflaggedBy: adminId,
+        action: 'MANUAL_UNFLAG'
+    });
+
+    await vendor.save();
+
+    const message = `Your vendor account has been unflagged by Administrator. Reason/Remarks: ${unflagReason}. You can now accept product requests again.`;
+
+    await createNotification({
+        recipientId: vendor._id,
+        recipientType: 'vendor',
+        title: '✅ Vendor Account Unflagged',
+        message,
+        type: 'system',
+        data: {
+            vendorId: String(vendor._id),
+            action: 'unflag'
+        }
+    });
+
+    try {
+        await sendEmail({
+            to: vendor.email,
+            subject: 'Vendor Account Unflagged - Access Restored',
+            text: message,
+            html: `<p>${message}</p>`
+        });
+    } catch (err) {
+        console.warn(`Vendor unflag email failed for ${vendor.email}: ${err.message}`);
+    }
+
+    res.status(200).json(new ApiResponse(200, toApiVendor(vendor), 'Vendor unflagged successfully.'));
+});
+
+// PATCH /api/admin/vendors/:id/flag
+export const flagVendor = asyncHandler(async (req, res) => {
+    const { reason } = req.body;
+    const vendor = await Vendor.findById(req.params.id);
+    if (!vendor) throw new ApiError(404, 'Vendor not found.');
+
+    const flagReason = reason?.trim() || 'Account flagged manually by Administrator for compliance / SLA review.';
+
+    vendor.isFlagged = true;
+    vendor.flagReason = flagReason;
+    vendor.flaggedAt = new Date();
+    vendor.strikeCount = (vendor.strikeCount || 0) + 1;
+    vendor.flagHistory.push({
+        reason: flagReason,
+        flaggedAt: new Date(),
+        action: 'MANUAL_FLAG'
+    });
+
+    await vendor.save();
+
+    const message = `Your vendor account has been FLAGGED by Administrator. Reason: ${flagReason}. You are restricted from accepting new product requests. Please contact support.`;
+
+    await createNotification({
+        recipientId: vendor._id,
+        recipientType: 'vendor',
+        title: '⚠️ Vendor Account Flagged by Admin',
+        message,
+        type: 'system',
+        data: {
+            vendorId: String(vendor._id),
+            action: 'flag'
+        }
+    });
+
+    try {
+        await sendEmail({
+            to: vendor.email,
+            subject: 'Vendor Account Flagged - Action Required',
+            text: message,
+            html: `<p>${message}</p>`
+        });
+    } catch (err) {
+        console.warn(`Vendor flag email failed for ${vendor.email}: ${err.message}`);
+    }
+
+    res.status(200).json(new ApiResponse(200, toApiVendor(vendor), 'Vendor flagged successfully.'));
 });
 
 // PATCH /api/admin/vendors/:id/commission

@@ -157,9 +157,8 @@ const autoMigrateCategories = async () => {
 
 const connectDB = async () => {
   try {
-    // Set a lower connection timeout so it fails quickly and switches to fallback rather than waiting 30 seconds
     const conn = await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 5000
+      serverSelectionTimeoutMS: process.env.NODE_ENV === 'production' ? 30000 : 8000
     });
     console.log(`MongoDB Connected: ${conn.connection.host}`);
     await autoSeedAdmin();

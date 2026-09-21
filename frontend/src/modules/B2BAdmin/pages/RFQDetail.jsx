@@ -21,7 +21,9 @@ import {
   FiMail,
   FiShield,
   FiStar,
-  FiPackage
+  FiPackage,
+  FiAlertTriangle,
+  FiX
 } from 'react-icons/fi';
 import api from '../../../shared/utils/api';
 import toast from 'react-hot-toast';
@@ -29,6 +31,7 @@ import Badge from '../../../shared/components/Badge';
 import { formatPrice } from '../../../shared/utils/helpers';
 import socketService from '../../../shared/utils/socket';
 import { useB2BAdminStore } from '../../B2BAdmin/store/b2bAdminStore';
+import { getChatBlockMessage } from '../../../shared/utils/chatModerationMessages';
 
 const RFQDetail = () => {
   const { id } = useParams();
@@ -50,6 +53,7 @@ const RFQDetail = () => {
   const [attachments, setAttachments] = useState([]);
   const [isInternalNote, setIsInternalNote] = useState(false);
   const [sending, setSending] = useState(false);
+  const [warningBanner, setWarningBanner] = useState(null);
   const chatEndRef = useRef(null);
 
   // Custom Confirmation Modal state
@@ -155,6 +159,7 @@ const RFQDetail = () => {
         setMessage('');
         setAttachments([]);
         setIsInternalNote(false);
+        setWarningBanner(null);
         // Refresh details to load messages
         const detailRes = await api.get(isDirectRFQ ? `/b2b-user/employee/direct-rfq/${id}` : `/b2b-user/admin/rfq/${id}`);
         if (detailRes && detailRes.data) {
@@ -169,7 +174,17 @@ const RFQDetail = () => {
         }
       }
     } catch (error) {
-      toast.error('Failed to send message');
+      const errData = error?.response?.data;
+      if (errData?.code === 'MESSAGE_BLOCKED') {
+        const warning = getChatBlockMessage(errData?.category);
+        setWarningBanner(warning);
+        toast.error(warning, {
+          duration: 6000,
+          style: { maxWidth: '360px', borderRadius: '12px' },
+        });
+      } else {
+        toast.error(errData?.message || 'Failed to send message');
+      }
     } finally {
       setSending(false);
     }
@@ -724,12 +739,38 @@ const RFQDetail = () => {
               </div>
 
               {/* Chat Input */}
-              <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-150 bg-gray-50 flex flex-col gap-3">
+              <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-150 bg-gray-50 flex flex-col gap-2.5">
+                {isDirectRFQ && (
+                  <div className="px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-1.5 text-[11px] text-amber-800 font-medium">
+                    <FiShield className="text-amber-600 flex-shrink-0 text-xs" />
+                    <span>Platform Policy: Direct payments or sharing personal phone numbers with vendors is prohibited.</span>
+                  </div>
+                )}
+
+                {warningBanner && (
+                  <div className="p-2.5 bg-red-50 border border-red-200 text-red-900 rounded-xl text-xs flex items-start justify-between gap-2 shadow-xs animate-pulse">
+                    <div className="flex items-start gap-1.5">
+                      <FiAlertTriangle className="text-red-600 text-sm mt-0.5 flex-shrink-0" />
+                      <span className="font-medium leading-relaxed">{warningBanner}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setWarningBanner(null)}
+                      className="text-red-500 hover:text-red-800 p-0.5 flex-shrink-0"
+                    >
+                      <FiX className="text-xs" />
+                    </button>
+                  </div>
+                )}
+
                 <div className="flex items-center gap-3">
                   <textarea
                     rows={1}
                     value={message}
-                    onChange={(e) => setMessage(e.target.value)}
+                    onChange={(e) => {
+                      setMessage(e.target.value);
+                      if (warningBanner) setWarningBanner(null);
+                    }}
                     placeholder={isDirectRFQ ? "Enter message for Vendor..." : "Enter message for Super Admin..."}
                     className="flex-1 bg-white border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#D71920] font-medium resize-none"
                   />

@@ -310,6 +310,33 @@ const VendorProductRequests = () => {
         <p className="text-sm text-gray-500">Respond to custom product requests from buyers on the marketplace</p>
       </div>
 
+      {/* Account Flagged Warning Banner */}
+      {vendor?.isFlagged && (
+        <div className="bg-rose-50 border border-rose-250 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+          <div className="flex items-start gap-3.5">
+            <span className="text-2xl mt-0.5">⚠️</span>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-black text-rose-900 text-base sm:text-lg">
+                  Your Vendor Account is Currently FLAGGED
+                </h3>
+                {vendor?.strikeCount > 0 && (
+                  <span className="bg-rose-200 text-rose-800 text-xs px-2.5 py-0.5 rounded-full font-bold">
+                    {vendor.strikeCount} {vendor.strikeCount === 1 ? 'Strike' : 'Strikes'}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs sm:text-sm text-rose-800 mt-1">
+                {vendor?.flagReason || "You failed to fulfill or release an accepted product request within the deadline."}
+              </p>
+              <p className="text-xs text-rose-600 mt-1 font-semibold">
+                ⛔ You are temporarily restricted from accepting new product requests. Please contact Administrator/Support to unflag your account.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Tabs & Search */}
       <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-4">
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
@@ -563,11 +590,18 @@ const VendorProductRequests = () => {
                   {(req.windowStatus === 'OPEN' || req.windowStatus === 'REOPENED') &&
                    !isAcceptedByMe ? (
                     <button
-                      onClick={() => handleAcceptVendorWindow(req)}
-                      disabled={isAccepting}
-                      className="w-full py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-black rounded-xl text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+                      onClick={() => {
+                        if (vendor?.isFlagged) {
+                          toast.error("Your account is FLAGGED. You cannot accept new product requests.");
+                          return;
+                        }
+                        handleAcceptVendorWindow(req);
+                      }}
+                      disabled={isAccepting || vendor?.isFlagged}
+                      className={`w-full py-2.5 ${vendor?.isFlagged ? 'bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-300' : 'bg-orange-600 hover:bg-orange-700 text-white'} font-black rounded-xl text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-75`}
+                      title={vendor?.isFlagged ? "Your account is flagged due to unfulfilled requests" : ""}
                     >
-                      {isAccepting ? "Accepting..." : "🏪 Accept This Request"}
+                      {vendor?.isFlagged ? "⛔ Account Flagged (Cannot Accept)" : (isAccepting ? "Accepting..." : "🏪 Accept This Request")}
                     </button>
                   /* Vendor Window: LOCKED by ME — show Submit Quotation + Chat + Extension + Release */
                   ) : (req.windowStatus === 'VENDOR_LOCKED' || req.status === 'Vendor Accepted') && isAcceptedByMe ? (

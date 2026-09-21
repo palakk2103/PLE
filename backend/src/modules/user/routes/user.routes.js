@@ -90,6 +90,14 @@ router.post('/orders/:id/returns', ...customerAuth, validate(createReturnRequest
 router.get('/returns', ...customerAuth, orderController.getUserReturnRequests);
 router.get('/returns/:id', ...customerAuth, orderController.getUserReturnRequestById);
 
+// Invoice routes
+import * as invoiceController from '../../../controllers/invoice.controller.js';
+router.get('/orders/:id/invoice', ...customerAuth, invoiceController.getUserInvoice);
+router.get('/orders/:id/invoice/pdf', ...customerAuth, invoiceController.downloadUserInvoicePdf);
+router.get('/invoices', ...customerAuth, invoiceController.getUserInvoices);
+router.get('/invoices/:id', ...customerAuth, invoiceController.getUserInvoice);
+router.get('/invoices/:id/pdf', ...customerAuth, invoiceController.downloadUserInvoicePdf);
+
 // Payment routes
 router.post('/payments/verify', ...customerAuth, paymentController.verifyPayment);
 router.post('/payments/retry', ...customerAuth, paymentController.retryPayment);

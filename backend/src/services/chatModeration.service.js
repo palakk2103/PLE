@@ -32,7 +32,7 @@ export const MODERATION_CATEGORY = Object.freeze({
 
 // ── User-safe messages keyed by category ─────────────────────
 const USER_MESSAGES = {
-    [MODERATION_CATEGORY.PHONE_NUMBER]:     'Message not sent. Contact information cannot be shared in chat. Please continue communication through the platform.',
+    [MODERATION_CATEGORY.PHONE_NUMBER]:     'Message not sent. Sharing phone numbers or personal contact details is strictly prohibited to ensure buyer-seller protection. Please continue all discussions through the platform.',
     [MODERATION_CATEGORY.EMAIL]:            'Message not sent. Contact information cannot be shared in chat. Please continue communication through the platform.',
     [MODERATION_CATEGORY.EXTERNAL_CONTACT]: 'Message not sent. External contact information cannot be shared in chat. Please continue communication through the platform.',
     [MODERATION_CATEGORY.UPI_ID]:           'Message not sent. External payment details cannot be shared in chat. Please use the platform\'s payment system.',
@@ -47,21 +47,55 @@ const USER_MESSAGES = {
 // NORMALIZATION
 // ─────────────────────────────────────────────────────────────
 
+// Mapping for English and Hindi spoken digit words to prevent spelled-out bypasses
+const WORD_DIGIT_MAP = {
+    'zero': '0', 'shunya': '0', 'sunya': '0',
+    'one': '1', 'ek': '1',
+    'two': '2', 'do': '2',
+    'three': '3', 'teen': '3',
+    'four': '4', 'char': '4', 'chaar': '4',
+    'five': '5', 'panch': '5', 'paanch': '5',
+    'six': '6', 'chhe': '6', 'che': '6', 'chhah': '6',
+    'seven': '7', 'saat': '7', 'sat': '7',
+    'eight': '8', 'aath': '8', 'ath': '8',
+    'nine': '9', 'nau': '9',
+};
+
+function convertSpelledOutDigits(text) {
+    const tokens = text.split(/[\s,._\-]+/);
+    let digitWordCount = 0;
+    for (const t of tokens) {
+        if (WORD_DIGIT_MAP[t.toLowerCase()] || /^\d+$/.test(t)) {
+            digitWordCount++;
+        }
+    }
+    // If user has spelled out 7 or more digits, convert to numeric string for evaluation
+    if (digitWordCount >= 7) {
+        return tokens.map(t => WORD_DIGIT_MAP[t.toLowerCase()] || t).join(' ');
+    }
+    return text;
+}
+
 /**
  * Normalize text for detection:
  * - Lowercase
  * - Normalize unicode (NFKC)
  * - Convert (at) / [at] obfuscation
+ * - Convert 'o'/'O' surrounded by digits to '0'
  * - Collapse zero-width chars
  */
 export function normalizeText(text) {
     if (typeof text !== 'string') return '';
-    return text
+    let norm = text
         .normalize('NFKC')
         .toLowerCase()
         .replace(/\u200b|\u200c|\u200d|\ufeff/g, '') // zero-width chars
         .replace(/\(at\)|\[at\]|\bat\b(?=\s*\w+\s*\.\s*\w)/gi, '@') // (at) → @
         .replace(/\(dot\)|\[dot\]/gi, '.'); // (dot) → .
+
+    // Replace letter 'o' between digits (e.g. "98765o4321" -> "9876504321")
+    norm = norm.replace(/(\d)[oO](\d)/g, '$10$2');
+    return norm;
 }
 
 /**
@@ -71,7 +105,7 @@ export function normalizeText(text) {
  * Example: "9 8 7 6 5 4 3 2 1 0" → "9876543210"
  */
 function collapseDigitSeparators(text) {
-    const chars = new Set([' ', '\t', '\n', '\r', '-', '_', '.', ',', '/', '|', '*', '~', '(', ')', '+', '=', ':']);
+    const chars = new Set([' ', '\t', '\n', '\r', '-', '_', '.', ',', '/', '\\', '|', '*', '~', '(', ')', '+', '=', ':', ';', '!', '#']);
     let res = '';
     for (let i = 0; i < text.length; i++) {
         const c = text[i];
@@ -108,14 +142,17 @@ const PRODUCT_CONTEXT_AFTER  = /^\s*(?:kg|gram|gm|litre|ltr|ml|piece|pcs|pack|pa
 const CONTACT_CONTEXT_BEFORE = /(?:phone|ph|mob|mobile|contact|call|whatsapp|wa|cell|telephone|msg|sms|dm|dial|number|mera\s*no|apna\s*no|no\.?|num\.?)\s*:?\s*$/i;
 
 /**
- * Detects Indian mobile numbers & formatted contact numbers:
+ * Detects Indian mobile numbers, landline numbers & formatted contact numbers:
  * - 10 digits starting with 6-9
  * - Optional +91 / 91 / 0 prefix
+ * - Spelled out numbers (nine eight seven six five four three two one zero)
  * - Handles spaces, dashes, commas, slashes between digits
  * - Distinguishes between contact numbers and product quantities/prices
  */
 export function detectPhoneNumber(text) {
-    const norm = normalizeText(text);
+    let norm = normalizeText(text);
+    // Also test spelled-out digits if present
+    norm = convertSpelledOutDigits(norm);
     const collapsed = collapseDigitSeparators(norm);
 
     // Pattern: optional (+91 or 91 or 0) + 10 digits starting with [6-9]
@@ -147,6 +184,16 @@ export function detectPhoneNumber(text) {
         if (digitSeq.length === 10) {
             return true;
         }
+    }
+
+    // 5. Landline / STD code pattern: 0 + 2-4 digit STD code + 6-8 digit number (e.g. 011-23456789)
+    const landlinePattern = /\b(0[1-9]\d{1,3}\d{6,8})\b/g;
+    let landlineMatch;
+    while ((landlineMatch = landlinePattern.exec(collapsed)) !== null) {
+        const matchStart = landlineMatch.index;
+        const before = collapsed.slice(0, matchStart).trim();
+        if (PRODUCT_CONTEXT_BEFORE.test(before)) continue;
+        return true;
     }
 
     return false;

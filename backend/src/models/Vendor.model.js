@@ -20,6 +20,17 @@ const vendorSchema = new mongoose.Schema(
             index: true,
         },
         suspensionReason: { type: String },
+        isFlagged: { type: Boolean, default: false, index: true },
+        flagReason: { type: String, default: null },
+        flaggedAt: { type: Date, default: null },
+        strikeCount: { type: Number, default: 0 },
+        flagHistory: [{
+            reason: { type: String },
+            flaggedAt: { type: Date, default: Date.now },
+            unflaggedAt: { type: Date },
+            unflaggedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
+            action: { type: String, enum: ['AUTO_FLAG', 'MANUAL_FLAG', 'MANUAL_UNFLAG'], default: 'AUTO_FLAG' }
+        }],
         commissionRate: { type: Number, default: 10, min: 0, max: 100 },
         isVerified: { type: Boolean, default: false },
         rating: { type: Number, default: 0 },

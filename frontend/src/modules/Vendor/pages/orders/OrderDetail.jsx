@@ -8,6 +8,8 @@ import {
     FiDollarSign,
     FiTruck,
     FiExternalLink,
+    FiFileText,
+    FiDownload,
 } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useVendorAuthStore } from '../../store/vendorAuthStore';
@@ -15,6 +17,8 @@ import { getVendorOrderById, updateVendorOrderStatus, createShiprocketShipment }
 import { formatPrice } from '../../../../shared/utils/helpers';
 import Badge from '../../../../shared/components/Badge';
 import AnimatedSelect from '../../../Admin/components/AnimatedSelect';
+import InvoiceModal from '../../../../shared/components/InvoiceModal';
+import api from '../../../../shared/utils/api';
 import toast from 'react-hot-toast';
 
 const OrderDetail = () => {
@@ -27,6 +31,32 @@ const OrderDetail = () => {
     const [updatingStatus, setUpdatingStatus] = useState(false);
     const [creatingShipment, setCreatingShipment] = useState(false);
     const [shipmentInfo, setShipmentInfo] = useState(null);
+    const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+
+    const handleDownloadInvoice = async () => {
+        if (!order) return;
+        const cleanId = order.orderId || order._id || id;
+        const toastId = toast.loading('Downloading vendor invoice...');
+        try {
+            const res = await api.get(`/vendor/orders/${cleanId}/invoice/pdf`, { responseType: 'blob' });
+            const blob = res instanceof Blob ? res : new Blob([res?.data || res], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.setAttribute('download', `Vendor-Invoice-${cleanId}.pdf`);
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }, 1500);
+            toast.success('Invoice downloaded successfully!', { id: toastId });
+        } catch (err) {
+            console.error('Invoice download error:', err);
+            toast.error('Failed to download invoice PDF.', { id: toastId });
+        }
+    };
 
     const vendorIdsToMatch = [
         vendor?.id?.toString(),
@@ -197,9 +227,17 @@ const OrderDetail = () => {
                             <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 dark:text-white truncate">
                                 Order #{order.orderId ?? order._id}
                             </h1>
-                            <Badge variant={order.isB2b || order.orderType === 'b2b' ? 'warning' : 'success'}>
-                                {order.isB2b || order.orderType === 'b2b' ? 'WHOLESALE' : 'RETAIL'}
-                            </Badge>
+                            {(() => {
+                                const type = order.orderType || (order.requestProductId ? 'product_request' : (order.rfqId ? 'rfq' : (order.isB2b ? 'b2b' : 'b2c')));
+                                const badges = {
+                                    b2c: { label: 'B2C RETAIL', variant: 'success' },
+                                    b2b: { label: 'B2B WHOLESALE', variant: 'warning' },
+                                    product_request: { label: 'PRODUCT REQUEST', variant: 'info' },
+                                    rfq: { label: 'RFQ ORDER', variant: 'purple' },
+                                };
+                                const b = badges[type] || badges.b2c;
+                                return <Badge variant={b.variant}>{b.label}</Badge>;
+                            })()}
                         </div>
                         <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                             Placed on{' '}
@@ -211,6 +249,30 @@ const OrderDetail = () => {
                 </div>
 
                 <div className="flex items-center gap-3 flex-shrink-0">
+                    {/* Invoice Actions */}
+                    <div className="flex items-center gap-1.5">
+                        <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            type="button"
+                            onClick={() => setIsInvoiceModalOpen(true)}
+                            className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-white/10 dark:hover:bg-white/15 text-gray-700 dark:text-gray-200 text-xs sm:text-sm font-semibold rounded-xl transition-all"
+                        >
+                            <FiFileText className="w-4 h-4" />
+                            <span>Invoice</span>
+                        </motion.button>
+                        <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            type="button"
+                            onClick={handleDownloadInvoice}
+                            className="flex items-center gap-1 px-2.5 py-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 text-xs sm:text-sm font-semibold rounded-xl transition-all"
+                            title="Download PDF"
+                        >
+                            <FiDownload className="w-4 h-4" />
+                        </motion.button>
+                    </div>
+
                     {/* Ship via Shiprocket button — visible for active order states */}
                     {['pending', 'processing', 'shipped'].includes(currentStatus) && (
                         <motion.button
@@ -455,6 +517,13 @@ const OrderDetail = () => {
                     </AnimatePresence>
                 </div>
             </div>
+
+            <InvoiceModal
+                isOpen={isInvoiceModalOpen}
+                onClose={() => setIsInvoiceModalOpen(false)}
+                orderId={order?.orderId || order?._id || id}
+                role="vendor"
+            />
         </motion.div>
     );
 };

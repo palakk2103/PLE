@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Loader } from 'lucide-react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../../../shared/utils/constants';
 
 export default function ReviewModal({ isOpen, onClose }) {
   const [formData, setFormData] = useState({
@@ -36,8 +37,7 @@ export default function ReviewModal({ isOpen, onClose }) {
     setError('');
     
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:5000/api` : 'http://localhost:5000/api');
-      const res = await axios.post(`${apiUrl}/upload/public`, data, {
+      const res = await axios.post(`${API_BASE_URL}/upload/public`, data, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       if (res.data.url) {
@@ -61,8 +61,7 @@ export default function ReviewModal({ isOpen, onClose }) {
     setError('');
     
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:5000/api` : 'http://localhost:5000/api');
-      await axios.post(`${apiUrl}/testimonials`, formData);
+      await axios.post(`${API_BASE_URL}/testimonials`, formData);
       setIsSuccess(true);
     } catch (err) {
       setError(err.response?.data?.message || 'Something went wrong. Please try again.');

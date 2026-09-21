@@ -349,8 +349,8 @@ export const login = asyncHandler(async (req, res) => {
     await persistRefreshSession(vendor, refreshToken);
 
     const resUser = isManaged
-        ? { id: vendor._id, name: vendor.name, username: vendor.username, role: 'managed_vendor', shopId: vendor.shopId._id, storeName: vendor.shopId.name, storeLogo: vendor.shopId.logo, b2bSellingStatus: 'approved' }
-        : { id: vendor._id, name: vendor.name, storeName: vendor.storeName, email: vendor.email, storeLogo: vendor.storeLogo, role: 'vendor', b2bSellingStatus: vendor.b2bSellingStatus || 'not_applied' };
+        ? { id: vendor._id, name: vendor.name, username: vendor.username, role: 'managed_vendor', shopId: vendor.shopId._id, storeName: vendor.shopId.name, storeLogo: vendor.shopId.logo, b2bSellingStatus: 'approved', isFlagged: false }
+        : { id: vendor._id, name: vendor.name, storeName: vendor.storeName, email: vendor.email, storeLogo: vendor.storeLogo, role: 'vendor', b2bSellingStatus: vendor.b2bSellingStatus || 'not_applied', isFlagged: Boolean(vendor.isFlagged), flagReason: vendor.flagReason || null, strikeCount: vendor.strikeCount || 0 };
 
     res.status(200).json(new ApiResponse(200, { accessToken, refreshToken, vendor: resUser }, 'Login successful.'));
 });
