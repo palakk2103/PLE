@@ -21,7 +21,8 @@ import { calculateVendorShippingForGroups } from '../../../services/vendorShippi
 import { getIO } from '../../../config/socket.js';
 import { sendNotificationToUser } from '../../../utils/pushNotificationHelper.js';
 import { resolveProductGST, calculateItemGST } from '../../../utils/gstUtils.js';
-import { generateInvoiceForOrder } from '../../../services/invoice.service.js';
+import { generateInvoiceForOrder, sendOrderInvoiceEmail } from '../../../services/invoice.service.js';
+import { handleOrderStatusTransition } from '../../../services/orderStatus.service.js';
 
 const normalizeVariantPart = (value) => String(value || '').trim().toLowerCase();
 const normalizeAxisName = (value) =>
@@ -210,6 +211,10 @@ export const placeOrder = asyncHandler(async (req, res) => {
     const userId = req.user?.id || null;
     const rawIdempotencyKey = String(req.get('x-idempotency-key') || '').trim();
     const idempotencyKey = rawIdempotencyKey || null;
+    // Ensure shippingAddress has the authenticated user's email if missing
+    if (shippingAddress && !shippingAddress.email && req.user?.email) {
+        shippingAddress.email = req.user.email;
+    }
     const normalizedGuestEmail = String(shippingAddress?.email || '').trim().toLowerCase();
     const normalizedGuestPhone = String(shippingAddress?.phone || '').replace(/\D/g, '').slice(-10);
     const idempotencyScope = userId
@@ -691,7 +696,7 @@ export const placeOrder = asyncHandler(async (req, res) => {
     const responseMessage = idempotentReplay
         ? 'Duplicate order request ignored. Returning existing order.'
         : 'Order placed successfully.';
-    if (!idempotentReplay && order && order.paymentStatus === 'paid') {
+    if (!idempotentReplay && order && (order.paymentStatus === 'paid' || order.paymentMethod === 'cod')) {
         // Trigger real-time notifications to vendors
         (async () => {
             try {
@@ -750,11 +755,26 @@ export const placeOrder = asyncHandler(async (req, res) => {
                 console.error("Error in sending order notifications to vendors:", err);
             }
 
-            // Generate invoice idempotently in background
+            // Trigger Order Confirmed status lifecycle, record initial history, and send confirmation email
             try {
-                await generateInvoiceForOrder(order._id);
+                await handleOrderStatusTransition(order, 'pending', {
+                    updatedBy: order.userId,
+                    updatedByRole: 'user',
+                    note: 'Order placed successfully by customer',
+                    notifyCustomer: true,
+                });
+            } catch (statusErr) {
+                console.error("Order status transition error on placeOrder:", statusErr?.message);
+            }
+
+            // Generate invoice and send customer invoice email idempotently in background
+            try {
+                const inv = await generateInvoiceForOrder(order._id);
+                if (inv) {
+                    await sendOrderInvoiceEmail(order._id, { invoice: inv });
+                }
             } catch (invErr) {
-                console.error("Automatic invoice generation error on placeOrder:", invErr?.message);
+                console.error("Automatic invoice / email generation error on placeOrder:", invErr?.message);
             }
         })();
     }
@@ -790,7 +810,14 @@ export const getUserOrders = asyncHandler(async (req, res) => {
 
 // GET /api/user/orders/:id
 export const getOrderDetail = asyncHandler(async (req, res) => {
-    const order = await Order.findOne({ orderId: req.params.id, userId: req.user.id });
+    const order = await Order.findOne({
+        $or: [
+            { orderId: req.params.id },
+            { _id: mongoose.isValidObjectId(req.params.id) ? req.params.id : null }
+        ],
+        userId: req.user.id,
+        isDeleted: { $ne: true }
+    });
     if (!order) throw new ApiError(404, 'Order not found.');
     res.status(200).json(new ApiResponse(200, order, 'Order detail fetched.'));
 });
@@ -877,6 +904,27 @@ export const cancelOrder = asyncHandler(async (req, res) => {
         });
     } finally {
         await session.endSession();
+    }
+
+    // Trigger order status transition and customer email for cancellation
+    try {
+        const cancelledOrder = await Order.findOne({
+            $or: [
+                { orderId: req.params.id },
+                { _id: mongoose.isValidObjectId(req.params.id) ? req.params.id : null }
+            ],
+            userId: req.user.id
+        });
+        if (cancelledOrder) {
+            await handleOrderStatusTransition(cancelledOrder, 'cancelled', {
+                updatedBy: req.user.id,
+                updatedByRole: 'user',
+                note: req.body.reason || 'Cancelled by customer',
+                notifyCustomer: true,
+            });
+        }
+    } catch (cancelNotifErr) {
+        console.error("Cancel order status transition error:", cancelNotifErr?.message);
     }
 
     res.status(200).json(new ApiResponse(200, null, 'Order cancelled successfully.'));

@@ -301,9 +301,11 @@ router.get('/orders', ...adminAuth, orderController.getAllOrders);
 router.get('/orders/:id/invoice', ...adminAuth, invoiceController.getAdminInvoice);
 router.get('/orders/:id/invoice/pdf', ...adminAuth, invoiceController.downloadAdminInvoicePdf);
 router.post('/orders/:id/invoice/regenerate', ...adminAuth, invoiceController.regenerateAdminInvoice);
+router.post('/orders/:id/invoice/resend-email', ...adminAuth, invoiceController.resendAdminInvoiceEmail);
 router.get('/invoices', ...adminAuth, invoiceController.getAllInvoices);
 router.get('/invoices/:id', ...adminAuth, invoiceController.getAdminInvoice);
 router.get('/invoices/:id/pdf', ...adminAuth, invoiceController.downloadAdminInvoicePdf);
+router.post('/invoices/:id/resend-email', ...adminAuth, invoiceController.resendAdminInvoiceEmail);
 router.get('/orders/:id', ...adminAuth, orderController.getOrderById);
 router.patch('/orders/:id/status', ...adminAuth, orderController.updateOrderStatus);
 router.patch('/orders/:id/assign-delivery', ...adminAuth, orderController.assignDeliveryBoy);
@@ -339,6 +341,9 @@ router.patch('/managed-vendor-chat/threads/:threadId/read', ...adminAuth, adminM
 // ─── Admin Chat Moderation Routes ──────────────────────────────────────────────
 import * as chatModerationController from '../controllers/chatModeration.controller.js';
 router.get('/chat-moderation/violations', ...adminAuth, chatModerationController.getChatViolations);
+router.post('/chat-moderation/violations/:id/action', ...adminAuth, chatModerationController.takeViolationAction);
+router.get('/chat-moderation/reports', ...adminAuth, chatModerationController.getChatReports);
+router.post('/chat-moderation/reports/:id/action', ...adminAuth, chatModerationController.takeReportAction);
 router.get('/chat-moderation/stats', ...adminAuth, chatModerationController.getChatViolationStats);
 
 export default router;

@@ -30,7 +30,7 @@ const vendorChatThreadSchema = new mongoose.Schema(
         unreadCount: { type: Number, default: 0, min: 0 },
         status: {
             type: String,
-            enum: ['active', 'resolved'],
+            enum: ['active', 'resolved', 'closed'],
             default: 'active',
             index: true,
         },
@@ -42,6 +42,12 @@ const vendorChatThreadSchema = new mongoose.Schema(
             index: true,
         },
         productRequestId: { type: String, default: '' }, // requestId string for display
+        // Communication Control fields
+        isBlocked: { type: Boolean, default: false, index: true },
+        blockedBy: { type: String, enum: ['customer', 'vendor', 'admin', null], default: null },
+        blockReason: { type: String, default: null },
+        customerMuted: { type: Boolean, default: false },
+        vendorMuted: { type: Boolean, default: false },
     },
     { timestamps: true }
 );

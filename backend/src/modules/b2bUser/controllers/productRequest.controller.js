@@ -353,12 +353,15 @@ export const confirmProductRequestProposal = asyncHandler(async (req, res) => {
 
     await request.save();
 
-    // Automatically generate invoice idempotently
+    // Automatically generate invoice and send customer invoice email idempotently
     try {
-        const { generateInvoiceForOrder } = await import('../../../services/invoice.service.js');
-        await generateInvoiceForOrder(order._id);
+        const { generateInvoiceForOrder, sendOrderInvoiceEmail } = await import('../../../services/invoice.service.js');
+        const inv = await generateInvoiceForOrder(order._id);
+        if (inv) {
+            await sendOrderInvoiceEmail(order._id, { invoice: inv });
+        }
     } catch (invErr) {
-        console.error("Automatic invoice generation error on product request proposal:", invErr?.message);
+        console.error("Automatic invoice / email generation error on product request proposal:", invErr?.message);
     }
 
     res.status(200).json(

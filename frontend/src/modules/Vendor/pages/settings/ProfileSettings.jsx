@@ -450,12 +450,12 @@ const ProfileSettings = () => {
       {/* Delete Vendor Account Confirmation Modal */}
       <AnimatePresence>
         {showDeleteModal && (
-          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 sm:p-4 backdrop-blur-sm overflow-y-auto">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-2xl p-6 shadow-2xl max-w-md w-full border border-gray-200 space-y-4"
+              className="bg-white rounded-2xl p-4 sm:p-6 shadow-2xl max-w-md w-full border border-gray-200 space-y-4 max-h-[90vh] overflow-y-auto my-auto"
             >
               <div className="text-center space-y-2">
                 <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto text-2xl font-bold">

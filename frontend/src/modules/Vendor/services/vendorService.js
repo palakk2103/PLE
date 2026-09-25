@@ -241,6 +241,29 @@ export const updateVendorChatStatus = (id, status) =>
     api.patch(`/vendor/chat/threads/${id}/status`, { status });
 
 /**
+ * Report a buyer chat thread
+ * @param {string} id
+ * @param {{ reason: string, details?: string }} data
+ */
+export const reportVendorChat = (id, data) =>
+    api.post(`/vendor/chat/threads/${id}/report`, data);
+
+/**
+ * Toggle block/unblock a buyer chat thread
+ * @param {string} id
+ * @param {{ reason?: string }} [data]
+ */
+export const toggleBlockVendorChat = (id, data = {}) =>
+    api.post(`/vendor/chat/threads/${id}/block`, data);
+
+/**
+ * Toggle mute notifications for a chat thread
+ * @param {string} id
+ */
+export const toggleMuteVendorChat = (id) =>
+    api.post(`/vendor/chat/threads/${id}/mute`);
+
+/**
  * Get vendor documents
  */
 export const getVendorDocuments = () =>

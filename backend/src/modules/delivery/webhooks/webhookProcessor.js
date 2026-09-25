@@ -1,6 +1,7 @@
 import deliveryProviderRegistry from '../deliveryProviderRegistry.js';
 import { DeliveryShipment } from '../../../models/DeliveryShipment.model.js';
 import { Order } from '../../../models/Order.model.js';
+import { handleOrderStatusTransition } from '../../../services/orderStatus.service.js';
 
 export async function processDeliveryWebhook(providerName, rawBody, headers) {
     const provider = deliveryProviderRegistry.getProvider(providerName);
@@ -62,16 +63,17 @@ export async function processDeliveryWebhook(providerName, rawBody, headers) {
 
         // Sync order status if matching order found
         if (canonicalStatus) {
-            const updateFields = {
-                status: canonicalStatus
-            };
-            if (canonicalStatus === 'shipped') updateFields.shippedAt = new Date();
-            if (canonicalStatus === 'delivered') updateFields.deliveredAt = new Date();
-            if (canonicalStatus === 'cancelled') updateFields.cancelledAt = new Date();
-
-            if (awbCode) updateFields.trackingNumber = awbCode;
-
-            await Order.updateOne({ orderId: shipmentDoc.orderId }, { $set: updateFields });
+            const orderDoc = await Order.findOne({ orderId: shipmentDoc.orderId });
+            if (orderDoc) {
+                if (awbCode && !orderDoc.trackingNumber) {
+                    orderDoc.trackingNumber = awbCode;
+                }
+                await handleOrderStatusTransition(orderDoc, canonicalStatus, {
+                    updatedByRole: 'system',
+                    note: `Carrier update (${providerName}): ${providerStatus || canonicalStatus}`,
+                    notifyCustomer: true,
+                });
+            }
         }
     } else {
         // Create unlinked / standalone shipment record for auditing

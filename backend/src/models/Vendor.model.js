@@ -24,6 +24,8 @@ const vendorSchema = new mongoose.Schema(
         flagReason: { type: String, default: null },
         flaggedAt: { type: Date, default: null },
         strikeCount: { type: Number, default: 0 },
+        chatMutedUntil: { type: Date, default: null },
+        chatRestrictionReason: { type: String, default: null },
         flagHistory: [{
             reason: { type: String },
             flaggedAt: { type: Date, default: Date.now },

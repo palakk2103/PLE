@@ -340,28 +340,28 @@ const VendorRegister = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 flex items-center justify-center p-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 flex items-center justify-center p-3 sm:p-4 py-6 sm:py-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass-card rounded-3xl p-8 w-full max-w-2xl shadow-2xl max-h-[95vh] overflow-y-auto relative"
+        className="glass-card rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 w-full max-w-2xl shadow-2xl max-h-[95vh] overflow-y-auto relative"
       >
         {/* Back Button */}
         <button
           onClick={() => navigate(-1)}
-          className="absolute left-6 top-6 text-gray-500 hover:text-gray-900 transition-colors p-1 hover:bg-black/5 rounded-full"
+          className="absolute left-4 sm:left-6 top-4 sm:top-6 text-gray-500 hover:text-gray-900 transition-colors p-1.5 hover:bg-black/5 rounded-full"
           title="Go Back"
         >
-          <FiArrowLeft className="text-xl" />
+          <FiArrowLeft className="text-lg sm:text-xl" />
         </button>
 
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 gradient-green rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-glow-green">
-            <FiShoppingBag className="text-white text-2xl" />
+        <div className="text-center mb-6 sm:mb-8 pt-4 sm:pt-0">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 gradient-green rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-glow-green">
+            <FiShoppingBag className="text-white text-xl sm:text-2xl" />
           </div>
-          <h1 className="text-3xl font-extrabold text-gray-800 mb-2">Become a Vendor</h1>
-          <p className="text-gray-600">Register your store, verify your email, then await admin approval</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-800 mb-1.5 sm:mb-2">Become a Vendor</h1>
+          <p className="text-xs sm:text-sm text-gray-600">Register your store, verify your email, then await admin approval</p>
         </div>
 
         {/* Registration Form */}

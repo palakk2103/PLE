@@ -1457,23 +1457,6 @@ const AddProduct = () => {
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 pt-3 border-t border-gray-200">
-          <button
-            type="button"
-            onClick={() => navigate("/vendor/products/manage-products")}
-            className="w-full sm:w-auto px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-semibold text-sm">
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={isSaving || isUploadingMedia}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 gradient-green text-white rounded-lg hover:shadow-glow-green transition-all font-semibold text-sm disabled:opacity-60 disabled:cursor-not-allowed">
-            <FiSave />
-            {isUploadingMedia ? "Uploading Media..." : isSaving ? "Creating..." : "Create Product"}
-          </button>
-        </div>
-
         {/* Product FAQs */}
         <div>
           <div className="flex items-center justify-between mb-2">
@@ -1494,7 +1477,7 @@ const AddProduct = () => {
                   <button
                     type="button"
                     onClick={() => removeFaq(index)}
-                    className="text-xs text-red-600 hover:text-red-700"
+                    className="text-xs text-red-600 hover:text-red-700 font-medium"
                   >
                     Remove
                   </button>
@@ -1519,6 +1502,23 @@ const AddProduct = () => {
               <p className="text-xs text-gray-500">No FAQs added yet.</p>
             )}
           </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-4 border-t border-gray-200">
+          <button
+            type="button"
+            onClick={() => navigate("/vendor/products/manage-products")}
+            className="w-full sm:w-auto px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-semibold text-sm">
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={isSaving || isUploadingMedia}
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2 gradient-green text-white rounded-xl hover:shadow-glow-green transition-all font-semibold text-sm disabled:opacity-60 disabled:cursor-not-allowed">
+            <FiSave />
+            {isUploadingMedia ? "Uploading Media..." : isSaving ? "Creating..." : "Create Product"}
+          </button>
         </div>
       </form>
     </motion.div>

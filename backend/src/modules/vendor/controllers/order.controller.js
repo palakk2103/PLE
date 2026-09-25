@@ -8,6 +8,7 @@ import Settlement from '../../../models/Settlement.model.js';
 import mongoose from 'mongoose';
 import { createNotification } from '../../../services/notification.service.js';
 import { createShipment } from '../../delivery/deliveryManager.js';
+import { handleOrderStatusTransition } from '../../../services/orderStatus.service.js';
 
 const deriveTopLevelOrderStatus = (vendorItems = [], fallback = 'pending') => {
     const statuses = (vendorItems || [])
@@ -112,19 +113,19 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
         vendorIdsToMatch.map(String).includes(String(vi.vendorId)) ? { ...vi.toObject(), status } : vi
     );
     const oldStatus = order.status;
-    order.status = deriveTopLevelOrderStatus(order.vendorItems, order.status);
-    if (order.status !== oldStatus) {
-        if (order.status === 'processing' && !order.processingAt) {
-            order.processingAt = new Date();
-        } else if (order.status === 'shipped' && !order.shippedAt) {
-            order.shippedAt = new Date();
-        } else if (order.status === 'delivered' && !order.deliveredAt) {
-            order.deliveredAt = new Date();
-        } else if (order.status === 'cancelled' && !order.cancelledAt) {
-            order.cancelledAt = new Date();
-        }
+    const nextDerivedStatus = deriveTopLevelOrderStatus(order.vendorItems, order.status);
+
+    if (nextDerivedStatus !== oldStatus) {
+        order.status = nextDerivedStatus;
+        await handleOrderStatusTransition(order, nextDerivedStatus, {
+            updatedBy: req.user?.id || req.user?._id,
+            updatedByRole: 'vendor',
+            note: `Vendor updated item status to ${status}`,
+            notifyCustomer: true,
+        });
+    } else {
+        await order.save();
     }
-    await order.save();
 
     const notificationTasks = [];
     if (order.userId) {

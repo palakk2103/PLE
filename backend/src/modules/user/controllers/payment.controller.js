@@ -7,7 +7,8 @@ import asyncHandler from '../../../utils/asyncHandler.js';
 import { createNotification } from '../../../services/notification.service.js';
 import { sendNotificationToUser } from '../../../utils/pushNotificationHelper.js';
 import { getIO } from '../../../config/socket.js';
-import { generateInvoiceForOrder } from '../../../services/invoice.service.js';
+import { generateInvoiceForOrder, sendOrderInvoiceEmail } from '../../../services/invoice.service.js';
+import { handleOrderStatusTransition } from '../../../services/orderStatus.service.js';
 
 // Verify Razorpay payment signature
 export const verifyPayment = asyncHandler(async (req, res) => {
@@ -134,11 +135,26 @@ export const verifyPayment = asyncHandler(async (req, res) => {
         console.error("Error sending payment success notifications:", notificationErr);
     }
 
-    // Sync / update invoice with payment details
+    // Sync / update invoice with payment details and send customer invoice email
     try {
-        await generateInvoiceForOrder(order._id);
+        const inv = await generateInvoiceForOrder(order._id);
+        if (inv) {
+            await sendOrderInvoiceEmail(order._id, { invoice: inv });
+        }
     } catch (invErr) {
-        console.error("Invoice sync error after payment verification:", invErr?.message);
+        console.error("Invoice sync / email error after payment verification:", invErr?.message);
+    }
+
+    // Trigger Order Confirmed lifecycle & customer confirmation email
+    try {
+        await handleOrderStatusTransition(order, 'pending', {
+            updatedBy: order.userId,
+            updatedByRole: 'user',
+            note: 'Payment verified via online gateway',
+            notifyCustomer: true,
+        });
+    } catch (statusErr) {
+        console.error("Error triggering order status transition after payment verification:", statusErr);
     }
 
     res.status(200).json(new ApiResponse(200, order, 'Payment verified and order updated successfully.'));

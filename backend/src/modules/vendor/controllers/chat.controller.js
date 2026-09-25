@@ -8,8 +8,9 @@ import VendorChatMessage from '../../../models/VendorChatMessage.model.js';
 import Notification from '../../../models/Notification.model.js';
 import Vendor from '../../../models/Vendor.model.js';
 import { getIO } from '../../../config/socket.js';
-import { moderateMessage, MODERATION_ACTION } from '../../../services/chatModeration.service.js';
+import { moderateMessage, checkMultiMessageEvasion, MODERATION_ACTION } from '../../../services/chatModeration.service.js';
 import ChatViolation from '../../../models/ChatViolation.model.js';
+import ChatReport from '../../../models/ChatReport.model.js';
 
 const buildThreadSeedFromOrder = (order) => {
     const customerName =
@@ -77,8 +78,22 @@ export const getVendorChatThreads = asyncHandler(async (req, res) => {
         );
     }
 
-    const threads = await VendorChatThread.find({ vendorId }).sort({ lastActivity: -1 });
-    res.status(200).json(new ApiResponse(200, threads, 'Chat threads fetched.'));
+    const threads = await VendorChatThread.find({ vendorId }).sort({ lastActivity: -1 }).lean();
+
+    // Mask customer contact details in thread listing to prevent off-platform diversion
+    const sanitized = threads.map(t => {
+        const threadObj = { ...t };
+        if (threadObj.customerEmail) {
+            const parts = String(threadObj.customerEmail).split('@');
+            threadObj.customerEmail = (parts[0].slice(0, 2) || '**') + '***@' + (parts[1] || 'customer.com');
+        }
+        if (threadObj.customerPhone) {
+            threadObj.customerPhone = '******' + String(threadObj.customerPhone).slice(-4);
+        }
+        return threadObj;
+    });
+
+    res.status(200).json(new ApiResponse(200, sanitized, 'Chat threads fetched.'));
 });
 
 export const getVendorChatMessages = asyncHandler(async (req, res) => {
@@ -119,11 +134,53 @@ export const sendVendorChatMessage = asyncHandler(async (req, res) => {
     const message = String(req.body?.message || '').trim();
     if (!message) throw new ApiError(400, 'Message is required.');
 
+    // 1. Account-level chat restriction check
+    const vendor = await Vendor.findById(req.user.id);
+    if (vendor?.chatMutedUntil && new Date(vendor.chatMutedUntil) > new Date()) {
+        throw new ApiError(403, `Your chat messaging is temporarily restricted until ${new Date(vendor.chatMutedUntil).toLocaleString()}.`);
+    }
+
     const thread = await VendorChatThread.findOne({
         _id: req.params.id,
         vendorId: req.user.id,
     });
     if (!thread) throw new ApiError(404, 'Chat thread not found.');
+
+    // 2. Thread-level block check
+    if (thread.isBlocked) {
+        throw new ApiError(403, 'Communication in this chat is currently blocked.');
+    }
+
+    // 3. Thread status check
+    if (['resolved', 'closed'].includes(thread.status)) {
+        throw new ApiError(400, 'This conversation has been closed.');
+    }
+
+    // 4. Order lifecycle check
+    if (thread.orderRef) {
+        const order = await Order.findById(thread.orderRef).select('status paymentStatus');
+        if (order && (['delivered', 'completed', 'cancelled', 'returned'].includes(order.status) || order.paymentStatus === 'refunded')) {
+            thread.status = 'resolved';
+            await thread.save();
+            throw new ApiError(400, 'This conversation is closed for this order.');
+        }
+    }
+
+    // 5. ProductRequest / SourceNow lifecycle check
+    if (thread.productRequestRef) {
+        const { default: ProductRequest } = await import('../../../models/ProductRequest.model.js');
+        const pr = await ProductRequest.findById(thread.productRequestRef).select('acceptedVendorId vendorFulfillmentStatus status');
+        if (pr) {
+            const isAuthorizedVendor = pr.acceptedVendorId?.toString() === req.user.id;
+            const isFulfilling = pr.vendorFulfillmentStatus === 'IN_PROGRESS';
+            const isTerminal = ['Vendor Released', 'Expired', 'Cancelled', 'Completed', 'Rejected'].includes(pr.status);
+            if (!isAuthorizedVendor || !isFulfilling || isTerminal) {
+                thread.status = 'closed';
+                await thread.save();
+                throw new ApiError(400, 'This sourcing conversation is closed or has been reassigned.');
+            }
+        }
+    }
 
     // ── Moderation Layer ──────────────────────────────────────
     const moderationResult = moderateMessage(message);
@@ -154,6 +211,35 @@ export const sendVendorChatMessage = asyncHandler(async (req, res) => {
             });
         }
         // FLAG: log but allow through
+    }
+
+    // ── Multi-Message Evasion Check ───────────────────────────
+    const recentMsgs = await VendorChatMessage.find({
+        threadId: thread._id,
+        senderId: req.user.id,
+        createdAt: { $gte: new Date(Date.now() - 90000) }
+    }).sort({ createdAt: -1 }).limit(3);
+
+    const evasionResult = checkMultiMessageEvasion(message, recentMsgs.map(m => m.message));
+    if (evasionResult.action === MODERATION_ACTION.BLOCK) {
+        try {
+            await ChatViolation.create({
+                threadId:   thread._id,
+                senderId:   req.user.id,
+                senderType: 'vendor',
+                vendorId:   req.user.id,
+                category:   evasionResult.category,
+                action:     evasionResult.action,
+                direction:  'VENDOR_TO_USER',
+                reason:     evasionResult.reason,
+            });
+        } catch {}
+        return res.status(422).json({
+            success:  false,
+            code:     'MESSAGE_BLOCKED',
+            category: evasionResult.category,
+            message:  evasionResult.userMessage,
+        });
     }
     // ── End Moderation ────────────────────────────────────────
 
@@ -196,9 +282,11 @@ export const sendVendorChatMessage = asyncHandler(async (req, res) => {
             io.to(`chat_${thread._id}`).emit('new_message', serializeMessage(created));
             // Also notify the customer in their user room
             if (thread.customerUserId) {
+                const vendorObj = await Vendor.findById(req.user.id).select('storeName name');
                 io.to(`user_${thread.customerUserId}`).emit('customer_chat_notification', {
                     threadId: thread._id,
-                    lastMessage: message,
+                    vendorName: vendorObj?.storeName || vendorObj?.name || 'Store',
+                    message,
                 });
             }
         }
@@ -210,23 +298,20 @@ export const sendVendorChatMessage = asyncHandler(async (req, res) => {
 });
 
 export const markVendorChatRead = asyncHandler(async (req, res) => {
-    const thread = await VendorChatThread.findOne({
-        _id: req.params.id,
-        vendorId: req.user.id,
-    });
+    const thread = await VendorChatThread.findOneAndUpdate(
+        { _id: req.params.id, vendorId: req.user.id },
+        { unreadCount: 0 },
+        { new: true }
+    );
     if (!thread) throw new ApiError(404, 'Chat thread not found.');
 
-    thread.unreadCount = 0;
-    if (thread.status !== 'resolved') thread.status = 'active';
-    await thread.save();
-
-    res.status(200).json(new ApiResponse(200, thread, 'Chat marked as read.'));
+    res.status(200).json(new ApiResponse(200, { unreadCount: 0 }, 'Chat marked as read.'));
 });
 
 export const updateVendorChatStatus = asyncHandler(async (req, res) => {
-    const status = String(req.body?.status || '').trim();
-    if (!['active', 'resolved'].includes(status)) {
-        throw new ApiError(400, 'Status must be active or resolved.');
+    const { status } = req.body;
+    if (!['active', 'resolved', 'closed'].includes(status)) {
+        throw new ApiError(400, 'Invalid status.');
     }
 
     const thread = await VendorChatThread.findOneAndUpdate(
@@ -237,6 +322,71 @@ export const updateVendorChatStatus = asyncHandler(async (req, res) => {
     if (!thread) throw new ApiError(404, 'Chat thread not found.');
 
     res.status(200).json(new ApiResponse(200, thread, 'Chat status updated.'));
+});
+
+// @desc    Report a chat message or user
+// @route   POST /api/vendor/chat/threads/:id/report
+export const reportVendorChatMessage = asyncHandler(async (req, res) => {
+    const { messageId, reason, description } = req.body;
+    if (!reason) throw new ApiError(400, 'Reason is required.');
+
+    const thread = await VendorChatThread.findOne({
+        _id: req.params.id,
+        vendorId: req.user.id,
+    });
+    if (!thread) throw new ApiError(404, 'Chat thread not found.');
+
+    let messageSnippet = '';
+    if (messageId) {
+        const msg = await VendorChatMessage.findOne({ _id: messageId, threadId: thread._id });
+        if (msg) messageSnippet = msg.message.slice(0, 200);
+    }
+
+    const report = await ChatReport.create({
+        threadId: thread._id,
+        messageId: messageId || null,
+        messageSnippet,
+        reporterId: req.user.id,
+        reporterType: 'vendor',
+        reportedUserId: thread.customerUserId || thread._id,
+        reportedUserType: 'customer',
+        reason,
+        description: description || '',
+    });
+
+    res.status(201).json(new ApiResponse(201, report, 'Report submitted successfully.'));
+});
+
+// @desc    Block/Unblock chat thread
+// @route   POST /api/vendor/chat/threads/:id/block
+export const toggleBlockVendorChat = asyncHandler(async (req, res) => {
+    const thread = await VendorChatThread.findOne({
+        _id: req.params.id,
+        vendorId: req.user.id,
+    });
+    if (!thread) throw new ApiError(404, 'Chat thread not found.');
+
+    thread.isBlocked = !thread.isBlocked;
+    thread.blockedBy = thread.isBlocked ? 'vendor' : null;
+    thread.blockReason = thread.isBlocked ? (req.body?.reason || 'Blocked by vendor') : null;
+    await thread.save();
+
+    res.status(200).json(new ApiResponse(200, { isBlocked: thread.isBlocked }, thread.isBlocked ? 'Chat blocked.' : 'Chat unblocked.'));
+});
+
+// @desc    Mute/Unmute thread notifications
+// @route   POST /api/vendor/chat/threads/:id/mute
+export const toggleMuteVendorChat = asyncHandler(async (req, res) => {
+    const thread = await VendorChatThread.findOne({
+        _id: req.params.id,
+        vendorId: req.user.id,
+    });
+    if (!thread) throw new ApiError(404, 'Chat thread not found.');
+
+    thread.vendorMuted = !thread.vendorMuted;
+    await thread.save();
+
+    res.status(200).json(new ApiResponse(200, { vendorMuted: thread.vendorMuted }, thread.vendorMuted ? 'Chat muted.' : 'Chat unmuted.'));
 });
 
 // @desc    Create or retrieve a chat thread linked to a ProductRequest (Vendor Window)

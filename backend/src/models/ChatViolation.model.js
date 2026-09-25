@@ -11,7 +11,7 @@ const chatViolationSchema = new mongoose.Schema(
         threadId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'VendorChatThread',
-            required: true,
+            required: false,
             index: true,
         },
         senderId: {
@@ -41,6 +41,9 @@ const chatViolationSchema = new mongoose.Schema(
                 'EMAIL',
                 'EXTERNAL_CONTACT',
                 'EXTERNAL_PAYMENT',
+                'EXTERNAL_URL',
+                'CARD_DETAILS',
+                'CREDENTIAL_PHISHING',
                 'SUSPICIOUS',
                 'OTHER',
             ],
@@ -61,6 +64,32 @@ const chatViolationSchema = new mongoose.Schema(
         reason: {
             type: String,
             trim: true,
+        },
+        // Admin Moderation / Review Fields
+        status: {
+            type: String,
+            enum: ['OPEN', 'RESOLVED', 'DISMISSED'],
+            default: 'OPEN',
+            index: true,
+        },
+        actionTaken: {
+            type: String,
+            enum: ['NONE', 'WARNED', 'MUTED', 'RESTRICTED', 'DISMISSED', 'RESOLVED'],
+            default: 'NONE',
+        },
+        adminNotes: {
+            type: String,
+            trim: true,
+            default: '',
+        },
+        reviewedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Admin',
+            default: null,
+        },
+        reviewedAt: {
+            type: Date,
+            default: null,
         },
     },
     { timestamps: true }

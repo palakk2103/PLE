@@ -248,9 +248,9 @@ const OrderDetail = () => {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3 flex-shrink-0">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                     {/* Invoice Actions */}
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
                         <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
@@ -280,34 +280,36 @@ const OrderDetail = () => {
                             whileTap={{ scale: 0.98 }}
                             onClick={handleCreateShiprocketShipment}
                             disabled={creatingShipment}
-                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-violet-200 dark:shadow-violet-900/30 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                            className="flex items-center gap-2 px-3.5 sm:px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-md shadow-violet-200 dark:shadow-violet-900/30 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap"
                         >
                             {creatingShipment ? (
                                 <>
-                                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                                    <svg className="animate-spin h-3.5 w-3.5 sm:h-4 sm:w-4" viewBox="0 0 24 24">
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                                     </svg>
-                                    Creating...
+                                    <span>Creating...</span>
                                 </>
                             ) : (
                                 <>
-                                    <FiTruck className="w-4 h-4" />
-                                    {order.trackingNumber || shipmentInfo ? 'Re-ship via Shiprocket' : 'Ship via Shiprocket'}
+                                    <FiTruck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                    <span>{order.trackingNumber || shipmentInfo ? 'Re-ship Shiprocket' : 'Ship via Shiprocket'}</span>
                                 </>
                             )}
                         </motion.button>
                     )}
-                    <AnimatedSelect
-                        options={visibleStatusOptions}
-                        value={currentStatus}
-                        onChange={(e) => handleStatusChange(e.target.value)}
-                        disabled={updatingStatus}
-                        color={
-                            visibleStatusOptions.find((opt) => opt.value === currentStatus)
-                                ?.color || 'gray'
-                        }
-                    />
+                    <div className="flex-shrink-0">
+                      <AnimatedSelect
+                          options={visibleStatusOptions}
+                          value={currentStatus}
+                          onChange={(e) => handleStatusChange(e.target.value)}
+                          disabled={updatingStatus}
+                          color={
+                              visibleStatusOptions.find((opt) => opt.value === currentStatus)
+                                  ?.color || 'gray'
+                          }
+                      />
+                    </div>
                 </div>
             </div>
 

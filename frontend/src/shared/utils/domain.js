@@ -21,8 +21,8 @@ export const isAppOrWebView = () => {
                        window.navigator.standalone === true ||
                        (document.referrer && document.referrer.startsWith('android-app://'));
 
-  // Custom app tokens/markers or framework hooks
-  const isCustomApp = ua.includes('ple') || ua.includes('twa') || ua.includes('mobile_app') || Boolean(window.Capacitor || window.cordova);
+  // Custom app tokens/markers or framework hooks (NEVER match broad 'ple' which is in 'applewebkit')
+  const isCustomApp = /\bple[-_]?(app|mobile)\b/i.test(ua) || ua.includes('ple_app') || ua.includes('ple-app') || ua.includes('mobile_app') || Boolean(window.Capacitor || window.cordova);
 
   const urlParams = new URLSearchParams(window.location.search);
   const isParamApp = urlParams.get('app') === 'true' || urlParams.get('twa') === 'true';
@@ -82,16 +82,6 @@ const isPortalPath = () => {
 export const getCurrentDomain = () => {
   if (typeof window === 'undefined') return 'portal';
 
-  // If inside mobile app / WebView / Play Store app, ALWAYS return portal
-  if (isAppOrWebView()) {
-    return 'portal';
-  }
-
-  // If navigating directly to any portal page, ALWAYS return portal
-  if (isPortalPath()) {
-    return 'portal';
-  }
-
   const hostname = window.location.hostname;
 
   // Developer testing overrides
@@ -109,9 +99,21 @@ export const getCurrentDomain = () => {
 
   // Production domain mapping
   if (hostname.includes('plebusiness.com')) {
+    if (urlParams.get('app') === 'true' || urlParams.get('twa') === 'true') {
+      return 'portal';
+    }
+    if (isPortalPath()) {
+      return 'portal';
+    }
     return 'landing';
   }
+
   if (hostname.includes('peoplesleagueofelectronics.com')) {
+    return 'portal';
+  }
+
+  // If inside mobile app / WebView / Play Store app
+  if (isAppOrWebView()) {
     return 'portal';
   }
 
@@ -120,7 +122,6 @@ export const getCurrentDomain = () => {
 };
 
 export const isLandingDomain = () => {
-  if (isAppOrWebView()) return false;
   if (isPortalPath()) return false;
   return getCurrentDomain() === 'landing';
 };

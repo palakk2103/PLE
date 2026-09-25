@@ -1,16 +1,34 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
-import { FiMessageCircle, FiSend, FiUser, FiSearch, FiArrowLeft, FiAlertTriangle, FiX, FiShield } from "react-icons/fi";
-import { motion } from "framer-motion";
+import {
+  FiMessageCircle,
+  FiSend,
+  FiUser,
+  FiSearch,
+  FiArrowLeft,
+  FiAlertTriangle,
+  FiX,
+  FiShield,
+  FiMoreVertical,
+  FiSlash,
+  FiBellOff,
+  FiBell,
+  FiFlag,
+  FiLock,
+} from "react-icons/fi";
+import { motion, AnimatePresence } from "framer-motion";
 import Badge from "../../../shared/components/Badge";
 import { useVendorAuthStore } from "../store/vendorAuthStore";
 import toast from "react-hot-toast";
-import { getChatBlockMessage } from "../../../shared/utils/chatModerationMessages";
+import { getChatBlockMessage, preflightCheckMessage } from "../../../shared/utils/chatModerationMessages";
 import {
   getVendorChatThreads,
   getVendorChatMessages,
   sendVendorChatMessage,
   markVendorChatRead,
+  reportVendorChat,
+  toggleBlockVendorChat,
+  toggleMuteVendorChat,
 } from "../services/vendorService";
 
 const Chat = () => {
@@ -24,13 +42,32 @@ const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [warningBanner, setWarningBanner] = useState(null);
+  const [preflightWarning, setPreflightWarning] = useState(null);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState("OFF_PLATFORM_SOLICITATION");
+  const [reportDetails, setReportDetails] = useState("");
+  const [submittingAction, setSubmittingAction] = useState(false);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [isLoadingChats, setIsLoadingChats] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef(null);
+  const menuRef = useRef(null);
   const vendorId = vendor?.id || vendor?._id;
+
+  // Close header menu on click outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setShowMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const fetchThreads = useCallback(async () => {
     if (!vendorId) return;
@@ -110,6 +147,14 @@ const Chat = () => {
     const message = newMessage.trim();
     if (!message || !selectedChat?._id || isSending) return;
 
+    // Client-side preflight check
+    const localWarn = preflightCheckMessage(message);
+    if (localWarn) {
+      setPreflightWarning(localWarn);
+      toast.error(localWarn);
+      return;
+    }
+
     setIsSending(true);
     try {
       const res = await sendVendorChatMessage(selectedChat._id, message);
@@ -118,6 +163,7 @@ const Chat = () => {
       if (created) {
         setMessages((prev) => [...prev, created]);
         setWarningBanner(null);
+        setPreflightWarning(null);
       }
 
       setNewMessage("");
@@ -155,10 +201,71 @@ const Chat = () => {
           style: { maxWidth: '360px', borderRadius: '12px' },
         });
       } else {
-        toast.error('Failed to send message.');
+        toast.error(errData?.message || 'Failed to send message.');
       }
     } finally {
       setIsSending(false);
+    }
+  };
+
+  const handleToggleBlock = async () => {
+    if (!selectedChat?._id) return;
+    try {
+      setSubmittingAction(true);
+      setShowMenu(false);
+      const res = await toggleBlockVendorChat(selectedChat._id, {
+        reason: selectedChat.isBlocked ? undefined : "Blocked by vendor",
+      });
+      const data = res?.data?.data || res?.data;
+      const newBlocked = data?.isBlocked ?? !selectedChat.isBlocked;
+      setSelectedChat((prev) => ({ ...prev, isBlocked: newBlocked }));
+      setChats((prev) =>
+        prev.map((c) => (c._id === selectedChat._id ? { ...c, isBlocked: newBlocked } : c))
+      );
+      toast.success(newBlocked ? "Customer blocked." : "Customer unblocked.");
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to update block status.");
+    } finally {
+      setSubmittingAction(false);
+    }
+  };
+
+  const handleToggleMute = async () => {
+    if (!selectedChat?._id) return;
+    try {
+      setSubmittingAction(true);
+      setShowMenu(false);
+      const res = await toggleMuteVendorChat(selectedChat._id);
+      const data = res?.data?.data || res?.data;
+      const newMuted = data?.vendorMuted ?? !selectedChat.vendorMuted;
+      setSelectedChat((prev) => ({ ...prev, vendorMuted: newMuted }));
+      setChats((prev) =>
+        prev.map((c) => (c._id === selectedChat._id ? { ...c, vendorMuted: newMuted } : c))
+      );
+      toast.success(newMuted ? "Notifications muted." : "Notifications unmuted.");
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to update notification settings.");
+    } finally {
+      setSubmittingAction(false);
+    }
+  };
+
+  const handleSubmitReport = async (e) => {
+    e.preventDefault();
+    if (!reportReason || !selectedChat?._id) return;
+    try {
+      setSubmittingAction(true);
+      await reportVendorChat(selectedChat._id, {
+        reason: reportReason,
+        details: reportDetails.trim(),
+      });
+      toast.success("Report submitted to moderation team. Thank you.");
+      setShowReportModal(false);
+      setReportDetails("");
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to submit report.");
+    } finally {
+      setSubmittingAction(false);
     }
   };
 
@@ -292,7 +399,7 @@ const Chat = () => {
                             ) : chat.orderDisplayId ? (
                               `Order: ${chat.orderDisplayId}`
                             ) : (
-                              chat.customerEmail
+                              "Direct Customer Inquiry"
                             )}
                           </p>
                         </div>
@@ -349,19 +456,91 @@ const Chat = () => {
                       ) : selectedChat.orderDisplayId ? (
                         `Order: ${selectedChat.orderDisplayId}`
                       ) : (
-                        selectedChat.customerEmail
+                        "Direct Customer Inquiry"
                       )}
                     </p>
                   </div>
                 </div>
-                <Badge
-                  variant={selectedChat.status === "active" ? "success" : "info"}
-                  className="text-xs flex-shrink-0"
-                >
-                  {selectedChat.status === "active" ? "Active" : "Resolved"}
-                </Badge>
+
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <Badge
+                    variant={selectedChat.status === "active" ? "success" : "info"}
+                    className="text-xs"
+                  >
+                    {selectedChat.status === "active" ? "Active" : "Resolved"}
+                  </Badge>
+                  {selectedChat.vendorMuted && <FiBellOff className="text-gray-400 text-xs" title="Muted" />}
+
+                  {/* Action Dropdown Menu */}
+                  <div className="relative" ref={menuRef}>
+                    <button
+                      type="button"
+                      onClick={() => setShowMenu((prev) => !prev)}
+                      className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                      title="Chat options"
+                    >
+                      <FiMoreVertical className="text-base" />
+                    </button>
+                    {showMenu && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-[#222] border border-gray-200 dark:border-white/10 rounded-xl shadow-lg py-1 z-30 text-xs text-gray-700 dark:text-gray-200">
+                        <button
+                          type="button"
+                          onClick={handleToggleMute}
+                          disabled={submittingAction}
+                          className="w-full px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-white/5 flex items-center gap-2"
+                        >
+                          {selectedChat.vendorMuted ? <FiBell className="text-gray-500" /> : <FiBellOff className="text-gray-500" />}
+                          <span>{selectedChat.vendorMuted ? "Unmute Notifications" : "Mute Notifications"}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleToggleBlock}
+                          disabled={submittingAction}
+                          className="w-full px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-white/5 flex items-center gap-2 text-red-600"
+                        >
+                          <FiSlash />
+                          <span>{selectedChat.isBlocked ? "Unblock Customer" : "Block Customer"}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowMenu(false);
+                            setShowReportModal(true);
+                          }}
+                          className="w-full px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-white/5 flex items-center gap-2 text-amber-700 border-t border-gray-100 dark:border-white/10"
+                        >
+                          <FiFlag />
+                          <span>Report Customer</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
+
+            {/* Blocked or Closed Notice Banner */}
+            {selectedChat.isBlocked ? (
+              <div className="p-3 bg-red-50 border-b border-red-200 text-xs text-red-800 flex items-center justify-between px-4">
+                <div className="flex items-center gap-1.5 font-medium">
+                  <FiSlash className="text-red-600 flex-shrink-0" />
+                  <span>This conversation is blocked. Messages cannot be sent.</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleToggleBlock}
+                  disabled={submittingAction}
+                  className="font-bold underline text-red-700 hover:text-red-900"
+                >
+                  Unblock
+                </button>
+              </div>
+            ) : (selectedChat.status === "resolved" || selectedChat.status === "closed") ? (
+              <div className="p-3 bg-gray-100 border-b border-gray-200 text-xs text-gray-700 flex items-center gap-2 px-4">
+                <FiLock className="text-gray-500 flex-shrink-0" />
+                <span>This conversation is closed as the order has concluded. Chat is read-only.</span>
+              </div>
+            ) : null}
 
             <div className="flex-1 p-4 overflow-y-auto space-y-4 max-h-[500px]">
               {isLoadingMessages ? (
@@ -405,42 +584,64 @@ const Chat = () => {
                 <span>Policy Reminder: Sharing phone numbers or requesting off-platform payments is strictly prohibited.</span>
               </div>
 
-              {warningBanner && (
-                <div className="mb-2.5 p-2.5 bg-red-50 border border-red-200 text-red-900 rounded-xl text-xs flex items-start justify-between gap-2 shadow-xs animate-pulse">
-                  <div className="flex items-start gap-1.5">
-                    <FiAlertTriangle className="text-red-600 text-sm mt-0.5 flex-shrink-0" />
-                    <span className="font-medium leading-relaxed">{warningBanner}</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setWarningBanner(null)}
-                    className="text-red-500 hover:text-red-800 p-0.5 flex-shrink-0"
-                  >
-                    <FiX className="text-xs" />
-                  </button>
+              {selectedChat.isBlocked || selectedChat.status === "resolved" || selectedChat.status === "closed" ? (
+                <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg text-center text-xs text-gray-500 font-medium">
+                  {selectedChat.isBlocked
+                    ? "Unblock this customer from the options menu to send messages."
+                    : "This conversation has concluded and is read-only."}
                 </div>
-              )}
+              ) : (
+                <>
+                  {/* Real-time Preflight Warning */}
+                  {preflightWarning && (
+                    <div className="mb-2.5 p-2 bg-amber-50 border border-amber-300 text-amber-900 rounded-xl text-xs flex items-center gap-1.5 shadow-xs">
+                      <FiAlertTriangle className="text-amber-600 text-sm flex-shrink-0" />
+                      <span className="font-semibold">{preflightWarning}</span>
+                    </div>
+                  )}
 
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={newMessage}
-                  onChange={(e) => {
-                    setNewMessage(e.target.value);
-                    if (warningBanner) setWarningBanner(null);
-                  }}
-                  onKeyDown={handleKeyPress}
-                  placeholder="Type a message..."
-                  className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
-                />
-                <button
-                  onClick={handleSendMessage}
-                  disabled={isSending || !newMessage.trim()}
-                  className="p-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
-                >
-                  <FiSend />
-                </button>
-              </div>
+                  {/* Server Moderation Warning */}
+                  {warningBanner && (
+                    <div className="mb-2.5 p-2.5 bg-red-50 border border-red-200 text-red-900 rounded-xl text-xs flex items-start justify-between gap-2 shadow-xs animate-pulse">
+                      <div className="flex items-start gap-1.5">
+                        <FiAlertTriangle className="text-red-600 text-sm mt-0.5 flex-shrink-0" />
+                        <span className="font-medium leading-relaxed">{warningBanner}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setWarningBanner(null)}
+                        className="text-red-500 hover:text-red-800 p-0.5 flex-shrink-0"
+                      >
+                        <FiX className="text-xs" />
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={newMessage}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setNewMessage(val);
+                        const warn = preflightCheckMessage(val);
+                        setPreflightWarning(warn);
+                        if (warningBanner) setWarningBanner(null);
+                      }}
+                      onKeyDown={handleKeyPress}
+                      placeholder="Type a message..."
+                      className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                    />
+                    <button
+                      onClick={handleSendMessage}
+                      disabled={isSending || !newMessage.trim()}
+                      className="p-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
+                    >
+                      <FiSend />
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         ) : (
@@ -452,6 +653,83 @@ const Chat = () => {
           </div>
         )}
       </div>
+
+      {/* Report Modal */}
+      <AnimatePresence>
+        {showReportModal && (
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white dark:bg-[#222] rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4"
+            >
+              <div className="flex items-center justify-between border-b dark:border-white/10 pb-3">
+                <div className="flex items-center gap-2 text-gray-900 dark:text-white font-bold text-sm">
+                  <FiFlag className="text-red-600" />
+                  <span>Report Customer</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowReportModal(false)}
+                  className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                >
+                  <FiX />
+                </button>
+              </div>
+
+              <form onSubmit={handleSubmitReport} className="space-y-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                    Reason for report
+                  </label>
+                  <select
+                    value={reportReason}
+                    onChange={(e) => setReportReason(e.target.value)}
+                    className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-white/10 rounded-xl p-2.5 text-xs text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+                  >
+                    <option value="OFF_PLATFORM_SOLICITATION">Off-platform contact or payment solicitation</option>
+                    <option value="HARASSMENT">Harassment or abusive language</option>
+                    <option value="FRAUD">Fraudulent inquiry or suspicious activity</option>
+                    <option value="SPAM">Spam or irrelevant messages</option>
+                    <option value="OTHER">Other violation</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                    Additional details (optional)
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={reportDetails}
+                    onChange={(e) => setReportDetails(e.target.value)}
+                    placeholder="Provide details for our moderation team..."
+                    className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-white/10 rounded-xl p-2.5 text-xs text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                  />
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowReportModal(false)}
+                    className="flex-1 py-2 rounded-xl text-xs font-semibold border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submittingAction}
+                    className="flex-1 py-2 rounded-xl text-xs font-semibold bg-red-600 hover:bg-red-700 text-white shadow-sm disabled:opacity-50"
+                  >
+                    {submittingAction ? "Submitting..." : "Submit Report"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

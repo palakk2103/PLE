@@ -208,20 +208,22 @@ const DataTable = ({
 
       {/* Pagination */}
       {pagination && totalPages > 1 && (
-        <div className="bg-gray-50 px-3 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0 border-t border-gray-200">
-          <div className="text-xs sm:text-sm text-gray-700">
+        <div className="bg-gray-50 dark:bg-[#151515] px-3 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 border-t border-gray-200 dark:border-white/10 min-w-0">
+          <div className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 text-center sm:text-left truncate max-w-full">
             Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
             {Math.min(currentPage * itemsPerPage, sortedData.length)} of{' '}
             {sortedData.length} results
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center">
             <Button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
               variant="secondary"
               icon={FiChevronLeft}
+              size="sm"
+              className="p-1.5 sm:p-2 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
             />
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 flex-wrap justify-center">
               {[...Array(totalPages)].map((_, index) => {
                 const page = index + 1;
                 // Show first, last, current, and adjacent pages
@@ -236,7 +238,11 @@ const DataTable = ({
                       onClick={() => handlePageChange(page)}
                       variant={currentPage === page ? 'primary' : 'ghost'}
                       size="sm"
-                      className={currentPage === page ? '' : 'text-gray-700'}
+                      className={`min-w-[32px] h-8 px-2 text-xs font-semibold ${
+                        currentPage === page
+                          ? ''
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/10'
+                      }`}
                     >
                       {page}
                     </Button>
@@ -245,7 +251,7 @@ const DataTable = ({
                   page === currentPage - 2 ||
                   page === currentPage + 2
                 ) {
-                  return <span key={page} className="px-1">...</span>;
+                  return <span key={page} className="px-1 text-xs text-gray-500">...</span>;
                 }
                 return null;
               })}
@@ -255,6 +261,8 @@ const DataTable = ({
               disabled={currentPage === totalPages}
               variant="secondary"
               icon={FiChevronRight}
+              size="sm"
+              className="p-1.5 sm:p-2 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
             />
           </div>
         </div>

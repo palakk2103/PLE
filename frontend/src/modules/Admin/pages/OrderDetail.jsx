@@ -112,7 +112,7 @@ const OrderDetail = () => {
     );
   }
 
-  const statusOptions = ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'];
+  const statusOptions = ['pending', 'processing', 'shipped', 'out_for_delivery', 'delivered', 'cancelled', 'returned'];
 
   // Handle items - could be a number or an array
   const itemsCount = Array.isArray(order.items) ? order.items.length : (typeof order.items === 'number' ? order.items : 0);
@@ -252,7 +252,7 @@ const OrderDetail = () => {
                   onChange={(e) => setStatus(e.target.value)}
                   options={statusOptions.map((option) => ({
                     value: option,
-                    label: option.charAt(0).toUpperCase() + option.slice(1),
+                    label: option === 'out_for_delivery' ? 'Out for Delivery' : (option.charAt(0).toUpperCase() + option.slice(1)),
                   }))}
                 />
               </div>

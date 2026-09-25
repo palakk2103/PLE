@@ -9,6 +9,7 @@ import Product from '../../../models/Product.model.js';
 import PurchaseOrder from '../../../models/PurchaseOrder.model.js';
 import { createNotification } from '../../../services/notification.service.js';
 import { getIO } from '../../../config/socket.js';
+import { handleOrderStatusTransition } from '../../../services/orderStatus.service.js';
 
 // GET /api/admin/orders
 export const getAllOrders = asyncHandler(async (req, res) => {
@@ -105,7 +106,7 @@ export const getOrderById = asyncHandler(async (req, res) => {
 // PATCH /api/admin/orders/:id/status
 export const updateOrderStatus = asyncHandler(async (req, res) => {
     const { status } = req.body;
-    const allowed = ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'];
+    const allowed = ['pending', 'processing', 'shipped', 'out_for_delivery', 'delivered', 'cancelled', 'returned'];
     if (!allowed.includes(status)) throw new ApiError(400, `Status must be one of: ${allowed.join(', ')}`);
 
     const order = await Order.findOne({
@@ -121,7 +122,8 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     const allowedTransitions = {
         pending: ['processing', 'cancelled'],
         processing: ['shipped', 'cancelled'],
-        shipped: ['delivered', 'cancelled', 'returned'],
+        shipped: ['out_for_delivery', 'delivered', 'cancelled', 'returned'],
+        out_for_delivery: ['delivered', 'cancelled', 'returned'],
         delivered: ['returned'],
         cancelled: [],
         returned: [],
@@ -134,25 +136,6 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
         }
     }
 
-    order.status = nextStatus;
-    if (nextStatus === 'delivered') {
-        order.deliveredAt = new Date();
-        order.cancelledAt = null;
-    } else if (nextStatus === 'cancelled') {
-        order.cancelledAt = new Date();
-    } else if (nextStatus === 'shipped') {
-        order.shippedAt = new Date();
-        order.cancelledAt = null;
-    } else if (nextStatus === 'processing') {
-        order.processingAt = new Date();
-        order.cancelledAt = null;
-    } else if (nextStatus === 'returned') {
-        order.cancelledAt = null;
-    } else {
-        order.deliveredAt = null;
-        order.cancelledAt = null;
-    }
-
     if (nextStatus === 'processing') {
         order.vendorItems = (order.vendorItems || []).map((vi) => {
             const current = String(vi?.status || 'pending');
@@ -160,7 +143,7 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
             return { ...vi.toObject(), status: 'processing' };
         });
     }
-    if (nextStatus === 'shipped') {
+    if (nextStatus === 'shipped' || nextStatus === 'out_for_delivery') {
         order.vendorItems = (order.vendorItems || []).map((vi) => {
             const current = String(vi?.status || 'pending');
             if (current === 'cancelled' || current === 'delivered') return vi;
@@ -194,7 +177,14 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
         }
     }
 
-    await order.save();
+    // Execute central order status transition (updates history, timestamps, triggers email, and emits socket)
+    await handleOrderStatusTransition(order, nextStatus, {
+        updatedBy: req.user?.id || req.user?._id,
+        updatedByRole: 'admin',
+        note: req.body.note || req.body.reason,
+        notifyCustomer: true,
+        forceEmail: true,
+    });
 
     if (nextStatus === 'delivered' && previousStatus !== 'delivered') {
         try {
@@ -226,22 +216,6 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     }
 
     const notificationTasks = [];
-
-    if (order.userId) {
-        notificationTasks.push(
-            createNotification({
-                recipientId: order.userId,
-                recipientType: 'user',
-                title: 'Order status updated',
-                message: `Your order ${order.orderId} is now ${status}.`,
-                type: 'order',
-                data: {
-                    orderId: String(order.orderId),
-                    status: String(nextStatus),
-                },
-            })
-        );
-    }
 
     const vendorIds = [
         ...new Set(

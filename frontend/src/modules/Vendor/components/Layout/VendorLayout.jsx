@@ -168,48 +168,48 @@ const VendorLayout = () => {
       {/* Interactive Real-Time Order Popup Modal */}
       <AnimatePresence>
         {newOrder && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[10001] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
             <motion.div
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="bg-white rounded-2xl shadow-2xl border border-gray-100 max-w-lg w-full overflow-hidden flex flex-col"
+              className="bg-white dark:bg-[#1A1A1A] rounded-2xl shadow-2xl border border-gray-100 dark:border-white/10 max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col my-auto"
             >
               {/* Header */}
-              <div className="bg-gradient-to-r from-emerald-500 to-teal-600 p-6 text-white relative">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-white/20 p-2 rounded-lg animate-pulse">
-                    <FiShoppingBag className="w-6 h-6" />
+              <div className="bg-gradient-to-r from-emerald-500 to-teal-600 p-4 sm:p-6 text-white relative flex-shrink-0">
+                <div className="flex items-center space-x-3 pr-8">
+                  <div className="bg-white/20 p-2 rounded-lg animate-pulse flex-shrink-0">
+                    <FiShoppingBag className="w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
-                  <div>
-                    <h3 className="text-xl font-bold tracking-wide">🚨 New Order Received!</h3>
-                    <p className="text-xs text-emerald-100 mt-0.5">Order ID: {newOrder.orderId}</p>
+                  <div className="min-w-0">
+                    <h3 className="text-base sm:text-xl font-bold tracking-wide truncate">🚨 New Order Received!</h3>
+                    <p className="text-xs text-emerald-100 mt-0.5 truncate">Order ID: {newOrder.orderId}</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setNewOrder(null)}
                   disabled={updating}
-                  className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors"
+                  className="absolute top-3.5 sm:top-4 right-3.5 sm:right-4 p-1.5 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                 >
-                  <FiX className="w-6 h-6" />
+                  <FiX className="w-5 h-5 sm:w-6 sm:h-6" />
                 </button>
               </div>
 
               {/* Order Info Body */}
-              <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+              <div className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 scrollbar-admin">
                 {/* Customer & Earnings Row */}
-                <div className="grid grid-cols-2 gap-4 pb-4 border-b border-gray-100">
-                  <div>
-                    <div className="flex items-center text-xs text-gray-500 font-medium mb-1">
-                      <FiUser className="mr-1" /> Customer
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 pb-3 sm:pb-4 border-b border-gray-100 dark:border-white/10">
+                  <div className="min-w-0">
+                    <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">
+                      <FiUser className="mr-1 flex-shrink-0" /> Customer
                     </div>
-                    <p className="font-semibold text-gray-800">{newOrder.customerName}</p>
+                    <p className="font-semibold text-gray-800 dark:text-white text-sm sm:text-base truncate">{newOrder.customerName || 'Customer'}</p>
                   </div>
-                  <div>
-                    <div className="flex items-center text-xs text-gray-500 font-medium mb-1">
+                  <div className="min-w-0 text-right sm:text-left">
+                    <div className="flex items-center justify-end sm:justify-start text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">
                       💰 Your Earnings
                     </div>
-                    <p className="font-bold text-lg text-emerald-600">
+                    <p className="font-bold text-base sm:text-lg text-emerald-600 dark:text-emerald-400 truncate">
                       {formatPrice(newOrder.total)}
                     </p>
                   </div>
@@ -217,12 +217,12 @@ const VendorLayout = () => {
 
                 {/* Shipping Address */}
                 {newOrder.shippingAddress && (
-                  <div className="bg-gray-50 rounded-xl p-3 text-sm text-gray-700">
-                    <div className="flex items-center text-xs text-gray-500 font-medium mb-1">
-                      <FiMapPin className="mr-1 text-emerald-500" /> Delivery Address
+                  <div className="bg-gray-50 dark:bg-white/5 rounded-xl p-3 text-xs sm:text-sm text-gray-700 dark:text-gray-300 border border-gray-100 dark:border-white/5">
+                    <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">
+                      <FiMapPin className="mr-1 text-emerald-500 flex-shrink-0" /> Delivery Address
                     </div>
-                    <p className="font-medium text-gray-800">{newOrder.shippingAddress.name}</p>
-                    <p className="text-gray-600 mt-0.5">
+                    <p className="font-medium text-gray-800 dark:text-white truncate">{newOrder.shippingAddress.name}</p>
+                    <p className="text-gray-600 dark:text-gray-400 mt-0.5 break-words line-clamp-2">
                       {[
                         newOrder.shippingAddress.address,
                         newOrder.shippingAddress.city,
@@ -235,32 +235,32 @@ const VendorLayout = () => {
 
                 {/* Order Items List */}
                 <div>
-                  <div className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-2">
+                  <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider mb-2">
                     Items to Fulfill
                   </div>
                   <div className="space-y-2">
                     {newOrder.items && newOrder.items.map((item, idx) => (
-                      <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 border border-gray-100">
-                        <div className="flex items-center space-x-3 min-w-0">
+                      <div key={idx} className="flex items-center justify-between p-2 sm:p-2.5 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 min-w-0 gap-2">
+                        <div className="flex items-center space-x-2.5 sm:space-x-3 min-w-0 flex-1">
                           {item.image ? (
                             <img
                               src={item.image}
                               alt={item.name}
-                              className="w-10 h-10 object-cover rounded bg-white border"
+                              className="w-9 h-9 sm:w-10 sm:h-10 object-cover rounded bg-white border border-gray-200 dark:border-white/10 flex-shrink-0"
                             />
                           ) : (
-                            <div className="w-10 h-10 bg-emerald-100 rounded flex items-center justify-center text-emerald-600 font-bold">
+                            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-emerald-100 dark:bg-emerald-950/50 rounded flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold flex-shrink-0 text-xs sm:text-sm">
                               {item.name?.charAt(0)}
                             </div>
                           )}
-                          <div className="min-w-0">
-                            <p className="text-sm font-semibold text-gray-800 truncate">{item.name}</p>
-                            <p className="text-xs text-gray-500">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs sm:text-sm font-semibold text-gray-800 dark:text-white truncate">{item.name}</p>
+                            <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400">
                               Qty: {item.quantity} &times; {formatPrice(item.price)}
                             </p>
                           </div>
                         </div>
-                        <div className="text-sm font-bold text-gray-800 ml-2">
+                        <div className="text-xs sm:text-sm font-bold text-gray-800 dark:text-white flex-shrink-0">
                           {formatPrice(item.price * item.quantity)}
                         </div>
                       </div>
@@ -270,21 +270,21 @@ const VendorLayout = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="p-6 bg-gray-50 border-t border-gray-100 flex items-center space-x-4">
+              <div className="p-3 sm:p-4 md:p-6 bg-gray-50 dark:bg-[#121212] border-t border-gray-100 dark:border-white/10 flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 flex-shrink-0">
                 <button
                   onClick={handleReject}
                   disabled={updating}
-                  className="flex-1 py-3 px-4 rounded-xl border border-red-200 text-red-600 font-bold hover:bg-red-50 active:bg-red-100 transition-colors flex items-center justify-center space-x-2"
+                  className="w-full sm:flex-1 py-2.5 sm:py-3 px-4 rounded-xl border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 font-bold hover:bg-red-50 dark:hover:bg-red-950/30 active:bg-red-100 transition-colors flex items-center justify-center space-x-2 text-xs sm:text-sm"
                 >
-                  <FiX className="w-5 h-5" />
+                  <FiX className="w-4 h-4 sm:w-5 sm:h-5" />
                   <span>{updating ? 'Processing...' : 'Reject Order'}</span>
                 </button>
                 <button
                   onClick={handleAccept}
                   disabled={updating}
-                  className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold hover:from-emerald-600 hover:to-teal-700 active:from-emerald-700 active:to-teal-800 shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center space-x-2"
+                  className="w-full sm:flex-1 py-2.5 sm:py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold hover:from-emerald-600 hover:to-teal-700 active:from-emerald-700 active:to-teal-800 shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center space-x-2 text-xs sm:text-sm"
                 >
-                  <FiCheck className="w-5 h-5" />
+                  <FiCheck className="w-4 h-4 sm:w-5 sm:h-5" />
                   <span>{updating ? 'Processing...' : 'Accept Order'}</span>
                 </button>
               </div>

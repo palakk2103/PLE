@@ -9,6 +9,8 @@ import RFQ from '../models/RFQ.model.js';
 import ApiError from '../utils/ApiError.js';
 import PDFDocument from 'pdfkit';
 import mongoose from 'mongoose';
+import { sendInvoiceEmail } from './email.service.js';
+import { resolveCustomerContact } from './orderStatus.service.js';
 
 /**
  * Generate a unique, formatted invoice number.
@@ -605,13 +607,10 @@ export const getInvoiceWithRoleProjection = async (orderIdOrInvoiceNum, user) =>
 };
 
 /**
- * Generate a professional vector PDF stream matching the requesting role's permissions.
+ * Render the complete vector PDF content onto a PDFDocument instance.
+ * Shared between buildInvoicePdfStream (HTTP download) and generateInvoicePdfBuffer (email attachment).
  */
-export const buildInvoicePdfStream = (res, invoice, role, vendorId = null) => {
-    const doc = new PDFDocument({ margin: 40, size: 'A4' });
-
-    doc.pipe(res);
-
+export const renderInvoicePdf = (doc, invoice, role = 'customer', vendorId = null) => {
     const primaryColor = '#1e3a8a';   // Deep navy blue
     const secondaryColor = '#475569'; // Slate
     const borderColor = '#cbd5e1';    // Slate border
@@ -825,6 +824,266 @@ export const buildInvoicePdfStream = (res, invoice, role, vendorId = null) => {
     // Bottom Footer
     doc.fontSize(7.5).font('Helvetica').fillColor('#94a3b8');
     doc.text('System Generated Computer Invoice • No Signature Required • PLE Marketplace', 40, 770, { align: 'center', width: 515 });
+};
 
+/**
+ * Generate a professional vector PDF stream matching the requesting role's permissions.
+ * Direct pipe to express res for download routes.
+ */
+export const buildInvoicePdfStream = (res, invoice, role = 'customer', vendorId = null) => {
+    const doc = new PDFDocument({ margin: 40, size: 'A4' });
+    doc.pipe(res);
+    renderInvoicePdf(doc, invoice, role, vendorId);
     doc.end();
 };
+
+/**
+ * Generate in-memory vector PDF buffer for email attachments.
+ * Reuses identical layout and design as buildInvoicePdfStream.
+ * @returns {Promise<Buffer>}
+ */
+export const generateInvoicePdfBuffer = (invoice, role = 'customer', vendorId = null) => {
+    return new Promise((resolve, reject) => {
+        try {
+            const doc = new PDFDocument({ margin: 40, size: 'A4' });
+            const chunks = [];
+            doc.on('data', (chunk) => chunks.push(chunk));
+            doc.on('end', () => resolve(Buffer.concat(chunks)));
+            doc.on('error', (err) => reject(err));
+
+            renderInvoicePdf(doc, invoice, role, vendorId);
+            doc.end();
+        } catch (err) {
+            reject(err);
+        }
+    });
+};
+
+/**
+ * Safely sends the customer their order invoice as a PDF attachment by email.
+ * 
+ * Guarantees:
+ * 1. Idempotent: Skips sending if already emailed, unless forceResend is specified.
+ * 2. Uses trusted registered customer contact from order/user record.
+ * 3. In-memory PDF buffer generation (reuses identical PDFKit layout).
+ * 4. Updates Invoice.emailDelivery and Order.emailNotifications / invoiceEmailSent.
+ * 5. Fail-safe: Errors never roll back order or throw to caller unless throwOnError is true.
+ * 
+ * @param {string|mongoose.Types.ObjectId} orderId - The order ID or document
+ * @param {Object} [options]
+ * @param {boolean} [options.forceResend=false] - Force resending even if already sent
+ * @param {boolean} [options.throwOnError=false] - Re-throw error (useful for admin APIs)
+ * @param {string} [options.triggeredBy] - Actor who initiated the email (e.g. admin id)
+ * @param {Object} [options.invoice] - Pre-fetched invoice if available
+ * @returns {Promise<Object>} Delivery result object
+ */
+export const sendOrderInvoiceEmail = async (orderId, options = {}) => {
+    const {
+        forceResend = false,
+        throwOnError = false,
+        triggeredBy = null,
+        invoice: preloadedInvoice = null,
+    } = options;
+
+    try {
+        if (!orderId) {
+            console.warn('[InvoiceEmail] No orderId provided to sendOrderInvoiceEmail');
+            return { skipped: true, reason: 'missing_order_id' };
+        }
+
+        const isObjectId = mongoose.Types.ObjectId.isValid(orderId);
+
+        // Fetch Order
+        let order = await Order.findOne({
+            $or: [
+                { orderId: String(orderId) },
+                ...(isObjectId ? [{ _id: new mongoose.Types.ObjectId(orderId) }] : []),
+            ],
+        }).populate({
+            path: 'userId',
+            select: 'name fullName email phone companyId',
+        });
+
+        if (!order) {
+            console.warn(`[InvoiceEmail] Order not found for orderId: ${orderId}`);
+            if (throwOnError) throw new ApiError(404, `Order ${orderId} not found.`);
+            return { skipped: true, reason: 'order_not_found' };
+        }
+
+        // Fetch or Generate Invoice
+        let invoice = preloadedInvoice;
+        if (!invoice) {
+            invoice = await Invoice.findOne({
+                $or: [
+                    { orderNumber: String(order.orderId) },
+                    { orderId: order._id },
+                ],
+            });
+        }
+
+        if (!invoice) {
+            try {
+                invoice = await generateInvoiceForOrder(order._id);
+            } catch (genErr) {
+                console.warn(`[InvoiceEmail] Could not generate invoice for order ${order.orderId}:`, genErr.message);
+                if (throwOnError) throw genErr;
+                return { skipped: true, reason: 'invoice_generation_failed', error: genErr.message };
+            }
+        }
+
+        if (!invoice) {
+            console.warn(`[InvoiceEmail] Invoice not found/generated for order ${order.orderId}`);
+            if (throwOnError) throw new ApiError(404, 'Invoice not found.');
+            return { skipped: true, reason: 'no_invoice' };
+        }
+
+        // Check if already sent (Duplicate email prevention)
+        const alreadySent = invoice.emailDelivery?.sent === true || order.invoiceEmailSent === true;
+        if (alreadySent && !forceResend) {
+            console.log(`[InvoiceEmail] Invoice #${invoice.invoiceNumber} already emailed to customer for order ${order.orderId}. Skipping duplicate.`);
+            return {
+                skipped: true,
+                reason: 'already_sent',
+                invoiceNumber: invoice.invoiceNumber,
+                sentAt: invoice.emailDelivery?.sentAt || order.invoiceEmailSentAt,
+                recipientEmail: invoice.emailDelivery?.recipientEmail || invoice.customer?.email,
+            };
+        }
+
+        // Resolve customer contact details
+        const { email: recipientEmail, name: customerName } = await resolveCustomerContact(order);
+        if (!recipientEmail) {
+            console.warn(`[InvoiceEmail] No customer email found for order ${order.orderId}. Cannot send invoice email.`);
+            await Invoice.updateOne(
+                { _id: invoice._id },
+                {
+                    $set: {
+                        'emailDelivery.sent': false,
+                        'emailDelivery.error': 'Customer email address missing from order/user record.',
+                    },
+                }
+            );
+            if (throwOnError) throw new ApiError(400, 'Customer email address missing.');
+            return { skipped: true, reason: 'missing_recipient_email' };
+        }
+
+        console.log(`[InvoiceEmail] Generating invoice PDF buffer and sending email to ${recipientEmail} for order ${order.orderId}...`);
+
+        // Generate customer-facing PDF Buffer (no internal commissions/settlements)
+        const pdfBuffer = await generateInvoicePdfBuffer(invoice, 'customer');
+
+        // Send Email via existing email service
+        const emailInfo = await sendInvoiceEmail({
+            order,
+            invoice,
+            recipientEmail,
+            customerName: customerName || invoice.customer?.name,
+            pdfBuffer,
+        });
+
+        const now = new Date();
+
+        // Update Invoice model with delivery audit
+        await Invoice.updateOne(
+            { _id: invoice._id },
+            {
+                $set: {
+                    'emailDelivery.sent': true,
+                    'emailDelivery.sentAt': now,
+                    'emailDelivery.recipientEmail': recipientEmail,
+                    'emailDelivery.messageId': emailInfo?.messageId || 'SENT',
+                    'emailDelivery.error': '',
+                    ...(forceResend ? {
+                        'emailDelivery.lastResentAt': now,
+                        ...(triggeredBy ? { 'emailDelivery.lastTriggeredBy': triggeredBy } : {}),
+                    } : {}),
+                },
+                ...(forceResend ? { $inc: { 'emailDelivery.resendCount': 1 } } : {}),
+            }
+        );
+
+        // Update Order model with delivery audit
+        await Order.updateOne(
+            { _id: order._id },
+            {
+                $set: {
+                    invoiceEmailSent: true,
+                    invoiceEmailSentAt: now,
+                },
+                $push: {
+                    emailNotifications: {
+                        status: 'invoice',
+                        recipientEmail,
+                        sentAt: now,
+                        success: true,
+                        messageId: emailInfo?.messageId || 'SENT',
+                    },
+                },
+            }
+        );
+
+        console.log(`[InvoiceEmail] Successfully sent invoice #${invoice.invoiceNumber} to ${recipientEmail} for order ${order.orderId}`);
+
+        return {
+            success: true,
+            invoiceNumber: invoice.invoiceNumber,
+            recipientEmail,
+            messageId: emailInfo?.messageId,
+            sentAt: now,
+        };
+    } catch (error) {
+        console.error(`[InvoiceEmail] Error sending invoice email for order ${orderId}:`, error?.message || error);
+
+        // Record failure in Invoice and Order if documents exist
+        try {
+            const isObjectId = mongoose.Types.ObjectId.isValid(orderId);
+            const ord = await Order.findOne({
+                $or: [
+                    { orderId: String(orderId) },
+                    ...(isObjectId ? [{ _id: new mongoose.Types.ObjectId(orderId) }] : []),
+                ],
+            }).select('_id orderId shippingAddress guestInfo userId').lean();
+
+            if (ord) {
+                const { email: recipientEmail } = await resolveCustomerContact(ord);
+                await Invoice.updateOne(
+                    { orderId: ord._id },
+                    {
+                        $set: {
+                            'emailDelivery.sent': false,
+                            'emailDelivery.error': String(error?.message || 'Email sending failed'),
+                        },
+                    }
+                );
+                if (recipientEmail) {
+                    await Order.updateOne(
+                        { _id: ord._id },
+                        {
+                            $push: {
+                                emailNotifications: {
+                                    status: 'invoice',
+                                    recipientEmail,
+                                    sentAt: new Date(),
+                                    success: false,
+                                    error: String(error?.message || 'Email sending failed'),
+                                },
+                            },
+                        }
+                    );
+                }
+            }
+        } catch (dbErr) {
+            console.error('[InvoiceEmail] Failed to record email error in database:', dbErr.message);
+        }
+
+        if (throwOnError) {
+            throw error;
+        }
+
+        return {
+            success: false,
+            error: error?.message || 'Email sending failed',
+        };
+    }
+};
+

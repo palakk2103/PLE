@@ -100,19 +100,20 @@ const MobileTrackOrder = () => {
   const getTrackingSteps = () => {
     const isCancelled = normalizedStatus === 'cancelled';
     const isReturned = normalizedStatus === 'returned';
-    const isProcessingOrLater = ['processing', 'shipped', 'delivered', 'returned'].includes(normalizedStatus);
-    const isShippedOrLater = ['shipped', 'delivered', 'returned'].includes(normalizedStatus);
+    const isProcessingOrLater = ['processing', 'shipped', 'out_for_delivery', 'delivered', 'returned'].includes(normalizedStatus);
+    const isShippedOrLater = ['shipped', 'out_for_delivery', 'delivered', 'returned'].includes(normalizedStatus);
+    const isOutForDeliveryOrLater = ['out_for_delivery', 'delivered', 'returned'].includes(normalizedStatus);
     const isDelivered = normalizedStatus === 'delivered';
 
     const steps = [
       {
-        label: 'Order Placed',
+        label: 'Order Confirmed',
         completed: true,
         date: order?.date || order?.createdAt,
         icon: FiCheckCircle,
       },
       {
-        label: 'Processing',
+        label: 'Packed',
         completed: !isCancelled && isProcessingOrLater,
         date: order?.processingAt || null,
         icon: FiPackage,
@@ -121,6 +122,12 @@ const MobileTrackOrder = () => {
         label: 'Shipped',
         completed: !isCancelled && isShippedOrLater,
         date: order?.shippedAt || null,
+        icon: FiTruck,
+      },
+      {
+        label: 'Out for Delivery',
+        completed: !isCancelled && isOutForDeliveryOrLater,
+        date: order?.outForDeliveryAt || null,
         icon: FiTruck,
       },
       {

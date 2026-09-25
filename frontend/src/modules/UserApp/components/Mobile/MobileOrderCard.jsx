@@ -19,15 +19,38 @@ const MobileOrderCard = ({ order }) => {
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'delivered':
-        return 'text-green-600 bg-green-50';
+        return 'text-green-700 bg-green-50 border border-green-200';
+      case 'out_for_delivery':
+        return 'text-purple-700 bg-purple-50 border border-purple-200';
       case 'shipped':
-        return 'text-blue-600 bg-blue-50';
+        return 'text-blue-700 bg-blue-50 border border-blue-200';
       case 'processing':
-        return 'text-yellow-600 bg-yellow-50';
+        return 'text-amber-700 bg-amber-50 border border-amber-200';
       case 'cancelled':
-        return 'text-red-600 bg-red-50';
+        return 'text-red-700 bg-red-50 border border-red-200';
       default:
-        return 'text-gray-600 bg-gray-50';
+        return 'text-gray-700 bg-gray-50 border border-gray-200';
+    }
+  };
+
+  const getStatusLabel = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'pending':
+        return 'Order Confirmed';
+      case 'processing':
+        return 'Packed';
+      case 'shipped':
+        return 'Shipped';
+      case 'out_for_delivery':
+        return 'Out for Delivery';
+      case 'delivered':
+        return 'Delivered';
+      case 'cancelled':
+        return 'Cancelled';
+      case 'returned':
+        return 'Returned';
+      default:
+        return status || 'Confirmed';
     }
   };
 
@@ -96,7 +119,7 @@ const MobileOrderCard = ({ order }) => {
                 order.status
               )}`}
             >
-              {order.status || 'Pending'}
+              {getStatusLabel(order.status)}
             </span>
             {order.loyaltyPointsEarned > 0 && (
               <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded-lg text-[10px] font-black">

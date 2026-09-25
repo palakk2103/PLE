@@ -13,13 +13,14 @@ import {
   FiCheckCircle,
   FiAlertTriangle,
   FiShield,
-  FiX
+  FiX,
+  FiLock,
 } from "react-icons/fi";
 import api from "../../../../shared/utils/api";
 import toast from "react-hot-toast";
 import Badge from "../../../../shared/components/Badge";
 import socketService from "../../../../shared/utils/socket";
-import { getChatBlockMessage } from "../../../../shared/utils/chatModerationMessages";
+import { getChatBlockMessage, preflightCheckMessage } from "../../../../shared/utils/chatModerationMessages";
 
 const VendorDirectRFQDetail = () => {
   const { id } = useParams();
@@ -35,6 +36,7 @@ const VendorDirectRFQDetail = () => {
   const [priceOffer, setPriceOffer] = useState("");
   const [sending, setSending] = useState(false);
   const [warningBanner, setWarningBanner] = useState(null);
+  const [preflightWarning, setPreflightWarning] = useState(null);
   const chatEndRef = useRef(null);
 
   const fetchDetail = async () => {
@@ -94,16 +96,38 @@ const VendorDirectRFQDetail = () => {
     e.preventDefault();
     if (!message.trim()) return;
 
+    // Real-time preflight check on text
+    const localWarn = preflightCheckMessage(message.trim());
+    if (localWarn) {
+      setPreflightWarning(localWarn);
+      toast.error(localWarn);
+      return;
+    }
+
+    const body = { message: message.trim() };
+
+    // Price offer validation (anti-solicitation & sanity check)
+    if (priceOffer !== "" && priceOffer !== null && priceOffer !== undefined) {
+      const cleanDigits = String(priceOffer).replace(/\D/g, "");
+      if ((cleanDigits.length === 10 && /^[6-9]/.test(cleanDigits)) || cleanDigits.length > 10) {
+        toast.error("Invalid price offer: Amount cannot be a phone number or contact code.");
+        return;
+      }
+      const numOffer = Number(priceOffer);
+      if (isNaN(numOffer) || numOffer <= 0 || numOffer > 100000000) {
+        toast.error("Price offer must be a valid amount between ₹1 and ₹10,00,00,000.");
+        return;
+      }
+      body.priceOffer = numOffer;
+    }
+
     try {
       setSending(true);
-      const body = { message };
-      if (priceOffer && !isNaN(priceOffer)) {
-        body.priceOffer = Number(priceOffer);
-      }
       await api.post(`/vendor/direct-rfq/${id}/message`, body);
       setMessage("");
       setPriceOffer("");
       setWarningBanner(null);
+      setPreflightWarning(null);
       await fetchDetail();
     } catch (err) {
       const errData = err?.response?.data;
@@ -413,59 +437,77 @@ const VendorDirectRFQDetail = () => {
               </div>
 
               {/* Input */}
-              <form
-                onSubmit={handleSendMessage}
-                className="p-4 border-t border-gray-150 bg-gray-50 flex flex-col gap-2.5"
-              >
-                {/* Security Reminder */}
-                <div className="px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-1.5 text-[11px] text-amber-800 font-medium">
-                  <FiShield className="text-amber-600 flex-shrink-0 text-xs" />
-                  <span>Platform Policy: Direct payments or sharing phone numbers is strictly prohibited.</span>
+              {['PO Generated', 'Rejected'].includes(rfq?.status) ? (
+                <div className="p-4 border-t border-gray-150 bg-gray-50 flex items-center justify-center gap-2 text-xs text-gray-500 font-medium">
+                  <FiLock className="text-gray-400" />
+                  <span>This RFQ discussion is {rfq.status.toLowerCase()} and closed for further messages.</span>
                 </div>
+              ) : (
+                <form
+                  onSubmit={handleSendMessage}
+                  className="p-4 border-t border-gray-150 bg-gray-50 flex flex-col gap-2.5"
+                >
+                  {/* Security Reminder */}
+                  <div className="px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-1.5 text-[11px] text-amber-800 font-medium">
+                    <FiShield className="text-amber-600 flex-shrink-0 text-xs" />
+                    <span>Platform Policy: Direct payments or sharing phone numbers is strictly prohibited.</span>
+                  </div>
 
-                {warningBanner && (
-                  <div className="p-2.5 bg-red-50 border border-red-200 text-red-900 rounded-xl text-xs flex items-start justify-between gap-2 shadow-xs animate-pulse">
-                    <div className="flex items-start gap-1.5">
-                      <FiAlertTriangle className="text-red-600 text-sm mt-0.5 flex-shrink-0" />
-                      <span className="font-medium leading-relaxed">{warningBanner}</span>
+                  {/* Real-time Preflight Warning */}
+                  {preflightWarning && (
+                    <div className="p-2 bg-amber-50 border border-amber-300 text-amber-900 rounded-xl text-xs flex items-center gap-1.5 shadow-xs">
+                      <FiAlertTriangle className="text-amber-600 text-sm flex-shrink-0" />
+                      <span className="font-semibold">{preflightWarning}</span>
                     </div>
+                  )}
+
+                  {warningBanner && (
+                    <div className="p-2.5 bg-red-50 border border-red-200 text-red-900 rounded-xl text-xs flex items-start justify-between gap-2 shadow-xs animate-pulse">
+                      <div className="flex items-start gap-1.5">
+                        <FiAlertTriangle className="text-red-600 text-sm mt-0.5 flex-shrink-0" />
+                        <span className="font-medium leading-relaxed">{warningBanner}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setWarningBanner(null)}
+                        className="text-red-500 hover:text-red-800 p-0.5 flex-shrink-0"
+                      >
+                        <FiX className="text-xs" />
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-3">
+                    <textarea
+                      rows={1}
+                      value={message}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setMessage(val);
+                        const warn = preflightCheckMessage(val);
+                        setPreflightWarning(warn);
+                        if (warningBanner) setWarningBanner(null);
+                      }}
+                      placeholder="Enter message for Employee..."
+                      className="flex-1 bg-white border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#C07A3D] font-medium resize-none"
+                    />
+                    <input
+                      type="number"
+                      value={priceOffer}
+                      onChange={(e) => setPriceOffer(e.target.value)}
+                      placeholder="₹ Price offer"
+                      className="w-28 bg-white border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#C07A3D] font-medium"
+                    />
                     <button
-                      type="button"
-                      onClick={() => setWarningBanner(null)}
-                      className="text-red-500 hover:text-red-800 p-0.5 flex-shrink-0"
+                      type="submit"
+                      disabled={sending || !message.trim()}
+                      className="p-3 bg-[#C07A3D] hover:bg-[#A9662E] text-white rounded-xl transition-colors shadow-sm disabled:opacity-50"
                     >
-                      <FiX className="text-xs" />
+                      <FiSend className="w-4 h-4" />
                     </button>
                   </div>
-                )}
-
-                <div className="flex items-center gap-3">
-                  <textarea
-                    rows={1}
-                    value={message}
-                    onChange={(e) => {
-                      setMessage(e.target.value);
-                      if (warningBanner) setWarningBanner(null);
-                    }}
-                    placeholder="Enter message for Employee..."
-                    className="flex-1 bg-white border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#C07A3D] font-medium resize-none"
-                  />
-                  <input
-                    type="number"
-                    value={priceOffer}
-                    onChange={(e) => setPriceOffer(e.target.value)}
-                    placeholder="₹ Price offer"
-                    className="w-28 bg-white border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#C07A3D] font-medium"
-                  />
-                  <button
-                    type="submit"
-                    disabled={sending || !message.trim()}
-                    className="p-3 bg-[#C07A3D] hover:bg-[#A9662E] text-white rounded-xl transition-colors shadow-sm disabled:opacity-50"
-                  >
-                    <FiSend className="w-4 h-4" />
-                  </button>
-                </div>
-              </form>
+                </form>
+              )}
             </div>
           )}
         </div>

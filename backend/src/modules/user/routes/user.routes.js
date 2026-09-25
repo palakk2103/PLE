@@ -150,5 +150,8 @@ router.get('/chat/vendor/threads', ...customerAuth, customerChatController.getCu
 router.get('/chat/vendor/threads/:id/messages', ...customerAuth, customerChatController.getCustomerChatMessages);
 router.post('/chat/vendor/threads/:id/messages', ...customerAuth, chatLimiter, customerChatController.sendCustomerChatMessage);
 router.patch('/chat/vendor/threads/:id/read', ...customerAuth, customerChatController.markCustomerChatRead);
+router.post('/chat/vendor/threads/:id/report', ...customerAuth, customerChatController.reportCustomerChatMessage);
+router.post('/chat/vendor/threads/:id/block', ...customerAuth, customerChatController.toggleBlockCustomerChat);
+router.post('/chat/vendor/threads/:id/mute', ...customerAuth, customerChatController.toggleMuteCustomerChat);
 
 export default router;

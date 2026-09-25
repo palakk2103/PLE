@@ -414,12 +414,13 @@ api.interceptors.response.use(
           : error.message || ''
     );
 
-    // Prevent flooding multiple identical network error toasts within 3 seconds
+    // Prevent flooding multiple identical network error toasts within 10 seconds
     const now = Date.now();
-    const isRecentNetworkToast = isNetworkError && (now - (window._lastNetworkErrorToastTime || 0) < 3000);
+    const isRecentNetworkToast = isNetworkError && (now - (window._lastNetworkErrorToastTime || 0) < 10000);
+    const shouldSkipToast = originalRequest?.skipErrorToast || originalRequest?.silent;
 
     // Do not show error toast on silent 401 background checks, cancelled requests, or flood
-    if (status !== 401 && message && !axios.isCancel(error) && !isRecentNetworkToast) {
+    if (status !== 401 && message && !axios.isCancel(error) && !isRecentNetworkToast && !shouldSkipToast) {
       if (isNetworkError) {
         window._lastNetworkErrorToastTime = now;
       }

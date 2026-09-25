@@ -19,28 +19,34 @@ export const MODERATION_ACTION = Object.freeze({
 
 // ── Moderation Categories ─────────────────────────────────────
 export const MODERATION_CATEGORY = Object.freeze({
-    PHONE_NUMBER:     'PHONE_NUMBER',
-    UPI_ID:           'UPI_ID',
-    BANK_DETAILS:     'BANK_DETAILS',
-    IFSC:             'IFSC',
-    PAYMENT_LINK:     'PAYMENT_LINK',
-    EMAIL:            'EMAIL',
-    EXTERNAL_CONTACT: 'EXTERNAL_CONTACT',
-    EXTERNAL_PAYMENT: 'EXTERNAL_PAYMENT',
-    SUSPICIOUS:       'SUSPICIOUS',
+    PHONE_NUMBER:        'PHONE_NUMBER',
+    UPI_ID:              'UPI_ID',
+    BANK_DETAILS:        'BANK_DETAILS',
+    IFSC:                'IFSC',
+    PAYMENT_LINK:        'PAYMENT_LINK',
+    EMAIL:               'EMAIL',
+    EXTERNAL_CONTACT:    'EXTERNAL_CONTACT',
+    EXTERNAL_PAYMENT:    'EXTERNAL_PAYMENT',
+    EXTERNAL_URL:        'EXTERNAL_URL',
+    CARD_DETAILS:        'CARD_DETAILS',
+    CREDENTIAL_PHISHING: 'CREDENTIAL_PHISHING',
+    SUSPICIOUS:          'SUSPICIOUS',
 });
 
 // ── User-safe messages keyed by category ─────────────────────
 const USER_MESSAGES = {
-    [MODERATION_CATEGORY.PHONE_NUMBER]:     'Message not sent. Sharing phone numbers or personal contact details is strictly prohibited to ensure buyer-seller protection. Please continue all discussions through the platform.',
-    [MODERATION_CATEGORY.EMAIL]:            'Message not sent. Contact information cannot be shared in chat. Please continue communication through the platform.',
-    [MODERATION_CATEGORY.EXTERNAL_CONTACT]: 'Message not sent. External contact information cannot be shared in chat. Please continue communication through the platform.',
-    [MODERATION_CATEGORY.UPI_ID]:           'Message not sent. External payment details cannot be shared in chat. Please use the platform\'s payment system.',
-    [MODERATION_CATEGORY.BANK_DETAILS]:     'Message not sent. External payment details cannot be shared in chat. Please use the platform\'s payment system.',
-    [MODERATION_CATEGORY.IFSC]:             'Message not sent. External payment details cannot be shared in chat. Please use the platform\'s payment system.',
-    [MODERATION_CATEGORY.PAYMENT_LINK]:     'Message not sent. External payment links cannot be shared in chat. Please use the platform\'s payment system.',
-    [MODERATION_CATEGORY.EXTERNAL_PAYMENT]: 'Message not sent. External payment details cannot be shared in chat. Please use the platform\'s payment system.',
-    [MODERATION_CATEGORY.SUSPICIOUS]:       'Message not sent. This content cannot be shared in chat.',
+    [MODERATION_CATEGORY.PHONE_NUMBER]:        'Message not sent. Sharing phone numbers or personal contact details is strictly prohibited to ensure buyer-seller protection. Please continue all discussions through the platform.',
+    [MODERATION_CATEGORY.EMAIL]:               'Message not sent. Contact information cannot be shared in chat. Please continue communication through the platform.',
+    [MODERATION_CATEGORY.EXTERNAL_CONTACT]:    'Message not sent. External contact platforms or links cannot be shared in chat. Please continue communication through the platform.',
+    [MODERATION_CATEGORY.UPI_ID]:              'Message not sent. External payment details cannot be shared in chat. Please use the platform\'s payment system.',
+    [MODERATION_CATEGORY.BANK_DETAILS]:        'Message not sent. External payment details cannot be shared in chat. Please use the platform\'s payment system.',
+    [MODERATION_CATEGORY.IFSC]:                'Message not sent. External payment details cannot be shared in chat. Please use the platform\'s payment system.',
+    [MODERATION_CATEGORY.PAYMENT_LINK]:        'Message not sent. External payment links cannot be shared in chat. Please use the platform\'s payment system.',
+    [MODERATION_CATEGORY.EXTERNAL_PAYMENT]:    'Message not sent. External payment details cannot be shared in chat. Please use the platform\'s payment system.',
+    [MODERATION_CATEGORY.EXTERNAL_URL]:        'Message not sent. External links cannot be shared in chat. Please keep all discussions on the platform.',
+    [MODERATION_CATEGORY.CARD_DETAILS]:        'Message not sent. Payment card numbers or CVV cannot be shared in chat for your security.',
+    [MODERATION_CATEGORY.CREDENTIAL_PHISHING]: 'Message not sent. Requesting or sharing OTPs, passwords, or security codes is strictly prohibited.',
+    [MODERATION_CATEGORY.SUSPICIOUS]:          'Message not sent. This content cannot be shared in chat.',
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -353,8 +359,28 @@ const CONTACT_ACTION_PHRASES = [
     /\bbahar\s+(?:baat|contact)\b/i,
 ];
 
+const RAW_CONTACT_LINK_PATTERNS = [
+    /wa\.me\//i,
+    /api\.whatsapp\.com/i,
+    /chat\.whatsapp\.com/i,
+    /t\.me\//i,
+    /telegram\.me\//i,
+    /telegram\.dog\//i,
+    /(?:instagram\.com|instagr\.am)\//i,
+    /ig\.me\//i,
+    /(?:facebook\.com|fb\.me|m\.me)\//i,
+    /(?:discord\.gg|discord\.com\/invite)\//i,
+    /signal\.me\//i,
+    /snapchat\.com\/add\//i,
+];
+
 export function detectExternalContact(text) {
     const norm = normalizeText(text);
+
+    // 1. Direct raw contact platform URLs (e.g. wa.me/91..., t.me/...) — always block
+    if (RAW_CONTACT_LINK_PATTERNS.some(p => p.test(norm))) {
+        return true;
+    }
 
     const hasPlatformKeyword = CONTACT_PLATFORM_KEYWORDS.some(kw => norm.includes(kw));
     if (!hasPlatformKeyword) return false;
@@ -417,6 +443,237 @@ export function detectExternalPayment(text) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// EXTERNAL URL DETECTION (With Platform Allowlist)
+// ─────────────────────────────────────────────────────────────
+
+// Platform allowed domains/hosts (case-insensitive)
+const ALLOWED_DOMAINS = [
+    'localhost',
+    '127.0.0.1',
+    'ple.com',
+    'b2b.ple.com',
+    'admin.ple.com',
+    'shop.ple.com',
+    'api.ple.com',
+];
+
+const GENERIC_URL_PATTERN = /\b(?:https?:\/\/|www\.)[^\s/$.?#].[^\s]*/gi;
+const URL_SHORTENERS = /\b(?:bit\.ly|tinyurl\.com|cutt\.ly|goo\.gl|t\.co|ow\.ly|is\.gd|buff\.ly|rebrand\.ly)\b/i;
+
+export function detectExternalURL(text) {
+    const norm = normalizeText(text);
+
+    if (URL_SHORTENERS.test(norm)) {
+        return true;
+    }
+
+    const matches = norm.match(GENERIC_URL_PATTERN);
+    if (!matches || matches.length === 0) return false;
+
+    for (const rawUrl of matches) {
+        let domain = '';
+        try {
+            const urlToParse = rawUrl.startsWith('http://') || rawUrl.startsWith('https://')
+                ? rawUrl
+                : `http://${rawUrl}`;
+            const parsed = new URL(urlToParse);
+            domain = parsed.hostname.toLowerCase();
+        } catch {
+            // If it couldn't parse cleanly, extract host manually
+            const hostMatch = rawUrl.replace(/^https?:\/\//i, '').split('/')[0].split('?')[0].toLowerCase();
+            domain = hostMatch;
+        }
+
+        // Check against allowlist
+        const isAllowed = ALLOWED_DOMAINS.some(allowed => 
+            domain === allowed || domain.endsWith(`.${allowed}`)
+        );
+
+        if (!isAllowed) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// ─────────────────────────────────────────────────────────────
+// PAYMENT CARD & CVV DETECTION
+// ─────────────────────────────────────────────────────────────
+
+// 16-digit card sequences (Visa, Mastercard, RuPay, etc.) or 15-digit Amex
+const CARD_16_DIGIT = /\b(?:\d{4}[ -]?){3}\d{4}\b/;
+const CARD_15_DIGIT = /\b3[47]\d{2}[ -]?\d{6}[ -]?\d{5}\b/;
+const CVV_PATTERN = /\b(?:cvv|cvv2|cvc|security\s*code|card\s*pin|security\s*pin)\s*[:=]?\s*\d{3,4}\b/i;
+const CARD_CONTEXT_KEYWORDS = /\b(?:card|debit|credit|visa|mastercard|rupay|amex|expiry|exp|valid\s*thru)\b/i;
+
+export function detectCardDetails(text) {
+    const norm = normalizeText(text);
+
+    // CVV query or statement
+    if (CVV_PATTERN.test(norm)) {
+        return true;
+    }
+
+    // Explicit card format with spaces or hyphens: "1234 5678 9012 3456"
+    if (/\b\d{4}[ -]\d{4}[ -]\d{4}[ -]\d{4}\b/.test(text)) {
+        return true;
+    }
+
+    // Check 16 or 15 digit sequences
+    if (CARD_16_DIGIT.test(norm) || CARD_15_DIGIT.test(norm)) {
+        // If accompanied by card keywords or not an innocent order/tracking context
+        if (CARD_CONTEXT_KEYWORDS.test(norm)) {
+            return true;
+        }
+        // If standalone long digit sequence without product unit context
+        if (!/(?:order|tracking|awb|id|item|sku|#)\s*[:=]?\s*\d{15,16}/i.test(norm)) {
+            // Check card BIN prefixes (Visa: 4, MC: 51-55 or 22-27, RuPay: 60, 65, 81, 82)
+            const cleanDigits = norm.replace(/\D/g, '');
+            if (/^(?:4\d{15}|5[1-5]\d{14}|2(?:2[2-9]\d{13}|[3-6]\d{14}|7[0-1]\d{13}|720\d{12})|60\d{14}|65\d{14}|81\d{14}|82\d{14}|3[47]\d{13})$/.test(cleanDigits)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+// ─────────────────────────────────────────────────────────────
+// OTP & CREDENTIAL PHISHING DETECTION
+// ─────────────────────────────────────────────────────────────
+
+const OTP_PHISHING_PATTERNS = [
+    // English
+    /\b(?:send|share|tell|give|forward|provide|enter|drop|type)\b.{0,25}\b(?:otp|one\s*time\s*password|verification\s*code|auth\s*code|secret\s*code)\b/i,
+    /\b(?:otp|verification\s*code)\b.{0,25}\b(?:send|share|tell|give|forward|please|fast|now)\b/i,
+    // Hinglish
+    /\b(?:otp|code)\b.{0,25}\b(?:bhejo|bhejna|batao|batana|bhej\s*do|de\s*do|share\s*karo|send\s*karo|do)\b/i,
+    /\b(?:batao|batana|bhejo|bhejna|de\s*do)\b.{0,25}\b(?:otp|code)\b/i,
+    // Password, PIN & Login credentials
+    /\b(?:send|share|tell|give|provide)\b.{0,25}\b(?:password|passwd|login\s*details|account\s*credentials|credentials|atm\s*pin|upi\s*pin|pin)\b/i,
+    /\b(?:password|credentials|login\s*id|atm\s*pin|upi\s*pin|secret\s*pin|pin)\b.{0,25}\b(?:bhejo|bhejna|batao|batana|de\s*do|share\s*karo|send\s*karo|do)\b/i,
+    /\b(?:apna\s*(?:secret\s*)?(?:password|pin)|login\s*password|account\s*ka\s*password)\b/i,
+];
+
+export function detectCredentialPhishing(text) {
+    const norm = normalizeText(text);
+    return OTP_PHISHING_PATTERNS.some(p => p.test(norm));
+}
+
+// ─────────────────────────────────────────────────────────────
+// MULTI-MESSAGE EVASION CHECK
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * Checks if combining the current message with recent messages from the
+ * same sender exposes split contact details (e.g. "98765" + "43210").
+ *
+ * @param {string} currentText — latest message
+ * @param {Array<string>} recentMessages — recent messages sent by this user within last 90s
+ * @returns {{ action: string, category: string|null, reason: string, userMessage: string }}
+ */
+export function checkMultiMessageEvasion(currentText, recentMessages = []) {
+    if (!recentMessages || recentMessages.length === 0) {
+        return { action: MODERATION_ACTION.ALLOW, category: null, reason: 'none', userMessage: '' };
+    }
+
+    const messages = recentMessages.filter(m => typeof m === 'string' && m.trim().length > 0);
+    if (messages.length === 0) {
+        return { action: MODERATION_ACTION.ALLOW, category: null, reason: 'none', userMessage: '' };
+    }
+
+    // Evaluate combination of recent messages + current message
+    const combined = messages.slice(-2).concat(currentText).join(' ');
+    const combinedTight = messages.slice(-2).concat(currentText).join('');
+
+    // Check phone number on combined
+    if (detectPhoneNumber(combined) || detectPhoneNumber(combinedTight)) {
+        return {
+            action:      MODERATION_ACTION.BLOCK,
+            category:    MODERATION_CATEGORY.PHONE_NUMBER,
+            reason:      'Split phone number detected across messages',
+            userMessage: USER_MESSAGES[MODERATION_CATEGORY.PHONE_NUMBER],
+        };
+    }
+
+    // Check email on combined
+    if (detectEmail(combined) || detectEmail(combinedTight)) {
+        return {
+            action:      MODERATION_ACTION.BLOCK,
+            category:    MODERATION_CATEGORY.EMAIL,
+            reason:      'Split email address detected across messages',
+            userMessage: USER_MESSAGES[MODERATION_CATEGORY.EMAIL],
+        };
+    }
+
+    // Check UPI on combined
+    if (detectUPI(combined) || detectUPI(combinedTight)) {
+        return {
+            action:      MODERATION_ACTION.BLOCK,
+            category:    MODERATION_CATEGORY.UPI_ID,
+            reason:      'Split UPI handle detected across messages',
+            userMessage: USER_MESSAGES[MODERATION_CATEGORY.UPI_ID],
+        };
+    }
+
+    return { action: MODERATION_ACTION.ALLOW, category: null, reason: 'ok', userMessage: '' };
+}
+
+// ─────────────────────────────────────────────────────────────
+// MONETARY PROPOSAL VALIDATION
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * Validates RFQ and chat monetary proposals.
+ * Ensures the value is a genuine finite currency amount within bounds
+ * and rejects disguised phone numbers (e.g., 9876543210).
+ *
+ * @param {number|string} offer — proposed amount
+ * @returns {{ isValid: boolean, reason?: string }}
+ */
+export function validateMonetaryOffer(offer) {
+    if (offer === undefined || offer === null || offer === '') {
+        return { isValid: false, reason: 'Offer price is required.' };
+    }
+
+    const num = Number(offer);
+    if (!Number.isFinite(num) || isNaN(num)) {
+        return { isValid: false, reason: 'Offer price must be a valid number.' };
+    }
+
+    if (num <= 0) {
+        return { isValid: false, reason: 'Offer price must be greater than zero.' };
+    }
+
+    if (num > 100000000) { // Max ₹10 Crore
+        return { isValid: false, reason: 'Offer price exceeds maximum permitted limit (₹10 Crore).' };
+    }
+
+    // Check if integer representation matches an Indian 10-digit mobile number
+    const intStr = String(Math.floor(num));
+    if (intStr.length === 10 && /^[6-9]\d{9}$/.test(intStr)) {
+        return {
+            isValid: false,
+            reason: 'Offer amount appears to be a telephone number or invalid value.',
+        };
+    }
+
+    // If submitted as string, check for suspicious embedded text
+    if (typeof offer === 'string') {
+        const norm = normalizeText(offer);
+        if (detectEmail(norm) || detectUPI(norm) || detectPaymentLink(norm) || detectExternalContact(norm)) {
+            return {
+                isValid: false,
+                reason: 'Offer contains prohibited contact or payment details.',
+            };
+        }
+    }
+
+    return { isValid: true };
+}
+
+// ─────────────────────────────────────────────────────────────
 // MAIN MODERATION FUNCTION
 // ─────────────────────────────────────────────────────────────
 
@@ -432,7 +689,7 @@ export function moderateMessage(text) {
         return { action: MODERATION_ACTION.ALLOW, category: null, reason: 'empty', userMessage: '' };
     }
 
-    // 1. Payment Link — always BLOCK (check before UPI to avoid upi:// being caught as UPI_ID)
+    // 1. Payment Link — always BLOCK
     if (detectPaymentLink(text)) {
         return {
             action:      MODERATION_ACTION.BLOCK,
@@ -452,7 +709,7 @@ export function moderateMessage(text) {
         };
     }
 
-    // 3. Email — BLOCK (prevents off-platform contact)
+    // 3. Email — BLOCK
     if (detectEmail(text)) {
         return {
             action:      MODERATION_ACTION.BLOCK,
@@ -473,7 +730,27 @@ export function moderateMessage(text) {
         };
     }
 
-    // 5. Phone Number — BLOCK (context-aware)
+    // 5. Payment Card & CVV Details — BLOCK
+    if (detectCardDetails(text)) {
+        return {
+            action:      MODERATION_ACTION.BLOCK,
+            category:    MODERATION_CATEGORY.CARD_DETAILS,
+            reason:      'Payment card details or CVV detected in message',
+            userMessage: USER_MESSAGES[MODERATION_CATEGORY.CARD_DETAILS],
+        };
+    }
+
+    // 6. OTP & Credential Phishing — BLOCK
+    if (detectCredentialPhishing(text)) {
+        return {
+            action:      MODERATION_ACTION.BLOCK,
+            category:    MODERATION_CATEGORY.CREDENTIAL_PHISHING,
+            reason:      'OTP or credential phishing detected in message',
+            userMessage: USER_MESSAGES[MODERATION_CATEGORY.CREDENTIAL_PHISHING],
+        };
+    }
+
+    // 7. Phone Number — BLOCK (context-aware)
     if (detectPhoneNumber(text)) {
         return {
             action:      MODERATION_ACTION.BLOCK,
@@ -483,7 +760,7 @@ export function moderateMessage(text) {
         };
     }
 
-    // 6. External Payment Methods — BLOCK
+    // 8. External Payment Methods — BLOCK
     if (detectExternalPayment(text)) {
         return {
             action:      MODERATION_ACTION.BLOCK,
@@ -493,13 +770,23 @@ export function moderateMessage(text) {
         };
     }
 
-    // 7. External Contact Platforms — BLOCK (context-aware)
+    // 9. External Contact Platforms & Raw Contact Links — BLOCK
     if (detectExternalContact(text)) {
         return {
             action:      MODERATION_ACTION.BLOCK,
             category:    MODERATION_CATEGORY.EXTERNAL_CONTACT,
-            reason:      'External contact platform sharing detected',
+            reason:      'External contact platform or link detected',
             userMessage: USER_MESSAGES[MODERATION_CATEGORY.EXTERNAL_CONTACT],
+        };
+    }
+
+    // 10. Generic External URLs — BLOCK (whitelisting internal platform domains)
+    if (detectExternalURL(text)) {
+        return {
+            action:      MODERATION_ACTION.BLOCK,
+            category:    MODERATION_CATEGORY.EXTERNAL_URL,
+            reason:      'External URL detected in message',
+            userMessage: USER_MESSAGES[MODERATION_CATEGORY.EXTERNAL_URL],
         };
     }
 

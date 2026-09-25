@@ -511,8 +511,8 @@ const GstSettings = () => {
               </div>
 
               {/* Product Table */}
-              <div className="overflow-x-auto rounded-xl border border-gray-200">
-                <table className="w-full text-left text-sm text-gray-600">
+              <div className="overflow-x-auto scrollbar-admin rounded-xl border border-gray-200">
+                <table className="w-full text-left text-sm text-gray-600 min-w-[700px]">
                   <thead className="bg-gray-50 text-gray-700 text-xs font-bold uppercase tracking-wider border-b border-gray-200">
                     <tr>
                       <th className="py-3 px-4">Product</th>

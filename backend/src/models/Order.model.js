@@ -69,7 +69,7 @@ const orderSchema = new mongoose.Schema(
         },
         status: {
             type: String,
-            enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'],
+            enum: ['pending', 'processing', 'shipped', 'out_for_delivery', 'delivered', 'cancelled', 'returned'],
             default: 'pending',
             index: true,
         },
@@ -98,11 +98,33 @@ const orderSchema = new mongoose.Schema(
         estimatedDelivery: Date,
         processingAt: Date,
         shippedAt: Date,
+        outForDeliveryAt: Date,
         deliveredAt: Date,
         isCashSettled: { type: Boolean, default: false },
         settledAt: Date,
         cancelledAt: Date,
         cancellationReason: String,
+        statusHistory: [
+            {
+                status: { type: String, required: true },
+                timestamp: { type: Date, default: Date.now },
+                note: { type: String },
+                updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+                updatedByRole: { type: String, enum: ['admin', 'vendor', 'delivery', 'user', 'system'] },
+            }
+        ],
+        emailNotifications: [
+            {
+                status: { type: String, required: true },
+                recipientEmail: { type: String, required: true },
+                sentAt: { type: Date, default: Date.now },
+                success: { type: Boolean, default: true },
+                messageId: { type: String },
+                error: { type: String },
+            }
+        ],
+        invoiceEmailSent: { type: Boolean, default: false, index: true },
+        invoiceEmailSentAt: { type: Date },
         isDeleted: { type: Boolean, default: false, index: true },
         deletedAt: Date,
         deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },

@@ -118,6 +118,9 @@ router.get('/chat/threads/:id/messages', ...strictVendorAuth, chatController.get
 router.post('/chat/threads/:id/messages', ...strictVendorAuth, chatLimiter, chatController.sendVendorChatMessage);
 router.patch('/chat/threads/:id/read', ...strictVendorAuth, chatController.markVendorChatRead);
 router.patch('/chat/threads/:id/status', ...strictVendorAuth, chatController.updateVendorChatStatus);
+router.post('/chat/threads/:id/report', ...strictVendorAuth, chatController.reportVendorChatMessage);
+router.post('/chat/threads/:id/block', ...strictVendorAuth, chatController.toggleBlockVendorChat);
+router.post('/chat/threads/:id/mute', ...strictVendorAuth, chatController.toggleMuteVendorChat);
 
 // Documents
 router.get('/documents', ...strictVendorAuth, documentController.getVendorDocuments);

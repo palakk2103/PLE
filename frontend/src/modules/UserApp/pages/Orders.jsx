@@ -25,9 +25,10 @@ const MobileOrders = () => {
 
   const statusOptions = [
     { value: 'all', label: 'All Orders' },
-    { value: 'pending', label: 'Pending' },
-    { value: 'processing', label: 'Processing' },
+    { value: 'pending', label: 'Confirmed' },
+    { value: 'processing', label: 'Packed' },
     { value: 'shipped', label: 'Shipped' },
+    { value: 'out_for_delivery', label: 'Out for Delivery' },
     { value: 'delivered', label: 'Delivered' },
     { value: 'cancelled', label: 'Cancelled' },
   ];

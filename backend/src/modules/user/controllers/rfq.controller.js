@@ -11,7 +11,7 @@ import Commission from '../../../models/Commission.model.js';
 import { generateOrderId } from '../../../utils/generateOrderId.js';
 import { generateTrackingNumber } from '../../../utils/generateTrackingNumber.js';
 import { createNotification } from '../../../services/notification.service.js';
-import { generateInvoiceForOrder } from '../../../services/invoice.service.js';
+import { generateInvoiceForOrder, sendOrderInvoiceEmail } from '../../../services/invoice.service.js';
 import mongoose from 'mongoose';
 
 import {
@@ -317,11 +317,14 @@ export const buyerAcceptQuote = asyncHandler(async (req, res) => {
         }
     });
 
-    // Generate invoice idempotently
+    // Generate invoice and send customer invoice email idempotently
     try {
-        await generateInvoiceForOrder(order[0]._id);
+        const inv = await generateInvoiceForOrder(order[0]._id);
+        if (inv) {
+            await sendOrderInvoiceEmail(order[0]._id, { invoice: inv });
+        }
     } catch (invErr) {
-        console.error("Automatic invoice generation error on RFQ order:", invErr?.message);
+        console.error("Automatic invoice / email generation error on RFQ order:", invErr?.message);
     }
 
     res.status(200).json(new ApiResponse(200, { rfq, order: order[0] }, 'RFQ accepted and converted to order successfully.'));

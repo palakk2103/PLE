@@ -1,7 +1,8 @@
-import { lazy } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { lazy, useEffect } from "react";
+import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import ProtectedRoute from "../shared/components/Auth/ProtectedRoute";
 import RouteWrapper from "../shared/components/RouteWrapper";
+import { useUIStore } from "../shared/store/useStore";
 
 // Lazy Loaded Pages
 const UserProductRequestForm = lazy(() => import("../modules/UserApp/pages/ProductRequestForm"));
@@ -71,6 +72,31 @@ import AdminRoutes from "./AdminRoutes";
 import VendorRoutes from "./VendorRoutes";
 import DeliveryRoutes from "./DeliveryRoutes";
 import B2BRoutes from "./B2BRoutes";
+
+const CartRouteHandler = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const openCart = useUIStore((state) => state.openCart);
+  const toggleCart = useUIStore((state) => state.toggleCart);
+
+  useEffect(() => {
+    if (typeof openCart === "function") {
+      openCart();
+    } else if (typeof toggleCart === "function") {
+      toggleCart();
+    }
+    const stateFrom = location.state?.from;
+    if (stateFrom && stateFrom !== "/cart") {
+      navigate(stateFrom, { replace: true });
+    } else if (window.history.length > 2) {
+      navigate(-1, { replace: true });
+    } else {
+      navigate("/home", { replace: true });
+    }
+  }, [openCart, toggleCart, navigate, location]);
+
+  return null;
+};
 
 export default function PortalRoutes() {
   return (
@@ -174,6 +200,14 @@ export default function PortalRoutes() {
         element={
           <RouteWrapper>
             <MobileSearch />
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/cart"
+        element={
+          <RouteWrapper>
+            <CartRouteHandler />
           </RouteWrapper>
         }
       />

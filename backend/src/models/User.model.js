@@ -52,7 +52,11 @@ const userSchema = new mongoose.Schema(
         fcmTokenMobile: {
             type: [String],
             default: []
-        }
+        },
+
+        // Chat restriction fields
+        chatMutedUntil: { type: Date, default: null },
+        chatRestrictionReason: { type: String, default: null }
     },
     { timestamps: true }
 );

@@ -226,8 +226,8 @@ const ProductEnquiries = () => {
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+          <div className="overflow-x-auto scrollbar-admin">
+            <table className="w-full text-left border-collapse min-w-[700px]">
               <thead>
                 <tr className="bg-gray-50/70 border-b border-gray-200 text-[10px] uppercase font-bold text-gray-500 tracking-wider">
                   <th className="p-4">Enquiry ID</th>

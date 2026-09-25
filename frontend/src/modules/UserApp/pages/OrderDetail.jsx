@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiPackage, FiTruck, FiMapPin, FiCreditCard, FiRotateCw, FiArrowLeft, FiShoppingBag, FiX, FiDownload, FiEye } from 'react-icons/fi';
+import { FiPackage, FiTruck, FiMapPin, FiCreditCard, FiRotateCw, FiArrowLeft, FiShoppingBag, FiX, FiDownload, FiEye, FiMail } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import MobileLayout from "../components/Layout/MobileLayout";
 import InvoiceModal from '../../../shared/components/InvoiceModal';
@@ -14,6 +14,7 @@ import Badge from '../../../shared/components/Badge';
 import LazyImage from '../../../shared/components/LazyImage';
 import socketService from '../../../shared/utils/socket';
 import api from '../../../shared/utils/api';
+import OrderStatusTimeline from '../../../shared/components/OrderStatusTimeline';
 
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
@@ -40,14 +41,35 @@ const MobileOrderDetail = () => {
 
   useEffect(() => {
     let mounted = true;
+    if (orderId) {
+      fetchOrderById(orderId).finally(() => {
+        if (mounted) setIsResolving(false);
+      });
+    }
+
     fetchUserReturns().then(returns => {
       if (mounted) {
         const found = returns.find(r => String(r.orderId) === String(orderId));
         if (found) setExistingReturn(found);
       }
     }).catch(() => null);
+
+    const socket = socketService.getSocket();
+    if (socket) {
+      const handleStatusUpdate = (data) => {
+        if (String(data?.orderId) === String(orderId) || String(data?._id) === String(orderId)) {
+          fetchOrderById(orderId).catch(() => null);
+        }
+      };
+      socket.on('order_status_updated', handleStatusUpdate);
+      return () => {
+        mounted = false;
+        socket.off('order_status_updated', handleStatusUpdate);
+      };
+    }
+
     return () => { mounted = false; };
-  }, [orderId, fetchUserReturns]);
+  }, [orderId, fetchOrderById, fetchUserReturns]);
 
   const order = getOrder(orderId);
   const shippingAddress = order?.shippingAddress || {};
@@ -325,6 +347,9 @@ const MobileOrderDetail = () => {
             </div>
 
             <div className="px-4 py-4 space-y-4">
+              {/* Order Status Stepper Timeline */}
+              <OrderStatusTimeline order={order} showTrackingLink={true} />
+
               {/* Order Items */}
               <div className="glass-card rounded-2xl p-4">
                 <h2 className="text-base font-bold text-gray-800 mb-4">Order Items</h2>
@@ -482,6 +507,12 @@ const MobileOrderDetail = () => {
                       </button>
                     </div>
                   </div>
+                  {(order.invoiceEmailSent || (order.emailNotifications && order.emailNotifications.some((n) => n.status === 'invoice' && n.success))) && (
+                    <div className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/60 mt-1">
+                      <FiMail className="w-3 h-3 text-emerald-600 shrink-0" />
+                      <span>Invoice sent to your registered email</span>
+                    </div>
+                  )}
                 </div>
               </div>
 

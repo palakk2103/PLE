@@ -928,23 +928,23 @@ const VendorProductRequests = () => {
       {/* Quotation Modal */}
       <AnimatePresence>
         {selectedReq && modalType === "quotation" && (
-          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 sm:p-4 backdrop-blur-sm overflow-y-auto">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-3xl p-6 shadow-2xl max-w-lg w-full border border-gray-100 space-y-4"
+              className="bg-white rounded-3xl p-4 sm:p-6 shadow-2xl max-w-lg w-full border border-gray-100 space-y-4 max-h-[90vh] overflow-y-auto my-auto"
             >
               <div className="flex items-center justify-between border-b pb-3">
-                <h3 className="text-lg font-black text-gray-900">Submit Quotation</h3>
-                <button onClick={() => { setSelectedReq(null); setModalType(""); }} className="text-gray-400 hover:text-gray-600 font-bold text-lg">✕</button>
+                <h3 className="text-base sm:text-lg font-black text-gray-900">Submit Quotation</h3>
+                <button onClick={() => { setSelectedReq(null); setModalType(""); }} className="p-1 text-gray-400 hover:text-gray-600 font-bold text-lg">✕</button>
               </div>
               <p className="text-xs text-gray-500">
                 For: <strong className="text-gray-800">{selectedReq.productName}</strong> | Qty: <span className="text-indigo-600 font-bold">{selectedReq.quantity} units</span> | Budget: ₹{selectedReq.expectedBudget || "N/A"}
               </p>
 
               <div className="space-y-3 text-xs">
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block font-bold text-gray-700 mb-1">Unit Price (₹) *</label>
                     <input
@@ -1008,19 +1008,19 @@ const VendorProductRequests = () => {
                   />
                 </div>
 
-                <div className="flex gap-2 pt-2">
+                <div className="flex flex-col-reverse sm:flex-row gap-2 pt-2">
+                  <button
+                    onClick={() => { setSelectedReq(null); setModalType(""); }}
+                    className="w-full sm:w-auto px-6 py-2.5 sm:py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-2xl text-xs sm:text-sm transition-colors"
+                  >
+                    Cancel
+                  </button>
                   <button
                     onClick={() => handleSubmitQuotation(selectedReq)}
                     disabled={isSubmittingQuote}
-                    className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-750 text-white font-bold rounded-2xl text-sm transition-colors shadow disabled:opacity-50"
+                    className="flex-1 py-2.5 sm:py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl text-xs sm:text-sm transition-colors shadow disabled:opacity-50"
                   >
                     {isSubmittingQuote ? "Submitting..." : "Submit Quotation"}
-                  </button>
-                  <button
-                    onClick={() => { setSelectedReq(null); setModalType(""); }}
-                    className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-2xl text-sm transition-colors"
-                  >
-                    Cancel
                   </button>
                 </div>
               </div>
@@ -1032,41 +1032,41 @@ const VendorProductRequests = () => {
       {/* Extension Request Modal */}
       <AnimatePresence>
         {showExtensionModal && (
-          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 sm:p-4 backdrop-blur-sm overflow-y-auto">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-3xl p-6 shadow-2xl max-w-md w-full border border-gray-100 space-y-5"
+              className="bg-white rounded-3xl p-4 sm:p-6 shadow-2xl max-w-md w-full border border-gray-100 space-y-4 max-h-[90vh] overflow-y-auto my-auto"
             >
               {/* Header */}
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="text-lg font-black text-gray-900 flex items-center gap-2">
-                    <FiCalendar className="text-amber-500" />
-                    Request Extended Days
+                  <h3 className="text-base sm:text-lg font-black text-gray-900 flex items-center gap-2">
+                    <FiCalendar className="text-amber-500 flex-shrink-0" />
+                    <span>Request Extended Days</span>
                   </h3>
-                  <p className="text-xs text-gray-500 mt-0.5">For: <strong>{showExtensionModal.productName}</strong></p>
+                  <p className="text-xs text-gray-500 mt-0.5 truncate max-w-[260px]">For: <strong>{showExtensionModal.productName}</strong></p>
                 </div>
-                <button onClick={() => setShowExtensionModal(null)} className="text-gray-400 hover:text-gray-600 font-bold text-lg">✕</button>
+                <button onClick={() => setShowExtensionModal(null)} className="p-1 text-gray-400 hover:text-gray-600 font-bold text-lg">✕</button>
               </div>
 
               {/* Current Deadline Info */}
               <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-3 text-xs space-y-1">
-                <div className="flex justify-between">
+                <div className="flex justify-between gap-2">
                   <span className="text-gray-500 font-medium">Current Fulfillment Deadline</span>
-                  <span className="font-extrabold text-indigo-700">
+                  <span className="font-extrabold text-indigo-700 text-right">
                     {showExtensionModal.vendorFulfillmentExpiresAt ? new Date(showExtensionModal.vendorFulfillmentExpiresAt).toDateString() : '—'}
                   </span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between gap-2">
                   <span className="text-gray-500 font-medium">Time Remaining</span>
                   <span className="font-bold text-indigo-600">{formatCountdown(showExtensionModal.vendorFulfillmentExpiresAt)}</span>
                 </div>
                 {extensionDays && parseInt(extensionDays) > 0 && showExtensionModal.vendorFulfillmentExpiresAt && (
-                  <div className="flex justify-between pt-1 border-t border-indigo-200">
+                  <div className="flex justify-between gap-2 pt-1 border-t border-indigo-200">
                     <span className="text-gray-500 font-medium">Proposed New Deadline</span>
-                    <span className="font-extrabold text-amber-700">
+                    <span className="font-extrabold text-amber-700 text-right">
                       {new Date(new Date(showExtensionModal.vendorFulfillmentExpiresAt).getTime() + parseInt(extensionDays) * 86400000).toDateString()}
                     </span>
                   </div>
@@ -1107,19 +1107,19 @@ const VendorProductRequests = () => {
                 <strong>Note:</strong> The customer must approve this extension request before the new deadline takes effect. You will be notified of their decision.
               </div>
 
-              <div className="flex gap-2 pt-1">
+              <div className="flex flex-col-reverse sm:flex-row gap-2 pt-1">
+                <button
+                  onClick={() => { setShowExtensionModal(null); setExtensionDays(""); setExtensionReason(""); }}
+                  className="w-full sm:w-auto px-6 py-2.5 sm:py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-2xl text-xs sm:text-sm transition-colors"
+                >
+                  Cancel
+                </button>
                 <button
                   onClick={handleRequestExtension}
                   disabled={isSubmittingExtension}
-                  className="flex-1 py-3 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-2xl text-sm transition-colors shadow disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 sm:py-3 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-2xl text-xs sm:text-sm transition-colors shadow disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {isSubmittingExtension ? 'Submitting...' : '📅 Submit Extension Request'}
-                </button>
-                <button
-                  onClick={() => { setShowExtensionModal(null); setExtensionDays(""); setExtensionReason(""); }}
-                  className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-2xl text-sm transition-colors"
-                >
-                  Cancel
                 </button>
               </div>
             </motion.div>
@@ -1130,14 +1130,14 @@ const VendorProductRequests = () => {
       {/* Release Request Modal */}
       <AnimatePresence>
         {showReleaseModal && (
-          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 sm:p-4 backdrop-blur-sm overflow-y-auto">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-3xl p-6 shadow-2xl max-w-md w-full border border-gray-100 space-y-4"
+              className="bg-white rounded-3xl p-4 sm:p-6 shadow-2xl max-w-md w-full border border-gray-100 space-y-4 max-h-[90vh] overflow-y-auto my-auto"
             >
-              <h3 className="text-lg font-bold text-red-600">Release Product Request</h3>
+              <h3 className="text-base sm:text-lg font-bold text-red-600">Release Product Request</h3>
               <p className="text-xs text-gray-600">
                 Are you sure you want to release <strong>{showReleaseModal.productName}</strong>? The request will be reopened for other vendors to accept.
               </p>
@@ -1151,19 +1151,19 @@ const VendorProductRequests = () => {
                   className="w-full p-3 rounded-xl border border-gray-200 focus:outline-none focus:border-red-500 text-sm"
                 />
               </div>
-              <div className="flex gap-2 pt-2">
+              <div className="flex flex-col-reverse sm:flex-row gap-2 pt-2">
+                <button
+                  onClick={() => { setShowReleaseModal(null); setReleaseReason(""); }}
+                  className="w-full sm:w-auto px-6 py-2.5 sm:py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-2xl text-xs sm:text-sm transition-colors"
+                >
+                  Cancel
+                </button>
                 <button
                   onClick={handleReleaseRequest}
                   disabled={isReleasing}
-                  className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl text-sm transition-colors shadow disabled:opacity-50"
+                  className="flex-1 py-2.5 sm:py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl text-xs sm:text-sm transition-colors shadow disabled:opacity-50"
                 >
                   {isReleasing ? "Releasing..." : "Confirm Release"}
-                </button>
-                <button
-                  onClick={() => { setShowReleaseModal(null); setReleaseReason(""); }}
-                  className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-2xl text-sm transition-colors"
-                >
-                  Cancel
                 </button>
               </div>
             </motion.div>
@@ -1174,14 +1174,14 @@ const VendorProductRequests = () => {
       {/* Standard Response Modal (Supply / Need Info) */}
       <AnimatePresence>
         {selectedReq && (modalType === "supply" || modalType === "need_info") && (
-          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 sm:p-4 backdrop-blur-sm overflow-y-auto">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-3xl p-6 shadow-2xl max-w-md w-full border border-gray-100 space-y-4"
+              className="bg-white rounded-3xl p-4 sm:p-6 shadow-2xl max-w-md w-full border border-gray-100 space-y-4 max-h-[90vh] overflow-y-auto my-auto"
             >
-              <h3 className="text-lg font-bold text-gray-800">
+              <h3 className="text-base sm:text-lg font-bold text-gray-800">
                 {modalType === "supply" ? "Offer Fulfillment Proposal" : "Request Clarification"}
               </h3>
               <p className="text-xs text-gray-500">
@@ -1190,7 +1190,7 @@ const VendorProductRequests = () => {
 
               <div className="space-y-3">
                 {modalType === "supply" && (
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-bold text-gray-700 mb-1">Your Price Offer (₹)</label>
                       <input
@@ -1227,18 +1227,18 @@ const VendorProductRequests = () => {
                   />
                 </div>
 
-                <div className="flex gap-2 pt-2">
-                  <button
-                    onClick={submitAction}
-                    className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-750 text-white font-bold rounded-2xl text-sm transition-colors shadow"
-                  >
-                    Submit Response
-                  </button>
+                <div className="flex flex-col-reverse sm:flex-row gap-2 pt-2">
                   <button
                     onClick={() => setSelectedReq(null)}
-                    className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-2xl text-sm transition-colors text-center"
+                    className="w-full sm:w-auto px-6 py-2.5 sm:py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-2xl text-xs sm:text-sm transition-colors text-center"
                   >
                     Cancel
+                  </button>
+                  <button
+                    onClick={submitAction}
+                    className="flex-1 py-2.5 sm:py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl text-xs sm:text-sm transition-colors shadow"
+                  >
+                    Submit Response
                   </button>
                 </div>
               </div>

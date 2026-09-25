@@ -10,6 +10,8 @@ const Badge = ({ children, variant = 'flash', className = '' }) => {
     pending: 'bg-yellow-500 text-white',
     processing: 'bg-red-500 text-white',
     shipped: 'bg-[#7B0A0A] text-white',
+    out_for_delivery: 'bg-purple-600 text-white',
+    'out for delivery': 'bg-purple-600 text-white',
     delivered: 'bg-success-500 text-white',
     cancelled: 'bg-discount-500 text-white',
     returned: 'bg-orange-500 text-white',

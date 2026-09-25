@@ -14,6 +14,7 @@ import {
   FiLayers,
   FiTag,
   FiShoppingBag,
+  FiMail,
 } from 'react-icons/fi';
 import api from '../utils/api';
 import { formatPrice } from '../utils/helpers';
@@ -23,6 +24,7 @@ const InvoiceModal = ({ isOpen, onClose, orderId, role = 'customer' }) => {
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
+  const [resending, setResending] = useState(false);
 
   // Determine endpoints based on role
   const getEndpoint = () => {
@@ -84,6 +86,26 @@ const InvoiceModal = ({ isOpen, onClose, orderId, role = 'customer' }) => {
       toast.error('Failed to download invoice PDF.', { id: toastId });
     } finally {
       setDownloading(false);
+    }
+  };
+
+  const handleResendEmail = async () => {
+    if (!orderId) return;
+    const cleanId = orderId?.orderId || orderId?.id || orderId;
+    setResending(true);
+    const toastId = toast.loading('Resending invoice to customer email...');
+    try {
+      const res = await api.post(`/admin/orders/${cleanId}/invoice/resend-email`);
+      toast.success(res?.data?.message || 'Invoice emailed to customer successfully!', { id: toastId });
+      // Refresh invoice to show updated delivery status
+      const refreshed = await api.get(getEndpoint());
+      const data = refreshed?.data?.data || refreshed?.data;
+      if (data) setInvoice(data);
+    } catch (err) {
+      console.error('Invoice resend error:', err);
+      toast.error(err.response?.data?.message || 'Failed to resend invoice email.', { id: toastId });
+    } finally {
+      setResending(false);
     }
   };
 
@@ -156,6 +178,18 @@ const InvoiceModal = ({ isOpen, onClose, orderId, role = 'customer' }) => {
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3">
+              {role === 'admin' && (
+                <button
+                  onClick={handleResendEmail}
+                  disabled={resending || loading || !invoice}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-950/50 hover:bg-primary-100 dark:hover:bg-primary-900/50 border border-primary-200 dark:border-primary-800 rounded-xl transition-all disabled:opacity-50"
+                  title="Resend Invoice PDF to Customer Email"
+                >
+                  <FiMail className="w-4 h-4" />
+                  <span>{resending ? 'Sending...' : 'Resend Email'}</span>
+                </button>
+              )}
+
               <button
                 onClick={handlePrint}
                 disabled={loading || !invoice}
@@ -203,7 +237,21 @@ const InvoiceModal = ({ isOpen, onClose, orderId, role = 'customer' }) => {
                 </p>
               </div>
             ) : (
-              <div id="invoice-printable-content" className="space-y-6">
+              <div className="space-y-4">
+                {/* Email Delivery Notice Banner */}
+                {invoice.emailDelivery?.sent && (
+                  <div className="flex items-center gap-2.5 px-4 py-3 bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 rounded-xl text-xs text-emerald-800 dark:text-emerald-300 print:hidden">
+                    <FiMail className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span>
+                      Official Tax Invoice PDF was emailed to{' '}
+                      <strong>{invoice.emailDelivery.recipientEmail || invoice.customer?.email}</strong>
+                      {invoice.emailDelivery.sentAt && ` on ${new Date(invoice.emailDelivery.sentAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`}.
+                      {invoice.emailDelivery.resendCount > 0 && ` (Resent ${invoice.emailDelivery.resendCount} time${invoice.emailDelivery.resendCount > 1 ? 's' : ''})`}
+                    </span>
+                  </div>
+                )}
+
+                <div id="invoice-printable-content" className="space-y-6">
                 {/* Invoice Top Branding & Status Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-gray-200 dark:border-gray-800">
                   <div>
@@ -632,6 +680,7 @@ const InvoiceModal = ({ isOpen, onClose, orderId, role = 'customer' }) => {
                 <div className="text-center pt-4 border-t border-gray-100 dark:border-gray-800 text-[11px] text-gray-400">
                   Thank you for your business! PLE Marketplace • Official Tax Invoice
                 </div>
+              </div>
               </div>
             )}
           </div>

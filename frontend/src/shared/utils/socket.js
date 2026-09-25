@@ -24,9 +24,20 @@ class SocketService {
 
   connect() {
     if (!this.socket) {
+      const token = typeof window !== 'undefined'
+        ? (localStorage.getItem('token') || 
+           localStorage.getItem('vendor-token') || 
+           localStorage.getItem('adminToken') || 
+           localStorage.getItem('b2bAdminToken') ||
+           sessionStorage.getItem('token') ||
+           sessionStorage.getItem('vendor-token') ||
+           sessionStorage.getItem('adminToken'))
+        : null;
+
       this.socket = io(SOCKET_URL, {
         transports: ['websocket'],
         autoConnect: true,
+        auth: { token: token || '' },
       });
 
       this.socket.on('connect', () => {

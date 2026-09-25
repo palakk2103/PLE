@@ -280,6 +280,18 @@ const MobileProductDetail = () => {
   const triggerCartAnimation = useUIStore(
     (state) => state.triggerCartAnimation,
   );
+  const openCart = useUIStore((state) => state.openCart);
+  const toggleCart = useUIStore((state) => state.toggleCart);
+
+  const handleGoToCart = () => {
+    if (typeof openCart === "function") {
+      openCart();
+    } else if (typeof toggleCart === "function") {
+      toggleCart();
+    } else {
+      useUIStore.setState({ isCartOpen: true });
+    }
+  };
   const {
     addItem: addToWishlist,
     removeItem: removeFromWishlist,
@@ -732,8 +744,8 @@ const MobileProductDetail = () => {
       <PageTransition>
       <MobileLayout showHeader={false} showBottomNav={false} showCartBar={true}>
         <div className="w-full pb-24 lg:pb-12 max-w-7xl mx-auto">
-          {/* Back Button */}
-          <div className="px-4 pt-2 lg:pt-8 lg:px-8 mb-2">
+          {/* Top Bar: Back & Cart */}
+          <div className="px-4 pt-2 lg:pt-8 lg:px-8 mb-2 flex items-center justify-between">
             <button
               onClick={handleBack}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors group"
@@ -742,6 +754,19 @@ const MobileProductDetail = () => {
                 <FiArrowLeft className="text-xl" />
               </div>
               <span className="font-medium">Back</span>
+            </button>
+
+            <button
+              onClick={handleGoToCart}
+              className="relative p-2.5 rounded-full text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-1.5"
+              title="View Cart"
+            >
+              <FiShoppingBag className="text-xl text-gray-800" />
+              {items?.length > 0 && (
+                <span className="bg-[#AE020B] text-white text-[11px] font-bold rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center shadow-sm">
+                  {items.reduce((sum, item) => sum + (item.quantity || 1), 0)}
+                </span>
+              )}
             </button>
           </div>
 
@@ -1244,7 +1269,25 @@ const MobileProductDetail = () => {
                 {/* DESKTOP ACTIONS */}
                 <div className="hidden lg:grid grid-cols-6 gap-4 py-4">
                   {isBusiness ? (
-                    <>
+                    isInCart ? (
+                      <div className="col-span-6 flex gap-3">
+                        <button
+                          onClick={handleGoToCart}
+                          className="flex-1 py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-3 bg-gradient-to-r from-[#9B1C1C] via-[#7B0A0A] to-[#4C0505] text-white hover:opacity-90 hover:shadow-glow hover:-translate-y-0.5"
+                        >
+                          <FiShoppingBag className="text-xl" />
+                          <span>Go to Cart</span>
+                        </button>
+                        <button
+                          onClick={handleRemoveFromCart}
+                          title="Remove from Cart"
+                          className="px-5 py-4 rounded-xl font-semibold text-base transition-all duration-300 flex items-center justify-center gap-2 bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 hover:border-red-200"
+                        >
+                          <FiTrash2 className="text-xl" />
+                          <span>Remove</span>
+                        </button>
+                      </div>
+                    ) : (
                       <button
                         onClick={handleAddToCart}
                         disabled={product.stock === "out_of_stock"}
@@ -1257,15 +1300,25 @@ const MobileProductDetail = () => {
                         <FiShoppingBag className="text-xl" />
                         <span>Add Bulk to Cart</span>
                       </button>
-                    </>
+                    )
                   ) : isInCart ? (
-                    <button
-                      onClick={handleRemoveFromCart}
-                      className="col-span-4 py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-3 bg-red-50 text-red-600 border border-red-100 hover:bg-red-100"
-                    >
-                      <FiTrash2 className="text-xl" />
-                      <span>Remove from Cart</span>
-                    </button>
+                    <div className="col-span-4 flex gap-3">
+                      <button
+                        onClick={handleGoToCart}
+                        className="flex-1 py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-3 bg-gradient-to-r from-[#9B1C1C] via-[#7B0A0A] to-[#4C0505] text-white hover:opacity-90 hover:shadow-glow hover:-translate-y-0.5"
+                      >
+                        <FiShoppingBag className="text-xl" />
+                        <span>Go to Cart</span>
+                      </button>
+                      <button
+                        onClick={handleRemoveFromCart}
+                        title="Remove from Cart"
+                        className="px-5 py-4 rounded-xl font-semibold text-base transition-all duration-300 flex items-center justify-center gap-2 bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 hover:border-red-200"
+                      >
+                        <FiTrash2 className="text-xl" />
+                        <span>Remove</span>
+                      </button>
+                    </div>
                   ) : (
                     <button
                       onClick={handleAddToCart}
@@ -1531,26 +1584,54 @@ const MobileProductDetail = () => {
             </>
           )}
           {isBusiness ? (
-            <button
-              onClick={handleAddToCart}
-              disabled={product.stock === "out_of_stock"}
-              className={`flex-1 h-12 rounded-xl font-bold text-xs uppercase transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 ${
-                product.stock === "out_of_stock"
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-gradient-to-r from-[#9B1C1C] via-[#7B0A0A] to-[#4C0505] text-white hover:opacity-90 hover:shadow-glow"
-              }`}
-            >
-              <FiShoppingBag className="text-lg" />
-              <span>Add Bulk</span>
-            </button>
+            isInCart ? (
+              <div className="flex-1 flex items-center gap-2">
+                <button
+                  onClick={handleGoToCart}
+                  className="flex-1 h-12 rounded-xl font-bold text-xs uppercase transition-all duration-300 flex items-center justify-center gap-2 bg-gradient-to-r from-[#9B1C1C] via-[#7B0A0A] to-[#4C0505] text-white hover:opacity-90 hover:shadow-glow active:scale-95 shadow-sm"
+                >
+                  <FiShoppingBag className="text-lg" />
+                  <span>Go to Cart</span>
+                </button>
+                <button
+                  onClick={handleRemoveFromCart}
+                  title="Remove from Cart"
+                  className="w-12 h-12 shrink-0 rounded-xl font-bold transition-all duration-300 flex items-center justify-center bg-red-50 text-red-600 border border-red-200 active:scale-95"
+                >
+                  <FiTrash2 className="text-lg" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleAddToCart}
+                disabled={product.stock === "out_of_stock"}
+                className={`flex-1 h-12 rounded-xl font-bold text-xs uppercase transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 ${
+                  product.stock === "out_of_stock"
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-gradient-to-r from-[#9B1C1C] via-[#7B0A0A] to-[#4C0505] text-white hover:opacity-90 hover:shadow-glow"
+                }`}
+              >
+                <FiShoppingBag className="text-lg" />
+                <span>Add Bulk</span>
+              </button>
+            )
           ) : isInCart ? (
-            <button
-              onClick={handleRemoveFromCart}
-              className="flex-1 h-12 rounded-xl font-bold text-xs uppercase transition-all duration-300 flex items-center justify-center gap-2 bg-red-50 text-red-600 border border-red-100 active:scale-95"
-            >
-              <FiTrash2 className="text-lg" />
-              <span>Remove</span>
-            </button>
+            <div className="flex-1 flex items-center gap-2">
+              <button
+                onClick={handleGoToCart}
+                className="flex-1 h-12 rounded-xl font-bold text-xs uppercase transition-all duration-300 flex items-center justify-center gap-2 bg-gradient-to-r from-[#9B1C1C] via-[#7B0A0A] to-[#4C0505] text-white hover:opacity-90 hover:shadow-glow active:scale-95 shadow-sm"
+              >
+                <FiShoppingBag className="text-lg" />
+                <span>Go to Cart</span>
+              </button>
+              <button
+                onClick={handleRemoveFromCart}
+                title="Remove from Cart"
+                className="w-12 h-12 shrink-0 rounded-xl font-bold transition-all duration-300 flex items-center justify-center bg-red-50 text-red-600 border border-red-200 active:scale-95"
+              >
+                <FiTrash2 className="text-lg" />
+              </button>
+            </div>
           ) : (
             <button
               onClick={handleAddToCart}

@@ -7,6 +7,7 @@ import crypto from 'crypto';
 import { sendEmail } from '../../../services/email.service.js';
 import { createNotification } from '../../../services/notification.service.js';
 import User from '../../../models/User.model.js';
+import { handleOrderStatusTransition } from '../../../services/orderStatus.service.js';
 
 const DELIVERY_OTP_TTL_MS = 10 * 60 * 1000;
 const DELIVERY_OTP_MAX_ATTEMPTS = 5;
@@ -229,7 +230,7 @@ export const getOrderDetail = asyncHandler(async (req, res) => {
 // PATCH /api/delivery/orders/:id/status
 export const updateDeliveryStatus = asyncHandler(async (req, res) => {
     const { status, otp } = req.body;
-    const allowed = ['shipped', 'delivered'];
+    const allowed = ['shipped', 'out_for_delivery', 'delivered'];
     if (!allowed.includes(status)) throw new ApiError(400, `Status must be one of: ${allowed.join(', ')}`);
 
     const query = {
@@ -247,12 +248,13 @@ export const updateDeliveryStatus = asyncHandler(async (req, res) => {
     // Server-side transition guard (frontend guard already exists).
     const transitionAllowed =
         (status === 'shipped' && ['pending', 'processing'].includes(order.status)) ||
-        (status === 'delivered' && order.status === 'shipped');
+        (status === 'out_for_delivery' && ['pending', 'processing', 'shipped'].includes(order.status)) ||
+        (status === 'delivered' && ['shipped', 'out_for_delivery'].includes(order.status));
     if (!transitionAllowed) {
         throw new ApiError(409, `Cannot move order from ${order.status} to ${status}.`);
     }
 
-    if (status === 'shipped') {
+    if (status === 'shipped' || status === 'out_for_delivery') {
         const generatedOtp = generateDeliveryOtp();
         order.deliveryOtpHash = hashDeliveryOtp(generatedOtp);
         order.deliveryOtpExpiry = new Date(Date.now() + DELIVERY_OTP_TTL_MS);
@@ -307,10 +309,8 @@ export const updateDeliveryStatus = asyncHandler(async (req, res) => {
         order.deliveryOtpDebug = undefined;
     }
 
-    order.status = status;
     // Keep vendor sub-order statuses aligned with delivery progression.
-    if (status === 'shipped') {
-        order.shippedAt = new Date();
+    if (status === 'shipped' || status === 'out_for_delivery') {
         order.vendorItems = (order.vendorItems || []).map((vi) => {
             const current = String(vi?.status || 'pending');
             if (current === 'cancelled' || current === 'delivered') return vi;
@@ -318,14 +318,20 @@ export const updateDeliveryStatus = asyncHandler(async (req, res) => {
         });
     }
     if (status === 'delivered') {
-        order.deliveredAt = new Date();
         order.vendorItems = (order.vendorItems || []).map((vi) => {
             const current = String(vi?.status || 'pending');
             if (current === 'cancelled') return vi;
             return { ...vi.toObject(), status: 'delivered' };
         });
     }
-    await order.save();
+
+    // Execute central order status transition (updates history, timestamps, triggers email, and emits socket)
+    await handleOrderStatusTransition(order, status, {
+        updatedBy: req.user?.id || req.user?._id,
+        updatedByRole: 'delivery',
+        note: status === 'delivered' ? 'Order delivered with verified OTP' : (status === 'out_for_delivery' ? 'Order out for delivery' : 'Order marked shipped by delivery partner'),
+        notifyCustomer: true,
+    });
 
     if (status === 'delivered') {
         try {

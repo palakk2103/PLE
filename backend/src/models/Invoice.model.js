@@ -195,6 +195,16 @@ const invoiceSchema = new mongoose.Schema(
             index: true,
         },
         notes: { type: String, default: '' },
+        emailDelivery: {
+            sent: { type: Boolean, default: false },
+            sentAt: { type: Date },
+            recipientEmail: { type: String, default: '' },
+            messageId: { type: String, default: '' },
+            error: { type: String, default: '' },
+            resendCount: { type: Number, default: 0 },
+            lastResentAt: { type: Date },
+            lastTriggeredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        },
     },
     { timestamps: true }
 );

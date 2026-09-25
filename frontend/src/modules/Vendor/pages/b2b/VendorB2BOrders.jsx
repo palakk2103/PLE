@@ -281,23 +281,23 @@ const VendorB2BOrders = () => {
               </div>
 
               {/* Print Document Content */}
-              <div className="po-print-content flex-1 overflow-y-auto p-8 sm:p-12 space-y-8 print:p-0 print:overflow-visible font-sans select-text">
+              <div className="po-print-content flex-1 overflow-y-auto p-4 sm:p-8 md:p-12 space-y-6 sm:space-y-8 print:p-0 print:overflow-visible font-sans select-text">
                 
                 {/* PO Header */}
-                <div className="flex justify-between items-start gap-4">
-                  <div className="space-y-1.5">
+                <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                  <div className="space-y-1.5 min-w-0">
                     <span className="text-[10px] font-black uppercase text-[#C07A3D] tracking-widest block">Wholesale Procurement PO</span>
-                    <h1 className="text-2xl font-black text-gray-950 tracking-tight">{selectedPo.poNumber}</h1>
+                    <h1 className="text-xl sm:text-2xl font-black text-gray-950 tracking-tight truncate">{selectedPo.poNumber}</h1>
                     <p className="text-xs text-gray-400 font-bold font-mono">Linked RFQ ID: {selectedPo.rfqId?.rfqId}</p>
                   </div>
-                  <div className="text-right text-xs">
+                  <div className="text-left sm:text-right text-xs">
                     <p className="font-bold text-gray-800">Date Issued:</p>
                     <p className="text-gray-500 font-medium mt-0.5">
                       {new Date(selectedPo.createdAt).toLocaleDateString('en-IN', {
                         day: 'numeric', month: 'long', year: 'numeric'
                       })}
                     </p>
-                    <div className="flex flex-col gap-1 items-end pt-1">
+                    <div className="flex flex-wrap gap-1 items-start sm:items-end sm:flex-col pt-1">
                       <Badge variant="success">Document: {selectedPo.status}</Badge>
                       <Badge variant={selectedPo.paymentStatus === 'Paid' ? 'success' : 'warning'}>
                         Payment: {selectedPo.paymentStatus || 'Unpaid'}
@@ -309,15 +309,15 @@ const VendorB2BOrders = () => {
                 <hr className="border-gray-150" />
 
                 {/* Company and Vendor Details Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 text-xs leading-relaxed">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 text-xs leading-relaxed">
                   {/* Buyer details */}
-                  <div className="space-y-2.5 bg-gray-50 p-5 rounded-2xl border border-gray-100">
+                  <div className="space-y-2.5 bg-gray-50 p-4 sm:p-5 rounded-2xl border border-gray-100 min-w-0">
                     <h3 className="font-extrabold text-gray-400 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
                       <FiBriefcase className="text-[#C07A3D]" /> Sourcing Entity (Bill To)
                     </h3>
                     <div className="font-semibold text-gray-700 space-y-1">
-                      <p className="font-black text-gray-900 text-sm">{selectedPo.companyDetails.name}</p>
-                      <p>{selectedPo.companyDetails.address}</p>
+                      <p className="font-black text-gray-900 text-sm truncate">{selectedPo.companyDetails.name}</p>
+                      <p className="break-words">{selectedPo.companyDetails.address}</p>
                       <p>Phone: {selectedPo.companyDetails.phone}</p>
                       <p>Email: {selectedPo.companyDetails.email}</p>
                       {selectedPo.companyDetails.gstin && (
@@ -327,12 +327,12 @@ const VendorB2BOrders = () => {
                   </div>
 
                   {/* Vendor details */}
-                  <div className="space-y-2.5 bg-gray-50 p-5 rounded-2xl border border-gray-100">
+                  <div className="space-y-2.5 bg-gray-50 p-4 sm:p-5 rounded-2xl border border-gray-100 min-w-0">
                     <h3 className="font-extrabold text-gray-400 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
                       <FiUser className="text-[#C07A3D]" /> Sourced Vendor (Ship From)
                     </h3>
                     <div className="font-semibold text-gray-700 space-y-1">
-                      <p className="font-black text-gray-900 text-sm">{selectedPo.vendorDetails.storeName}</p>
+                      <p className="font-black text-gray-900 text-sm truncate">{selectedPo.vendorDetails.storeName}</p>
                       <p>Representative: {selectedPo.vendorDetails.name}</p>
                       <p>Phone: {selectedPo.vendorDetails.phone}</p>
                       <p>Email: {selectedPo.vendorDetails.email}</p>
@@ -343,25 +343,25 @@ const VendorB2BOrders = () => {
                 {/* Line Items Table */}
                 <div className="space-y-3">
                   <h3 className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">Line items</h3>
-                  <div className="border border-gray-150 rounded-2xl overflow-hidden text-xs">
-                    <table className="w-full text-left border-collapse">
+                  <div className="border border-gray-150 rounded-2xl overflow-x-auto text-xs scrollbar-admin">
+                    <table className="w-full text-left border-collapse min-w-[480px]">
                       <thead>
                         <tr className="bg-gray-50 border-b border-gray-200 font-bold text-gray-650">
-                          <th className="p-4">Item Name / Reference</th>
-                          <th className="p-4 text-center">Quantity</th>
-                          <th className="p-4 text-right">Contract Rate</th>
-                          <th className="p-4 text-right">Subtotal</th>
+                          <th className="p-3 sm:p-4">Item Name / Reference</th>
+                          <th className="p-3 sm:p-4 text-center">Quantity</th>
+                          <th className="p-3 sm:p-4 text-right">Contract Rate</th>
+                          <th className="p-3 sm:p-4 text-right">Subtotal</th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr className="font-semibold text-gray-800 border-b border-gray-100 last:border-none">
-                          <td className="p-4">
+                          <td className="p-3 sm:p-4">
                             <span className="font-bold text-gray-900 text-sm block">{selectedPo.productDetails.name}</span>
                             <span className="text-[10px] text-gray-400 mt-0.5">Ref ID: {selectedPo.productId || 'Custom Catalog Item'}</span>
                           </td>
-                          <td className="p-4 text-center text-base font-black text-gray-800">{selectedPo.productDetails.qty.toLocaleString()}</td>
-                          <td className="p-4 text-right text-base font-extrabold text-gray-900">{formatPrice(selectedPo.productDetails.unitPrice)}</td>
-                          <td className="p-4 text-right text-base font-black text-gray-900">{formatPrice(selectedPo.pricing.subtotal)}</td>
+                          <td className="p-3 sm:p-4 text-center text-sm sm:text-base font-black text-gray-800">{selectedPo.productDetails.qty.toLocaleString()}</td>
+                          <td className="p-3 sm:p-4 text-right text-sm sm:text-base font-extrabold text-gray-900">{formatPrice(selectedPo.productDetails.unitPrice)}</td>
+                          <td className="p-3 sm:p-4 text-right text-sm sm:text-base font-black text-gray-900">{formatPrice(selectedPo.pricing.subtotal)}</td>
                         </tr>
                       </tbody>
                     </table>

@@ -322,24 +322,24 @@ const ShippingZoneForm = ({ zone, onSave, onClose, isSaving }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-[10000] flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl p-6 max-w-md w-full">
-        <h3 className="text-lg font-bold mb-4">
+    <div className="fixed inset-0 bg-black/50 z-[10000] flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-xl p-4 sm:p-6 max-w-md w-full max-h-[90vh] overflow-y-auto my-auto">
+        <h3 className="text-base sm:text-lg font-bold mb-4">
           {zone?._id ? "Edit Zone" : "Add Zone"}
         </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-semibold mb-2">Zone Name</label>
+            <label className="block text-xs sm:text-sm font-semibold mb-1 sm:mb-2">Zone Name</label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               required
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold mb-2">
+            <label className="block text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
               Countries (comma-separated)
             </label>
             <input
@@ -351,21 +351,21 @@ const ShippingZoneForm = ({ zone, onSave, onClose, isSaving }) => {
                   countries: e.target.value.split(",").map((c) => c.trim()),
                 })
               }
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
             />
           </div>
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-gray-100 rounded-lg"
+              className="px-4 py-2 bg-gray-100 rounded-lg text-xs sm:text-sm font-medium"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSaving}
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg disabled:opacity-60"
+              className="px-4 py-2 bg-primary-600 text-white rounded-lg text-xs sm:text-sm font-medium disabled:opacity-60"
             >
               {isSaving ? "Saving..." : "Save"}
             </button>
@@ -399,9 +399,9 @@ const ShippingRateForm = ({ rate, zones, onSave, onClose, isSaving }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-[10000] flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl p-6 max-w-md w-full">
-        <h3 className="text-lg font-bold mb-4">
+    <div className="fixed inset-0 bg-black/50 z-[10000] flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-xl p-4 sm:p-6 max-w-md w-full max-h-[90vh] overflow-y-auto my-auto">
+        <h3 className="text-base sm:text-lg font-bold mb-4">
           {rate?._id ? "Edit Rate" : "Add Rate"}
         </h3>
         <form onSubmit={handleSubmit} className="space-y-4">

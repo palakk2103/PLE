@@ -6,6 +6,7 @@ import {
     getInvoiceWithRoleProjection,
     buildInvoicePdfStream,
     generateInvoiceForOrder,
+    sendOrderInvoiceEmail,
 } from '../services/invoice.service.js';
 
 // ─── CUSTOMER / B2B INVOICE CONTROLLERS ────────────────────────────────────────
@@ -326,3 +327,14 @@ export const regenerateAdminInvoice = asyncHandler(async (req, res) => {
     const invoice = await generateInvoiceForOrder(id);
     res.status(200).json(new ApiResponse(200, invoice, 'Invoice generated / synchronized successfully.'));
 });
+
+export const resendAdminInvoiceEmail = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const result = await sendOrderInvoiceEmail(id, {
+        forceResend: true,
+        throwOnError: true,
+        triggeredBy: req.user.id,
+    });
+    res.status(200).json(new ApiResponse(200, result, 'Invoice email resent to customer successfully.'));
+});
+
