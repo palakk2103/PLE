@@ -4,15 +4,8 @@ import B2BSidebar from './B2BSidebar';
 import B2BHeader from './B2BHeader';
 
 const B2BDashboardLayout = () => {
-  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const pathname = location.pathname.toLowerCase();
-  
-  const isB2BProfileOptionPage = 
-    pathname === '/b2b-dashboard/company-profile' ||
-    pathname === '/b2b-dashboard/admin-profile' ||
-    pathname === '/b2b-dashboard/settings';
 
   useEffect(() => {
     const checkMobile = () => {
@@ -34,7 +27,7 @@ const B2BDashboardLayout = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex h-screen bg-gray-50 dark:bg-[#0A0A0A] text-gray-900 dark:text-gray-100 overflow-hidden transition-colors duration-200">
       {/* Sidebar */}
       <div 
         className={`fixed inset-y-0 left-0 z-50 transform ${
@@ -47,14 +40,12 @@ const B2BDashboardLayout = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        {!isB2BProfileOptionPage && (
-          <div className="print:hidden">
-            <B2BHeader toggleSidebar={toggleSidebar} />
-          </div>
-        )}
+        <div className="print:hidden">
+          <B2BHeader toggleSidebar={toggleSidebar} />
+        </div>
 
         {/* Main section */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-4 lg:p-6">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-[#0A0A0A] p-4 lg:p-6 transition-colors duration-200">
           <Outlet />
         </main>
       </div>

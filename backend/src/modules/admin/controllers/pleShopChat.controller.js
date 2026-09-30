@@ -49,11 +49,14 @@ export const getPLEShopThreads = asyncHandler(async (req, res) => {
 });
 
 export const getPLEShopMessages = asyncHandler(async (req, res) => {
-    const activeVendor = await getTargetVendor(req);
-    const thread = await VendorChatThread.findOne({
-        _id: req.params.id,
-        vendorId: activeVendor._id,
-    });
+    let thread = await VendorChatThread.findById(req.params.id);
+    if (!thread) {
+        const activeVendor = await getTargetVendor(req);
+        thread = await VendorChatThread.findOne({
+            _id: req.params.id,
+            vendorId: activeVendor._id,
+        });
+    }
     if (!thread) throw new ApiError(404, 'Chat thread not found.');
 
     const messages = await VendorChatMessage.find({ threadId: thread._id }).sort({ createdAt: 1 });
@@ -66,16 +69,21 @@ export const sendPLEShopMessage = asyncHandler(async (req, res) => {
     const message = String(req.body?.message || '').trim();
     if (!message) throw new ApiError(400, 'Message is required.');
 
-    const thread = await VendorChatThread.findOne({
-        _id: req.params.id,
-        vendorId: activeVendor._id,
-    });
+    let thread = await VendorChatThread.findById(req.params.id);
+    if (!thread) {
+        thread = await VendorChatThread.findOne({
+            _id: req.params.id,
+            vendorId: activeVendor._id,
+        });
+    }
     if (!thread) throw new ApiError(404, 'Chat thread not found.');
+
+    const senderId = activeVendor?._id || thread.vendorId;
 
     const created = await VendorChatMessage.create({
         threadId: thread._id,
         senderType: 'vendor',
-        senderId: activeVendor._id,
+        senderId: senderId,
         message,
     });
 
@@ -89,12 +97,12 @@ export const sendPLEShopMessage = asyncHandler(async (req, res) => {
             await Notification.create({
                 recipientId: thread.customerUserId,
                 recipientType: 'user',
-                title: `New message from ${activeVendor.storeName}`,
+                title: `New message from ${activeVendor?.storeName || 'Store'}`,
                 message: message.length > 50 ? `${message.substring(0, 50)}...` : message,
                 type: 'chat',
                 data: {
                     threadId: String(thread._id),
-                    vendorId: String(activeVendor._id),
+                    vendorId: String(thread.vendorId || activeVendor._id),
                 },
             });
         } catch (nErr) {
@@ -123,11 +131,14 @@ export const sendPLEShopMessage = asyncHandler(async (req, res) => {
 });
 
 export const markPLEShopRead = asyncHandler(async (req, res) => {
-    const activeVendor = await getTargetVendor(req);
-    const thread = await VendorChatThread.findOne({
-        _id: req.params.id,
-        vendorId: activeVendor._id,
-    });
+    let thread = await VendorChatThread.findById(req.params.id);
+    if (!thread) {
+        const activeVendor = await getTargetVendor(req);
+        thread = await VendorChatThread.findOne({
+            _id: req.params.id,
+            vendorId: activeVendor._id,
+        });
+    }
     if (!thread) throw new ApiError(404, 'Chat thread not found.');
 
     thread.unreadCount = 0;

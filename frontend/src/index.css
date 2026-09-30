@@ -55,6 +55,11 @@ body {
   scrollbar-width: none;
 }
 
+html.dark body {
+  background: #0F0F0F;
+  color: #F3F4F6;
+}
+
 body::-webkit-scrollbar {
   display: none;
 }

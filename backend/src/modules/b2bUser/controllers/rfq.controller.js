@@ -5,6 +5,7 @@ import RFQ from '../../../models/RFQ.model.js';
 import B2BCompany from '../../../models/B2BCompany.model.js';
 import User from '../../../models/User.model.js';
 import PurchaseOrder from '../../../models/PurchaseOrder.model.js';
+import Order from '../../../models/Order.model.js';
 import Vendor from '../../../models/Vendor.model.js';
 import Product from '../../../models/Product.model.js';
 import DirectRFQ from '../../../models/DirectRFQ.model.js';
@@ -709,10 +710,98 @@ export const requestRenegotiation = asyncHandler(async (req, res) => {
 // GET /api/b2b-user/admin/purchase-orders
 export const getPurchaseOrders = asyncHandler(async (req, res) => {
     const companyId = await getCompanyId(req);
+    const company = await B2BCompany.findById(companyId);
+
+    // Auto-sync any direct B2B orders belonging to this company/users that don't have POs yet
+    try {
+        const companyUsers = await User.find({ 
+            $or: [{ companyId }, { _id: req.user.id }] 
+        }).select('_id');
+        const userIds = companyUsers.map(u => u._id);
+
+        const directOrders = await Order.find({
+            $or: [
+                { userId: { $in: userIds } },
+                { orderType: 'b2b' }
+            ]
+        }).lean();
+
+        for (const ord of directOrders) {
+            const isCompanyOrder = userIds.some(id => String(id) === String(ord.userId)) ||
+                (ord.shippingAddress?.email && company?.businessEmail && ord.shippingAddress.email.toLowerCase() === company.businessEmail.toLowerCase());
+            
+            if (!isCompanyOrder) continue;
+
+            const existingPo = await PurchaseOrder.findOne({ orderId: ord._id });
+            if (!existingPo && ord.vendorItems && ord.vendorItems.length > 0) {
+                for (const group of ord.vendorItems) {
+                    for (const itm of group.items) {
+                        const vendorDoc = await Vendor.findById(group.vendorId);
+                        const poDateStr = (ord.createdAt ? new Date(ord.createdAt) : new Date()).toISOString().slice(0, 10).replace(/-/g, '');
+                        const randomDigits = Math.floor(1000 + Math.random() * 9000);
+                        const poNumber = `PO-${poDateStr}-${randomDigits}`;
+
+                        await PurchaseOrder.create({
+                            poNumber,
+                            companyId,
+                            orderId: ord._id,
+                            orderNumber: ord.orderId,
+                            sourceType: 'DirectPurchase',
+                            companyDetails: {
+                                name: company?.companyName || ord.shippingAddress?.name || 'B2B Procurement Buyer',
+                                email: company?.businessEmail || ord.shippingAddress?.email || '',
+                                phone: company?.businessPhone || ord.shippingAddress?.phone || '',
+                                address: company?.companyAddress || (ord.shippingAddress ? `${ord.shippingAddress.address || ''}, ${ord.shippingAddress.city || ''}, ${ord.shippingAddress.state || ''}` : 'Address on File'),
+                                gstin: company?.gstNumber || ''
+                            },
+                            vendorId: group.vendorId,
+                            vendorDetails: {
+                                storeName: vendorDoc?.storeName || group.vendorName || 'Vendor Store',
+                                name: vendorDoc?.name || group.vendorName || 'Vendor Representative',
+                                email: vendorDoc?.email || '',
+                                phone: vendorDoc?.phone || '9876543210'
+                            },
+                            productId: itm.productId,
+                            productDetails: {
+                                name: itm.name,
+                                qty: itm.quantity,
+                                unitPrice: itm.price,
+                                totalPrice: itm.price * itm.quantity
+                            },
+                            terms: {
+                                warranty: 'Standard Warranty',
+                                paymentTerms: ord.paymentMethod === 'wallet' ? 'Wallet Paid' : 'Direct B2B Checkout',
+                                deliveryTerms: 'Standard Delivery',
+                                termsConditions: 'Direct Wholesale Order from Platform.'
+                            },
+                            pricing: {
+                                subtotal: itm.taxableAmount || (itm.price * itm.quantity),
+                                tax: itm.gstAmount || 0,
+                                total: (itm.price * itm.quantity) + (itm.gstAmount || 0)
+                            },
+                            deliveryInformation: {
+                                shippingAddress: ord.shippingAddress ? `${ord.shippingAddress.address || ''}, ${ord.shippingAddress.city || ''}, ${ord.shippingAddress.state || ''} - ${ord.shippingAddress.zipCode || ''}` : 'Default Shipping'
+                            },
+                            status: ord.status === 'cancelled' ? 'Cancelled' : (ord.status === 'delivered' ? 'Completed' : 'Approved'),
+                            paymentStatus: ord.paymentStatus === 'paid' ? 'Paid' : 'Unpaid',
+                            paymentMethod: ord.paymentMethod === 'card' ? 'Card' : (ord.paymentMethod === 'upi' ? 'UPI' : (ord.paymentMethod === 'wallet' ? 'NetBanking' : 'None')),
+                            createdAt: ord.createdAt || new Date()
+                        });
+                    }
+                }
+            }
+        }
+    } catch (err) {
+        console.error('Error auto-syncing B2B orders to POs:', err.message);
+    }
+
     const filter = { companyId };
     if (req.user.role === 'b2bEmployee') {
         const employeeRfqs = await RFQ.find({ createdByEmployeeId: req.user.id }).select('_id');
-        filter.rfqId = { $in: employeeRfqs.map(r => r._id) };
+        filter.$or = [
+            { rfqId: { $in: employeeRfqs.map(r => r._id) } },
+            { companyId, sourceType: 'DirectPurchase' }
+        ];
     }
     const pos = await PurchaseOrder.find(filter)
         .populate('rfqId', 'rfqId')
@@ -727,7 +816,10 @@ export const getPurchaseOrderDetail = asyncHandler(async (req, res) => {
     const filter = { _id: req.params.id, companyId };
     if (req.user.role === 'b2bEmployee') {
         const employeeRfqs = await RFQ.find({ createdByEmployeeId: req.user.id }).select('_id');
-        filter.rfqId = { $in: employeeRfqs.map(r => r._id) };
+        filter.$or = [
+            { rfqId: { $in: employeeRfqs.map(r => r._id) } },
+            { companyId, sourceType: 'DirectPurchase' }
+        ];
     }
     const po = await PurchaseOrder.findOne(filter).populate('rfqId', 'rfqId');
 

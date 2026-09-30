@@ -67,6 +67,10 @@ const b2bCompanySchema = new mongoose.Schema(
             mimeType: { type: String },
             size: { type: Number },
             uploadedAt: { type: Date }
+        },
+        settings: {
+            type: mongoose.Schema.Types.Mixed,
+            default: {}
         }
     },
     { timestamps: true }

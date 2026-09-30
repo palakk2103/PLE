@@ -160,10 +160,10 @@ const AnimatedSelect = ({
         onClick={() => !disabled && setIsOpen(!isOpen)}
         onKeyDown={handleKeyDown}
         disabled={disabled}
-        className={`w-full px-4 py-2.5 text-left border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white flex items-center justify-between transition-all duration-200 ${disabled
-            ? "bg-gray-100 cursor-not-allowed text-gray-400"
-            : "text-gray-900 hover:border-primary-400 cursor-pointer"
-          } ${!value ? "text-gray-500" : ""}`}
+        className={`w-full px-4 py-2.5 text-left border border-gray-300 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-[#222] flex items-center justify-between transition-all duration-200 ${disabled
+            ? "bg-gray-100 dark:bg-white/5 cursor-not-allowed text-gray-400 dark:text-gray-500"
+            : "text-gray-900 dark:text-white hover:border-primary-400 dark:hover:border-primary-500 cursor-pointer"
+          } ${!value ? "text-gray-500 dark:text-gray-400" : ""}`}
         aria-haspopup="listbox"
         aria-expanded={isOpen}>
         <span className="truncate flex-1 text-sm sm:text-base">
@@ -173,7 +173,7 @@ const AnimatedSelect = ({
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.2 }}
           className="ml-2 flex-shrink-0">
-          <FiChevronDown className="text-gray-500 text-lg" />
+          <FiChevronDown className="text-gray-500 dark:text-gray-400 text-lg" />
         </motion.div>
       </button>
 
@@ -190,7 +190,7 @@ const AnimatedSelect = ({
                 setIsOpen(false);
                 setSearchQuery("");
               }}
-              className="fixed inset-0 bg-black/20 z-40 sm:hidden"
+              className="fixed inset-0 bg-black/40 z-40 sm:hidden"
             />
 
             {/* Dropdown Menu */}
@@ -215,7 +215,7 @@ const AnimatedSelect = ({
                 duration: 0.25,
                 ease: [0.4, 0, 0.2, 1],
               }}
-              className={`absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden ${openUpward ? "bottom-full mb-2" : "top-full"
+              className={`absolute z-50 w-full mt-1 bg-white dark:bg-[#1E1E1E] border border-gray-200 dark:border-white/10 rounded-xl shadow-xl overflow-hidden ${openUpward ? "bottom-full mb-2" : "top-full"
                 }`}
               style={{
                 maxHeight: "300px",
@@ -223,7 +223,7 @@ const AnimatedSelect = ({
               }}>
               {/* Search Input */}
               {searchable && (
-                <div className="p-2 border-b border-gray-200 bg-gray-50">
+                <div className="p-2 border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#181818]">
                   <div className="relative">
                     <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
                     <input
@@ -232,7 +232,7 @@ const AnimatedSelect = ({
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search options..."
-                      className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+                      className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-[#222] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                       onClick={(e) => e.stopPropagation()}
                     />
                   </div>
@@ -242,7 +242,7 @@ const AnimatedSelect = ({
               {/* Options List */}
               <div className="overflow-y-auto max-h-[240px] scrollbar-admin">
                 {filteredOptions.length === 0 ? (
-                  <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                  <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">
                     {searchQuery ? "No options found" : "No options available"}
                   </div>
                 ) : (
@@ -266,9 +266,9 @@ const AnimatedSelect = ({
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.02 }}
                           onClick={() => handleSelect(optionValue)}
-                          className={`w-full px-4 py-2.5 text-left text-sm transition-colors duration-150 ${isSelected
+                          className={`w-full px-4 py-2.5 text-left text-sm transition-colors duration-150 cursor-pointer ${isSelected
                               ? "bg-primary-600 text-white font-medium"
-                              : "text-gray-900 hover:bg-gray-50"
+                              : "text-gray-900 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5"
                             }`}
                           role="option"
                           aria-selected={isSelected}>

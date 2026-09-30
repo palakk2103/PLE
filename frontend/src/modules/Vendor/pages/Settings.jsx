@@ -63,13 +63,13 @@ const VendorSettings = () => {
     >
       {/* Header */}
       <div className="lg:hidden">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Settings</h1>
-        <p className="text-sm sm:text-base text-gray-600">Configure your vendor store settings</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white mb-2">Settings</h1>
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Configure your vendor store settings</p>
       </div>
 
       {/* Tabs */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 max-w-full overflow-x-hidden">
-        <div className="border-b border-gray-200 overflow-x-hidden">
+      <div className="bg-white dark:bg-[#1A1A1A] rounded-xl shadow-sm border border-gray-200 dark:border-white/5 max-w-full overflow-x-hidden">
+        <div className="border-b border-gray-200 dark:border-white/10 overflow-x-hidden">
           <div className="flex overflow-x-auto scrollbar-hide -mx-1 px-1">
             {tabs.map((tab) => {
               const Icon = tab.icon;
@@ -77,10 +77,10 @@ const VendorSettings = () => {
                 <button
                   key={tab.id}
                   onClick={() => handleTabChange(tab.id)}
-                  className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-b-2 transition-colors whitespace-nowrap text-xs sm:text-sm ${
+                  className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-b-2 transition-colors whitespace-nowrap text-xs sm:text-sm cursor-pointer ${
                     activeTab === tab.id
-                      ? 'border-purple-600 text-purple-600 font-semibold'
-                      : 'border-transparent text-gray-600 hover:text-gray-800'
+                      ? 'border-purple-600 text-purple-600 dark:text-purple-400 font-semibold'
+                      : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
                   }`}
                 >
                   <Icon className="text-base sm:text-lg" />

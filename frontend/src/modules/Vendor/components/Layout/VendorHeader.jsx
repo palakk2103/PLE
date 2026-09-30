@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { FiMenu, FiBell, FiLogOut, FiShoppingBag } from "react-icons/fi";
+import { FiMenu, FiBell, FiLogOut, FiShoppingBag, FiSun, FiMoon } from "react-icons/fi";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useVendorAuthStore } from "../../store/vendorAuthStore";
 import { useVendorNotificationStore } from "../../store/vendorNotificationStore";
+import { useThemeStore } from "../../../../shared/store/themeStore";
 import toast from "react-hot-toast";
 import Button from "../../../Admin/components/Button";
 import VendorNotificationWindow from "./VendorNotificationWindow";
@@ -13,6 +14,7 @@ const VendorHeader = ({ onMenuClick, isCollapsed = false, onToggleCollapse }) =>
   const navigate = useNavigate();
   const { vendor, logout } = useVendorAuthStore();
   const { unreadCount, fetchNotifications } = useVendorNotificationStore();
+  const { theme, toggleTheme } = useThemeStore();
   const [showNotifications, setShowNotifications] = useState(false);
 
   useEffect(() => {
@@ -96,8 +98,22 @@ const VendorHeader = ({ onMenuClick, isCollapsed = false, onToggleCollapse }) =>
           </div>
         </div>
 
-        {/* Right: Notifications & Logout */}
-        <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+        {/* Right: Theme Toggle, Notifications & Logout */}
+        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+          {/* Dark / Light Mode Toggle */}
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-xl text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors border border-gray-200 dark:border-white/10 cursor-pointer shadow-2xs"
+            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            aria-label="Toggle theme"
+          >
+            {theme === 'dark' ? (
+              <FiSun className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />
+            ) : (
+              <FiMoon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700" />
+            )}
+          </button>
+
           {/* Notifications */}
           <div className="relative">
             <Button

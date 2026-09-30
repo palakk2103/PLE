@@ -84,10 +84,11 @@ const PurchaseOrders = () => {
     const q = searchQuery.toLowerCase();
     return pos.filter(
       (po) =>
-        po.poNumber.toLowerCase().includes(q) ||
-        po.vendorDetails.storeName.toLowerCase().includes(q) ||
-        po.productDetails.name.toLowerCase().includes(q) ||
-        (po.rfqId?.rfqId || '').toLowerCase().includes(q)
+        (po.poNumber || '').toLowerCase().includes(q) ||
+        (po.vendorDetails?.storeName || '').toLowerCase().includes(q) ||
+        (po.productDetails?.name || '').toLowerCase().includes(q) ||
+        (po.rfqId?.rfqId || '').toLowerCase().includes(q) ||
+        (po.orderNumber || '').toLowerCase().includes(q)
     );
   }, [pos, searchQuery]);
 
@@ -104,9 +105,13 @@ const PurchaseOrders = () => {
     },
     {
       key: 'rfqId',
-      label: 'RFQ Ref',
+      label: 'RFQ / Order Ref',
       sortable: true,
-      render: (value) => <span className="font-mono text-xs font-semibold text-gray-550">{value?.rfqId || 'N/A'}</span>
+      render: (value, row) => (
+        <span className="font-mono text-xs font-semibold text-gray-550">
+          {value?.rfqId || row.orderNumber || 'Direct B2B'}
+        </span>
+      )
     },
     {
       key: 'vendorDetails',
@@ -238,7 +243,7 @@ const PurchaseOrders = () => {
                 data={filteredPos}
                 headers={[
                   { label: 'PO Number', accessor: (row) => row.poNumber },
-                  { label: 'RFQ Ref', accessor: (row) => row.rfqId?.rfqId },
+                  { label: 'RFQ / Order Ref', accessor: (row) => row.rfqId?.rfqId || row.orderNumber || 'Direct B2B' },
                   { label: 'Vendor Store', accessor: (row) => row.vendorDetails.storeName },
                   { label: 'Vendor Contact', accessor: (row) => row.vendorDetails.name },
                   { label: 'Product Name', accessor: (row) => row.productDetails.name },
@@ -329,7 +334,11 @@ const PurchaseOrders = () => {
                   <div className="space-y-1.5">
                     <span className="text-[10px] font-black uppercase text-[#C07A3D] tracking-widest block">Wholesale Procurement PO</span>
                     <h1 className="text-2xl font-black text-gray-950 tracking-tight">{selectedPo.poNumber}</h1>
-                    <p className="text-xs text-gray-400 font-bold font-mono">Linked RFQ ID: {selectedPo.rfqId?.rfqId}</p>
+                    <p className="text-xs text-gray-400 font-bold font-mono">
+                      {selectedPo.rfqId?.rfqId 
+                        ? `Linked RFQ ID: ${selectedPo.rfqId.rfqId}` 
+                        : `Direct Order Ref: ${selectedPo.orderNumber || 'B2B Purchase'}`}
+                    </p>
                   </div>
                   <div className="text-right text-xs">
                     <p className="font-bold text-gray-800">Date Issued:</p>

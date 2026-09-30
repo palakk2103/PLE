@@ -81,9 +81,18 @@ const PLEShopChats = () => {
         });
         const payload = res?.data?.data || res?.data || [];
         setMessages(Array.isArray(payload) ? payload : []);
-        
-        // Mark as read
-        await api.patch(`/admin/ple-shop/threads/${selectedThread._id}/read`, null, {
+      } catch (err) {
+        console.error("Failed to load messages:", err);
+        toast.error("Failed to load message history.");
+        setLoadingMessages(false);
+        return;
+      } finally {
+        setLoadingMessages(false);
+      }
+
+      // Mark as read in the background
+      try {
+        await api.patch(`/admin/ple-shop/threads/${selectedThread._id}/read`, {}, {
           params: { vendorId: selectedShop._id },
         });
         setThreads((prev) =>
@@ -92,10 +101,7 @@ const PLEShopChats = () => {
           )
         );
       } catch (err) {
-        console.error("Failed to load messages:", err);
-        toast.error("Failed to load message history.");
-      } finally {
-        setLoadingMessages(false);
+        console.warn("Failed to mark chat as read:", err);
       }
     };
 
@@ -183,17 +189,17 @@ const PLEShopChats = () => {
       {/* Header and Selector */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-1">Store Customer Chats</h1>
-          <p className="text-sm text-gray-600">Reply to pre-purchase product queries and custom orders sent directly to your stores.</p>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-1">Store Customer Chats</h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Reply to pre-purchase product queries and custom orders sent directly to your stores.</p>
         </div>
 
         {/* Shop Selector Dropdown */}
         <div className="flex items-center gap-2">
-          <label htmlFor="shop-select" className="text-xs font-bold text-gray-700 uppercase">
+          <label htmlFor="shop-select" className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase">
             Active Shop:
           </label>
           {loadingShops ? (
-            <span className="text-xs text-gray-500 animate-pulse">Loading shops...</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400 animate-pulse">Loading shops...</span>
           ) : (
             <select
               id="shop-select"
@@ -202,10 +208,10 @@ const PLEShopChats = () => {
                 const shop = shops.find((s) => s._id === e.target.value);
                 if (shop) setSelectedShop(shop);
               }}
-              className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="bg-white dark:bg-[#1E1E1E] border border-gray-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
             >
               {shops.map((s) => (
-                <option key={s._id} value={s._id}>
+                <option key={s._id} value={s._id} className="bg-white dark:bg-[#1E1E1E] text-gray-800 dark:text-white">
                   {s.storeName || s.name}
                 </option>
               ))}
@@ -216,28 +222,28 @@ const PLEShopChats = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Side: Threads List */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col min-h-[500px] max-h-[650px] overflow-hidden">
-          <div className="p-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
-            <h3 className="font-bold text-gray-800 flex items-center gap-2">
-              <FiMessageSquare className="text-primary-600" />
+        <div className="bg-white dark:bg-[#141414] rounded-xl shadow-sm border border-gray-200 dark:border-white/10 flex flex-col min-h-[500px] max-h-[650px] overflow-hidden">
+          <div className="p-4 border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#1A1A1A] flex items-center justify-between">
+            <h3 className="font-bold text-gray-800 dark:text-white flex items-center gap-2">
+              <FiMessageSquare className="text-primary-600 dark:text-primary-400" />
               <span>Inbox ({threads.length})</span>
             </h3>
           </div>
 
-          <div className="flex-1 overflow-y-auto divide-y divide-gray-250">
+          <div className="flex-1 overflow-y-auto divide-y divide-gray-200 dark:divide-white/5">
             {loadingThreads ? (
-              <div className="p-8 text-center text-gray-500 animate-pulse">Loading conversations...</div>
+              <div className="p-8 text-center text-gray-500 dark:text-gray-400 animate-pulse">Loading conversations...</div>
             ) : threads.length > 0 ? (
               threads.map((thread) => (
                 <div
                   key={thread._id}
                   onClick={() => setSelectedThread(thread)}
-                  className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors flex flex-col gap-1.5 ${
-                    selectedThread?._id === thread._id ? "bg-primary-50 border-l-4 border-primary-600" : ""
+                  className={`p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition-colors flex flex-col gap-1.5 ${
+                    selectedThread?._id === thread._id ? "bg-primary-50 dark:bg-primary-950/30 border-l-4 border-primary-600" : ""
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-gray-850 text-sm flex items-center gap-1">
+                    <span className="font-bold text-gray-800 dark:text-gray-100 text-sm flex items-center gap-1">
                       {thread.customerName || "Customer"}
                     </span>
                     {thread.unreadCount > 0 && (
@@ -246,14 +252,14 @@ const PLEShopChats = () => {
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-gray-600 truncate">{thread.lastMessage || "No messages yet"}</p>
-                  <span className="text-[10px] text-gray-400 font-medium">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 truncate">{thread.lastMessage || "No messages yet"}</p>
+                  <span className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">
                     {thread.lastActivity ? new Date(thread.lastActivity).toLocaleString() : "N/A"}
                   </span>
                 </div>
               ))
             ) : (
-              <div className="p-8 text-center text-gray-500 text-sm">
+              <div className="p-8 text-center text-gray-500 dark:text-gray-400 text-sm">
                 No customer inquiries found for {selectedShop?.storeName || "this store"}.
               </div>
             )}
@@ -261,29 +267,29 @@ const PLEShopChats = () => {
         </div>
 
         {/* Right Side: Chat Window */}
-        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col min-h-[500px] max-h-[650px] overflow-hidden">
+        <div className="lg:col-span-2 bg-white dark:bg-[#141414] rounded-xl shadow-sm border border-gray-200 dark:border-white/10 flex flex-col min-h-[500px] max-h-[650px] overflow-hidden">
           {selectedThread ? (
             <>
               {/* Active Thread Header */}
-              <div className="p-4 border-b border-gray-200 bg-primary-50/60 flex items-center justify-between">
+              <div className="p-4 border-b border-gray-200 dark:border-white/10 bg-primary-50/60 dark:bg-[#1A1A1A] flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold text-sm">
+                  <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-primary-700 dark:text-primary-300 font-bold text-sm">
                     <FiUser className="text-lg" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-800 text-sm">{selectedThread.customerName || "Customer"}</h3>
-                    <p className="text-xs text-gray-500">{selectedThread.customerEmail || "No email"}</p>
+                    <h3 className="font-bold text-gray-800 dark:text-white text-sm">{selectedThread.customerName || "Customer"}</h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{selectedThread.customerEmail || "No email"}</p>
                   </div>
                 </div>
-                <span className="text-[10px] bg-green-50 text-green-700 font-bold px-2.5 py-0.5 rounded-full border border-green-200 uppercase">
+                <span className="text-[10px] bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-300 font-bold px-2.5 py-0.5 rounded-full border border-green-200 dark:border-green-800/40 uppercase">
                   Connected
                 </span>
               </div>
 
               {/* Chat Message History */}
-              <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-50/50">
+              <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-50/50 dark:bg-[#0E0E0E]">
                 {loadingMessages ? (
-                  <div className="text-center text-gray-500 animate-pulse">Loading message history...</div>
+                  <div className="text-center text-gray-500 dark:text-gray-400 animate-pulse">Loading message history...</div>
                 ) : (
                   messages.map((msg, idx) => {
                     const isVendor = msg.sender === "vendor";
@@ -296,13 +302,13 @@ const PLEShopChats = () => {
                           className={`max-w-xs lg:max-w-md px-4 py-2.5 rounded-2xl text-sm shadow-xs ${
                             isVendor
                               ? "bg-[#7B0A0A] text-white rounded-tr-none"
-                              : "bg-white border border-gray-200 text-gray-800 rounded-tl-none"
+                              : "bg-white dark:bg-[#1E1E1E] border border-gray-200 dark:border-white/10 text-gray-800 dark:text-gray-100 rounded-tl-none"
                           }`}
                         >
                           <p className="leading-relaxed whitespace-pre-wrap">{msg.message}</p>
                           <span
                             className={`block text-[9px] mt-1 text-right ${
-                              isVendor ? "text-primary-100" : "text-gray-400"
+                              isVendor ? "text-primary-100" : "text-gray-400 dark:text-gray-500"
                             }`}
                           >
                             {new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -316,7 +322,7 @@ const PLEShopChats = () => {
               </div>
 
               {/* Chat Message Input */}
-              <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-200 bg-white">
+              <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-200 dark:border-white/10 bg-white dark:bg-[#161616]">
                 <div className="flex items-center gap-2">
                   <textarea
                     rows={1}
@@ -324,12 +330,12 @@ const PLEShopChats = () => {
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyDown={handleKeyPress}
                     placeholder="Type a reply as store..."
-                    className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#7B0A0A] focus:border-[#7B0A0A] resize-none font-medium"
+                    className="flex-1 bg-gray-50 dark:bg-[#1E1E1E] border border-gray-300 dark:border-white/10 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#7B0A0A] focus:border-[#7B0A0A] resize-none font-medium"
                   />
                   <button
                     type="submit"
                     disabled={!newMessage.trim() || sending}
-                    className="p-2.5 bg-[#7B0A0A] hover:bg-[#AE020B] text-white rounded-lg flex items-center justify-center transition-colors disabled:opacity-50"
+                    className="p-2.5 bg-[#7B0A0A] hover:bg-[#AE020B] text-white rounded-lg flex items-center justify-center transition-colors disabled:opacity-50 cursor-pointer"
                   >
                     <FiSend className="text-base" />
                   </button>
@@ -337,8 +343,8 @@ const PLEShopChats = () => {
               </form>
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-gray-500 p-8">
-              <FiMessageSquare className="text-5xl mb-4 text-gray-300" />
+            <div className="flex-1 flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 p-8">
+              <FiMessageSquare className="text-5xl mb-4 text-gray-300 dark:text-gray-600" />
               <p className="font-semibold">Select a conversation from the inbox list to reply.</p>
             </div>
           )}

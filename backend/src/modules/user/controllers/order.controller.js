@@ -8,6 +8,9 @@ import Coupon from '../../../models/Coupon.model.js';
 import Commission from '../../../models/Commission.model.js';
 import ReturnRequest from '../../../models/ReturnRequest.model.js';
 import Admin from '../../../models/Admin.model.js';
+import PurchaseOrder from '../../../models/PurchaseOrder.model.js';
+import B2BCompany from '../../../models/B2BCompany.model.js';
+import Vendor from '../../../models/Vendor.model.js';
 import { generateOrderId } from '../../../utils/generateOrderId.js';
 import { generateTrackingNumber } from '../../../utils/generateTrackingNumber.js';
 import mongoose from 'mongoose';
@@ -671,6 +674,72 @@ export const placeOrder = asyncHandler(async (req, res) => {
                         { $inc: { usedCount: 1 } },
                         { session }
                     );
+                }
+            }
+
+            // 10. Automatically generate PurchaseOrder records for B2B Company purchases
+            const b2bUser = userId ? await User.findById(userId).session(session) : null;
+            const targetCompanyId = req.user?.companyId || b2bUser?.companyId;
+            if (targetCompanyId || isB2B) {
+                let company = targetCompanyId ? await B2BCompany.findById(targetCompanyId).session(session) : null;
+                if (!company && targetCompanyId) {
+                    company = await B2BCompany.findById(targetCompanyId);
+                }
+                if (company) {
+                    for (const group of vendorItems) {
+                        for (const itm of group.items) {
+                            const vendorDoc = await Vendor.findById(group.vendorId).session(session);
+                            const poDateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+                            const randomDigits = Math.floor(1000 + Math.random() * 9000);
+                            const poNumber = `PO-${poDateStr}-${randomDigits}`;
+
+                            await PurchaseOrder.create([{
+                                poNumber,
+                                companyId: company._id,
+                                orderId: order._id,
+                                orderNumber: order.orderId,
+                                sourceType: 'DirectPurchase',
+                                companyDetails: {
+                                    name: company.companyName || shippingAddress?.name || 'B2B Procurement Buyer',
+                                    email: company.businessEmail || shippingAddress?.email || '',
+                                    phone: company.businessPhone || shippingAddress?.phone || '',
+                                    address: company.companyAddress || (shippingAddress ? `${shippingAddress.address || ''}, ${shippingAddress.city || ''}, ${shippingAddress.state || ''}` : 'Address on File'),
+                                    gstin: company.gstNumber || ''
+                                },
+                                vendorId: group.vendorId,
+                                vendorDetails: {
+                                    storeName: vendorDoc?.storeName || group.vendorName || 'Vendor Store',
+                                    name: vendorDoc?.name || group.vendorName || 'Vendor Representative',
+                                    email: vendorDoc?.email || '',
+                                    phone: vendorDoc?.phone || '9876543210'
+                                },
+                                productId: itm.productId,
+                                productDetails: {
+                                    name: itm.name,
+                                    qty: itm.quantity,
+                                    unitPrice: itm.price,
+                                    totalPrice: itm.price * itm.quantity
+                                },
+                                terms: {
+                                    warranty: 'Standard Warranty',
+                                    paymentTerms: finalPaymentMethod === 'wallet' ? 'Wallet Paid' : 'Direct B2B Checkout',
+                                    deliveryTerms: 'Standard Delivery',
+                                    termsConditions: 'Direct Wholesale Order from Platform.'
+                                },
+                                pricing: {
+                                    subtotal: itm.taxableAmount || (itm.price * itm.quantity),
+                                    tax: itm.gstAmount || 0,
+                                    total: (itm.price * itm.quantity) + (itm.gstAmount || 0)
+                                },
+                                deliveryInformation: {
+                                    shippingAddress: shippingAddress ? `${shippingAddress.address || ''}, ${shippingAddress.city || ''}, ${shippingAddress.state || ''} - ${shippingAddress.zipCode || ''}` : 'Default Shipping'
+                                },
+                                status: 'Approved',
+                                paymentStatus: initialPaymentStatus === 'paid' ? 'Paid' : 'Unpaid',
+                                paymentMethod: finalPaymentMethod === 'card' ? 'Card' : (finalPaymentMethod === 'upi' ? 'UPI' : (finalPaymentMethod === 'wallet' ? 'NetBanking' : 'None'))
+                            }], { session });
+                        }
+                    }
                 }
             }
         });

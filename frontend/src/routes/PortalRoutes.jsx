@@ -52,6 +52,7 @@ const MobileTrackOrder = lazy(() => import("../modules/UserApp/pages/TrackOrder"
 const MobileOrderConfirmation = lazy(() => import("../modules/UserApp/pages/OrderConfirmation"));
 const PortalSelection = lazy(() => import("../modules/UserApp/pages/PortalSelection"));
 const PortalWelcome = lazy(() => import("../modules/UserApp/pages/PortalWelcome"));
+const PortalPoliciesHub = lazy(() => import("../modules/UserApp/pages/PortalPoliciesHub"));
 const UserPrivacyPolicy = lazy(() => import("../modules/UserApp/pages/PrivacyPolicy"));
 const UserSupport = lazy(() => import("../modules/UserApp/pages/Support"));
 const UserTermsConditions = lazy(() => import("../modules/UserApp/pages/TermsConditions"));
@@ -130,6 +131,18 @@ export default function PortalRoutes() {
             <PortalWelcome type="business" />
           </RouteWrapper>
         }
+      />
+      <Route
+        path="/portal/policies/:portalType"
+        element={
+          <RouteWrapper>
+            <PortalPoliciesHub />
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/portal/policies"
+        element={<Navigate to="/portal/policies/b2c" replace />}
       />
 
       {/* Delegated Route Domains */}

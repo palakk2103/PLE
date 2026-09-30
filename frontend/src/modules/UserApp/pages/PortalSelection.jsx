@@ -183,7 +183,7 @@ const PortalSelection = () => {
                     I agree to{" "}
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); navigate('/legal/terms'); }}
+                      onClick={(e) => { e.stopPropagation(); navigate('/portal/policies/b2c?policy=terms'); }}
                       className="text-[#AE020B] hover:underline font-bold"
                     >
                       Terms
@@ -191,7 +191,7 @@ const PortalSelection = () => {
                     {", "}
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); navigate('/legal/privacy'); }}
+                      onClick={(e) => { e.stopPropagation(); navigate('/portal/policies/b2c?policy=privacy'); }}
                       className="text-[#AE020B] hover:underline font-bold"
                     >
                       Privacy
@@ -199,18 +199,18 @@ const PortalSelection = () => {
                     {", "}
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); navigate('/legal/user-agreement'); }}
+                      onClick={(e) => { e.stopPropagation(); navigate('/portal/policies/b2c?policy=user-agreement'); }}
                       className="text-[#AE020B] hover:underline font-bold"
                     >
                       User Agreement
                     </button>
-                    {" & "}
+                    {", "}
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); navigate('/legal/trademark'); }}
-                      className="text-[#AE020B] hover:underline font-bold"
+                      onClick={(e) => { e.stopPropagation(); navigate('/portal/policies/b2c'); }}
+                      className="text-[#AE020B] hover:underline font-bold inline-flex items-center"
                     >
-                      Trademark
+                      etc. (View All)
                     </button>
                   </label>
                 </div>
@@ -286,7 +286,7 @@ const PortalSelection = () => {
                     I agree to{" "}
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); navigate('/legal/business-terms'); }}
+                      onClick={(e) => { e.stopPropagation(); navigate('/portal/policies/b2b?policy=business-terms'); }}
                       className="text-[#AE020B] hover:underline font-bold"
                     >
                       Business Terms
@@ -294,7 +294,7 @@ const PortalSelection = () => {
                     {", "}
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); navigate('/legal/privacy'); }}
+                      onClick={(e) => { e.stopPropagation(); navigate('/portal/policies/b2b?policy=privacy'); }}
                       className="text-[#AE020B] hover:underline font-bold"
                     >
                       Privacy
@@ -302,18 +302,18 @@ const PortalSelection = () => {
                     {", "}
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); navigate('/legal/user-agreement'); }}
+                      onClick={(e) => { e.stopPropagation(); navigate('/portal/policies/b2b?policy=business-onboarding'); }}
                       className="text-[#AE020B] hover:underline font-bold"
                     >
-                      User Agreement
+                      Onboarding
                     </button>
-                    {" & "}
+                    {", "}
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); navigate('/legal/trademark'); }}
-                      className="text-[#AE020B] hover:underline font-bold"
+                      onClick={(e) => { e.stopPropagation(); navigate('/portal/policies/b2b'); }}
+                      className="text-[#AE020B] hover:underline font-bold inline-flex items-center"
                     >
-                      Trademark
+                      etc. (View All)
                     </button>
                   </label>
                 </div>
@@ -400,7 +400,7 @@ const PortalSelection = () => {
                     I agree to the{" "}
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); navigate('/legal/terms'); }}
+                      onClick={(e) => { e.stopPropagation(); navigate('/portal/policies/b2c?policy=terms'); }}
                       className="text-[#AE020B] hover:underline font-bold transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-[#AE020B] rounded px-0.5"
                     >
                       Terms & Conditions
@@ -408,7 +408,7 @@ const PortalSelection = () => {
                     {" • "}
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); navigate('/legal/privacy'); }}
+                      onClick={(e) => { e.stopPropagation(); navigate('/portal/policies/b2c?policy=privacy'); }}
                       className="text-[#AE020B] hover:underline font-bold transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-[#AE020B] rounded px-0.5"
                     >
                       Privacy Policy
@@ -416,7 +416,7 @@ const PortalSelection = () => {
                     {" • "}
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); navigate('/legal/user-agreement'); }}
+                      onClick={(e) => { e.stopPropagation(); navigate('/portal/policies/b2c?policy=user-agreement'); }}
                       className="text-[#AE020B] hover:underline font-bold transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-[#AE020B] rounded px-0.5"
                     >
                       User Agreement
@@ -424,10 +424,10 @@ const PortalSelection = () => {
                     {" • "}
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); navigate('/legal/trademark'); }}
-                      className="text-[#AE020B] hover:underline font-bold transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-[#AE020B] rounded px-0.5"
+                      onClick={(e) => { e.stopPropagation(); navigate('/portal/policies/b2c'); }}
+                      className="text-[#AE020B] hover:underline font-bold transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-[#AE020B] rounded px-0.5 inline-flex items-center gap-1"
                     >
-                      Trademark Policy
+                      <span>etc. (View All Policies →)</span>
                     </button>
                   </label>
                 </div>
@@ -518,7 +518,7 @@ const PortalSelection = () => {
                     I agree to the{" "}
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); navigate('/legal/business-terms'); }}
+                      onClick={(e) => { e.stopPropagation(); navigate('/portal/policies/b2b?policy=business-terms'); }}
                       className="text-[#AE020B] hover:underline font-bold transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-[#AE020B] rounded px-0.5"
                     >
                       Business Terms
@@ -526,7 +526,7 @@ const PortalSelection = () => {
                     {" • "}
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); navigate('/legal/privacy'); }}
+                      onClick={(e) => { e.stopPropagation(); navigate('/portal/policies/b2b?policy=privacy'); }}
                       className="text-[#AE020B] hover:underline font-bold transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-[#AE020B] rounded px-0.5"
                     >
                       Privacy Policy
@@ -534,18 +534,18 @@ const PortalSelection = () => {
                     {" • "}
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); navigate('/legal/user-agreement'); }}
+                      onClick={(e) => { e.stopPropagation(); navigate('/portal/policies/b2b?policy=business-onboarding'); }}
                       className="text-[#AE020B] hover:underline font-bold transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-[#AE020B] rounded px-0.5"
                     >
-                      User Agreement
+                      Onboarding & Compliance
                     </button>
                     {" • "}
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); navigate('/legal/trademark'); }}
-                      className="text-[#AE020B] hover:underline font-bold transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-[#AE020B] rounded px-0.5"
+                      onClick={(e) => { e.stopPropagation(); navigate('/portal/policies/b2b'); }}
+                      className="text-[#AE020B] hover:underline font-bold transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-[#AE020B] rounded px-0.5 inline-flex items-center gap-1"
                     >
-                      Trademark Policy
+                      <span>etc. (View All Policies →)</span>
                     </button>
                   </label>
                 </div>

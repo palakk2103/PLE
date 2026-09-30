@@ -83,13 +83,13 @@ const NotificationWindow = ({ isOpen, onClose, position = 'right' }) => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className={`fixed lg:absolute ${positionClasses[position]} top-[calc(4rem-40px)] lg:top-full lg:-mt-[38px] right-[11px] lg:-right-[5px] z-[10000] w-[calc(100vw-2rem)] sm:w-96 max-w-md bg-white rounded-xl shadow-2xl border border-gray-200 max-h-[calc(100vh-8rem)] flex flex-col overflow-hidden`}
+            className={`fixed lg:absolute ${positionClasses[position]} top-[calc(4rem-40px)] lg:top-full lg:-mt-[38px] right-[11px] lg:-right-[5px] z-[10000] w-[calc(100vw-2rem)] sm:w-96 max-w-md bg-white dark:bg-[#1A1A1A] rounded-xl shadow-2xl border border-gray-200 dark:border-white/10 max-h-[calc(100vh-8rem)] flex flex-col overflow-hidden`}
             style={{ willChange: 'transform' }}
           >
             {/* Header */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between z-10">
+            <div className="sticky top-0 bg-white dark:bg-[#1A1A1A] border-b border-gray-200 dark:border-white/10 p-4 flex items-center justify-between z-10">
               <div className="flex items-center gap-2">
-                <h3 className="text-lg font-bold text-gray-800">Notifications</h3>
+                <h3 className="text-lg font-bold text-gray-800 dark:text-white">Notifications</h3>
                 {unreadCount > 0 && (
                   <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">
                     {unreadCount}
@@ -100,14 +100,14 @@ const NotificationWindow = ({ isOpen, onClose, position = 'right' }) => {
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllAsRead}
-                    className="text-xs font-semibold text-primary-600 hover:text-primary-700 px-2 py-1 rounded-lg hover:bg-primary-50 transition-colors"
+                    className="text-xs font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 px-2 py-1 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-950/30 transition-colors"
                   >
                     Mark all read
                   </button>
                 )}
                 <button
                   onClick={onClose}
-                  className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors"
                 >
                   <FiX className="text-lg" />
                 </button>
@@ -118,12 +118,12 @@ const NotificationWindow = ({ isOpen, onClose, position = 'right' }) => {
             <div className="flex-1 overflow-y-auto scrollbar-admin">
               {notifications.length === 0 ? (
                 <div className="p-12 text-center">
-                  <FiBell className="mx-auto text-4xl text-gray-400 mb-4" />
-                  <p className="text-gray-500 font-medium">No notifications</p>
-                  <p className="text-sm text-gray-400 mt-1">You're all caught up!</p>
+                  <FiBell className="mx-auto text-4xl text-gray-400 dark:text-gray-500 mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400 font-medium">No notifications</p>
+                  <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">You're all caught up!</p>
                 </div>
               ) : (
-                <div className="divide-y divide-gray-100">
+                <div className="divide-y divide-gray-100 dark:divide-white/5">
                   {notifications.map((notification) => {
                     const Icon = getNotificationIcon(notification.type);
                     return (
@@ -131,7 +131,7 @@ const NotificationWindow = ({ isOpen, onClose, position = 'right' }) => {
                         key={notification._id}
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer ${!notification.isRead ? 'bg-blue-50/30' : ''
+                        className={`p-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer ${!notification.isRead ? 'bg-blue-50/30 dark:bg-blue-900/20' : ''
                           }`}
                         onClick={() => handleNotificationClick(notification)}
                       >
@@ -147,22 +147,22 @@ const NotificationWindow = ({ isOpen, onClose, position = 'right' }) => {
                             <div className="flex items-start justify-between gap-2">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2">
-                                  <h4 className="font-semibold text-gray-800 text-sm">
+                                  <h4 className="font-semibold text-gray-800 dark:text-white text-sm">
                                     {notification.title}
                                   </h4>
                                   {!notification.isRead && (
                                     <span className="flex-shrink-0 w-2 h-2 bg-blue-600 rounded-full"></span>
                                   )}
                                 </div>
-                                <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                                <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">
                                   {notification.message}
                                 </p>
                                 <div className="flex items-center gap-3 mt-2">
-                                  <span className="text-xs text-gray-500">
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">
                                     {formatDateTime(notification.createdAt)}
                                   </span>
                                   {(notification.orderId || notification.data?.orderId) && (
-                                    <span className="text-xs font-medium text-primary-600">
+                                    <span className="text-xs font-medium text-primary-600 dark:text-primary-400">
                                       {notification.orderId || notification.data?.orderId}
                                     </span>
                                   )}
@@ -177,7 +177,7 @@ const NotificationWindow = ({ isOpen, onClose, position = 'right' }) => {
                                   e.stopPropagation();
                                   markAsRead(notification._id);
                                 }}
-                                className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                className="p-1.5 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30 rounded-lg transition-colors"
                                 title="Mark as read"
                               >
                                 <FiCheck className="text-sm" />
@@ -194,13 +194,13 @@ const NotificationWindow = ({ isOpen, onClose, position = 'right' }) => {
 
             {/* Footer */}
             {notifications.length > 0 && (
-              <div className="sticky bottom-0 bg-white border-t border-gray-200 p-3">
+              <div className="sticky bottom-0 bg-white dark:bg-[#1A1A1A] border-t border-gray-200 dark:border-white/10 p-3">
                 <button
                   onClick={() => {
                     navigate('/admin/notifications');
                     onClose();
                   }}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-colors"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 hover:bg-primary-50 dark:hover:bg-primary-950/30 rounded-lg transition-colors"
                 >
                   <span>View all notifications</span>
                   <FiChevronRight className="text-base" />
