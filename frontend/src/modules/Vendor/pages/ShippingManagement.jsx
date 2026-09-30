@@ -313,7 +313,7 @@ const ShippingZoneForm = ({ zone, onSave, onClose, isSaving }) => {
     countries: Array.isArray(zone?.countries) ? zone.countries : [],
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e) => { 
     e.preventDefault();
     onSave({
       ...formData,

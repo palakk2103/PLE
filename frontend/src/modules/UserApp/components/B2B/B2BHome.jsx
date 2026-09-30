@@ -409,118 +409,123 @@ const B2BHome = ({
 
         {activeMarketTab === "Official Store" ? (
             <>
-              {/* Sixth Row: Main Hero Banner ("BUSINESS PROCUREMENT") */}
-              <div 
-                className="relative rounded-2xl overflow-hidden p-6 flex flex-col justify-between min-h-[220px] transition-all border border-zinc-800/50 bg-black"
-                style={{
-                  backgroundImage: "linear-gradient(to right, rgba(0,0,0,0.85) 40%, rgba(0,0,0,0.4) 100%), url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80')",
-                  backgroundSize: "cover",
-                  backgroundPosition: "center"
-                }}
-              >
-                <div className="space-y-2 relative z-10">
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#FF3E46]">
-                    BUSINESS PROCUREMENT
-                  </span>
-                  <h2 className="text-2xl font-black leading-tight text-white">
-                    Smart Sourcing.<br />Reliable Supply.
-                  </h2>
-                  <p className="text-xs max-w-sm font-medium mt-1 leading-relaxed text-zinc-300">
-                    GST-compliant sourcing, bulk quotes and business purchasing made easy.
-                  </p>
+              {/* MOBILE ONLY: Main Hero Banner ("BUSINESS PROCUREMENT") & 4 Quick Action Cards */}
+              <div className="block md:hidden space-y-3">
+                {/* Sixth Row: Main Hero Banner ("BUSINESS PROCUREMENT") */}
+                <div 
+                  className="relative rounded-2xl overflow-hidden p-6 flex flex-col justify-between min-h-[220px] transition-all border border-zinc-800/50 bg-black"
+                  style={{
+                    backgroundImage: "linear-gradient(to right, rgba(0,0,0,0.85) 40%, rgba(0,0,0,0.4) 100%), url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80')",
+                    backgroundSize: "cover",
+                    backgroundPosition: "center"
+                  }}
+                >
+                  <div className="space-y-2 relative z-10">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#FF3E46]">
+                      BUSINESS PROCUREMENT
+                    </span>
+                    <h2 className="text-2xl font-black leading-tight text-white">
+                      Smart Sourcing.<br />Reliable Supply.
+                    </h2>
+                    <p className="text-xs max-w-sm font-medium mt-1 leading-relaxed text-zinc-300">
+                      GST-compliant sourcing, bulk quotes and business purchasing made easy.
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2 mt-4 relative z-10 w-full max-w-[340px]">
+                    <button 
+                      onClick={handleRfqClick}
+                      className="flex items-center justify-center gap-1 px-2.5 py-2 bg-[#AE020B] hover:bg-[#8B0208] text-white font-extrabold text-[10px] sm:text-xs uppercase rounded-lg transition-all shadow-md active:scale-95 cursor-pointer w-full text-center"
+                    >
+                      <FiFileText className="text-xs shrink-0" />
+                      Request Quote
+                    </button>
+                    <button 
+                      onClick={() => navigate('/product-request/new')}
+                      className="flex items-center justify-center gap-1 px-2.5 py-2 border border-white/20 bg-white/10 hover:bg-white/20 text-white font-extrabold text-[10px] sm:text-xs uppercase rounded-lg transition-all active:scale-95 cursor-pointer w-full text-center"
+                    >
+                      <FiPlus className="text-xs shrink-0" />
+                      Source Now
+                    </button>
+                  </div>
                 </div>
-                
-                <div className="grid grid-cols-2 gap-2 mt-4 relative z-10 w-full max-w-[340px]">
-                  <button 
+
+                {/* 4 Quick Action Cards */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div 
                     onClick={handleRfqClick}
-                    className="flex items-center justify-center gap-1 px-2.5 py-2 bg-[#AE020B] hover:bg-[#8B0208] text-white font-extrabold text-[10px] sm:text-xs uppercase rounded-lg transition-all shadow-md active:scale-95 cursor-pointer w-full text-center"
+                    className={`flex items-start gap-3 p-3 border rounded-xl cursor-pointer transition-colors ${
+                      isDark 
+                        ? "bg-zinc-955 border-zinc-900 hover:border-zinc-800" 
+                        : "bg-white border-gray-150 hover:border-gray-250 shadow-sm"
+                    }`}
                   >
-                    <FiFileText className="text-xs shrink-0" />
-                    Request Quote
-                  </button>
-                  <button 
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                      isDark ? "bg-red-955/50 text-red-500" : "bg-red-50 text-red-600"
+                    }`}>
+                      <FiFileText className="text-lg" />
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className={`text-xs font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Request Quote</h4>
+                      <p className={`text-[10px] mt-0.5 leading-tight ${isDark ? "text-zinc-500" : "text-gray-500"}`}>Get best quotes for your needs</p>
+                    </div>
+                  </div>
+       
+                  <div 
                     onClick={() => navigate('/product-request/new')}
-                    className="flex items-center justify-center gap-1 px-2.5 py-2 border border-white/20 bg-white/10 hover:bg-white/20 text-white font-extrabold text-[10px] sm:text-xs uppercase rounded-lg transition-all active:scale-95 cursor-pointer w-full text-center"
+                    className={`flex items-start gap-3 p-3 border rounded-xl cursor-pointer transition-colors ${
+                      isDark 
+                        ? "bg-zinc-955 border-zinc-900 hover:border-zinc-800" 
+                        : "bg-white border-gray-150 hover:border-gray-250 shadow-sm"
+                    }`}
                   >
-                    <FiPlus className="text-xs shrink-0" />
-                    Source Now
-                  </button>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div 
-                  onClick={handleRfqClick}
-                  className={`flex items-start gap-3 p-3 border rounded-xl cursor-pointer transition-colors ${
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                      isDark ? "bg-blue-955/50 text-blue-500" : "bg-blue-50 text-blue-600"
+                    }`}>
+                      <FiPlus className="text-lg" />
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className={`text-xs font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Source Now</h4>
+                      <p className={`text-[10px] mt-0.5 leading-tight ${isDark ? "text-zinc-500" : "text-gray-500"}`}>Request custom or unlisted items</p>
+                    </div>
+                  </div>
+       
+                  <div className={`flex items-start gap-3 p-3 border rounded-xl cursor-pointer transition-colors ${
                     isDark 
-                      ? "bg-zinc-955 border-zinc-900 hover:border-zinc-800" 
+                      ? "bg-zinc-950 border-zinc-900 hover:border-zinc-800" 
                       : "bg-white border-gray-150 hover:border-gray-250 shadow-sm"
-                  }`}
-                >
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-                    isDark ? "bg-red-955/50 text-red-500" : "bg-red-50 text-red-600"
                   }`}>
-                    <FiFileText className="text-lg" />
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                      isDark ? "bg-green-955/50 text-green-500" : "bg-green-50 text-green-600"
+                    }`}>
+                      <FiClock className="text-lg" />
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className={`text-xs font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Track Orders</h4>
+                      <p className={`text-[10px] mt-0.5 leading-tight ${isDark ? "text-zinc-500" : "text-gray-500"}`}>Real-time status of your orders</p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <h4 className={`text-xs font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Request Quote</h4>
-                    <p className={`text-[10px] mt-0.5 leading-tight ${isDark ? "text-zinc-500" : "text-gray-500"}`}>Get best quotes for your needs</p>
-                  </div>
-                </div>
-     
-                <div 
-                  onClick={() => navigate('/product-request/new')}
-                  className={`flex items-start gap-3 p-3 border rounded-xl cursor-pointer transition-colors ${
+       
+                  <div className={`flex items-start gap-3 p-3 border rounded-xl cursor-pointer transition-colors ${
                     isDark 
-                      ? "bg-zinc-955 border-zinc-900 hover:border-zinc-800" 
+                      ? "bg-zinc-950 border-zinc-900 hover:border-zinc-800" 
                       : "bg-white border-gray-150 hover:border-gray-250 shadow-sm"
-                  }`}
-                >
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-                    isDark ? "bg-blue-955/50 text-blue-500" : "bg-blue-50 text-blue-600"
                   }`}>
-                    <FiPlus className="text-lg" />
-                  </div>
-                  <div className="min-w-0">
-                    <h4 className={`text-xs font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Source Now</h4>
-                    <p className={`text-[10px] mt-0.5 leading-tight ${isDark ? "text-zinc-500" : "text-gray-500"}`}>Request custom or unlisted items</p>
-                  </div>
-                </div>
-     
-                <div className={`flex items-start gap-3 p-3 border rounded-xl cursor-pointer transition-colors ${
-                  isDark 
-                    ? "bg-zinc-950 border-zinc-900 hover:border-zinc-800" 
-                    : "bg-white border-gray-150 hover:border-gray-250 shadow-sm"
-                }`}>
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-                    isDark ? "bg-green-955/50 text-green-500" : "bg-green-50 text-green-600"
-                  }`}>
-                    <FiClock className="text-lg" />
-                  </div>
-                  <div className="min-w-0">
-                    <h4 className={`text-xs font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Track Orders</h4>
-                    <p className={`text-[10px] mt-0.5 leading-tight ${isDark ? "text-zinc-500" : "text-gray-500"}`}>Real-time status of your orders</p>
-                  </div>
-                </div>
-     
-                <div className={`flex items-start gap-3 p-3 border rounded-xl cursor-pointer transition-colors ${
-                  isDark 
-                    ? "bg-zinc-950 border-zinc-900 hover:border-zinc-800" 
-                    : "bg-white border-gray-150 hover:border-gray-250 shadow-sm"
-                }`}>
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-                    isDark ? "bg-amber-955/50 text-amber-500" : "bg-amber-50 text-amber-600"
-                  }`}>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                  </div>
-                  <div className="min-w-0">
-                    <h4 className={`text-xs font-bold ${isDark ? "text-white" : "text-gray-900"}`}>GST Invoices</h4>
-                    <p className={`text-[10px] mt-0.5 leading-tight ${isDark ? "text-zinc-500" : "text-gray-500"}`}>100% GST compliant invoicing</p>
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                      isDark ? "bg-amber-955/50 text-amber-500" : "bg-amber-50 text-amber-600"
+                    }`}>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className={`text-xs font-bold ${isDark ? "text-white" : "text-gray-900"}`}>GST Invoices</h4>
+                      <p className={`text-[10px] mt-0.5 leading-tight ${isDark ? "text-zinc-500" : "text-gray-500"}`}>100% GST compliant invoicing</p>
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Ninth Row: POPULAR CATEGORIES */}
-              <div className="space-y-3 pt-2">
+              <div className="block md:hidden space-y-3 pt-2">
                 <div className="flex items-center justify-between">
                   <h3 className={`text-sm font-bold tracking-wide uppercase ${isDark ? "text-white" : "text-gray-900"}`}>
                     POPULAR CATEGORIES

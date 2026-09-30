@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { FiSave, FiImage, FiGlobe, FiShoppingBag, FiShield } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { useVendorAuthStore } from "../../store/vendorAuthStore";
@@ -93,7 +94,7 @@ const StoreSettings = () => {
   if (!vendor) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-600">Loading vendor information...</p>
+        <p className="text-gray-600 dark:text-gray-400">Loading vendor information...</p>
       </div>
     );
   }
@@ -104,17 +105,17 @@ const StoreSettings = () => {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6 max-w-full overflow-x-hidden">
       <div className="lg:hidden">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white mb-2">
           Store Settings
         </h1>
-        <p className="text-sm sm:text-base text-gray-600">
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
           Configure your store identity and information
         </p>
       </div>
 
       {/* Section Tabs */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 max-w-full overflow-x-hidden">
-        <div className="border-b border-gray-200 overflow-x-hidden">
+      <div className="bg-white dark:bg-[#1A1A1A] rounded-xl shadow-sm border border-gray-200 dark:border-white/5 max-w-full overflow-x-hidden">
+        <div className="border-b border-gray-200 dark:border-white/10 overflow-x-hidden">
           <div className="flex overflow-x-auto scrollbar-hide -mx-1 px-1">
             {sections.map((section) => {
               const Icon = section.icon;
@@ -122,10 +123,11 @@ const StoreSettings = () => {
                 <button
                   key={section.id}
                   onClick={() => setActiveSection(section.id)}
-                  className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-b-2 transition-colors whitespace-nowrap text-xs sm:text-sm ${activeSection === section.id
-                      ? "border-purple-600 text-purple-600 font-semibold"
-                      : "border-transparent text-gray-600 hover:text-gray-800"
-                    }`}>
+                  className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-b-2 transition-colors whitespace-nowrap text-xs sm:text-sm cursor-pointer ${
+                    activeSection === section.id
+                      ? "border-purple-600 text-purple-600 dark:text-purple-400 font-semibold"
+                      : "border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                  }`}>
                   <Icon className="text-base sm:text-lg" />
                   <span>{section.label}</span>
                 </button>
@@ -136,11 +138,11 @@ const StoreSettings = () => {
 
         <form onSubmit={handleSubmit} className="p-3 sm:p-4 md:p-6">
           {isManaged && (
-            <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 flex items-start gap-3">
-              <FiShield className="text-xl mt-0.5 flex-shrink-0 text-amber-600" />
+            <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40 rounded-lg text-amber-800 dark:text-amber-200 flex items-start gap-3">
+              <FiShield className="text-xl mt-0.5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
               <div>
                 <h4 className="font-semibold text-sm">Managed Store Notice</h4>
-                <p className="text-xs sm:text-sm mt-1 text-amber-700">
+                <p className="text-xs sm:text-sm mt-1 text-amber-700 dark:text-amber-300">
                   Your store settings and identity are managed by the Shop Administrator. Editing is disabled for managed accounts.
                 </p>
               </div>
@@ -152,7 +154,7 @@ const StoreSettings = () => {
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Store Name <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -161,12 +163,13 @@ const StoreSettings = () => {
                     value={formData.storeName || ""}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    disabled={isManaged}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-white/10 dark:bg-[#222] dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-60 disabled:cursor-not-allowed"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Store Logo URL
                   </label>
                   <input
@@ -174,33 +177,36 @@ const StoreSettings = () => {
                     name="storeLogo"
                     value={formData.storeLogo || ""}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    disabled={isManaged}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-white/10 dark:bg-[#222] dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-60 disabled:cursor-not-allowed"
                     placeholder="data/logos/logo.png"
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Store Description
                   </label>
                   <textarea
                     name="storeDescription"
                     value={formData.storeDescription || ""}
                     onChange={handleChange}
+                    disabled={isManaged}
                     rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-white/10 dark:bg-[#222] dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-60 disabled:cursor-not-allowed"
                     placeholder="Brief description of your store"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Timezone
                   </label>
                   <AnimatedSelect
                     name="timezone"
                     value={formData.timezone || "UTC"}
                     onChange={handleChange}
+                    disabled={isManaged}
                     options={[
                       { value: "UTC", label: "UTC" },
                       { value: "America/New_York", label: "Eastern Time" },
@@ -213,13 +219,14 @@ const StoreSettings = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Currency
                   </label>
                   <AnimatedSelect
                     name="currency"
                     value={formData.currency || "INR"}
                     onChange={handleChange}
+                    disabled={isManaged}
                     options={[
                       { value: "INR", label: "INR (₹)" },
                       { value: "USD", label: "USD ($)" },
@@ -237,7 +244,7 @@ const StoreSettings = () => {
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Contact Email <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -246,12 +253,13 @@ const StoreSettings = () => {
                     value={formData.email || ""}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    disabled={isManaged}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-white/10 dark:bg-[#222] dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-60 disabled:cursor-not-allowed"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Contact Phone <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -260,26 +268,28 @@ const StoreSettings = () => {
                     value={formData.phone || ""}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    disabled={isManaged}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-white/10 dark:bg-[#222] dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-60 disabled:cursor-not-allowed"
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Address
                   </label>
                   <textarea
                     name="address"
                     value={formData.address || ""}
                     onChange={handleChange}
+                    disabled={isManaged}
                     rows={2}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-white/10 dark:bg-[#222] dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-60 disabled:cursor-not-allowed"
                     placeholder="Street, City, State ZIP"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Business Hours
                   </label>
                   <input
@@ -287,8 +297,9 @@ const StoreSettings = () => {
                     name="businessHours"
                     value={formData.businessHours || ""}
                     onChange={handleChange}
+                    disabled={isManaged}
                     placeholder="Mon-Fri 9AM-6PM"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-white/10 dark:bg-[#222] dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-60 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -300,7 +311,7 @@ const StoreSettings = () => {
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Facebook
                   </label>
                   <input
@@ -309,12 +320,13 @@ const StoreSettings = () => {
                     onChange={(e) =>
                       handleSocialMediaChange("facebook", e.target.value)
                     }
+                    disabled={isManaged}
                     placeholder="https://facebook.com/yourpage"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-white/10 dark:bg-[#222] dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-60 disabled:cursor-not-allowed"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Instagram
                   </label>
                   <input
@@ -323,12 +335,13 @@ const StoreSettings = () => {
                     onChange={(e) =>
                       handleSocialMediaChange("instagram", e.target.value)
                     }
+                    disabled={isManaged}
                     placeholder="https://instagram.com/yourpage"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-white/10 dark:bg-[#222] dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-60 disabled:cursor-not-allowed"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Twitter
                   </label>
                   <input
@@ -337,12 +350,13 @@ const StoreSettings = () => {
                     onChange={(e) =>
                       handleSocialMediaChange("twitter", e.target.value)
                     }
+                    disabled={isManaged}
                     placeholder="https://twitter.com/yourpage"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-white/10 dark:bg-[#222] dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-60 disabled:cursor-not-allowed"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     LinkedIn
                   </label>
                   <input
@@ -351,8 +365,9 @@ const StoreSettings = () => {
                     onChange={(e) =>
                       handleSocialMediaChange("linkedin", e.target.value)
                     }
+                    disabled={isManaged}
                     placeholder="https://linkedin.com/company/yourpage"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-white/10 dark:bg-[#222] dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-60 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -360,10 +375,10 @@ const StoreSettings = () => {
           )}
 
           {!isManaged && (
-            <div className="flex justify-end pt-4 sm:pt-6 border-t border-gray-200 mt-4 sm:mt-6">
+            <div className="flex justify-end pt-4 sm:pt-6 border-t border-gray-200 dark:border-white/10 mt-4 sm:mt-6">
               <button
                 type="submit"
-                className="flex items-center gap-2 px-4 sm:px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all font-semibold text-sm sm:text-base w-full sm:w-auto">
+                className="flex items-center gap-2 px-4 sm:px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all font-semibold text-sm sm:text-base w-full sm:w-auto justify-center cursor-pointer shadow-sm">
                 <FiSave />
                 Save Settings
               </button>

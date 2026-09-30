@@ -74,22 +74,27 @@ const AdminManagedVendorChatHub = () => {
         );
         const payload = res?.data?.data || res?.data || [];
         setMessages(Array.isArray(payload) ? payload : []);
+      } catch (err) {
+        console.error("Failed to fetch messages:", err);
+        toast.error("Failed to load message history.");
+        setLoadingMessages(false);
+        return;
+      } finally {
+        setLoadingMessages(false);
+      }
 
-        // Mark read
+      // Mark read in background
+      try {
         await api.patch(
           `/admin/managed-vendor-chat/threads/${selectedThread._id}/read`
         );
-
         setThreads((prev) =>
           prev.map((t) =>
             t._id === selectedThread._id ? { ...t, unreadCountAdmin: 0 } : t
           )
         );
       } catch (err) {
-        console.error("Failed to fetch messages:", err);
-        toast.error("Failed to load message history.");
-      } finally {
-        setLoadingMessages(false);
+        console.warn("Failed to mark managed vendor chat as read:", err);
       }
     };
 

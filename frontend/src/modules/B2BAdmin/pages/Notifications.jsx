@@ -49,8 +49,8 @@ const Notifications = () => {
     >
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Notifications</h1>
-          <p className="text-gray-600 text-sm mt-1">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Notifications</h1>
+          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
             {unreadNotificationsCount} unread notification{unreadNotificationsCount !== 1 ? 's' : ''}
           </p>
         </div>
@@ -58,7 +58,7 @@ const Notifications = () => {
           <button
             onClick={() => fetchNotifications(1)}
             disabled={isLoading}
-            className="flex items-center gap-1.5 px-4 py-2 border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors font-medium text-sm disabled:opacity-50"
+            className="flex items-center gap-1.5 px-4 py-2 border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 text-gray-700 dark:text-gray-300 rounded-lg transition-colors font-medium text-sm disabled:opacity-50"
             type="button"
           >
             <FiRefreshCw className={isLoading ? 'animate-spin' : ''} />
@@ -76,23 +76,23 @@ const Notifications = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
+      <div className="bg-white dark:bg-[#121212] rounded-xl shadow-sm border border-gray-100 dark:border-white/10 p-6 space-y-4">
         {isLoading && notifications.length === 0 ? (
           <div className="flex justify-center items-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D71920]"></div>
           </div>
         ) : notifications.length === 0 ? (
           <div className="text-center py-16">
-            <div className="w-16 h-16 bg-red-50 text-[#D71920] rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-red-50 dark:bg-red-950/40 text-[#D71920] dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4">
               <FiInbox className="text-3xl" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-800">All caught up!</h3>
-            <p className="text-gray-500 text-sm mt-1 max-w-sm mx-auto">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-white">All caught up!</h3>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-1 max-w-sm mx-auto">
               You don't have any notifications right now. System updates, RFQ actions, and order milestones will appear here.
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-100 dark:divide-white/10">
             {notifications.map((notification, index) => (
               <motion.div
                 key={notification?._id || `${index}-${notification?.createdAt}`}
@@ -100,12 +100,16 @@ const Notifications = () => {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.2 }}
                 className={`py-4 flex gap-4 items-start transition-colors ${
-                  notification?.isRead ? 'bg-white' : 'bg-red-50/40 px-3 rounded-lg -mx-3'
+                  notification?.isRead
+                    ? 'bg-transparent'
+                    : 'bg-red-50/50 dark:bg-red-950/25 px-3 rounded-lg -mx-3 border border-transparent dark:border-red-900/30'
                 }`}
               >
                 <div className="mt-1">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    notification?.isRead ? 'bg-gray-100 text-gray-500' : 'bg-red-100 text-[#D71920]'
+                    notification?.isRead
+                      ? 'bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400'
+                      : 'bg-red-100 dark:bg-red-900/40 text-[#D71920] dark:text-red-400'
                   }`}>
                     <FiBell className="text-sm" />
                   </div>
@@ -113,19 +117,21 @@ const Notifications = () => {
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <h4 className={`text-sm font-medium truncate ${
-                      notification?.isRead ? 'text-gray-700' : 'text-gray-900 font-semibold'
+                    <h4 className={`text-sm truncate ${
+                      notification?.isRead
+                        ? 'text-gray-700 dark:text-gray-300 font-medium'
+                        : 'text-gray-900 dark:text-white font-semibold'
                     }`}>
                       {notification?.title || 'System Notification'}
                     </h4>
                     {!notification?.isRead && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#D71920]"></span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#D71920] shrink-0"></span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-600 mt-1 leading-relaxed break-words">
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 leading-relaxed break-words">
                     {notification?.message}
                   </p>
-                  <span className="text-xs text-gray-400 mt-1 block">
+                  <span className="text-xs text-gray-400 dark:text-gray-500 mt-1 block">
                     {formatDateTime(notification?.createdAt)}
                   </span>
                 </div>
@@ -134,7 +140,7 @@ const Notifications = () => {
                   {!notification?.isRead && (
                     <button
                       onClick={() => markNotificationAsRead(notification?._id)}
-                      className="p-1.5 text-gray-400 hover:text-[#D71920] hover:bg-red-50 rounded transition-colors"
+                      className="p-1.5 text-gray-400 hover:text-[#D71920] dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded transition-colors"
                       title="Mark as read"
                       type="button"
                     >
@@ -143,7 +149,7 @@ const Notifications = () => {
                   )}
                   <button
                     onClick={() => deleteNotification(notification?._id)}
-                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                    className="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded transition-colors"
                     title="Delete notification"
                     type="button"
                   >
@@ -156,11 +162,11 @@ const Notifications = () => {
         )}
 
         {notificationsHasMore && notifications.length > 0 && (
-          <div className="pt-4 border-t border-gray-100 flex justify-center">
+          <div className="pt-4 border-t border-gray-100 dark:border-white/10 flex justify-center">
             <button
               onClick={() => fetchNotifications(notificationsPage + 1)}
               disabled={isLoading}
-              className="px-6 py-2 border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors font-medium text-sm disabled:opacity-50"
+              className="px-6 py-2 border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 text-gray-700 dark:text-gray-300 rounded-lg transition-colors font-medium text-sm disabled:opacity-50"
               type="button"
             >
               {isLoading ? 'Loading...' : 'Load More'}

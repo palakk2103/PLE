@@ -52,7 +52,7 @@ const AdminBottomNav = () => {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 80, opacity: 0 }}
           transition={{ duration: 0.2, ease: "easeInOut" }}
-          className="mobile-bottom-nav fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-[9999] shadow-[0_-2px_10px_rgba(0,0,0,0.05)] lg:hidden"
+          className="mobile-bottom-nav fixed bottom-0 left-0 right-0 bg-white dark:bg-[#121212] border-t border-gray-200 dark:border-white/10 z-[9999] shadow-[0_-2px_10px_rgba(0,0,0,0.05)] lg:hidden"
           style={{
             paddingBottom: 'env(safe-area-inset-bottom, 0px)',
           }}
@@ -69,7 +69,7 @@ const AdminBottomNav = () => {
                   className="flex flex-col items-center justify-center flex-1 h-full gap-1">
                   <motion.div
                     className={`relative flex items-center justify-center ${
-                      active ? "text-[#2874F0]" : "text-[#878787]"
+                      active ? "text-[#2874F0]" : "text-[#878787] dark:text-gray-400"
                     }`}
                     variants={iconVariants}
                     initial="inactive"
@@ -85,7 +85,7 @@ const AdminBottomNav = () => {
                   </motion.div>
                   <span
                     className={`text-xs font-medium ${
-                      active ? "text-primary-600" : "text-gray-500"
+                      active ? "text-primary-600 dark:text-primary-400" : "text-gray-500 dark:text-gray-400"
                     }`}>
                     {item.label}
                   </span>

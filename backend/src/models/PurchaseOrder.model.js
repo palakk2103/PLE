@@ -3,7 +3,10 @@ import mongoose from 'mongoose';
 const purchaseOrderSchema = new mongoose.Schema(
     {
         poNumber: { type: String, required: true, unique: true, index: true },
-        rfqId: { type: mongoose.Schema.Types.ObjectId, ref: 'RFQ', required: true, index: true },
+        rfqId: { type: mongoose.Schema.Types.ObjectId, ref: 'RFQ', required: false, index: true },
+        orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order', required: false, index: true },
+        orderNumber: { type: String, required: false },
+        sourceType: { type: String, enum: ['RFQ', 'DirectPurchase'], default: 'RFQ' },
         companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'B2BCompany', required: true, index: true },
         companyDetails: {
             name: { type: String, required: true },
