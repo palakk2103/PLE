@@ -49,7 +49,8 @@ const LandingPageDashboard = () => {
     const paths = {
       hero: '/admin/landing-page/hero',
       trustedBrands: '/admin/brands',
-      productCategories: '/admin/categories',
+      productCategories: '/admin/landing-page/product-categories',
+      catalogue: '/admin/landing-page/catalogue',
       portfolioHighlights: '/admin/landing-page/portfolio-highlights',
       cpoSection: '/admin/landing-page/cpo',
       gpoSection: '/admin/landing-page/gpo',

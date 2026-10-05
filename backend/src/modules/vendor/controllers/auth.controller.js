@@ -18,6 +18,7 @@ import {
 } from '../../../services/refreshToken.service.js';
 
 import { uploadLocalFileToCloudinaryAndCleanupWithType } from '../../../services/upload.service.js';
+import { checkLoginLockout, handleFailedLogin, handleSuccessfulLogin } from '../../../services/loginAttempt.service.js';
 
 export const register = asyncHandler(async (req, res) => {
     const { name, email, password, phone, storeName, storeDescription, address } = req.body;
@@ -293,23 +294,38 @@ export const resetPassword = asyncHandler(async (req, res) => {
 // POST /api/vendor/auth/login
 export const login = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
+    const normalizedIdentifier = String(email || '').trim().toLowerCase();
+
+    // Check if account / identifier is locked out
+    checkLoginLockout('vendor', normalizedIdentifier);
 
     const isEmail = String(email).includes('@');
     let vendor = null;
     let isManaged = false;
 
     if (isEmail) {
-        vendor = await Vendor.findOne({ email: String(email).toLowerCase() }).select('+password');
+        vendor = await Vendor.findOne({ email: normalizedIdentifier }).select('+password +loginAttempts +lockUntil');
     }
 
     if (!vendor) {
-        vendor = await ManagedVendorUser.findOne({ username: String(email).toLowerCase() }).select('+password').populate('shopId');
+        vendor = await ManagedVendorUser.findOne({ username: normalizedIdentifier }).select('+password +loginAttempts +lockUntil').populate('shopId');
         if (vendor) {
             isManaged = true;
         }
     }
 
-    if (!vendor) throw new ApiError(401, 'Invalid credentials.');
+    if (vendor) {
+        checkLoginLockout('vendor', normalizedIdentifier, vendor);
+    }
+
+    if (!vendor) {
+        await handleFailedLogin({
+            scope: 'vendor',
+            identifier: normalizedIdentifier,
+            doc: null,
+            defaultMessage: 'Invalid credentials.'
+        });
+    }
 
     if (isManaged) {
         if (vendor.status !== 'active') {
@@ -326,7 +342,21 @@ export const login = asyncHandler(async (req, res) => {
     }
 
     const isMatch = await vendor.comparePassword(password);
-    if (!isMatch) throw new ApiError(401, 'Invalid credentials.');
+    if (!isMatch) {
+        await handleFailedLogin({
+            scope: 'vendor',
+            identifier: normalizedIdentifier,
+            doc: vendor,
+            defaultMessage: 'Invalid credentials.'
+        });
+    }
+
+    // Login successful — reset failed login attempts
+    await handleSuccessfulLogin({
+        scope: 'vendor',
+        identifier: normalizedIdentifier,
+        doc: vendor
+    });
 
     if (vendor.twoFactorEnabled) {
         const tokenPayload = isManaged
@@ -349,8 +379,8 @@ export const login = asyncHandler(async (req, res) => {
     await persistRefreshSession(vendor, refreshToken);
 
     const resUser = isManaged
-        ? { id: vendor._id, name: vendor.name, username: vendor.username, role: 'managed_vendor', shopId: vendor.shopId._id, storeName: vendor.shopId.name, storeLogo: vendor.shopId.logo, b2bSellingStatus: 'approved', isFlagged: false }
-        : { id: vendor._id, name: vendor.name, storeName: vendor.storeName, email: vendor.email, storeLogo: vendor.storeLogo, role: 'vendor', b2bSellingStatus: vendor.b2bSellingStatus || 'not_applied', isFlagged: Boolean(vendor.isFlagged), flagReason: vendor.flagReason || null, strikeCount: vendor.strikeCount || 0 };
+        ? { id: vendor._id, name: vendor.name, username: vendor.username, role: 'managed_vendor', shopId: vendor.shopId._id, storeName: vendor.shopId.name, storeLogo: vendor.shopId.logo, b2bSellingStatus: 'approved', isFlagged: false, unflagAppeal: null }
+        : { id: vendor._id, name: vendor.name, storeName: vendor.storeName, email: vendor.email, storeLogo: vendor.storeLogo, role: 'vendor', b2bSellingStatus: vendor.b2bSellingStatus || 'not_applied', isFlagged: Boolean(vendor.isFlagged), flagReason: vendor.flagReason || null, strikeCount: vendor.strikeCount || 0, unflagAppeal: vendor.unflagAppeal || null };
 
     res.status(200).json(new ApiResponse(200, { accessToken, refreshToken, vendor: resUser }, 'Login successful.'));
 });
@@ -628,3 +658,57 @@ export const verifyChangePasswordOTP = asyncHandler(async (req, res) => {
 
     return res.status(200).json(new ApiResponse(200, null, 'Password changed successfully.'));
 });
+
+// POST /api/vendor/appeal-unflag
+export const appealUnflag = asyncHandler(async (req, res) => {
+    const { reason } = req.body;
+    if (!reason || !reason.trim()) {
+        throw new ApiError(400, 'Please provide an explanation / reason for your appeal.');
+    }
+
+    const sellerId = req.user._id || req.user.id;
+    const vendor = await Vendor.findById(sellerId);
+    if (!vendor) {
+        throw new ApiError(404, 'Vendor not found.');
+    }
+
+    if (!vendor.isFlagged) {
+        throw new ApiError(400, 'Your vendor account is not currently flagged.');
+    }
+
+    if (vendor.unflagAppeal?.status === 'PENDING') {
+        throw new ApiError(400, 'You already have an unflag appeal pending review by Administrator.');
+    }
+
+    const now = new Date();
+    const appealReason = reason.trim();
+
+    vendor.unflagAppeal = {
+        status: 'PENDING',
+        reason: appealReason,
+        requestedAt: now,
+        reviewedAt: null,
+        reviewedBy: null,
+        adminRemarks: null
+    };
+
+    await vendor.save();
+
+    // Create system notification for Super Admin
+    const { default: Notification } = await import('../../../models/Notification.model.js');
+    await Notification.create({
+        recipientType: 'admin',
+        type: 'system',
+        title: 'Vendor Unflag Appeal Received',
+        message: `Vendor "${vendor.storeName || vendor.name}" has requested to unflag their account. Reason: "${appealReason}".`,
+        data: {
+            vendorId: vendor._id.toString(),
+            action: 'unflag_appeal'
+        }
+    });
+
+    res.status(200).json(
+        new ApiResponse(200, vendor, 'Unflag appeal submitted successfully. Administrator has been notified and will review your request.')
+    );
+});
+

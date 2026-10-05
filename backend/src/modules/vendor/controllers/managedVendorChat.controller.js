@@ -2,10 +2,12 @@ import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
 import ManagedVendorUser from '../../../models/ManagedVendorUser.model.js';
+import Vendor from '../../../models/Vendor.model.js';
 import AdminManagedVendorThread from '../../../models/AdminManagedVendorThread.model.js';
 import AdminManagedVendorMessage from '../../../models/AdminManagedVendorMessage.model.js';
 import Admin from '../../../models/Admin.model.js';
 import { getIO } from '../../../config/socket.js';
+import { decryptMessage } from '../../../utils/chatEncryption.util.js';
 
 const serializeMessage = (msg) => ({
     id: msg._id,
@@ -13,21 +15,33 @@ const serializeMessage = (msg) => ({
     senderType: msg.senderType,
     senderId: msg.senderId,
     senderName: msg.senderName,
-    message: msg.message,
+    message: decryptMessage(msg.message),
     attachments: msg.attachments || [],
     isRead: msg.isRead,
     createdAt: msg.createdAt,
 });
 
+
+const findVendorProfile = async (vendorId) => {
+    let vendor = await ManagedVendorUser.findById(vendorId).lean();
+    if (!vendor) {
+        vendor = await Vendor.findById(vendorId).lean();
+        if (vendor) {
+            vendor.companyName = vendor.storeName || vendor.name;
+        }
+    }
+    return vendor;
+};
+
 /**
- * Get or initialize thread for logged-in Managed Vendor
+ * Get or initialize thread for logged-in Vendor (Standard or Managed)
  */
 export const getManagedVendorThread = asyncHandler(async (req, res) => {
     const vendorId = req.user.id;
 
-    const vendor = await ManagedVendorUser.findById(vendorId).lean();
+    const vendor = await findVendorProfile(vendorId);
     if (!vendor) {
-        throw new ApiError(404, 'Managed Vendor user profile not found.');
+        throw new ApiError(404, 'Vendor user profile not found.');
     }
 
     let adminId = vendor.createdBy;
@@ -52,11 +66,17 @@ export const getManagedVendorThread = asyncHandler(async (req, res) => {
         thread = await AdminManagedVendorThread.findById(thread._id).populate('adminId', 'name email role');
     }
 
-    res.status(200).json(new ApiResponse(200, thread, 'Managed vendor chat thread retrieved.'));
+    const threadObj = thread.toObject ? thread.toObject({ getters: true }) : { ...thread };
+    if (threadObj.lastMessage) {
+        threadObj.lastMessage = decryptMessage(threadObj.lastMessage);
+    }
+
+    res.status(200).json(new ApiResponse(200, threadObj, 'Managed vendor chat thread retrieved.'));
 });
 
+
 /**
- * Get messages for logged-in Managed Vendor's thread
+ * Get messages for logged-in Vendor's thread
  */
 export const getManagedVendorMessages = asyncHandler(async (req, res) => {
     const vendorId = req.user.id;
@@ -80,7 +100,7 @@ export const getManagedVendorMessages = asyncHandler(async (req, res) => {
 });
 
 /**
- * Send message from Managed Vendor to Admin
+ * Send message from Vendor to Admin
  */
 export const sendManagedVendorMessage = asyncHandler(async (req, res) => {
     const vendorId = req.user.id;
@@ -90,9 +110,9 @@ export const sendManagedVendorMessage = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'Message body cannot be empty.');
     }
 
-    const vendor = await ManagedVendorUser.findById(vendorId).lean();
+    const vendor = await findVendorProfile(vendorId);
     if (!vendor) {
-        throw new ApiError(404, 'Managed Vendor user not found.');
+        throw new ApiError(404, 'Vendor user not found.');
     }
 
     let thread = await AdminManagedVendorThread.findOne({ managedVendorId: vendorId });
@@ -112,11 +132,13 @@ export const sendManagedVendorMessage = asyncHandler(async (req, res) => {
         });
     }
 
+    const senderDisplayName = vendor.storeName || vendor.name || vendor.username || 'Vendor';
+
     const created = await AdminManagedVendorMessage.create({
         threadId: thread._id,
         senderType: 'managed_vendor',
         senderId: vendorId,
-        senderName: vendor.name || vendor.username || 'Managed Vendor',
+        senderName: senderDisplayName,
         message: message.trim(),
         attachments: attachments || [],
     });
@@ -124,22 +146,24 @@ export const sendManagedVendorMessage = asyncHandler(async (req, res) => {
     thread.lastMessage = message.trim();
     thread.lastSenderType = 'managed_vendor';
     thread.lastActivity = new Date();
-    thread.unreadCountAdmin += 1;
+    thread.unreadCountAdmin = (thread.unreadCountAdmin || 0) + 1;
     await thread.save();
 
     const payload = serializeMessage(created);
 
     try {
         const io = getIO();
-        // Broadcast to chat room
-        io.to(`chat_${thread._id}`).emit('new_admin_managed_vendor_message', payload);
-        // Broadcast to admin room
-        io.to('admin_room').emit('admin_chat_notification', {
-            threadId: thread._id,
-            senderName: vendor.name || vendor.username,
-            message: message.trim(),
-            createdAt: created.createdAt,
-        });
+        if (io) {
+            // Broadcast to chat room
+            io.to(`chat_${thread._id}`).emit('new_admin_managed_vendor_message', payload);
+            // Broadcast to admin room
+            io.to('admin_room').emit('admin_chat_notification', {
+                threadId: thread._id,
+                senderName: senderDisplayName,
+                message: message.trim(),
+                createdAt: created.createdAt,
+            });
+        }
     } catch (err) {
         console.error('Socket notification error:', err.message);
     }
@@ -148,14 +172,14 @@ export const sendManagedVendorMessage = asyncHandler(async (req, res) => {
 });
 
 /**
- * Mark thread read by Managed Vendor
+ * Mark thread read by Vendor
  */
 export const markManagedVendorThreadRead = asyncHandler(async (req, res) => {
     const vendorId = req.user.id;
 
     const thread = await AdminManagedVendorThread.findOne({ managedVendorId: vendorId });
     if (!thread) {
-        throw new ApiError(404, 'Thread not found.');
+        return res.status(200).json(new ApiResponse(200, { success: true }, 'No thread found to mark read.'));
     }
 
     thread.unreadCountVendor = 0;

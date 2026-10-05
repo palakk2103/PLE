@@ -75,10 +75,15 @@ export const getB2bOverviewStats = asyncHandler(async (req, res) => {
     const { startDate, endDate } = req.query;
     const dateFilter = getDateFilter(startDate, endDate);
 
-    const activeOrderFilter = { isDeleted: { $ne: true }, type: 'b2b', status: { $ne: 'cancelled' }, ...dateFilter };
+    const activeOrderFilter = { 
+        isDeleted: { $ne: true }, 
+        $or: [{ orderType: 'b2b' }, { type: 'b2b' }], 
+        status: { $ne: 'cancelled' }, 
+        ...dateFilter 
+    };
     
     const [b2bUsersCount, b2bProductsCount, b2bOrdersCount, b2bRevenueAgg] = await Promise.all([
-        User.countDocuments({ role: { $in: ['b2badmin', 'b2bemployee'] }, ...dateFilter }),
+        User.countDocuments({ role: { $in: ['b2bAdmin', 'b2bEmployee', 'b2badmin', 'b2bemployee'] }, ...dateFilter }),
         Product.countDocuments({ isActive: true, 'b2bPricing.bulkPricing': { $exists: true, $not: { $size: 0 } }, ...dateFilter }),
         Order.countDocuments(activeOrderFilter),
         Order.aggregate([
@@ -86,10 +91,6 @@ export const getB2bOverviewStats = asyncHandler(async (req, res) => {
             { $group: { _id: null, total: { $sum: '$total' } } }
         ])
     ]);
-
-    // If the B2B products filter doesn't return anything (e.g. no products use that exact schema),
-    // let's fallback to any products that might have isB2b true or just count all products as B2B if that's the business model.
-    // For now, keeping the strict bulkPricing filter as per common B2B schemas.
 
     res.status(200).json(new ApiResponse(200, {
         b2bUsers: b2bUsersCount,

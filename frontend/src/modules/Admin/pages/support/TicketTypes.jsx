@@ -24,13 +24,15 @@ const TicketTypes = () => {
     setIsLoading(true);
     try {
       const response = await getAllTicketTypes();
-      setTicketTypes(response?.data || []);
+      const list = response?.data || (Array.isArray(response) ? response : []);
+      setTicketTypes(Array.isArray(list) ? list : []);
     } catch {
       setTicketTypes([]);
     } finally {
       setIsLoading(false);
     }
   }, []);
+
 
   useEffect(() => {
     fetchTicketTypes();

@@ -7,10 +7,26 @@ import toast from 'react-hot-toast';
 
 const FeaturesEditor = () => {
   const navigate = useNavigate();
-  const { whyChooseUs, updateWhyChooseUs } = useLandingPageStore();
+  const { whyChooseUs, updateWhyChooseUs, whyChooseUsHeader, updateWhyChooseUsHeader } = useLandingPageStore();
+
+  const [headerData, setHeaderData] = useState({
+    tagline: whyChooseUsHeader?.tagline || 'Why Shop With Us',
+    heading: whyChooseUsHeader?.heading || 'A Smarter Way to',
+    highlightText: whyChooseUsHeader?.highlightText || 'Shop Online'
+  });
 
   const [editingIndex, setEditingIndex] = useState(null);
   const [formData, setFormData] = useState({ title: '', description: '', icon: 'DollarSign' });
+
+  const handleHeaderChange = (e) => {
+    const { name, value } = e.target;
+    setHeaderData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSaveHeader = () => {
+    updateWhyChooseUsHeader(headerData);
+    toast.success('Section header copy updated!');
+  };
 
   const handleStartEdit = (index) => {
     setEditingIndex(index);
@@ -82,6 +98,56 @@ const FeaturesEditor = () => {
             Add Feature Card
           </button>
         )}
+      </div>
+
+      {/* Section Header Controls */}
+      <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm space-y-4">
+        <h2 className="text-xs font-bold text-[#C07A3D] uppercase tracking-wider">
+          Section Title & Header Settings
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Badge / Tagline</label>
+            <input
+              type="text"
+              name="tagline"
+              value={headerData.tagline}
+              onChange={handleHeaderChange}
+              className="w-full text-sm border border-gray-200 rounded-lg p-2.5 outline-none focus:border-[#C07A3D]"
+              placeholder="e.g. Why Shop With Us"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Heading Prefix</label>
+            <input
+              type="text"
+              name="heading"
+              value={headerData.heading}
+              onChange={handleHeaderChange}
+              className="w-full text-sm border border-gray-200 rounded-lg p-2.5 outline-none focus:border-[#C07A3D]"
+              placeholder="e.g. A Smarter Way to"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Highlighted Heading Text</label>
+            <input
+              type="text"
+              name="highlightText"
+              value={headerData.highlightText}
+              onChange={handleHeaderChange}
+              className="w-full text-sm border border-gray-200 rounded-lg p-2.5 outline-none focus:border-[#C07A3D]"
+              placeholder="e.g. Shop Online"
+            />
+          </div>
+        </div>
+        <div className="flex justify-end pt-2">
+          <button
+            onClick={handleSaveHeader}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-black transition text-xs font-bold uppercase tracking-wider"
+          >
+            <FiSave size={14} /> Save Header Settings
+          </button>
+        </div>
       </div>
 
       {editingIndex !== null ? (

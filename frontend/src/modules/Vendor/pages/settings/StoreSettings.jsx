@@ -20,8 +20,9 @@ const StoreSettings = () => {
         email: vendor.email || "",
         phone: vendor.phone || "",
         address: vendor.address
-          ? `${vendor.address.street || ""}, ${vendor.address.city || ""}, ${vendor.address.state || ""
-          } ${vendor.address.zipCode || ""}`
+          ? (typeof vendor.address === 'string'
+              ? vendor.address
+              : [vendor.address.street, vendor.address.city, vendor.address.state, vendor.address.zipCode].filter(Boolean).join(", "))
           : "",
         businessHours: vendor.businessHours || "Mon-Fri 9AM-6PM",
         timezone: vendor.timezone || "UTC",
@@ -57,15 +58,23 @@ const StoreSettings = () => {
 
     try {
       // Parse address string into the object shape the backend expects
-      let addressData = vendor.address || {};
-      if (formData.address) {
+      let addressData = typeof vendor.address === 'object' && vendor.address !== null ? { ...vendor.address } : {};
+      if (formData.address && typeof formData.address === 'string') {
         const addressParts = formData.address.split(",");
         if (addressParts.length >= 3) {
+          const stateZip = (addressParts[2] || "").trim().split(" ");
           addressData = {
-            street: addressParts[0].trim(),
-            city: addressParts[1].trim(),
-            state: addressParts[2].trim().split(" ")[0],
-            zipCode: addressParts[2].trim().split(" ")[1] || "",
+            ...addressData,
+            street: addressParts[0]?.trim() || "",
+            city: addressParts[1]?.trim() || "",
+            state: stateZip[0] || "",
+            zipCode: stateZip[1] || "",
+            country: vendor.address?.country || "India",
+          };
+        } else {
+          addressData = {
+            ...addressData,
+            street: formData.address.trim(),
             country: vendor.address?.country || "India",
           };
         }

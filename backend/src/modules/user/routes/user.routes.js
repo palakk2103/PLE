@@ -152,6 +152,13 @@ router.post('/chat/vendor/threads/:id/messages', ...customerAuth, chatLimiter, c
 router.patch('/chat/vendor/threads/:id/read', ...customerAuth, customerChatController.markCustomerChatRead);
 router.post('/chat/vendor/threads/:id/report', ...customerAuth, customerChatController.reportCustomerChatMessage);
 router.post('/chat/vendor/threads/:id/block', ...customerAuth, customerChatController.toggleBlockCustomerChat);
-router.post('/chat/vendor/threads/:id/mute', ...customerAuth, customerChatController.toggleMuteCustomerChat);
+// Support Ticket routes (protected)
+import * as userSupportController from '../controllers/userSupport.controller.js';
+router.get('/support/tickets', ...customerAuth, userSupportController.getMyTickets);
+router.post('/support/tickets', ...customerAuth, userSupportController.createTicket);
+router.get('/support/tickets/:id', ...customerAuth, userSupportController.getTicketById);
+router.post('/support/tickets/:id/messages', ...customerAuth, userSupportController.addTicketReply);
+router.get('/support/ticket-types', userSupportController.getPublicTicketTypes);
 
 export default router;
+

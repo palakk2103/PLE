@@ -49,11 +49,19 @@ const GstSettings = () => {
     try {
       setLoading(true);
       const res = await api.get("/vendor/gst-settings");
-      if (res.data?.success) {
-        setData(res.data.data);
-        if (res.data.data.categoryBreakdown?.length > 0 && !selectedCategory) {
-          setSelectedCategory(res.data.data.categoryBreakdown[0]);
-          setCategoryGstRate(res.data.data.categoryBreakdown[0].categoryGstRate || 18);
+      const isSuccess = res?.success || res?.data?.success || (res && !res.error);
+      const payload = res?.data?.data || res?.data || res;
+      if (isSuccess && payload) {
+        setData({
+          totalProducts: payload.totalProducts || 0,
+          customGstCount: payload.customGstCount || 0,
+          categoryGstCount: payload.categoryGstCount || 0,
+          categoryBreakdown: Array.isArray(payload.categoryBreakdown) ? payload.categoryBreakdown : [],
+          products: Array.isArray(payload.products) ? payload.products : [],
+        });
+        if (payload.categoryBreakdown?.length > 0 && !selectedCategory) {
+          setSelectedCategory(payload.categoryBreakdown[0]);
+          setCategoryGstRate(payload.categoryBreakdown[0].categoryGstRate || 18);
         }
       }
     } catch (err) {
@@ -71,7 +79,7 @@ const GstSettings = () => {
   // Handle Global GST Update
   const handleApplyGlobalGst = async (applyToAll) => {
     const confirmMsg = applyToAll
-      ? `Are you sure you want to set ${globalGstRate}% GST on ALL ${data.totalProducts} products?`
+      ? `Are you sure you want to set ${globalGstRate}% GST on ALL ${data.totalProducts || 0} products?`
       : `Reset ALL products to use Category Default GST rates?`;
 
     if (!window.confirm(confirmMsg)) return;
@@ -82,12 +90,12 @@ const GstSettings = () => {
         gstRate: globalGstRate,
         applyToAll,
       });
-      if (res.data?.success) {
-        toast.success(res.data.message || "Global GST updated successfully");
+      if (res?.success || res?.data?.success) {
+        toast.success(res?.message || res?.data?.message || "Global GST updated successfully");
         fetchGstSettings();
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to update Global GST");
+      toast.error(err.response?.data?.message || err.message || "Failed to update Global GST");
     } finally {
       setSaving(false);
     }
@@ -103,12 +111,12 @@ const GstSettings = () => {
         gstRate: categoryGstRate,
         gstMode: categoryGstMode,
       });
-      if (res.data?.success) {
-        toast.success(res.data.message || "Category GST updated successfully");
+      if (res?.success || res?.data?.success) {
+        toast.success(res?.message || res?.data?.message || "Category GST updated successfully");
         fetchGstSettings();
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to update Category GST");
+      toast.error(err.response?.data?.message || err.message || "Failed to update Category GST");
     } finally {
       setSaving(false);
     }
@@ -123,13 +131,13 @@ const GstSettings = () => {
         gstMode: editForm.gstMode,
         gstRate: Number(editForm.gstRate),
       });
-      if (res.data?.success) {
+      if (res?.success || res?.data?.success) {
         toast.success("Product GST updated");
         setEditingProductId(null);
         fetchGstSettings();
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to update product GST");
+      toast.error(err.response?.data?.message || err.message || "Failed to update product GST");
     } finally {
       setSaving(false);
     }

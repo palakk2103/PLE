@@ -103,10 +103,10 @@ const MobileForgotPassword = () => {
             transition={{ duration: 0.5 }}
             className="w-full max-w-md"
           >
-            <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm border dark:border-zinc-800 transition-colors duration-500">
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl p-5 sm:p-6 shadow-sm border dark:border-zinc-800 transition-colors duration-500">
               <div className="text-center mb-8">
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-50 mb-2">Forgot Password</h1>
-                <p className="text-sm text-gray-600 dark:text-zinc-400">
+                <p className="text-sm text-gray-600 dark:text-zinc-400 break-all px-1">
                   {step === 'request'
                     ? 'Enter your account email to receive OTP.'
                     : `Enter the OTP sent to ${email}`}
@@ -139,7 +139,7 @@ const MobileForgotPassword = () => {
                 </form>
               ) : (
                 <form onSubmit={handleVerifyOtp} className="space-y-5">
-                  <div className="flex justify-center gap-2">
+                  <div className="flex items-center justify-center gap-1.5 sm:gap-2.5">
                     {codes.map((code, index) => (
                       <input
                         key={index}
@@ -151,7 +151,7 @@ const MobileForgotPassword = () => {
                         onChange={(e) => handleCodeChange(index, e.target.value)}
                         onKeyDown={(e) => handleKeyDown(index, e)}
                         onPaste={index === 0 ? handlePaste : undefined}
-                        className="w-11 h-11 text-center text-lg font-bold bg-white dark:bg-zinc-950 border-2 border-gray-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:border-[#AE020B] dark:focus:border-[#AE020B] text-gray-800 dark:text-white"
+                        className="w-10 h-11 xs:w-11 xs:h-12 sm:w-12 sm:h-12 text-center text-lg sm:text-xl font-bold bg-white dark:bg-zinc-950 border-2 border-gray-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:border-[#AE020B] dark:focus:border-[#AE020B] text-gray-800 dark:text-white transition-all flex-shrink-0"
                       />
                     ))}
                   </div>

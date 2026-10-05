@@ -4,7 +4,7 @@ import * as LucideIcons from 'lucide-react';
 import { useCMS } from '../../hooks/useCMS';
 
 export default function PortfolioHighlights() {
-  const { portfolioHighlights } = useCMS();
+  const { portfolioHighlights, portfolioHighlightsHeader } = useCMS();
 
   if (!portfolioHighlights || portfolioHighlights.length === 0) return null;
 
@@ -14,6 +14,10 @@ export default function PortfolioHighlights() {
     .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
 
   if (activeHighlights.length === 0) return null;
+
+  const badgeText = portfolioHighlightsHeader?.badge || 'Capability Showcase';
+  const titleText = portfolioHighlightsHeader?.title || 'Enterprise Procurement Highlights';
+  const subtitleText = portfolioHighlightsHeader?.subtitle || 'Strategic purchasing support options designed to maximize value, reduce IT administrative costs, and secure business operations.';
 
   return (
     <section className="py-20 px-4 bg-app-bg relative overflow-hidden" id="portfolio-highlights">
@@ -26,15 +30,22 @@ export default function PortfolioHighlights() {
           <div className="flex items-center justify-center gap-3">
             <span className="w-6 h-[2px] bg-client-primary" />
             <span className="text-[10px] font-black text-client-primary uppercase tracking-[0.3em]">
-              Capability Showcase
+              {badgeText}
             </span>
             <span className="w-6 h-[2px] bg-client-primary" />
           </div>
           <h2 className="text-3xl md:text-5xl font-black font-heading text-app-text">
-            Enterprise <span className="text-client-primary">Procurement Highlights</span>
+            {titleText.includes('Procurement Highlights') ? (
+              <>
+                {titleText.replace('Procurement Highlights', '')}
+                <span className="text-client-primary">Procurement Highlights</span>
+              </>
+            ) : (
+              titleText
+            )}
           </h2>
           <p className="text-sm text-app-text-muted max-w-xl mx-auto">
-            Strategic purchasing support options designed to maximize value, reduce IT administrative costs, and secure business operations.
+            {subtitleText}
           </p>
         </div>
 

@@ -47,7 +47,6 @@ const iconMap = {
   Chat: FiMessageCircle,
   "Admin Support Chat": FiMessageSquare,
   Promotions: FiTag,
-  "My Offers": FiTag,
   "Festival Campaigns": FiTag,
   Notifications: FiBell,
   "Shipping Management": FiTruck,
@@ -98,11 +97,6 @@ const getChildRoute = (parentRoute, childName) => {
     },
     "/vendor/shipping-management": {
       "Dispatch Settings": "/vendor/delivery-settings",
-    },
-    "/vendor/my-offers": {
-      "Dashboard": "/vendor/my-offers/dashboard",
-      "My Offers List": "/vendor/my-offers/list",
-      "Create Offer": "/vendor/my-offers/create",
     },
   };
 

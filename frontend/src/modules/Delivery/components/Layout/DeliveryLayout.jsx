@@ -54,7 +54,7 @@ const DeliveryLayout = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Mobile Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
-        <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center justify-between px-4 py-3 max-w-5xl mx-auto">
           {/* Logo */}
           <Link
             to="/delivery/dashboard"
@@ -164,7 +164,7 @@ const DeliveryLayout = () => {
       </AnimatePresence>
 
       {/* Main Content */}
-      <main className="pt-16 pb-20">
+      <main className="pt-16 pb-24 max-w-5xl mx-auto px-2 sm:px-4 md:px-6">
         <Outlet />
       </main>
 

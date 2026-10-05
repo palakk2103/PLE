@@ -52,6 +52,9 @@ const VendorDetail = () => {
   const [showFlagModal, setShowFlagModal] = useState(false);
   const [manualFlagReason, setManualFlagReason] = useState("");
   const [isFlagging, setIsFlagging] = useState(false);
+  const [showRejectAppealModal, setShowRejectAppealModal] = useState(false);
+  const [rejectAppealRemarks, setRejectAppealRemarks] = useState("");
+  const [isRejectingAppeal, setIsRejectingAppeal] = useState(false);
   const isSameVendorId = (a, b) => String(a) === String(b);
 
   const handleVerifyBusiness = async () => {
@@ -153,7 +156,13 @@ const VendorDetail = () => {
         setVendor(prev => ({
           ...prev,
           isFlagged: false,
-          flagReason: null
+          flagReason: null,
+          unflagAppeal: prev?.unflagAppeal?.status === 'PENDING' ? {
+            ...prev.unflagAppeal,
+            status: 'APPROVED',
+            adminRemarks: unflagReason.trim(),
+            reviewedAt: new Date().toISOString()
+          } : prev?.unflagAppeal
         }));
         setShowUnflagModal(false);
         setUnflagReason("");
@@ -163,6 +172,35 @@ const VendorDetail = () => {
       toast.error(err?.response?.data?.message || err?.message || "Failed to unflag vendor.");
     } finally {
       setIsUnflagging(false);
+    }
+  };
+
+  const handleRejectAppealSubmit = async () => {
+    if (!rejectAppealRemarks.trim()) {
+      toast.error("Please enter remarks/reason for rejecting the appeal.");
+      return;
+    }
+    setIsRejectingAppeal(true);
+    try {
+      const res = await api.patch(`/admin/vendors/${id}/reject-unflag-appeal`, { remarks: rejectAppealRemarks.trim() });
+      if (res?.data || res?.statusCode === 200 || res?.success) {
+        setVendor(prev => ({
+          ...prev,
+          unflagAppeal: {
+            ...prev?.unflagAppeal,
+            status: 'REJECTED',
+            adminRemarks: rejectAppealRemarks.trim(),
+            reviewedAt: new Date().toISOString()
+          }
+        }));
+        setShowRejectAppealModal(false);
+        setRejectAppealRemarks("");
+        toast.success("Vendor unflag appeal has been rejected.");
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || "Failed to reject appeal.");
+    } finally {
+      setIsRejectingAppeal(false);
     }
   };
 
@@ -532,6 +570,11 @@ const VendorDetail = () => {
               ⚠️ FLAGGED {vendor.strikeCount ? `(${vendor.strikeCount} strikes)` : ''}
             </span>
           )}
+          {vendor.unflagAppeal?.status === 'PENDING' && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-black bg-amber-100 text-amber-900 border border-amber-300 animate-pulse">
+              📩 APPEAL PENDING
+            </span>
+          )}
           {isRefurbishedEnabled && (
             <Badge variant="warning">REFURBISHED SELLER</Badge>
           )}
@@ -583,37 +626,99 @@ const VendorDetail = () => {
 
       {/* Flag Warning Banner */}
       {vendor.isFlagged && (
-        <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
-          <div className="flex items-start gap-3.5">
-            <div className="p-2.5 bg-rose-100 text-rose-600 rounded-xl text-xl flex-shrink-0 mt-0.5">
-              <FiShield />
-            </div>
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-bold text-rose-900 text-base">
-                  This Vendor Account is Currently FLAGGED
-                </h3>
-                {vendor.strikeCount > 0 && (
-                  <span className="bg-rose-200 text-rose-800 text-xs px-2 py-0.5 rounded-full font-bold">
-                    {vendor.strikeCount} {vendor.strikeCount === 1 ? 'Strike' : 'Strikes'}
-                  </span>
+        <div className="space-y-3">
+          <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+            <div className="flex items-start gap-3.5">
+              <div className="p-2.5 bg-rose-100 text-rose-600 rounded-xl text-xl flex-shrink-0 mt-0.5">
+                <FiShield />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-bold text-rose-900 text-base">
+                    This Vendor Account is Currently FLAGGED
+                  </h3>
+                  {vendor.strikeCount > 0 && (
+                    <span className="bg-rose-200 text-rose-800 text-xs px-2 py-0.5 rounded-full font-bold">
+                      {vendor.strikeCount} {vendor.strikeCount === 1 ? 'Strike' : 'Strikes'}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-rose-800 mt-1">
+                  <strong>Reason:</strong> {vendor.flagReason || 'Failed to fulfill or release product request within deadline.'}
+                </p>
+                {vendor.flaggedAt && (
+                  <p className="text-xs text-rose-600 mt-1">
+                    Flagged Date: {new Date(vendor.flaggedAt).toLocaleString()}
+                  </p>
                 )}
               </div>
-              <p className="text-sm text-rose-800 mt-1">
-                <strong>Reason:</strong> {vendor.flagReason || 'Failed to fulfill or release product request within deadline.'}
-              </p>
-              {vendor.flaggedAt && (
-                <p className="text-xs text-rose-600 mt-1">
-                  Flagged Date: {new Date(vendor.flaggedAt).toLocaleString()}
-                </p>
+            </div>
+            <button
+              onClick={() => setShowUnflagModal(true)}
+              className="self-start sm:self-center px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold rounded-lg shadow-sm transition-colors whitespace-nowrap">
+              Review & Unflag Account
+            </button>
+          </div>
+
+          {/* Pending Appeal Action Card */}
+          {vendor.unflagAppeal?.status === 'PENDING' && (
+            <div className="bg-amber-50 border border-amber-300 rounded-xl p-4 sm:p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-start gap-3.5">
+                <span className="text-2xl mt-0.5">📩</span>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h4 className="font-extrabold text-amber-950 text-base">
+                      Pending Unflag Appeal from Vendor
+                    </h4>
+                    <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-200 text-amber-900 border border-amber-300 animate-pulse">
+                      Action Required
+                    </span>
+                  </div>
+                  <div className="mt-2 bg-white/80 p-3 rounded-xl border border-amber-200">
+                    <p className="text-xs text-gray-500 font-semibold mb-1">Vendor's Explanation:</p>
+                    <p className="text-sm text-gray-800 font-medium italic">
+                      "{vendor.unflagAppeal.reason}"
+                    </p>
+                  </div>
+                  {vendor.unflagAppeal.requestedAt && (
+                    <p className="text-xs text-amber-800 mt-2">
+                      Submitted on: {new Date(vendor.unflagAppeal.requestedAt).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5 self-start md:self-center flex-shrink-0">
+                <button
+                  onClick={() => {
+                    setUnflagReason(`Approved Vendor Appeal: ${vendor.unflagAppeal.reason}`);
+                    setShowUnflagModal(true);
+                  }}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-lg shadow-sm transition-colors flex items-center gap-1.5 whitespace-nowrap"
+                >
+                  <FiCheckCircle />
+                  Approve & Unflag
+                </button>
+                <button
+                  onClick={() => setShowRejectAppealModal(true)}
+                  className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold rounded-lg shadow-sm transition-colors flex items-center gap-1.5 whitespace-nowrap"
+                >
+                  <FiXCircle />
+                  Reject Appeal
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Rejected Appeal History */}
+          {vendor.unflagAppeal?.status === 'REJECTED' && (
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs text-gray-700">
+              <span className="font-bold text-gray-900">Last Appeal Status: REJECTED by Administrator</span>
+              {vendor.unflagAppeal.adminRemarks && (
+                <p className="mt-0.5 text-gray-600">Rejection Remarks: {vendor.unflagAppeal.adminRemarks}</p>
               )}
             </div>
-          </div>
-          <button
-            onClick={() => setShowUnflagModal(true)}
-            className="self-start sm:self-center px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold rounded-lg shadow-sm transition-colors whitespace-nowrap">
-            Review & Unflag Account
-          </button>
+          )}
         </div>
       )}
 
@@ -1405,6 +1510,50 @@ const VendorDetail = () => {
                 className="px-4 py-2 text-sm text-white bg-rose-600 hover:bg-rose-700 rounded-lg font-semibold transition-colors disabled:opacity-50"
               >
                 {isFlagging ? "Flagging..." : "Confirm & Flag"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reject Unflag Appeal Modal */}
+      {showRejectAppealModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4">
+            <div className="flex items-center gap-2 text-rose-600">
+              <FiXCircle className="text-xl" />
+              <h3 className="text-lg font-bold text-gray-900">Reject Unflag Appeal</h3>
+            </div>
+            <p className="text-sm text-gray-600">
+              Vendor appeal: <em>"{vendor.unflagAppeal?.reason}"</em>. Please provide reasons for rejecting this appeal.
+            </p>
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">
+                Rejection Remarks <span className="text-rose-500">*</span>
+              </label>
+              <textarea
+                value={rejectAppealRemarks}
+                onChange={(e) => setRejectAppealRemarks(e.target.value)}
+                rows={4}
+                placeholder="e.g. Stock proof insufficient, repeated SLA breaches, please provide warehouse replenishment proof..."
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 text-gray-800 text-sm"
+                required
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => { setShowRejectAppealModal(false); setRejectAppealRemarks(""); }}
+                className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 font-semibold transition-colors"
+                disabled={isRejectingAppeal}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRejectAppealSubmit}
+                disabled={isRejectingAppeal || !rejectAppealRemarks.trim()}
+                className="px-4 py-2 text-sm text-white bg-rose-600 hover:bg-rose-700 rounded-lg font-semibold transition-colors disabled:opacity-50"
+              >
+                {isRejectingAppeal ? "Rejecting..." : "Confirm & Reject Appeal"}
               </button>
             </div>
           </div>

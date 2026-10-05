@@ -213,17 +213,31 @@ const VendorDashboard = () => {
               </p>
             </div>
           </div>
-          <button
-            onClick={() => navigate("/vendor/product-requests")}
-            className="self-start sm:self-center px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold transition-colors whitespace-nowrap"
-          >
-            View Requests
-          </button>
+          <div className="flex items-center gap-2 flex-wrap self-start sm:self-center">
+            {vendor?.unflagAppeal?.status === 'PENDING' ? (
+              <span className="px-3 py-1.5 bg-amber-100 text-amber-800 border border-amber-300 rounded-lg text-xs font-bold flex items-center gap-1.5 whitespace-nowrap">
+                <span>⏳</span> Appeal Under Review
+              </span>
+            ) : (
+              <button
+                onClick={() => navigate("/vendor/product-requests")}
+                className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold transition-colors whitespace-nowrap"
+              >
+                {vendor?.unflagAppeal?.status === 'REJECTED' ? 'Review & Re-appeal' : 'Request Unflag'}
+              </button>
+            )}
+            <button
+              onClick={() => navigate("/vendor/product-requests")}
+              className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold transition-colors whitespace-nowrap"
+            >
+              View Requests
+            </button>
+          </div>
         </div>
       )}
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {statCards.map((stat, index) => (
           <motion.div
             key={index}

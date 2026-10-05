@@ -49,7 +49,7 @@ const DeliveryBottomNav = () => {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 80, opacity: 0 }}
           transition={{ duration: 0.2, ease: "easeInOut" }}
-          className="mobile-bottom-nav fixed bottom-0 left-0 right-0 bg-white border-t border-l border-r border-accent-200/30 z-[9999] safe-area-bottom shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+          className="mobile-bottom-nav fixed bottom-0 left-0 right-0 md:max-w-md md:left-1/2 md:-translate-x-1/2 md:rounded-t-2xl md:border-t md:border-x bg-white border-t border-l border-r border-accent-200/30 z-[9999] safe-area-bottom shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
           <div className="flex items-center justify-around h-16 px-1">
             {navItems.map((item) => {
               const Icon = item.icon;

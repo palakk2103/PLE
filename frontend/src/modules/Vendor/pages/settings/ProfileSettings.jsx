@@ -33,6 +33,16 @@ const ProfileSettings = () => {
   });
   const [activeSection, setActiveSection] = useState('profile');
 
+  const formatAddress = (addr) => {
+    if (!addr) return '';
+    if (typeof addr === 'string') return addr;
+    if (typeof addr === 'object') {
+      const parts = [addr.street, addr.city, addr.state, addr.zipCode, addr.country].filter(Boolean);
+      return parts.join(', ');
+    }
+    return String(addr);
+  };
+
   useEffect(() => {
     if (vendor) {
       setFormData((prev) => ({
@@ -42,7 +52,7 @@ const ProfileSettings = () => {
         email: vendor.email || vendor.username || '',
         companyName: vendor.companyName || '',
         gstNumber: vendor.gstNumber || '',
-        address: vendor.address || '',
+        address: formatAddress(vendor.address),
       }));
     }
   }, [vendor]);

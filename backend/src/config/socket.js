@@ -1,6 +1,7 @@
 import { Server } from "socket.io";
 import { verifyAccessToken } from "./jwt.js";
 import VendorChatThread from "../models/VendorChatThread.model.js";
+import AdminManagedVendorThread from "../models/AdminManagedVendorThread.model.js";
 import { DirectRFQ } from "../models/DirectRFQ.model.js";
 import RFQ from "../models/RFQ.model.js";
 
@@ -114,18 +115,33 @@ export const initSocket = (server) => {
                 }
 
                 const thread = await VendorChatThread.findById(threadId).select('customerUserId vendorId').lean();
-                if (!thread) {
-                    return socket.emit("error", { message: "Chat thread not found." });
+                if (thread) {
+                    const isCustomer = thread.customerUserId?.toString() === socket.user.id;
+                    const isVendor = thread.vendorId?.toString() === socket.user.id;
+
+                    if (isCustomer || isVendor) {
+                        socket.join(`chat_${threadId}`);
+                    } else {
+                        socket.emit("error", { message: "Unauthorized to join this chat room." });
+                    }
+                    return;
                 }
 
-                const isCustomer = thread.customerUserId?.toString() === socket.user.id;
-                const isVendor = thread.vendorId?.toString() === socket.user.id;
+                // Support AdminManagedVendorThread for vendor-admin conversations
+                const amvThread = await AdminManagedVendorThread.findById(threadId).select('adminId managedVendorId').lean();
+                if (amvThread) {
+                    const isVendor = amvThread.managedVendorId?.toString() === socket.user.id;
+                    const isAdmin = amvThread.adminId?.toString() === socket.user.id;
 
-                if (isCustomer || isVendor) {
-                    socket.join(`chat_${threadId}`);
-                } else {
-                    socket.emit("error", { message: "Unauthorized to join this chat room." });
+                    if (isVendor || isAdmin) {
+                        socket.join(`chat_${threadId}`);
+                    } else {
+                        socket.emit("error", { message: "Unauthorized to join this admin chat room." });
+                    }
+                    return;
                 }
+
+                return socket.emit("error", { message: "Chat thread not found." });
             } catch (err) {
                 socket.emit("error", { message: "Failed to join chat room." });
             }

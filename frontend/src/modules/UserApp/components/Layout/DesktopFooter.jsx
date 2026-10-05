@@ -28,7 +28,7 @@ const DesktopFooter = () => {
   return (
     <footer className="hidden md:block bg-[#f3f4f6] dark:bg-[#080808] border-t border-gray-200 dark:border-neutral-900">
       {/* Main Footer Content */}
-      <div className="w-full px-4 md:px-8 lg:px-12 xl:px-16 py-16">
+      <div className="w-full max-w-7xl mx-auto px-4 md:px-8 lg:px-12 xl:px-16 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Column 1: Brand Info */}
           <div className="flex flex-col gap-6">
@@ -214,7 +214,7 @@ const DesktopFooter = () => {
 
       {/* Bottom Footer Credits */}
       <div className="border-t border-gray-200 dark:border-neutral-900 py-6">
-        <div className="w-full px-4 md:px-8 lg:px-12 xl:px-16 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-400 dark:text-gray-500">
+        <div className="w-full max-w-7xl mx-auto px-4 md:px-8 lg:px-12 xl:px-16 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-400 dark:text-gray-500">
           <span>&copy; {new Date().getFullYear()} PLE Inc. All rights reserved.</span>
           <div className="flex items-center gap-6">
             <Link to="/privacy-policy" className="hover:text-[#7B0A0A] dark:hover:text-[#FF4D4D] transition-colors">Privacy</Link>

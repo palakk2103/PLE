@@ -103,15 +103,31 @@ const redirectTo = (path) => {
   window.location.href = path;
 };
 
-const getScopeFromUrl = (url = '') => {
-  if (url.startsWith('/admin')) return 'admin';
-  if (url.startsWith('/vendor')) return 'vendor';
-  if (url.startsWith('/delivery')) return 'delivery';
-  if (url.startsWith('/b2b-user')) return 'b2bAdmin';
+const getContextScope = (url = '', currentPath = (typeof window !== 'undefined' ? window.location.pathname : '')) => {
+  const cleanUrl = String(url || '').replace(/^(https?:\/\/[^/]+)?(\/?api)?/, '');
+  const normalizedUrl = cleanUrl.startsWith('/') ? cleanUrl : `/${cleanUrl}`;
+
+  if (normalizedUrl.startsWith('/admin') || normalizedUrl.startsWith('/wallet/admin')) return 'admin';
+  if (normalizedUrl.startsWith('/vendor') || normalizedUrl.startsWith('/wallet/vendor')) return 'vendor';
+  if (normalizedUrl.startsWith('/delivery') || normalizedUrl.startsWith('/wallet/delivery')) return 'delivery';
+  if (normalizedUrl.startsWith('/b2b-user')) return 'b2bAdmin';
+
+  // Context-aware fallback: if URL is a shared endpoint (e.g. /settings, /categories, /brands, /chat, /wallet, /notifications, etc.),
+  // check which dashboard portal the user is currently browsing!
+  if (currentPath.startsWith('/admin')) return 'admin';
+  if (currentPath.startsWith('/vendor')) return 'vendor';
+  if (currentPath.startsWith('/delivery')) return 'delivery';
+  if (currentPath.startsWith('/b2b-dashboard')) return 'b2bAdmin';
+
   return 'user';
 };
 
-const getScopeFromPath = (path = window.location.pathname) => {
+const getScopeFromUrl = (url = '') => {
+  const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+  return getContextScope(url, currentPath);
+};
+
+const getScopeFromPath = (path = (typeof window !== 'undefined' ? window.location.pathname : '')) => {
   if (path.startsWith('/admin')) return 'admin';
   if (path.startsWith('/vendor')) return 'vendor';
   if (path.startsWith('/delivery')) return 'delivery';
@@ -246,13 +262,15 @@ const clearCacheByUrlMatch = (url = '') => {
 
 api.interceptors.request.use(
   (config) => {
-    const scope = getScopeFromUrl(config.url || '');
-    let token = getStorageItem(AUTH_SCOPES[scope].accessKey);
+    const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+    const scope = getContextScope(config.url || '', currentPath);
+    let token = getStorageItem(AUTH_SCOPES[scope]?.accessKey || 'token');
 
-    // Prioritize B2B Admin token for shared '/user' endpoints if the user is acting as a B2B Admin
-    if (scope === 'user') {
+    // Only apply B2B Admin token for storefront requests if explicitly in business buyer context and NOT on another portal dashboard
+    if (scope === 'user' && !currentPath.startsWith('/admin') && !currentPath.startsWith('/vendor') && !currentPath.startsWith('/delivery')) {
+      const isBusinessBuyer = localStorage.getItem('b2b-storage') || sessionStorage.getItem('b2b-storage');
       const b2bToken = getStorageItem('b2bAdminToken');
-      if (b2bToken) {
+      if (b2bToken && isBusinessBuyer) {
         token = b2bToken;
       }
     }
@@ -418,6 +436,23 @@ api.interceptors.response.use(
     const now = Date.now();
     const isRecentNetworkToast = isNetworkError && (now - (window._lastNetworkErrorToastTime || 0) < 10000);
     const shouldSkipToast = originalRequest?.skipErrorToast || originalRequest?.silent;
+
+    // Handle 403 role-mismatch errors specifically
+    if (status === 403) {
+      const isRoleMismatch = typeof rawMessage === 'string' && (
+        rawMessage.toLowerCase().includes('required role') ||
+        rawMessage.toLowerCase().includes('access denied')
+      );
+      if (isRoleMismatch && pathScope !== 'user') {
+        const routeConfig = AUTH_SCOPES[pathScope];
+        if (routeConfig && currentPath.startsWith(routeConfig.areaPrefix) && currentPath !== routeConfig.loginPath) {
+          await clearScopeAuth(pathScope);
+          toast.error(`Session unauthorized for this portal (${rawMessage}). Please log in with the correct account.`);
+          redirectTo(routeConfig.loginPath);
+          return Promise.reject(error);
+        }
+      }
+    }
 
     // Do not show error toast on silent 401 background checks, cancelled requests, or flood
     if (status !== 401 && message && !axios.isCancel(error) && !isRecentNetworkToast && !shouldSkipToast) {

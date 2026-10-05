@@ -7,7 +7,22 @@ import toast from 'react-hot-toast';
 
 const GalleryEditor = () => {
   const navigate = useNavigate();
-  const { gallery, updateGallery } = useLandingPageStore();
+  const { gallery, updateGallery, galleryHeader, updateGalleryHeader } = useLandingPageStore();
+
+  const [headerData, setHeaderData] = useState({
+    title: galleryHeader?.title || 'Our Gallery',
+    subtitle: galleryHeader?.subtitle || 'Take a look at our creative projects, events, and modern working spaces.'
+  });
+
+  const handleHeaderChange = (e) => {
+    const { name, value } = e.target;
+    setHeaderData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSaveHeader = () => {
+    updateGalleryHeader(headerData);
+    toast.success('Gallery header updated!');
+  };
 
   const [editingIndex, setEditingIndex] = useState(null);
   const [formData, setFormData] = useState({ id: '', url: '', title: '' });
@@ -86,6 +101,43 @@ const GalleryEditor = () => {
             Add Image
           </button>
         )}
+      </div>
+
+      {/* Section Header Controls */}
+      <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm space-y-4">
+        <h2 className="text-xs font-bold text-[#C07A3D] uppercase tracking-wider">
+          Section Title & Header Settings
+        </h2>
+        <div>
+          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Heading Title</label>
+          <input
+            type="text"
+            name="title"
+            value={headerData.title}
+            onChange={handleHeaderChange}
+            className="w-full text-sm border border-gray-200 rounded-lg p-2.5 outline-none focus:border-[#C07A3D]"
+            placeholder="e.g. Our Gallery"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Subtitle / Description</label>
+          <textarea
+            rows="2"
+            name="subtitle"
+            value={headerData.subtitle}
+            onChange={handleHeaderChange}
+            className="w-full text-sm border border-gray-200 rounded-lg p-2.5 outline-none focus:border-[#C07A3D]"
+            placeholder="Description of the gallery"
+          />
+        </div>
+        <div className="flex justify-end pt-1">
+          <button
+            onClick={handleSaveHeader}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-black transition text-xs font-bold uppercase tracking-wider"
+          >
+            <FiSave size={14} /> Save Header Settings
+          </button>
+        </div>
       </div>
 
       {editingIndex !== null ? (

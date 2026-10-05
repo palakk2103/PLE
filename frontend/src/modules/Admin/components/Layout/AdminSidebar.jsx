@@ -37,6 +37,8 @@ import adminMenu from "../../config/adminMenu.json";
 // Icon mapping for menu items
 const iconMap = {
   Dashboard: FiHome,
+  "Account Team": FiUsers,
+  "Activity / Audit Logs": FiFileText,
   Orders: FiShoppingBag,
   "Return Requests": FiRotateCcw,
   Products: FiPackage,
@@ -65,6 +67,9 @@ const iconMap = {
   "Landing Page": FiGlobe,
   "B2B Users": FiUsers,
   "Wallet Management": FiCreditCard,
+  "In-House Shops & Staff": FiBriefcase,
+  "In-House Staff Chats": FiMessageSquare,
+  "Marketplace Sellers": FiUsers,
   "My Shops": FiBriefcase,
   "Managed Vendor Chats": FiMessageSquare,
   "About Page": FiLayout,
@@ -98,7 +103,6 @@ const getChildRoute = (parentRoute, childName) => {
     "/admin/b2b": {
       "Business Users": "/admin/b2b/business-users",
       "Company Management": "/admin/b2b/companies",
-      "B2B Seller Requests": "/admin/vendors/b2b-requests",
       "B2B Products": "/admin/b2b/b2b-products",
       "B2B Orders": "/admin/b2b/b2b-orders",
       "B2B Settings": "/admin/b2b/b2b-settings",
@@ -127,7 +131,9 @@ const getChildRoute = (parentRoute, childName) => {
       "Logistics Control Center": "/admin/delivery-control",
     },
     "/admin/vendors": {
+      "All Sellers": "/admin/vendors/manage-vendors",
       "Manage Vendors": "/admin/vendors/manage-vendors",
+      "Seller Approvals": "/admin/vendors/pending-approvals",
       "Pending Approvals": "/admin/vendors/pending-approvals",
       "B2B Seller Requests": "/admin/vendors/b2b-requests",
       "Commission Rates": "/admin/vendors/commission-rates",
@@ -139,7 +145,6 @@ const getChildRoute = (parentRoute, childName) => {
     "/admin/b2b-users": {
       "Manage B2B Users": "/admin/b2b-users/manage",
       "Pending Approvals": "/admin/b2b-users/pending",
-      "B2B Seller Requests": "/admin/vendors/b2b-requests",
       "B2B Analytics": "/admin/b2b-users/analytics",
     },
     "/admin/offers": {
@@ -200,6 +205,9 @@ const getChildRoute = (parentRoute, childName) => {
     "/admin/landing-page": {
       "Dashboard": "/admin/landing-page",
       "Hero Section": "/admin/landing-page/hero",
+      "Portfolio Highlights": "/admin/landing-page/portfolio-highlights",
+      "Explore Catalogue": "/admin/landing-page/catalogue",
+      "Product Categories": "/admin/landing-page/product-categories",
       "Services / Categories": "/admin/landing-page/services",
       "Features": "/admin/landing-page/features",
       "Comparison Table": "/admin/landing-page/comparison",
@@ -207,6 +215,11 @@ const getChildRoute = (parentRoute, childName) => {
       "Testimonials": "/admin/landing-page/testimonials",
       "Product Showcase": "/admin/landing-page/products",
       "Deals & Rewards": "/admin/landing-page/pricing",
+      "CPO Section": "/admin/landing-page/cpo",
+      "GPO Section": "/admin/landing-page/gpo",
+      "Smart Deals": "/admin/landing-page/smart-deals",
+      "Loyalty Rewards": "/admin/landing-page/loyalty-rewards",
+      "Zero Maintenance": "/admin/landing-page/zero-maintenance",
       "FAQ Section": "/admin/landing-page/faq",
       "Gallery": "/admin/landing-page/gallery",
       "Contact & Social": "/admin/landing-page/contact",
@@ -456,9 +469,21 @@ const AdminSidebar = ({ isOpen, onClose }) => {
               <h2 className="font-semibold text-white text-sm truncate">
                 {admin?.name || "Admin User"}
               </h2>
-              <p className="text-xs text-[#8E7768] truncate">
-                {admin?.email || "admin@admin.com"}
-              </p>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <p className="text-xs text-[#8E7768] truncate max-w-[130px]">
+                  {admin?.identityId || admin?.email || "admin@admin.com"}
+                </p>
+                {admin?.role === 'account_team' && (
+                  <span className="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                    Team
+                  </span>
+                )}
+                {(admin?.role === 'superadmin' || admin?.role === 'admin') && (
+                  <span className="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded bg-[#C07A3D]/20 text-[#F5E6DA] border border-[#C07A3D]/30">
+                    Super Admin
+                  </span>
+                )}
+              </div>
             </div>
           </div>
  
@@ -474,7 +499,21 @@ const AdminSidebar = ({ isOpen, onClose }) => {
 
       {/* Navigation Menu */}
       <nav className="flex-1 overflow-y-auto p-3 scrollbar-admin lg:pb-3">
-        {adminMenu.map((item) => renderMenuItem(item))}
+        {(() => {
+          const userRole = String(admin?.role || admin?.userType || '').toLowerCase();
+          const isSuperAdmin = userRole === 'superadmin' || userRole === 'admin';
+          const superAdminOnlyTitles = new Set([
+            'Account Team',
+            'Activity / Audit Logs',
+            'Settings',
+            'Policies',
+            'Firebase'
+          ]);
+          const menuItems = isSuperAdmin
+            ? adminMenu
+            : adminMenu.filter((item) => !superAdminOnlyTitles.has(item.title));
+          return menuItems.map((item) => renderMenuItem(item));
+        })()}
       </nav>
     </div>
   );

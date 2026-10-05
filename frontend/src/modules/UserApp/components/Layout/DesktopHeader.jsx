@@ -115,7 +115,7 @@ const DesktopHeader = () => {
     if (isBusiness) {
         return (
             <header className="hidden md:block sticky top-0 z-[999] bg-[#0d0d0d] text-white border-b border-zinc-800 shadow-lg">
-                <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 h-20 flex items-center justify-between gap-3 lg:gap-6">
+                <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 h-20 flex items-center justify-between gap-3 lg:gap-6">
                     {/* Logo & Hamburger */}
                     <div className="flex items-center gap-3 lg:gap-4 flex-shrink-0">
                         <Link to="/home" className="flex items-center gap-2">
@@ -327,7 +327,7 @@ const DesktopHeader = () => {
 
     return (
         <header className="hidden md:block sticky top-0 z-[999] bg-[#ffffff] dark:!bg-black shadow-sm border-b border-gray-100 dark:!border-black">
-            <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 h-20 flex items-center justify-between gap-3 lg:gap-6">
+            <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 h-20 flex items-center justify-between gap-3 lg:gap-6">
                 {/* Logo */}
                 <Link to="/home" className="flex-shrink-0 flex items-center gap-2">
                     {appLogo.src ? (

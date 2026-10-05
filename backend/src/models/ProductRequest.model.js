@@ -221,7 +221,8 @@ const productRequestSchema = new mongoose.Schema({
     releasedVendors: [{
         vendorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vendor' },
         releasedAt: { type: Date, default: Date.now },
-        reason: { type: String }
+        reason: { type: String },
+        chatThreadId: { type: mongoose.Schema.Types.ObjectId, ref: 'VendorChatThread', default: null }
     }],
     // ─── Chat & Quotation Fields ───────────────────────────────────────────────
     chatThreadId: {

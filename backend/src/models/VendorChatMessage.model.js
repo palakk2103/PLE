@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { encryptMessage, decryptMessage } from '../utils/chatEncryption.util.js';
 
 const vendorChatMessageSchema = new mongoose.Schema(
     {
@@ -18,9 +19,19 @@ const vendorChatMessageSchema = new mongoose.Schema(
             default: null,
             index: true,
         },
-        message: { type: String, required: true, trim: true },
+        message: {
+            type: String,
+            required: true,
+            trim: true,
+            set: encryptMessage,
+            get: decryptMessage,
+        },
     },
-    { timestamps: true }
+    {
+        timestamps: true,
+        toJSON: { getters: true },
+        toObject: { getters: true },
+    }
 );
 
 vendorChatMessageSchema.index({ threadId: 1, createdAt: 1 });
@@ -28,3 +39,4 @@ vendorChatMessageSchema.index({ threadId: 1, createdAt: 1 });
 const VendorChatMessage = mongoose.models.VendorChatMessage || mongoose.model('VendorChatMessage', vendorChatMessageSchema);
 export { VendorChatMessage };
 export default VendorChatMessage;
+

@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { encryptMessage, decryptMessage } from '../utils/chatEncryption.util.js';
 
 /**
  * ChatReport — records user or vendor reported chat violations/abuse.
@@ -20,7 +21,10 @@ const chatReportSchema = new mongoose.Schema(
             type: String,
             trim: true,
             default: '',
+            set: encryptMessage,
+            get: decryptMessage,
         },
+
         reporterId: {
             type: mongoose.Schema.Types.ObjectId,
             required: true,
@@ -88,8 +92,13 @@ const chatReportSchema = new mongoose.Schema(
             default: null,
         },
     },
-    { timestamps: true }
+    {
+        timestamps: true,
+        toJSON: { getters: true },
+        toObject: { getters: true },
+    }
 );
+
 
 chatReportSchema.index({ createdAt: -1 });
 chatReportSchema.index({ status: 1, createdAt: -1 });

@@ -238,17 +238,10 @@ export const acceptVendorWindow = asyncHandler(async (req, res) => {
         throw new ApiError(403, 'Your account is currently FLAGGED due to an unfulfilled product request deadline. You cannot accept new product requests until reviewed and unflagged by Administrator.');
     }
 
-    // Check if this vendor previously released this request (no re-entry by default)
+    // Verify product request exists
     const requestCheck = await ProductRequest.findOne({ requestId: req.params.id });
     if (!requestCheck) {
         throw new ApiError(404, 'Product request not found.');
-    }
-
-    const alreadyReleased = requestCheck.releasedVendors.some(
-        rv => String(rv.vendorId) === String(sellerId)
-    );
-    if (alreadyReleased) {
-        throw new ApiError(400, 'You have already released this request and cannot accept it again.');
     }
 
     const now = new Date();
@@ -350,18 +343,38 @@ export const releaseRequest = asyncHandler(async (req, res) => {
     const now = new Date();
     const releaseReason = reason || 'Vendor unable to fulfill the request.';
 
-    // Track this vendor in releasedVendors
+    // Archive and detach any active chat thread for this vendor on this request
+    const { default: VendorChatThread } = await import('../../../models/VendorChatThread.model.js');
+    const activeChatThread = await VendorChatThread.findOne({
+        vendorId: sellerId,
+        productRequestRef: request._id
+    });
+
+    let archivedThreadId = null;
+    if (activeChatThread) {
+        archivedThreadId = activeChatThread._id;
+        activeChatThread.status = 'closed';
+        activeChatThread.isReleased = true;
+        activeChatThread.hiddenForVendor = true;
+        activeChatThread.archivedProductRequestRef = request._id;
+        activeChatThread.productRequestRef = null; // Unlink to free up unique index for any future re-acceptance
+        await activeChatThread.save();
+    }
+
+    // Track this vendor in releasedVendors along with archived chat reference
     request.releasedVendors.push({
         vendorId: sellerId,
         releasedAt: now,
-        reason: releaseReason
+        reason: releaseReason,
+        chatThreadId: archivedThreadId
     });
 
-    // Release the lock
+    // Release the lock and clear active chat thread reference on the request
     request.acceptedVendorId = null;
     request.vendorAcceptedAt = null;
     request.vendorFulfillmentExpiresAt = null;
     request.vendorFulfillmentStatus = 'RELEASED';
+    request.chatThreadId = null;
 
     // Check if overall window still valid
     const windowStillValid = request.windowExpiresAt && request.windowExpiresAt > now;

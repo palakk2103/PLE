@@ -14,11 +14,14 @@ const staggerContainer = {
 };
 
 export default function PortfolioPreview() {
-  const { products, portfolioHighlights } = useCMS();
+  const { products, portfolioHighlights, productsHeader } = useCMS();
 
   const activeHighlights = (portfolioHighlights || [])
     .filter(hl => hl.status)
     .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+
+  const badgeText = productsHeader?.badge || 'Featured Picks';
+  const titleText = productsHeader?.title || 'Curated Collections';
 
   return (
     <section className="pt-4 pb-12 px-4 bg-app-bg relative overflow-hidden" id="portfolio">
@@ -37,7 +40,7 @@ export default function PortfolioPreview() {
           >
             <span className="w-6 h-[2px] bg-client-primary" />
             <span className="text-[10px] font-black text-client-primary uppercase tracking-[0.3em]">
-              Featured Picks
+              {badgeText}
             </span>
             <span className="w-6 h-[2px] bg-client-primary" />
           </motion.div>
@@ -48,7 +51,13 @@ export default function PortfolioPreview() {
             transition={{ delay: 0.1 }}
             className="text-3xl md:text-4xl font-black font-heading text-app-text"
           >
-            Curated <span className="text-client-primary">Collections</span>
+            {titleText.includes('Collections') ? (
+              <>
+                {titleText.replace('Collections', '')} <span className="text-client-primary">Collections</span>
+              </>
+            ) : (
+              titleText
+            )}
           </motion.h2>
         </div>
 

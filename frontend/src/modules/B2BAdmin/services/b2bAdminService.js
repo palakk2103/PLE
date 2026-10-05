@@ -18,9 +18,10 @@ export const deleteEmployee = (id) => api.delete(`/b2b-user/admin/employees/${id
 // ─── Profiles ───────────────────────────────────────────────────────────────
 export const getCompanyProfile = () => api.get('/b2b-user/admin/company');
 export const updateCompanyProfile = (data) => api.put('/b2b-user/admin/company', data);
-export const uploadCompanyLegalDocument = (file) => {
+export const uploadCompanyLegalDocument = (file, docType = 'acceptanceExecutionDocument') => {
   const formData = new FormData();
   formData.append('file', file);
+  formData.append('docType', docType);
   return api.put('/b2b-user/admin/company/legal-document', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
@@ -42,5 +43,12 @@ export const payPurchaseOrder = (id, data) => api.patch(`/b2b-user/admin/purchas
 
 // ─── Wallet Allotment ────────────────────────────────────────────────────────
 export const allotEmployeeWallet = (id, amount) => api.post(`/b2b-user/admin/employees/${id}/allot-wallet`, { amount });
+
+// ─── Admin Profile OTP ───────────────────────────────────────────────────────
+export const verifyAdminProfileOTP = (data) => api.post('/b2b-user/admin/profile/verify-otp', data);
+export const resendAdminProfileOTP = (data) => api.post('/b2b-user/admin/profile/resend-otp', data);
+
+export { api };
+export default api;
 
 

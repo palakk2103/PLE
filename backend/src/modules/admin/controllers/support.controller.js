@@ -6,6 +6,24 @@ import { asyncHandler } from '../../../utils/asyncHandler.js';
 
 const escapeRegex = (value = '') => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+const findTicketByIdOrNumber = async (id, populate = false) => {
+    let query = null;
+    if (id && /^[0-9a-fA-F]{24}$/.test(id)) {
+        query = SupportTicket.findById(id);
+    } else {
+        query = SupportTicket.findOne({ ticketNumber: id });
+    }
+
+    if (populate && query) {
+        query = query
+            .populate('userId', 'name email phone')
+            .populate('vendorId', 'shopName email')
+            .populate('ticketTypeId', 'name');
+    }
+
+    return query ? await query : null;
+};
+
 /**
  * @desc    Get all support tickets with filtering and pagination
  * @route   GET /api/admin/support/tickets
@@ -27,9 +45,11 @@ export const getAllTickets = asyncHandler(async (req, res) => {
     }
 
     if (search) {
+        const safeSearch = escapeRegex(search.trim());
         filter.$or = [
-            { subject: { $regex: search, $options: 'i' } },
-            // If search is an ID
+            { subject: { $regex: safeSearch, $options: 'i' } },
+            { description: { $regex: safeSearch, $options: 'i' } },
+            { ticketNumber: { $regex: safeSearch, $options: 'i' } },
             ...(search.match(/^[0-9a-fA-F]{24}$/) ? [{ _id: search }] : [])
         ];
     }
@@ -47,7 +67,8 @@ export const getAllTickets = asyncHandler(async (req, res) => {
     // Normalize for frontend
     const normalizedTickets = tickets.map(ticket => ({
         ...ticket._doc,
-        id: ticket._id,
+        id: ticket.ticketNumber || String(ticket._id),
+        _id: ticket._id,
         customer: ticket.userId ? {
             name: ticket.userId.name,
             email: ticket.userId.email,
@@ -56,7 +77,7 @@ export const getAllTickets = asyncHandler(async (req, res) => {
             name: ticket.vendorId.shopName,
             email: ticket.vendorId.email
         } : { name: 'Anonymous' }),
-        category: ticket.ticketTypeId ? ticket.ticketTypeId.name : 'General',
+        category: ticket.ticketTypeId ? ticket.ticketTypeId.name : (ticket.category || 'General'),
         lastUpdate: ticket.updatedAt
     }));
 
@@ -79,10 +100,7 @@ export const getAllTickets = asyncHandler(async (req, res) => {
  * @access  Private (Admin)
  */
 export const getTicketById = asyncHandler(async (req, res) => {
-    const ticket = await SupportTicket.findById(req.params.id)
-        .populate('userId', 'name email phone')
-        .populate('vendorId', 'shopName email')
-        .populate('ticketTypeId', 'name');
+    const ticket = await findTicketByIdOrNumber(req.params.id, true);
 
     if (!ticket) {
         throw new ApiError(404, 'Ticket not found');
@@ -91,7 +109,8 @@ export const getTicketById = asyncHandler(async (req, res) => {
     // Normalize
     const normalized = {
         ...ticket._doc,
-        id: ticket._id,
+        id: ticket.ticketNumber || String(ticket._id),
+        _id: ticket._id,
         customer: ticket.userId ? {
             name: ticket.userId.name,
             email: ticket.userId.email,
@@ -100,7 +119,8 @@ export const getTicketById = asyncHandler(async (req, res) => {
             name: ticket.vendorId.shopName,
             email: ticket.vendorId.email
         } : { name: 'Anonymous' }),
-        category: ticket.ticketTypeId ? ticket.ticketTypeId.name : 'General'
+        category: ticket.ticketTypeId ? ticket.ticketTypeId.name : (ticket.category || 'General'),
+        lastUpdate: ticket.updatedAt
     };
 
     res.status(200).json(
@@ -114,9 +134,9 @@ export const getTicketById = asyncHandler(async (req, res) => {
  * @access  Private (Admin)
  */
 export const updateTicketStatus = asyncHandler(async (req, res) => {
-    const { status, priority } = req.body;
+    const { status, priority, note } = req.body;
 
-    const ticket = await SupportTicket.findById(req.params.id);
+    const ticket = await findTicketByIdOrNumber(req.params.id, false);
 
     if (!ticket) {
         throw new ApiError(404, 'Ticket not found');
@@ -125,10 +145,22 @@ export const updateTicketStatus = asyncHandler(async (req, res) => {
     if (status) ticket.status = status;
     if (priority) ticket.priority = priority;
 
+    if (!ticket.timeline) ticket.timeline = [];
+    if (status || note) {
+        ticket.timeline.push({
+            status: status || ticket.status,
+            changedAt: new Date(),
+            note: note || `Admin updated status to ${(status || ticket.status).replace('_', ' ')}`
+        });
+    }
+
     await ticket.save();
 
     res.status(200).json(
-        new ApiResponse(200, ticket, 'Ticket status updated successfully')
+        new ApiResponse(200, {
+            ...ticket._doc,
+            id: ticket.ticketNumber || String(ticket._id)
+        }, 'Ticket status updated successfully')
     );
 });
 
@@ -138,34 +170,64 @@ export const updateTicketStatus = asyncHandler(async (req, res) => {
  * @access  Private (Admin)
  */
 export const addTicketMessage = asyncHandler(async (req, res) => {
-    const { message } = req.body;
+    const { message, attachment } = req.body;
     const trimmedMessage = String(message || '').trim();
-    if (!trimmedMessage) {
-        throw new ApiError(400, 'Message is required');
+    if (!trimmedMessage && !attachment) {
+        throw new ApiError(400, 'Message or attachment is required');
     }
 
-    const ticket = await SupportTicket.findById(req.params.id);
+    const ticket = await findTicketByIdOrNumber(req.params.id, false);
 
     if (!ticket) {
         throw new ApiError(404, 'Ticket not found');
     }
 
-    ticket.messages.push({
-        senderId: req.user._id, // Assuming req.user is set by auth middleware
+    const newMsg = {
+        senderId: req.user?._id || req.user?.id,
         senderType: 'admin',
-        message: trimmedMessage
-    });
+        message: trimmedMessage,
+        attachment: attachment || null,
+        attachments: attachment ? [attachment] : [],
+        createdAt: new Date()
+    };
+
+    if (!ticket.messages) ticket.messages = [];
+    ticket.messages.push(newMsg);
 
     // Automatically set to in_progress if an admin replies
     if (ticket.status === 'open') {
         ticket.status = 'in_progress';
+        if (!ticket.timeline) ticket.timeline = [];
+        ticket.timeline.push({
+            status: 'in_progress',
+            changedAt: new Date(),
+            note: 'Admin replied to ticket'
+        });
     }
 
     await ticket.save();
 
     res.status(200).json(
-        new ApiResponse(200, ticket.messages[ticket.messages.length - 1], 'Message added successfully')
+        new ApiResponse(200, newMsg, 'Message added successfully')
     );
+});
+
+/**
+ * @desc    Delete ticket
+ * @route   DELETE /api/admin/support/tickets/:id
+ * @access  Private (Admin)
+ */
+export const deleteTicket = asyncHandler(async (req, res) => {
+    let ticket = null;
+    if (/^[0-9a-fA-F]{24}$/.test(req.params.id)) {
+        ticket = await SupportTicket.findByIdAndDelete(req.params.id);
+    } else {
+        ticket = await SupportTicket.findOneAndDelete({ ticketNumber: req.params.id });
+    }
+
+    if (!ticket) throw new ApiError(404, 'Ticket not found');
+
+    res.status(200).json(new ApiResponse(200, null, 'Ticket deleted successfully'));
 });
 
 /**
@@ -180,7 +242,23 @@ export const getAllTicketTypes = asyncHandler(async (req, res) => {
     if (status === 'active') filter.isActive = true;
     if (status === 'inactive') filter.isActive = false;
 
-    const ticketTypes = await TicketType.find(filter).sort({ createdAt: -1 });
+    let ticketTypes = await TicketType.find(filter).sort({ createdAt: -1 });
+
+    // Seed defaults if empty
+    if (ticketTypes.length === 0 && (!status || status === 'all')) {
+        const totalCount = await TicketType.countDocuments();
+        if (totalCount === 0) {
+            await TicketType.insertMany([
+                { name: 'Order Issue', description: 'Order placement, fulfillment, or tracking issues', isActive: true },
+                { name: 'Delivery Issue', description: 'Delayed, missing, or delivery address issues', isActive: true },
+                { name: 'Payment Issue', description: 'Payment deducted, gateway errors, or duplicate charges', isActive: true },
+                { name: 'Return & Refund', description: 'Damaged item returns, pickup, or refund inquiries', isActive: true },
+                { name: 'Account & Login', description: 'Password resets, 2FA, or profile update problems', isActive: true },
+                { name: 'General Inquiry', description: 'General questions regarding PLE services', isActive: true }
+            ]);
+            ticketTypes = await TicketType.find(filter).sort({ createdAt: -1 });
+        }
+    }
 
     const normalized = ticketTypes.map((type) => ({
         ...type._doc,
@@ -190,6 +268,7 @@ export const getAllTicketTypes = asyncHandler(async (req, res) => {
 
     res.status(200).json(new ApiResponse(200, normalized, 'Ticket types fetched successfully'));
 });
+
 
 /**
  * @desc    Create ticket type

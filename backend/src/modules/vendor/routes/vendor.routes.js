@@ -55,6 +55,7 @@ router.post('/auth/refresh', validate(refreshTokenSchema), authController.refres
 router.post('/auth/logout', validate(logoutSchema), authController.logout);
 router.get('/auth/profile', ...vendorAuth, authController.getProfile);
 router.put('/auth/profile', ...vendorAuth, authController.updateProfile);
+router.post('/appeal-unflag', ...vendorAuth, authController.appealUnflag);
 
 // 2FA routes
 router.get('/auth/2fa/status', ...vendorAuth, twoFactorController.get2FAStatus);
@@ -78,6 +79,7 @@ router.post('/business-profile/upload-msme', ...strictVendorAuth, uploadDocument
 router.post('/business-profile/upload-identity', ...strictVendorAuth, uploadDocumentSingle('file'), businessProfileController.uploadIdentityProof);
 router.post('/business-profile/upload-registration', ...strictVendorAuth, uploadDocumentSingle('file'), businessProfileController.uploadRegistrationProof);
 router.post('/business-profile/upload-partnership', ...strictVendorAuth, uploadDocumentSingle('file'), businessProfileController.uploadPartnershipAgreement);
+router.post('/business-profile/upload-business-letter', ...strictVendorAuth, uploadDocumentSingle('file'), businessProfileController.uploadBusinessLetter);
 
 // B2B Seller Application Routes
 router.get('/b2b-application', ...strictVendorAuth, b2bApplicationController.getB2BApplication);

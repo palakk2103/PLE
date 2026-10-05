@@ -6,11 +6,12 @@ import VendorChatMessage from '../../../models/VendorChatMessage.model.js';
 import Vendor from '../../../models/Vendor.model.js';
 import Notification from '../../../models/Notification.model.js';
 import { getIO } from '../../../config/socket.js';
+import { decryptMessage } from '../../../utils/chatEncryption.util.js';
 
 const serializeMessage = (messageDoc) => ({
     id: messageDoc._id,
     sender: messageDoc.senderType,
-    message: messageDoc.message,
+    message: decryptMessage(messageDoc.message),
     time: messageDoc.createdAt,
 });
 
@@ -45,8 +46,17 @@ export const getPLEShopThreads = asyncHandler(async (req, res) => {
     const threads = await VendorChatThread.find({ vendorId: activeVendor._id })
         .sort({ lastActivity: -1 });
 
-    res.status(200).json(new ApiResponse(200, threads, 'PLE Shop chat threads fetched.'));
+    const decryptedThreads = threads.map((t) => {
+        const threadObj = t.toObject ? t.toObject({ getters: true }) : { ...t };
+        if (threadObj.lastMessage) {
+            threadObj.lastMessage = decryptMessage(threadObj.lastMessage);
+        }
+        return threadObj;
+    });
+
+    res.status(200).json(new ApiResponse(200, decryptedThreads, 'PLE Shop chat threads fetched.'));
 });
+
 
 export const getPLEShopMessages = asyncHandler(async (req, res) => {
     let thread = await VendorChatThread.findById(req.params.id);

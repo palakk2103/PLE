@@ -212,7 +212,7 @@ export const resendAdminProfileOTP = asyncHandler(async (req, res) => {
 });
 
 /**
- * @desc    Upload/replace B2B legal document (acceptanceExecutionDocument)
+ * @desc    Upload/replace B2B legal document (acceptanceExecutionDocument, gstCertificate, companyRegistrationProof)
  * @route   PUT /api/b2b-user/admin/company/legal-document
  * @access  Private (B2B Admin)
  */
@@ -233,15 +233,19 @@ export const uploadLegalDocument = asyncHandler(async (req, res) => {
         throw new ApiError(404, 'Company not found.');
     }
 
+    const validDocTypes = ['acceptanceExecutionDocument', 'gstCertificate', 'companyRegistrationProof'];
+    const docType = req.body?.docType || req.query?.docType || 'acceptanceExecutionDocument';
+    const targetDocField = validDocTypes.includes(docType) ? docType : 'acceptanceExecutionDocument';
+
     let uploaded = null;
     try {
         uploaded = await uploadLocalFileToCloudinaryAndCleanupWithType(
             req.file.path,
-            'b2b/documents',
+            `b2b/documents/${targetDocField}`,
             'auto'
         );
 
-        company.acceptanceExecutionDocument = {
+        company[targetDocField] = {
             url: uploaded.url,
             fileName: req.file.originalname,
             mimeType: req.file.mimetype,
@@ -259,3 +263,4 @@ export const uploadLegalDocument = asyncHandler(async (req, res) => {
         throw error;
     }
 });
+

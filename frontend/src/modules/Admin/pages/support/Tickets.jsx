@@ -26,35 +26,43 @@ const Tickets = () => {
 
   const handleViewTicket = async (ticketRow) => {
     setSelectedTicket(ticketRow);
-    const updated = await useSupportStore.getState().fetchTicketById(ticketRow.id);
+    const id = ticketRow.ticketNumber || ticketRow.id || ticketRow._id;
+    const updated = await useSupportStore.getState().fetchTicketById(id);
     if (updated) setSelectedTicket(updated);
   };
 
   const handleReply = async () => {
     const message = replyMessage.trim();
-    if (!message) return;
-    const updated = await addReply(selectedTicket.id, message, 'admin');
+    if (!message || !selectedTicket) return;
+    const id = selectedTicket.ticketNumber || selectedTicket.id || selectedTicket._id;
+    const updated = await addReply(id, message, 'admin');
     if (updated) {
       setReplyMessage('');
-      setSelectedTicket(updated);
+      const refreshed = await useSupportStore.getState().fetchTicketById(id);
+      setSelectedTicket(refreshed || updated);
     }
   };
 
   const handleStatusChange = async (newStatus) => {
-    const success = await updateTicketStatus(selectedTicket.id, newStatus);
+    if (!selectedTicket) return;
+    const id = selectedTicket.ticketNumber || selectedTicket.id || selectedTicket._id;
+    const success = await updateTicketStatus(id, newStatus);
     if (success) {
-      const updated = await useSupportStore.getState().fetchTicketById(selectedTicket.id);
+      const updated = await useSupportStore.getState().fetchTicketById(id);
       if (updated) setSelectedTicket(updated);
     }
   };
 
   const handleCloseTicket = async () => {
-    const success = await updateTicketStatus(selectedTicket.id, 'closed', 'Admin closed this support ticket.');
+    if (!selectedTicket) return;
+    const id = selectedTicket.ticketNumber || selectedTicket.id || selectedTicket._id;
+    const success = await updateTicketStatus(id, 'closed', 'Admin closed this support ticket.');
     if (success) {
-      const updated = await useSupportStore.getState().fetchTicketById(selectedTicket.id);
+      const updated = await useSupportStore.getState().fetchTicketById(id);
       if (updated) setSelectedTicket(updated);
     }
   };
+
 
   const getStatusColor = (status) => {
     const colors = {
@@ -81,6 +89,7 @@ const Tickets = () => {
     total: tickets.length,
     open: tickets.filter(t => t.status === 'open').length,
     inProgress: tickets.filter(t => t.status === 'in_progress').length,
+    waitingForUser: tickets.filter(t => t.status === 'waiting_for_user').length,
     resolved: tickets.filter(t => t.status === 'resolved').length,
     closed: tickets.filter(t => t.status === 'closed').length
   };
@@ -90,7 +99,11 @@ const Tickets = () => {
       key: 'id',
       label: 'Ticket ID',
       sortable: true,
-      render: (value) => <span className="font-semibold text-gray-800 text-xs">{value}</span>,
+      render: (value, row) => (
+        <span className="font-semibold text-gray-800 text-xs">
+          {row.ticketNumber || value || row._id}
+        </span>
+      ),
     },
     {
       key: 'customer',
@@ -164,20 +177,22 @@ const Tickets = () => {
       </div>
 
       {/* Dashboard Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
           { label: 'Total Tickets', count: stats.total, color: 'border-blue-500 bg-blue-50 text-blue-700' },
-          { label: 'Open', count: stats.open, color: 'border-red-500 bg-red-50 text-red-750' },
-          { label: 'In Progress', count: stats.inProgress, color: 'border-yellow-500 bg-yellow-50 text-yellow-750' },
-          { label: 'Resolved', count: stats.resolved, color: 'border-green-500 bg-green-50 text-green-755' },
+          { label: 'Open', count: stats.open, color: 'border-red-500 bg-red-50 text-red-700' },
+          { label: 'In Progress', count: stats.inProgress, color: 'border-yellow-500 bg-yellow-50 text-yellow-700' },
+          { label: 'Waiting User', count: stats.waitingForUser, color: 'border-purple-500 bg-purple-50 text-purple-700' },
+          { label: 'Resolved', count: stats.resolved, color: 'border-green-500 bg-green-50 text-green-700' },
           { label: 'Closed', count: stats.closed, color: 'border-gray-500 bg-gray-50 text-gray-700' }
         ].map((c, i) => (
-          <div key={i} className={`p-4 rounded-xl border-l-4 shadow-sm bg-white border border-gray-150 flex flex-col justify-between`}>
-            <span className="text-xs text-gray-500 font-semibold">{c.label}</span>
-            <span className="text-2xl font-bold text-gray-850 mt-2">{c.count}</span>
+          <div key={i} className={`p-3.5 rounded-xl border-l-4 shadow-sm bg-white border border-gray-150 flex flex-col justify-between`}>
+            <span className="text-[11px] text-gray-500 font-semibold">{c.label}</span>
+            <span className="text-xl font-bold text-gray-800 mt-1">{c.count}</span>
           </div>
         ))}
       </div>
+
 
       {/* Filters */}
       <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-150">
@@ -307,12 +322,23 @@ const Tickets = () => {
                             <div className={`max-w-[85%] p-3 rounded-2xl text-xs ${
                               isAdmin ? 'bg-primary-600 text-white rounded-br-none' : 'bg-gray-100 text-gray-800 rounded-bl-none border'
                             }`}>
-                              {msg.message}
+                              <p className="whitespace-pre-wrap">{msg.message}</p>
+                              {msg.attachment && (
+                                <div className="mt-2 pt-1 border-t border-black/10">
+                                  <img src={msg.attachment} alt="Attachment" className="max-h-40 rounded object-contain" />
+                                </div>
+                              )}
+                              {Array.isArray(msg.attachments) && msg.attachments.map((att, aIdx) => (
+                                <div key={aIdx} className="mt-2 pt-1 border-t border-black/10">
+                                  <img src={att} alt={`Attachment ${aIdx + 1}`} className="max-h-40 rounded object-contain" />
+                                </div>
+                              ))}
                             </div>
                             <span className="text-[9px] text-gray-400 mt-0.5">
                               {msg.senderType.toUpperCase()} | {new Date(msg.createdAt).toLocaleTimeString()}
                             </span>
                           </div>
+
                         );
                       })}
                     </div>

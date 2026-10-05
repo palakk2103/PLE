@@ -6,8 +6,9 @@ import { useCMS } from '../../hooks/useCMS';
 
 export default function Testimonials() {
   const [index, setIndex] = useState(0);
-  const { testimonials } = useCMS();
+  const { testimonials, testimonialsHeader } = useCMS();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const sectionTitle = testimonialsHeader?.title || 'CLIENT SAYS:';
 
   // Auto-advance carousel every 5 seconds
   useEffect(() => {
@@ -39,7 +40,7 @@ export default function Testimonials() {
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 md:mb-10 gap-4">
           <div className="flex-1 text-center md:text-left">
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-client-primary uppercase tracking-wider">
-              CLIENT SAYS:
+              {sectionTitle}
             </h2>
           </div>
           <div className="flex-shrink-0 flex justify-center md:justify-end">

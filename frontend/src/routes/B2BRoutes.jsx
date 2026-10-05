@@ -24,6 +24,7 @@ const ShopChats = lazy(() => import("../modules/B2BAdmin/pages/ShopChats"));
 const UserProductRequestHistory = lazy(() => import("../modules/UserApp/pages/ProductRequestHistory"));
 const UserProductRequestDetail = lazy(() => import("../modules/UserApp/pages/ProductRequestDetail"));
 const UserProductRequestForm = lazy(() => import("../modules/UserApp/pages/ProductRequestForm"));
+const AdminSupportDesk = lazy(() => import("../modules/B2BAdmin/pages/AdminSupportDesk"));
 
 const B2BIndexRoute = () => {
   const { adminProfile } = useB2BAdminStore();
@@ -66,6 +67,8 @@ export default function B2BRoutes() {
         <Route path="product-requests" element={<UserProductRequestHistory />} />
         <Route path="product-requests/new" element={<UserProductRequestForm />} />
         <Route path="product-requests/:id" element={<UserProductRequestDetail />} />
+        <Route path="support" element={<AdminSupportDesk />} />
+        <Route path="support-desk" element={<Navigate to="/b2b-dashboard/support" replace />} />
       </Route>
     </Routes>
   );

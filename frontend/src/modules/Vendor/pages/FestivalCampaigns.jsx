@@ -10,24 +10,25 @@ import toast from "react-hot-toast";
 const FestivalCampaigns = () => {
   const { campaigns, initialize: initCampaigns, updateCampaign } = useCampaignStore();
   const { products: vendorProducts, fetchProducts, isLoading: productsLoading } = useVendorProductStore();
-  const { vendor } = useVendorAuthStore();
+  const { vendor, isAuthenticated } = useVendorAuthStore();
+  const vendorId = vendor?._id || vendor?.id || (localStorage.getItem('vendor-token') ? 'vendor' : null);
 
   const [selectedCampaignId, setSelectedCampaignId] = useState("");
 
   useEffect(() => {
     initCampaigns();
-    if (vendor?.id) {
-      fetchProducts({ fetchAll: true, limit: 200 });
-    }
-  }, [initCampaigns, fetchProducts, vendor]);
+    fetchProducts({ fetchAll: true, limit: 200 });
+  }, [initCampaigns, fetchProducts]);
 
   // Active / Upcoming festival campaigns
   const activeFestivalCampaigns = useMemo(() => {
     return campaigns.filter(c => {
-      if (c.type !== 'festival') return false;
+      const isFestival = c.type === 'festival' || c.type === 'special_offer' || c.type === 'flash_sale';
+      if (!isFestival) return false;
+      if (!c.endDate) return true;
       const now = new Date();
       const end = new Date(c.endDate);
-      return end >= now; // Show active and upcoming
+      return isNaN(end.getTime()) || end >= now; // Show active and upcoming
     });
   }, [campaigns]);
 
@@ -91,7 +92,7 @@ const FestivalCampaigns = () => {
     }
   };
 
-  if (!vendor?.id) {
+  if (!vendorId && !isAuthenticated) {
     return (
       <div className="text-center py-12">
         <p className="text-gray-500">Please log in to manage campaign products.</p>

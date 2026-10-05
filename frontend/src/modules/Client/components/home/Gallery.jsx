@@ -3,9 +3,12 @@ import { motion } from 'framer-motion';
 import { useCMS } from '../../hooks/useCMS';
 
 export default function Gallery() {
-  const { gallery } = useCMS();
+  const { gallery, galleryHeader } = useCMS();
 
   if (!gallery || gallery.length === 0) return null;
+
+  const title = galleryHeader?.title || 'Our Gallery';
+  const subtitle = galleryHeader?.subtitle || 'Take a look at our creative projects, events, and modern working spaces.';
 
   return (
     <section className="py-20 relative overflow-hidden bg-app-bg text-app-text">
@@ -21,7 +24,13 @@ export default function Gallery() {
             transition={{ duration: 0.6 }}
             className="text-4xl md:text-5xl font-black mb-4 tracking-tight"
           >
-            Our <span className="text-gradient-orange text-client-primary">Gallery</span>
+            {title.includes('Gallery') ? (
+              <>
+                {title.replace('Gallery', '')} <span className="text-gradient-orange text-client-primary">Gallery</span>
+              </>
+            ) : (
+              title
+            )}
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -30,7 +39,7 @@ export default function Gallery() {
             transition={{ delay: 0.2, duration: 0.6 }}
             className="text-app-text-muted text-lg max-w-xl mx-auto"
           >
-            Take a look at our creative projects, events, and modern working spaces.
+            {subtitle}
           </motion.p>
         </div>
 

@@ -46,15 +46,29 @@ const MobileSettings = () => {
 
   // Mock settings for notifications & preferences (persisted in localStorage for demo)
   const [notificationPrefs, setNotificationPrefs] = useState(() => {
-    const saved = localStorage.getItem("user-notification-prefs");
-    return saved
-      ? JSON.parse(saved)
-      : {
-          orderUpdates: true,
-          promotions: false,
-          newsletter: true,
-          smsAlerts: false,
-        };
+    try {
+      const saved = localStorage.getItem("user-notification-prefs");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === "object") {
+          return {
+            orderUpdates: true,
+            promotions: false,
+            newsletter: true,
+            smsAlerts: false,
+            ...parsed,
+          };
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to parse user-notification-prefs from localStorage", e);
+    }
+    return {
+      orderUpdates: true,
+      promotions: false,
+      newsletter: true,
+      smsAlerts: false,
+    };
   });
 
   const [language, setLanguage] = useState(() => {

@@ -88,12 +88,22 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true, noPa
     ? "px-0" 
     : (isBusiness ? "px-0 md:px-4 lg:px-6 xl:px-8" : "px-0 md:px-6 lg:px-8 xl:px-12");
 
+  const bottomPaddingClass = isKeyboardVisible
+    ? ""
+    : (shouldShowBottomNav && showCartBar)
+      ? "pb-[calc(8.5rem+env(safe-area-inset-bottom,0px))]"
+      : shouldShowBottomNav
+        ? "pb-[calc(5rem+env(safe-area-inset-bottom,0px))]"
+        : showCartBar
+          ? "pb-[calc(6rem+env(safe-area-inset-bottom,0px))]"
+          : "";
+
   return (
     <>
       {!isAuthPage && !isCheckoutPage && !isProfileOptionPage && !isOrderConfirmationPage && !isTrackOrderPage && <DesktopHeader />}
       {shouldShowHeader && <MobileHeader />}
       <main
-        className={`min-h-screen w-full max-w-full overflow-x-hidden ${paddingClasses} ${shouldShowBottomNav && !isKeyboardVisible ? 'pb-[calc(5rem+env(safe-area-inset-bottom,0px))]' : ''} ${showCartBar && !isKeyboardVisible ? 'pb-[calc(6rem+env(safe-area-inset-bottom,0px))]' : ''}`}
+        className={`min-h-screen w-full max-w-full overflow-x-hidden ${paddingClasses} ${bottomPaddingClass}`}
         style={{ paddingTop: (shouldShowHeader && !isDesktop) ? `${headerHeight}px` : '0px' }}
       >
         {children}

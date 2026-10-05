@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { encryptMessage, decryptMessage } from '../utils/chatEncryption.util.js';
 
 const adminManagedVendorMessageSchema = new mongoose.Schema(
     {
@@ -22,11 +23,21 @@ const adminManagedVendorMessageSchema = new mongoose.Schema(
             type: String,
             default: '',
         },
-        message: { type: String, required: true, trim: true },
+        message: {
+            type: String,
+            required: true,
+            trim: true,
+            set: encryptMessage,
+            get: decryptMessage,
+        },
         attachments: [{ type: String }],
         isRead: { type: Boolean, default: false },
     },
-    { timestamps: true }
+    {
+        timestamps: true,
+        toJSON: { getters: true },
+        toObject: { getters: true },
+    }
 );
 
 adminManagedVendorMessageSchema.index({ threadId: 1, createdAt: 1 });
@@ -34,3 +45,4 @@ adminManagedVendorMessageSchema.index({ threadId: 1, createdAt: 1 });
 const AdminManagedVendorMessage = mongoose.models.AdminManagedVendorMessage || mongoose.model('AdminManagedVendorMessage', adminManagedVendorMessageSchema);
 export { AdminManagedVendorMessage };
 export default AdminManagedVendorMessage;
+

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import api from '../utils/api';
 import * as adminService from '../../modules/Admin/services/adminService';
 import toast from 'react-hot-toast';
 
@@ -7,6 +8,7 @@ const STORAGE_KEY = 'ple-support-tickets';
 const INITIAL_MOCK_TICKETS = [
   {
     id: 'TKT-1001',
+    ticketNumber: 'TKT-1001',
     subject: 'Late Delivery of order #OD8237',
     category: 'Delivery Issue',
     priority: 'high',
@@ -36,6 +38,7 @@ const INITIAL_MOCK_TICKETS = [
   },
   {
     id: 'TKT-1002',
+    ticketNumber: 'TKT-1002',
     subject: 'Double charged for refund transaction',
     category: 'Payment Issue',
     priority: 'medium',
@@ -59,6 +62,7 @@ const INITIAL_MOCK_TICKETS = [
   },
   {
     id: 'TKT-1003',
+    ticketNumber: 'TKT-1003',
     subject: 'Damaged item received',
     category: 'Return Issue',
     priority: 'high',
@@ -89,16 +93,27 @@ const INITIAL_MOCK_TICKETS = [
 ];
 
 const getStoredTickets = () => {
-  const data = localStorage.getItem(STORAGE_KEY);
-  if (!data) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_MOCK_TICKETS));
+  try {
+    const data = localStorage.getItem(STORAGE_KEY);
+    if (!data) return INITIAL_MOCK_TICKETS;
+    const parsed = JSON.parse(data);
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_MOCK_TICKETS;
+  } catch {
     return INITIAL_MOCK_TICKETS;
   }
-  return JSON.parse(data);
 };
 
 const saveStoredTickets = (tickets) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(tickets));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tickets));
+  } catch (e) {
+    console.error('Failed to save tickets in localStorage:', e);
+  }
+};
+
+const isAdminContext = () => {
+  if (typeof window === 'undefined') return false;
+  return window.location.pathname.startsWith('/admin');
 };
 
 export const useSupportStore = create((set, get) => ({
@@ -113,34 +128,63 @@ export const useSupportStore = create((set, get) => ({
   },
 
   fetchTickets: async (params = {}) => {
-    set({ isLoading: true });
+    set({ isLoading: true, error: null });
+    const isAdmin = isAdminContext();
+
     try {
-      // Try fetching from backend admin API
-      const response = await adminService.getAllTickets(params);
-      if (response && response.data && Array.isArray(response.data.tickets)) {
-        set({
-          tickets: response.data.tickets,
-          pagination: response.data.pagination || { total: response.data.tickets.length, page: 1, limit: 10, pages: 1 },
-          isLoading: false
-        });
-        return;
+      let ticketList = [];
+      let pagination = { total: 0, page: 1, limit: 10, pages: 1 };
+
+      if (isAdmin) {
+        const response = await adminService.getAllTickets(params);
+        const data = response?.data || response;
+        if (data && Array.isArray(data.tickets)) {
+          ticketList = data.tickets;
+          pagination = data.pagination || { total: ticketList.length, page: 1, limit: 10, pages: 1 };
+        } else if (Array.isArray(data)) {
+          ticketList = data;
+          pagination = { total: ticketList.length, page: 1, limit: 10, pages: 1 };
+        } else {
+          throw new Error('Invalid backend data format');
+        }
+      } else {
+        const response = await api.get('/user/support/tickets', { params });
+        const data = response?.data || response;
+        if (data && Array.isArray(data.tickets)) {
+          ticketList = data.tickets;
+          pagination = { total: ticketList.length, page: 1, limit: 20, pages: 1 };
+        } else if (Array.isArray(data)) {
+          ticketList = data;
+          pagination = { total: ticketList.length, page: 1, limit: 20, pages: 1 };
+        } else {
+          throw new Error('Invalid user support data format');
+        }
       }
-      throw new Error("Invalid backend data format");
+
+      saveStoredTickets(ticketList);
+      set({
+        tickets: ticketList,
+        pagination,
+        isLoading: false
+      });
+      return ticketList;
     } catch (error) {
-      // Fallback to localStorage data
+      console.warn('SupportStore: fetchTickets using local fallback:', error?.message);
       const local = getStoredTickets();
       let filtered = [...local];
 
       if (params.status && params.status !== 'all') {
-        filtered = filtered.filter(t => t.status === params.status);
+        filtered = filtered.filter((t) => t.status === params.status);
       }
       if (params.search) {
         const query = params.search.toLowerCase();
-        filtered = filtered.filter(t => 
-          t.id.toLowerCase().includes(query) || 
-          t.subject.toLowerCase().includes(query) ||
-          t.category.toLowerCase().includes(query) ||
-          (t.customer?.name && t.customer.name.toLowerCase().includes(query))
+        filtered = filtered.filter(
+          (t) =>
+            (t.id && t.id.toLowerCase().includes(query)) ||
+            (t.ticketNumber && t.ticketNumber.toLowerCase().includes(query)) ||
+            (t.subject && t.subject.toLowerCase().includes(query)) ||
+            (t.category && t.category.toLowerCase().includes(query)) ||
+            (t.customer?.name && t.customer.name.toLowerCase().includes(query))
         );
       }
 
@@ -154,51 +198,80 @@ export const useSupportStore = create((set, get) => ({
         },
         isLoading: false
       });
+      return filtered;
     }
   },
 
   fetchTicketById: async (id) => {
     set({ isLoading: true });
+    const isAdmin = isAdminContext();
+
     try {
-      const response = await adminService.getTicketById(id);
-      if (response && response.data && response.data.id) {
-        set({ isLoading: false });
-        return response.data;
+      let ticket = null;
+      if (isAdmin) {
+        const response = await adminService.getTicketById(id);
+        ticket = response?.data || response;
+      } else {
+        const response = await api.get(`/user/support/tickets/${id}`);
+        ticket = response?.data || response;
       }
-      throw new Error("Invalid backend ticket format");
+
+      if (ticket && (ticket.id || ticket._id || ticket.ticketNumber)) {
+        set({ isLoading: false });
+        return ticket;
+      }
+      throw new Error('Invalid ticket data');
     } catch (error) {
+      console.warn('SupportStore: fetchTicketById fallback:', error?.message);
       const local = getStoredTickets();
-      const ticket = local.find(t => t.id === id);
+      const found = local.find((t) => t.id === id || t._id === id || t.ticketNumber === id);
       set({ isLoading: false });
-      return ticket || null;
+      return found || null;
     }
   },
 
   createTicket: async (ticketData) => {
     set({ isLoading: true });
     try {
-      const newTicket = {
-        id: `TKT-${Math.floor(100000 + Math.random() * 900000)}`,
-        ...ticketData,
-        status: 'open',
-        createdAt: new Date().toISOString(),
-        messages: [
-          {
-            senderType: 'user',
-            message: ticketData.description,
-            createdAt: new Date().toISOString(),
-            attachment: ticketData.screenshot || null
-          }
-        ],
-        timeline: [
-          { status: 'open', changedAt: new Date().toISOString(), note: 'Ticket created' }
-        ]
-      };
-      
-      const local = getStoredTickets();
-      const updated = [newTicket, ...local];
+      let created = null;
+
+      try {
+        const response = await api.post('/user/support/tickets', ticketData);
+        created = response?.data || response;
+      } catch (apiErr) {
+        console.warn('Backend ticket creation API failed, saving locally:', apiErr?.message);
+      }
+
+      if (!created || (!created.id && !created._id && !created.ticketNumber)) {
+        const ticketNumber = `TKT-${Math.floor(100000 + Math.random() * 900000)}`;
+        created = {
+          id: ticketNumber,
+          ticketNumber,
+          ...ticketData,
+          status: 'open',
+          createdAt: new Date().toISOString(),
+          customer: {
+            name: 'Customer',
+            email: ''
+          },
+          messages: [
+            {
+              senderType: 'user',
+              message: ticketData.description,
+              createdAt: new Date().toISOString(),
+              attachment: ticketData.screenshot || null
+            }
+          ],
+          timeline: [
+            { status: 'open', changedAt: new Date().toISOString(), note: 'Ticket created' }
+          ]
+        };
+      }
+
+      const current = get().tickets || [];
+      const updated = [created, ...current.filter((t) => (t.id || t._id) !== (created.id || created._id))];
       saveStoredTickets(updated);
-      
+
       set({
         tickets: updated,
         pagination: {
@@ -210,7 +283,7 @@ export const useSupportStore = create((set, get) => ({
         isLoading: false
       });
       toast.success('Support ticket created successfully!');
-      return newTicket;
+      return created;
     } catch (error) {
       set({ isLoading: false });
       toast.error('Failed to create ticket');
@@ -220,26 +293,31 @@ export const useSupportStore = create((set, get) => ({
 
   updateTicketStatus: async (id, status, note = '') => {
     try {
-      await adminService.updateTicketStatus(id, status);
+      await adminService.updateTicketStatus(id, status, note);
     } catch (e) {
-      // API failure, process locally
+      console.warn('AdminService: updateTicketStatus fallback:', e?.message);
     }
-    
-    const local = getStoredTickets();
-    const updated = local.map(t => {
-      if (t.id === id) {
+
+    const current = get().tickets || [];
+    const updated = current.map((t) => {
+      const matchId = t.ticketNumber || t.id || t._id;
+      if (matchId === id || t._id === id || t.id === id) {
         return {
           ...t,
           status,
           timeline: [
-            ...t.timeline,
-            { status, changedAt: new Date().toISOString(), note: note || `Status updated to ${status.replace('_', ' ')}` }
+            ...(t.timeline || []),
+            {
+              status,
+              changedAt: new Date().toISOString(),
+              note: note || `Status updated to ${status.replace('_', ' ')}`
+            }
           ]
         };
       }
       return t;
     });
-    
+
     saveStoredTickets(updated);
     set({ tickets: updated });
     toast.success('Status updated successfully');
@@ -247,24 +325,36 @@ export const useSupportStore = create((set, get) => ({
   },
 
   addReply: async (id, message, senderType = 'admin', attachment = null) => {
+    let apiMsg = null;
     try {
-      await adminService.addTicketMessage(id, message);
+      if (senderType === 'admin') {
+        const res = await adminService.addTicketMessage(id, message, attachment);
+        apiMsg = res?.data || res;
+      } else {
+        const res = await api.post(`/user/support/tickets/${id}/messages`, { message, attachment });
+        apiMsg = res?.data || res;
+      }
     } catch (e) {
-      // API failure, process locally
+      console.warn('SupportStore: addReply fallback:', e?.message);
     }
-    
-    const local = getStoredTickets();
-    let updatedTicket = null;
-    const updated = local.map(t => {
-      if (t.id === id) {
-        const newMsg = {
+
+    const newMsg = apiMsg?.message
+      ? apiMsg
+      : {
           senderType,
           message,
           createdAt: new Date().toISOString(),
           attachment
         };
+
+    const current = get().tickets || [];
+    let updatedTicket = null;
+    const updated = current.map((t) => {
+      const matchId = t.ticketNumber || t.id || t._id;
+      if (matchId === id || t._id === id || t.id === id) {
         updatedTicket = {
           ...t,
+          status: t.status === 'open' ? 'in_progress' : t.status,
           messages: [...(t.messages || []), newMsg]
         };
         return updatedTicket;
@@ -276,6 +366,20 @@ export const useSupportStore = create((set, get) => ({
     set({ tickets: updated });
     toast.success('Reply added successfully');
     return updatedTicket;
+  },
+
+  deleteTicket: async (id) => {
+    try {
+      await adminService.deleteTicket(id);
+    } catch (e) {
+      console.warn('SupportStore: deleteTicket fallback:', e?.message);
+    }
+
+    const current = get().tickets || [];
+    const updated = current.filter((t) => (t.ticketNumber || t.id || t._id) !== id && t._id !== id && t.id !== id);
+    saveStoredTickets(updated);
+    set({ tickets: updated });
+    toast.success('Ticket deleted successfully');
+    return true;
   }
 }));
-

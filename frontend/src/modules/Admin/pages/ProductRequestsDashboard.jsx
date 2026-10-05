@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FiSearch, FiLayers, FiAlertCircle, FiCheckCircle, FiXCircle, FiTrendingUp, FiSettings, FiEdit, FiTrash2, FiActivity, FiUser, FiInfo, FiSend, FiEye, FiMaximize2, FiMail, FiPhone, FiCalendar, FiPackage, FiDollarSign, FiX } from "react-icons/fi";
+import { FiSearch, FiLayers, FiAlertCircle, FiCheckCircle, FiXCircle, FiTrendingUp, FiSettings, FiEdit, FiTrash2, FiActivity, FiUser, FiInfo, FiSend, FiEye, FiMaximize2, FiMail, FiPhone, FiCalendar, FiPackage, FiDollarSign, FiX, FiMessageSquare } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import api from "../../../shared/utils/api";
@@ -39,6 +39,39 @@ const ProductRequestsDashboard = () => {
   const [vendorWindowNote, setVendorWindowNote] = useState("");
   const [vendorWindowDays, setVendorWindowDays] = useState(14);
   const [isOpeningWindow, setIsOpeningWindow] = useState(false);
+
+  // Chat History Inspection state
+  const [chatModalThread, setChatModalThread] = useState(null);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [isLoadingChat, setIsLoadingChat] = useState(false);
+
+  const handleOpenChatHistory = async (reqId, threadId, vendorInfo, reason = '', releasedAt = null) => {
+    if (!threadId) {
+      toast.error("No chat thread recorded for this vendor.");
+      return;
+    }
+    const safeThreadId = threadId?._id || threadId;
+    setIsLoadingChat(true);
+    setChatModalThread({
+      threadId: safeThreadId,
+      vendorName: vendorInfo?.storeName || vendorInfo?.name || 'Vendor',
+      customerName: viewingDetailsReq?.userId?.name || 'Customer',
+      productName: viewingDetailsReq?.productName || '',
+      reason,
+      releasedAt,
+      isReleased: Boolean(releasedAt)
+    });
+    try {
+      const res = await api.get(`/admin/product-requests/${reqId}/chat-thread/${safeThreadId}`);
+      const payload = res?.data || res;
+      setChatMessages(payload?.messages || []);
+    } catch (err) {
+      toast.error("Failed to load chat history");
+      console.error(err);
+    } finally {
+      setIsLoadingChat(false);
+    }
+  };
 
   useEffect(() => {
     loadRequests();
@@ -679,21 +712,82 @@ const ProductRequestsDashboard = () => {
               {/* Vendor Window Assigned Partner Card */}
               {viewingDetailsReq.acceptedVendorId && (
                 <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 text-xs space-y-2">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <span className="font-black text-blue-900 text-sm flex items-center gap-1.5">
                       <span>🏪</span>
                       <span>Assigned Vendor Partner: {viewingDetailsReq.acceptedVendorId.storeName || viewingDetailsReq.acceptedVendorId.name || viewingDetailsReq.acceptedVendorId.companyName}</span>
                     </span>
-                    {viewingDetailsReq.vendorFulfillmentExpiresAt && (
-                      <span className="font-bold text-indigo-700 bg-white px-2.5 py-1 rounded-full border border-indigo-200 shadow-xs">
-                        Quote due: {formatCountdown(viewingDetailsReq.vendorFulfillmentExpiresAt)}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {viewingDetailsReq.chatThreadId && (
+                        <button
+                          onClick={() => handleOpenChatHistory(viewingDetailsReq.id, viewingDetailsReq.chatThreadId, viewingDetailsReq.acceptedVendorId)}
+                          className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs flex items-center gap-1"
+                        >
+                          <FiMessageSquare /> View Live Chat
+                        </button>
+                      )}
+                      {viewingDetailsReq.vendorFulfillmentExpiresAt && (
+                        <span className="font-bold text-indigo-700 bg-white px-2.5 py-1 rounded-full border border-indigo-200 shadow-xs">
+                          Quote due: {formatCountdown(viewingDetailsReq.vendorFulfillmentExpiresAt)}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-gray-750 font-medium">
                     <div>Store: <strong className="text-gray-900">{viewingDetailsReq.acceptedVendorId.storeName || "N/A"}</strong></div>
                     <div>Phone: <strong className="text-gray-900">{viewingDetailsReq.acceptedVendorId.phone || "N/A"}</strong></div>
                     <div>Email: <strong className="text-gray-900">{viewingDetailsReq.acceptedVendorId.email || "N/A"}</strong></div>
+                  </div>
+                </div>
+              )}
+
+              {/* Released Vendors & Previous Chats */}
+              {viewingDetailsReq.releasedVendors && viewingDetailsReq.releasedVendors.length > 0 && (
+                <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 sm:p-5 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">↩️</span>
+                      <h3 className="font-extrabold text-amber-950 text-sm sm:text-base">
+                        Released Vendors & Previous Chats ({viewingDetailsReq.releasedVendors.length})
+                      </h3>
+                    </div>
+                    <span className="text-[11px] font-bold text-amber-800 bg-amber-200 px-2.5 py-0.5 rounded-full">
+                      Archived
+                    </span>
+                  </div>
+                  <p className="text-xs text-amber-800">
+                    Vendors who previously accepted this request but released it (e.g. out of stock). You can review all chats exchanged with the buyer before release.
+                  </p>
+
+                  <div className="space-y-2 mt-2">
+                    {viewingDetailsReq.releasedVendors.map((rv, idx) => (
+                      <div key={idx} className="bg-white border border-amber-200 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <strong className="text-gray-900 text-sm font-black">
+                              {rv.vendorId?.storeName || rv.vendorId?.name || "Vendor Partner"}
+                            </strong>
+                            <span className="text-[10px] font-bold px-2 py-0.5 bg-gray-100 text-gray-700 rounded-md">
+                              Released on {new Date(rv.releasedAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-600 mt-1">
+                            <span className="font-semibold text-gray-700">Release Reason:</span> {rv.reason || "Vendor unable to supply / insufficient stock"}
+                          </p>
+                        </div>
+
+                        {rv.chatThreadId ? (
+                          <button
+                            onClick={() => handleOpenChatHistory(viewingDetailsReq.id, rv.chatThreadId, rv.vendorId, rv.reason, rv.releasedAt)}
+                            className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 whitespace-nowrap self-start sm:self-center"
+                          >
+                            <FiMessageSquare /> View Chat History
+                          </button>
+                        ) : (
+                          <span className="text-xs text-gray-400 italic">No chat initiated</span>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
@@ -1246,6 +1340,122 @@ const ProductRequestsDashboard = () => {
                   className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-2xl text-sm transition-colors"
                 >
                   Cancel
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Admin Chat Inspection Modal */}
+      <AnimatePresence>
+        {chatModalThread && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[85vh] border border-gray-200"
+            >
+              {/* Header */}
+              <div className="p-4 sm:p-5 bg-gradient-to-r from-indigo-900 to-indigo-800 text-white flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <FiMessageSquare className="text-indigo-300 text-lg" />
+                    <h3 className="font-black text-base sm:text-lg">
+                      {chatModalThread.vendorName} ↔ {chatModalThread.customerName}
+                    </h3>
+                  </div>
+                  <p className="text-xs text-indigo-200 mt-0.5">
+                    Product: <strong>{chatModalThread.productName}</strong>
+                  </p>
+                </div>
+                <button
+                  onClick={() => { setChatModalThread(null); setChatMessages([]); }}
+                  className="p-1.5 hover:bg-white/10 rounded-full transition-colors text-white font-bold"
+                >
+                  <FiX className="text-xl" />
+                </button>
+              </div>
+
+              {/* Status Banner */}
+              {chatModalThread.isReleased ? (
+                <div className="bg-amber-50 border-b border-amber-200 px-4 py-2.5 text-xs text-amber-900 flex items-center justify-between gap-2">
+                  <span>
+                    ⚠️ <strong>Archived Chat:</strong> Vendor released this request on{" "}
+                    {new Date(chatModalThread.releasedAt).toLocaleDateString()}. Reason:{" "}
+                    <em>"{chatModalThread.reason || 'Insufficient stock'}"</em>
+                  </span>
+                  <span className="px-2 py-0.5 bg-amber-200 text-amber-900 rounded-md font-bold text-[10px] uppercase whitespace-nowrap">
+                    Released
+                  </span>
+                </div>
+              ) : (
+                <div className="bg-emerald-50 border-b border-emerald-200 px-4 py-2 text-xs text-emerald-800 font-semibold flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Active Conversation Thread
+                </div>
+              )}
+
+              {/* Messages Body */}
+              <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-3 bg-gray-50/50 min-h-[300px]">
+                {isLoadingChat ? (
+                  <div className="py-16 text-center text-gray-400 text-sm font-medium">
+                    Loading chat messages...
+                  </div>
+                ) : chatMessages.length === 0 ? (
+                  <div className="py-16 text-center text-gray-400 text-sm">
+                    No messages exchanged in this thread yet.
+                  </div>
+                ) : (
+                  chatMessages.map((msg, i) => {
+                    const isSystem = msg.senderType === 'system';
+                    const isVendor = msg.senderType === 'vendor';
+                    const isCustomer = msg.senderType === 'customer' || msg.senderType === 'user';
+
+                    if (isSystem) {
+                      return (
+                        <div key={i} className="text-center my-2">
+                          <span className="px-3 py-1 bg-gray-200 text-gray-600 rounded-full text-[11px] font-medium inline-block max-w-md">
+                            ℹ️ {msg.message}
+                          </span>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div
+                        key={i}
+                        className={`flex flex-col ${isVendor ? 'items-end' : 'items-start'}`}
+                      >
+                        <span className="text-[10px] text-gray-500 mb-0.5 px-1 font-semibold">
+                          {isVendor ? `🏪 ${chatModalThread.vendorName}` : `👤 ${chatModalThread.customerName}`}
+                        </span>
+                        <div
+                          className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-xs sm:text-sm shadow-xs ${
+                            isVendor
+                              ? 'bg-indigo-600 text-white rounded-br-none'
+                              : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none'
+                          }`}
+                        >
+                          <p className="whitespace-pre-wrap">{msg.message}</p>
+                          <span className={`block text-[10px] mt-1 text-right ${isVendor ? 'text-indigo-200' : 'text-gray-400'}`}>
+                            {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="p-4 bg-white border-t border-gray-200 flex justify-end">
+                <button
+                  onClick={() => { setChatModalThread(null); setChatMessages([]); }}
+                  className="px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs sm:text-sm transition-colors"
+                >
+                  Close
                 </button>
               </div>
             </motion.div>

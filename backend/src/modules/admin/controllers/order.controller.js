@@ -10,6 +10,7 @@ import PurchaseOrder from '../../../models/PurchaseOrder.model.js';
 import { createNotification } from '../../../services/notification.service.js';
 import { getIO } from '../../../config/socket.js';
 import { handleOrderStatusTransition } from '../../../services/orderStatus.service.js';
+import { logActivity } from '../../../services/auditLog.service.js';
 
 // GET /api/admin/orders
 export const getAllOrders = asyncHandler(async (req, res) => {
@@ -274,6 +275,23 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
         console.error('Socket emission failed for order status update:', err);
     }
 
+    await logActivity({
+        actor: req.user,
+        action: 'ORDER_STATUS_UPDATED',
+        module: 'ORDERS',
+        entityType: 'Order',
+        entityId: order.orderId || order._id,
+        description: `Order #${order.orderId} status changed from "${previousStatus}" to "${nextStatus}"`,
+        req,
+        status: 'SUCCESS',
+        metadata: {
+            orderId: order.orderId,
+            previousStatus,
+            nextStatus,
+            note: req.body.note || req.body.reason
+        }
+    });
+
     res.status(200).json(new ApiResponse(200, order, 'Order status updated.'));
 });
 
@@ -373,6 +391,23 @@ export const assignDeliveryBoy = asyncHandler(async (req, res) => {
         await Promise.allSettled(assignmentTasks);
     }
 
+    await logActivity({
+        actor: req.user,
+        action: 'DELIVERY_ASSIGNED',
+        module: 'ORDERS',
+        entityType: 'Order',
+        entityId: order.orderId || order._id,
+        description: `Delivery partner "${deliveryBoy.name}" assigned to order #${order.orderId}`,
+        req,
+        status: 'SUCCESS',
+        metadata: {
+            orderId: order.orderId,
+            deliveryBoyId: deliveryBoy._id,
+            deliveryBoyName: deliveryBoy.name,
+            isReassigned
+        }
+    });
+
     res.status(200).json(new ApiResponse(200, order, 'Delivery boy assigned.'));
 });
 
@@ -391,6 +426,24 @@ export const deleteOrder = asyncHandler(async (req, res) => {
         { new: true }
     );
     if (!order) throw new ApiError(404, 'Order not found.');
+
+    await logActivity({
+        actor: req.user,
+        action: 'ORDER_DELETED',
+        module: 'ORDERS',
+        entityType: 'Order',
+        entityId: order.orderId || order._id,
+        description: `Archived/Deleted order #${order.orderId || req.params.id}`,
+        req,
+        status: 'SUCCESS',
+        metadata: {
+            orderId: order.orderId,
+            orderStatus: order.status,
+            totalAmount: order.totalAmount,
+            customerEmail: order.shippingAddress?.email
+        }
+    });
+
     res.status(200).json(new ApiResponse(200, null, 'Order archived.'));
 });
 

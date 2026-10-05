@@ -7,7 +7,11 @@ import asyncHandler from '../utils/asyncHandler.js';
  * Optionally pass allowedRoles to restrict access
  */
 export const authenticate = asyncHandler(async (req, res, next) => {
-    const token = req.cookies?.accessToken || req.header('Authorization')?.replace('Bearer ', '');
+    const authHeader = req.header('Authorization') || req.header('authorization');
+    const bearerToken = authHeader?.startsWith('Bearer ')
+        ? authHeader.slice(7).trim()
+        : (authHeader?.trim() || null);
+    const token = bearerToken || req.cookies?.accessToken;
     
     if (!token) {
         throw new ApiError(401, 'Authentication required. No token provided.');

@@ -74,10 +74,12 @@ export const enforceAccountStatus = async (req, res, next) => {
             return next();
         }
 
-        if (role === 'admin' || role === 'superadmin') {
-            const admin = await Admin.findById(req.user.id).select('isActive').lean();
+        if (role === 'admin' || role === 'superadmin' || role === 'account_team') {
+            const admin = await Admin.findById(req.user.id).select('isActive status').lean();
             if (!admin) return next(new ApiError(401, 'Account not found.'));
-            if (!admin.isActive) return next(new ApiError(403, 'Admin account is deactivated.'));
+            if (!admin.isActive || admin.status === 'inactive') {
+                return next(new ApiError(403, 'Account is deactivated. Contact Super Admin.'));
+            }
             return next();
         }
 

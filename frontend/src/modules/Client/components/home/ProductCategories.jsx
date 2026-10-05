@@ -116,16 +116,25 @@ const SOURCING_CATEGORIES = [
 ];
 
 export default function ProductCategories() {
+  const { productCategoriesShowcase } = useCMS();
+  const allCategories = (productCategoriesShowcase?.categories && productCategoriesShowcase.categories.length > 0)
+    ? productCategoriesShowcase.categories
+    : SOURCING_CATEGORIES;
+
+  const badgeText = productCategoriesShowcase?.badge || 'Product Sourcing';
+  const titleText = productCategoriesShowcase?.title || 'Dynamic Categories';
+  const subtitleText = productCategoriesShowcase?.subtitle || 'Procure authentic hardware, custom configurations, and volume software licensing built for business scalability.';
+
   const [activeFilter, setActiveFilter] = useState('all');
-  const [filteredCategories, setFilteredCategories] = useState(SOURCING_CATEGORIES);
+  const [filteredCategories, setFilteredCategories] = useState(allCategories);
 
   useEffect(() => {
     if (activeFilter === 'all') {
-      setFilteredCategories(SOURCING_CATEGORIES);
+      setFilteredCategories(allCategories);
     } else {
-      setFilteredCategories(SOURCING_CATEGORIES.filter(cat => cat.categoryGroup === activeFilter));
+      setFilteredCategories(allCategories.filter(cat => cat.categoryGroup === activeFilter));
     }
-  }, [activeFilter]);
+  }, [activeFilter, allCategories]);
 
   const staggerContainer = {
     hidden: {},
@@ -146,15 +155,21 @@ export default function ProductCategories() {
           <div className="flex items-center justify-center gap-3">
             <span className="w-8 h-[2px] bg-client-primary" />
             <span className="text-xs font-black text-client-primary uppercase tracking-[0.3em]">
-              Product Sourcing
+              {badgeText}
             </span>
             <span className="w-8 h-[2px] bg-client-primary" />
           </div>
           <h2 className="text-3xl md:text-5xl font-black font-heading text-app-text">
-            Dynamic <span className="text-client-primary">Categories</span>
+            {titleText.includes('Categories') ? (
+              <>
+                {titleText.replace('Categories', '')} <span className="text-client-primary">Categories</span>
+              </>
+            ) : (
+              titleText
+            )}
           </h2>
           <p className="text-sm text-app-text-muted max-w-xl mx-auto">
-            Procure authentic hardware, custom configurations, and volume software licensing built for business scalability.
+            {subtitleText}
           </p>
         </div>
 

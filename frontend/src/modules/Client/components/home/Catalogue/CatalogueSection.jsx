@@ -8,6 +8,7 @@ import CatalogueControls from './CatalogueControls';
 import CatalogueFullscreen from './CatalogueFullscreen';
 import CatalogueThumbnails from './CatalogueThumbnails';
 import './catalogue.css';
+import { useCMS } from '../../../hooks/useCMS';
 
 // Set matching version of the PDF.js web worker via CDN to avoid bundler payload issues
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.2.108/build/pdf.worker.min.mjs';
@@ -43,6 +44,13 @@ class CatalogueErrorBoundary extends React.Component {
 }
 
 export default function CatalogueSection() {
+  const { catalogue } = useCMS();
+  const pdfUrl = catalogue?.pdfUrl || '/catalogue/PLE-Catalogue.pdf';
+  const videoUrl = catalogue?.videoUrl || '/PLE_2026_Catalogue_Book_Slow_Pages.mp4';
+  const badge = catalogue?.badge || 'Catalogue Portfolio';
+  const title = catalogue?.title || 'Explore Our Digital Catalogue';
+  const subtitle = catalogue?.subtitle || 'Flip through our verified selection of commercial components, IT infrastructure assets, corporate categories, and service capabilities.';
+
   const [doc, setDoc] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -65,7 +73,6 @@ export default function CatalogueSection() {
   // PDF Loading
   useEffect(() => {
     let active = true;
-    const pdfUrl = '/catalogue/PLE-Catalogue.pdf';
     
     async function loadPDF() {
       try {
@@ -91,7 +98,7 @@ export default function CatalogueSection() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [pdfUrl]);
 
   // Navigation Logic
   const handleNext = () => {
@@ -181,7 +188,7 @@ export default function CatalogueSection() {
           muted 
           loop 
           playsInline
-          src="/PLE_2026_Catalogue_Book_Slow_Pages.mp4"
+          src={videoUrl}
         >
           Your browser does not support the video tag.
         </video>
@@ -216,7 +223,7 @@ export default function CatalogueSection() {
           onZoomIn={() => setZoom((z) => Math.min(z + 0.2, 2.0))}
           onZoomOut={() => setZoom((z) => Math.max(z - 0.2, 0.8))}
           onToggleFullscreen={() => setIsFullscreen(!isFullscreen)}
-          pdfUrl="/catalogue/PLE-Catalogue.pdf"
+          pdfUrl={pdfUrl}
         />
 
         {/* Thumbnail Preview Strip */}
@@ -244,17 +251,23 @@ export default function CatalogueSection() {
             <span className="w-8 h-[2px] bg-client-primary" />
             <span className="text-xs font-black text-client-primary uppercase tracking-[0.3em] flex items-center gap-1.5">
               <BookOpen className="w-3.5 h-3.5" />
-              Catalogue Portfolio
+              {badge}
             </span>
             <span className="w-8 h-[2px] bg-client-primary" />
           </div>
           
           <h2 className="text-3xl sm:text-5xl font-black font-heading text-app-text leading-tight">
-            Explore Our <span className="text-client-primary">Digital Catalogue</span>
+            {title.includes('Digital Catalogue') ? (
+              <>
+                {title.replace('Digital Catalogue', '')} <span className="text-client-primary">Digital Catalogue</span>
+              </>
+            ) : (
+              title
+            )}
           </h2>
 
           <p className="text-app-text-muted text-xs sm:text-sm max-w-2xl mx-auto leading-relaxed">
-            Flip through our verified selection of commercial components, IT infrastructure assets, corporate categories, and service capabilities.
+            {subtitle}
           </p>
         </div>
 

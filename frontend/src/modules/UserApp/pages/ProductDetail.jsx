@@ -1575,23 +1575,23 @@ const MobileProductDetail = () => {
               </button>
               <button
                 onClick={() => setIsQuoteModalOpen(true)}
-                className="flex-1 h-12 bg-[#7B0A0A] text-white rounded-xl font-bold text-xs uppercase flex items-center justify-center gap-1.5 transition-all duration-300 active:scale-95 shadow-sm"
+                className="flex-1 h-12 bg-[#7B0A0A] text-white rounded-xl font-bold text-[11px] sm:text-xs uppercase flex items-center justify-center gap-1 sm:gap-1.5 px-2 transition-all duration-300 active:scale-95 shadow-sm min-w-0"
                 title="Request RFQ"
               >
-                <FiFileText className="text-lg" />
-                <span>Request RFQ</span>
+                <FiFileText className="text-base sm:text-lg shrink-0" />
+                <span className="truncate">Request RFQ</span>
               </button>
             </>
           )}
           {isBusiness ? (
             isInCart ? (
-              <div className="flex-1 flex items-center gap-2">
+              <div className="flex-1 flex items-center gap-2 min-w-0">
                 <button
                   onClick={handleGoToCart}
-                  className="flex-1 h-12 rounded-xl font-bold text-xs uppercase transition-all duration-300 flex items-center justify-center gap-2 bg-gradient-to-r from-[#9B1C1C] via-[#7B0A0A] to-[#4C0505] text-white hover:opacity-90 hover:shadow-glow active:scale-95 shadow-sm"
+                  className="flex-1 h-12 rounded-xl font-bold text-[11px] sm:text-xs uppercase transition-all duration-300 flex items-center justify-center gap-1.5 px-2 bg-gradient-to-r from-[#9B1C1C] via-[#7B0A0A] to-[#4C0505] text-white hover:opacity-90 hover:shadow-glow active:scale-95 shadow-sm min-w-0"
                 >
-                  <FiShoppingBag className="text-lg" />
-                  <span>Go to Cart</span>
+                  <FiShoppingBag className="text-base sm:text-lg shrink-0" />
+                  <span className="truncate">Go to Cart</span>
                 </button>
                 <button
                   onClick={handleRemoveFromCart}
@@ -1605,24 +1605,24 @@ const MobileProductDetail = () => {
               <button
                 onClick={handleAddToCart}
                 disabled={product.stock === "out_of_stock"}
-                className={`flex-1 h-12 rounded-xl font-bold text-xs uppercase transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 ${
+                className={`flex-1 h-12 rounded-xl font-bold text-[11px] sm:text-xs uppercase transition-all duration-300 flex items-center justify-center gap-1.5 px-2 active:scale-95 min-w-0 ${
                   product.stock === "out_of_stock"
                     ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                     : "bg-gradient-to-r from-[#9B1C1C] via-[#7B0A0A] to-[#4C0505] text-white hover:opacity-90 hover:shadow-glow"
                 }`}
               >
-                <FiShoppingBag className="text-lg" />
-                <span>Add Bulk</span>
+                <FiShoppingBag className="text-base sm:text-lg shrink-0" />
+                <span className="truncate">Add Bulk</span>
               </button>
             )
           ) : isInCart ? (
-            <div className="flex-1 flex items-center gap-2">
+            <div className="flex-1 flex items-center gap-2 min-w-0">
               <button
                 onClick={handleGoToCart}
-                className="flex-1 h-12 rounded-xl font-bold text-xs uppercase transition-all duration-300 flex items-center justify-center gap-2 bg-gradient-to-r from-[#9B1C1C] via-[#7B0A0A] to-[#4C0505] text-white hover:opacity-90 hover:shadow-glow active:scale-95 shadow-sm"
+                className="flex-1 h-12 rounded-xl font-bold text-[11px] sm:text-xs uppercase transition-all duration-300 flex items-center justify-center gap-1.5 px-2 bg-gradient-to-r from-[#9B1C1C] via-[#7B0A0A] to-[#4C0505] text-white hover:opacity-90 hover:shadow-glow active:scale-95 shadow-sm min-w-0"
               >
-                <FiShoppingBag className="text-lg" />
-                <span>Go to Cart</span>
+                <FiShoppingBag className="text-base sm:text-lg shrink-0" />
+                <span className="truncate">Go to Cart</span>
               </button>
               <button
                 onClick={handleRemoveFromCart}
@@ -1636,14 +1636,14 @@ const MobileProductDetail = () => {
             <button
               onClick={handleAddToCart}
               disabled={product.stock === "out_of_stock"}
-              className={`flex-1 h-12 rounded-xl font-bold text-xs uppercase transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 ${
+              className={`flex-1 h-12 rounded-xl font-bold text-[11px] sm:text-xs uppercase transition-all duration-300 flex items-center justify-center gap-1.5 px-2 active:scale-95 min-w-0 ${
                 product.stock === "out_of_stock"
                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                   : "bg-gradient-to-r from-[#9B1C1C] via-[#7B0A0A] to-[#4C0505] text-white hover:opacity-90 hover:shadow-glow"
               }`}
             >
-              <FiShoppingBag className="text-lg" />
-              <span>
+              <FiShoppingBag className="text-base sm:text-lg shrink-0" />
+              <span className="truncate">
                 {product.stock === "out_of_stock"
                   ? "Out of Stock"
                   : "Add to Cart"}

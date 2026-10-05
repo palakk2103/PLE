@@ -2,9 +2,11 @@ import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
 import ManagedVendorUser from '../../../models/ManagedVendorUser.model.js';
+import Vendor from '../../../models/Vendor.model.js';
 import AdminManagedVendorThread from '../../../models/AdminManagedVendorThread.model.js';
 import AdminManagedVendorMessage from '../../../models/AdminManagedVendorMessage.model.js';
 import { getIO } from '../../../config/socket.js';
+import { decryptMessage } from '../../../utils/chatEncryption.util.js';
 
 const serializeMessage = (msg) => ({
     id: msg._id,
@@ -12,11 +14,12 @@ const serializeMessage = (msg) => ({
     senderType: msg.senderType,
     senderId: msg.senderId,
     senderName: msg.senderName,
-    message: msg.message,
+    message: decryptMessage(msg.message),
     attachments: msg.attachments || [],
     isRead: msg.isRead,
     createdAt: msg.createdAt,
 });
+
 
 /**
  * Get all managed vendor threads for Admin, plus any managed vendors without an existing thread.
@@ -29,6 +32,27 @@ export const getAdminManagedVendorThreads = asyncHandler(async (req, res) => {
         .populate('managedVendorId', 'name username email companyName phone status shopId')
         .sort({ lastActivity: -1 })
         .lean();
+
+    // Enrich any threads where managedVendorId belongs to standard Vendor model
+    for (const t of threads) {
+        if (!t.managedVendorId || !t.managedVendorId.name) {
+            const rawId = t.managedVendorId?._id || t.managedVendorId;
+            if (rawId) {
+                const v = await Vendor.findById(rawId).select('name storeName email phone status').lean();
+                if (v) {
+                    t.managedVendorId = {
+                        _id: v._id,
+                        name: v.storeName || v.name,
+                        username: v.name,
+                        email: v.email,
+                        companyName: v.storeName || v.name,
+                        phone: v.phone || '',
+                        status: v.status || 'approved'
+                    };
+                }
+            }
+        }
+    }
 
     // Fetch all active managed vendors created by this admin or in system
     const managedVendors = await ManagedVendorUser.find({})
@@ -58,6 +82,12 @@ export const getAdminManagedVendorThreads = asyncHandler(async (req, res) => {
     // Sort by lastActivity desc
     threads.sort((a, b) => new Date(b.lastActivity) - new Date(a.lastActivity));
 
+    threads.forEach((t) => {
+        if (t.lastMessage) {
+            t.lastMessage = decryptMessage(t.lastMessage);
+        }
+    });
+
     res.status(200).json(new ApiResponse(200, threads, 'Managed vendor chat threads fetched successfully.'));
 });
 
@@ -72,9 +102,15 @@ export const initiateOrGetThread = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'managedVendorId is required');
     }
 
-    const vendor = await ManagedVendorUser.findById(managedVendorId).lean();
+    let vendor = await ManagedVendorUser.findById(managedVendorId).lean();
     if (!vendor) {
-        throw new ApiError(404, 'Managed Vendor user not found.');
+        vendor = await Vendor.findById(managedVendorId).lean();
+        if (vendor) {
+            vendor.companyName = vendor.storeName || vendor.name;
+        }
+    }
+    if (!vendor) {
+        throw new ApiError(404, 'Vendor not found.');
     }
 
     let thread = await AdminManagedVendorThread.findOne({
@@ -96,8 +132,14 @@ export const initiateOrGetThread = asyncHandler(async (req, res) => {
         );
     }
 
-    res.status(200).json(new ApiResponse(200, thread, 'Thread retrieved successfully.'));
+    const threadObj = thread.toObject ? thread.toObject({ getters: true }) : { ...thread };
+    if (threadObj.lastMessage) {
+        threadObj.lastMessage = decryptMessage(threadObj.lastMessage);
+    }
+
+    res.status(200).json(new ApiResponse(200, threadObj, 'Thread retrieved successfully.'));
 });
+
 
 /**
  * Get messages of a specific thread

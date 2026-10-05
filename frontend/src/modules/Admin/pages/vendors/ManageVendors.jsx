@@ -124,6 +124,8 @@ const ManageVendors = () => {
         filtered = filtered.filter((vendor) => vendor.verificationStatus === 'Rejected');
       } else if (selectedStatus === 'flagged') {
         filtered = filtered.filter((vendor) => vendor.isFlagged === true);
+      } else if (selectedStatus === 'appeals') {
+        filtered = filtered.filter((vendor) => vendor.unflagAppeal?.status === 'PENDING');
       } else {
         filtered = filtered.filter((vendor) => vendor.status === selectedStatus);
       }
@@ -246,6 +248,13 @@ const ManageVendors = () => {
               className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200"
               title={row.flagReason || "Account flagged for unfulfilled request"}>
               ⚠️ FLAGGED {row.strikeCount ? `(${row.strikeCount})` : ""}
+            </span>
+          )}
+          {row?.unflagAppeal?.status === 'PENDING' && (
+            <span
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-amber-100 text-amber-900 border border-amber-300 animate-pulse"
+              title={`Unflag Appeal: ${row.unflagAppeal.reason}`}>
+              📩 APPEAL PENDING
             </span>
           )}
         </div>
@@ -483,10 +492,10 @@ const ManageVendors = () => {
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="lg:hidden">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
-            Manage Vendors
+            Marketplace Sellers (All Vendors)
           </h1>
           <p className="text-sm sm:text-base text-gray-600">
-            View and manage all vendors on the platform
+            View, filter, flag/unflag, and manage all registered marketplace vendors
           </p>
         </div>
       </div>
@@ -511,6 +520,7 @@ const ManageVendors = () => {
               onChange={(e) => setSelectedStatus(e.target.value)}
               options={[
                 { value: "all", label: "All Status" },
+                { value: "appeals", label: "📩 Unflag Appeals (Pending)" },
                 { value: "flagged", label: "⚠️ Flagged (Restricted)" },
                 { value: "approved", label: "Approved (Active)" },
                 { value: "pending", label: "Pending Approval" },

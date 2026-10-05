@@ -9,7 +9,7 @@ const LanguageSettings = () => {
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [productTranslations, setProductTranslations] = useState([]);
 
-  const vendorId = vendor?.id;
+  const vendorId = vendor?.id || vendor?._id;
 
   const languages = [
     { code: 'en', name: 'English' },
@@ -21,11 +21,18 @@ const LanguageSettings = () => {
 
   useEffect(() => {
     if (!vendorId) return;
-    const saved = localStorage.getItem(`vendor-${vendorId}-language`);
-    if (saved) setSelectedLanguage(saved);
+    try {
+      const saved = localStorage.getItem(`vendor-${vendorId}-language`);
+      if (saved) setSelectedLanguage(saved);
 
-    const savedTranslations = localStorage.getItem(`vendor-${vendorId}-translations`);
-    if (savedTranslations) setProductTranslations(JSON.parse(savedTranslations));
+      const savedTranslations = localStorage.getItem(`vendor-${vendorId}-translations`);
+      if (savedTranslations) {
+        const parsed = JSON.parse(savedTranslations);
+        if (Array.isArray(parsed)) setProductTranslations(parsed);
+      }
+    } catch (e) {
+      console.warn("Failed to load vendor language settings", e);
+    }
   }, [vendorId]);
 
   const handleLanguageChange = (langCode) => {

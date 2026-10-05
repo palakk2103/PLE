@@ -78,6 +78,7 @@ const autoSeedB2B = async () => {
         companyAddress: '404 Business Hub, BKC, Mumbai, MH - 400051',
         companyType: 'Private Limited Company',
         website: 'https://apexenterprises.in',
+        ownerSecretKey: 'ApexSecret123!',
         verificationStatus: 'Approved',
         status: 'Active'
       });
@@ -86,7 +87,7 @@ const autoSeedB2B = async () => {
 
     let b2bAdmin = await User.findOne({ email: 'sarkarraj0766@gmail.com' });
     if (!b2bAdmin) {
-      await User.create({
+      b2bAdmin = await User.create({
         companyId: company._id,
         name: 'Apex General Enterprises',
         email: 'sarkarraj0766@gmail.com',
@@ -98,6 +99,61 @@ const autoSeedB2B = async () => {
         isActive: true
       });
       console.log('✅ DATABASE AUTO-SEED SUCCESS: B2B Admin account created (sarkarraj0766@gmail.com / password123)');
+    }
+
+    // Seed additional sample B2B companies if none exist
+    let nova = await B2BCompany.findOne({ businessEmail: 'info@novahealth.in' });
+    if (!nova) {
+      nova = await B2BCompany.create({
+        companyName: 'Nova Healthcare Pvt Ltd',
+        gstNumber: '29ABCDE1234F2Z5',
+        businessEmail: 'info@novahealth.in',
+        businessPhone: '9822011223',
+        companyAddress: '12 Science Park, Electronic City, Bengaluru, KA - 560100',
+        companyType: 'Private Limited Company',
+        website: 'https://novahealth.in',
+        ownerSecretKey: 'NovaSecret123!',
+        verificationStatus: 'Pending Verification',
+        status: 'Active'
+      });
+      await User.create({
+        companyId: nova._id,
+        name: 'Dr. Ramesh Kumar',
+        email: 'admin@novahealth.in',
+        phone: '9822011223',
+        password: 'password123',
+        role: 'b2bAdmin',
+        b2bRole: 'Admin',
+        isVerified: true,
+        isActive: true
+      });
+    }
+
+    let zenith = await B2BCompany.findOne({ businessEmail: 'ops@zenithlogistics.in' });
+    if (!zenith) {
+      zenith = await B2BCompany.create({
+        companyName: 'Zenith Logistics LLP',
+        gstNumber: '07AAACZ1234K1Z0',
+        businessEmail: 'ops@zenithlogistics.in',
+        businessPhone: '9811099887',
+        companyAddress: 'Plot 45, Udyog Vihar Phase 4, Gurugram, HR - 122015',
+        companyType: 'LLP (Limited Liability Partnership)',
+        website: 'https://zenithlogistics.in',
+        ownerSecretKey: 'ZenithSecret123!',
+        verificationStatus: 'Approved',
+        status: 'Active'
+      });
+      await User.create({
+        companyId: zenith._id,
+        name: 'Vikram Malhotra',
+        email: 'vikram@zenithlogistics.in',
+        phone: '9811099887',
+        password: 'password123',
+        role: 'b2bAdmin',
+        b2bRole: 'Admin',
+        isVerified: true,
+        isActive: true
+      });
     }
   } catch (err) {
     console.error('⚠️ DATABASE AUTO-SEED FAILED for B2B:', err.message);

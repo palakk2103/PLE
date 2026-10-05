@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   FiMessageSquare,
   FiSend,
   FiShield,
   FiRefreshCw,
   FiCheckCircle,
-  FiClock
+  FiClock,
+  FiUsers
 } from "react-icons/fi";
 import { motion } from "framer-motion";
 import api from "../../../shared/utils/api";
@@ -13,6 +15,7 @@ import socketService from "../../../shared/utils/socket";
 import toast from "react-hot-toast";
 
 const ManagedVendorAdminChat = () => {
+  const navigate = useNavigate();
   const [thread, setThread] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
@@ -160,13 +163,23 @@ const ManagedVendorAdminChat = () => {
             </p>
           </div>
         </div>
-        <button
-          onClick={loadChatData}
-          className="flex items-center justify-center gap-2 px-3.5 py-2 bg-gray-50 dark:bg-white/5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl text-xs sm:text-sm font-medium transition-colors border border-gray-200 dark:border-white/10 flex-shrink-0"
-        >
-          <FiRefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-          <span>Refresh</span>
-        </button>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <button
+            onClick={() => navigate("/vendor/chat")}
+            className="flex items-center justify-center gap-2 px-3.5 py-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 rounded-xl text-xs sm:text-sm font-semibold transition-colors border border-emerald-200 dark:border-emerald-800"
+            title="Open chats with customers / buyers"
+          >
+            <FiUsers className="w-4 h-4" />
+            <span>Customer Chats</span>
+          </button>
+          <button
+            onClick={loadChatData}
+            className="flex items-center justify-center gap-2 px-3.5 py-2 bg-gray-50 dark:bg-white/5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl text-xs sm:text-sm font-medium transition-colors border border-gray-200 dark:border-white/10"
+          >
+            <FiRefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+            <span>Refresh</span>
+          </button>
+        </div>
       </div>
 
       {/* Main Chat Box */}

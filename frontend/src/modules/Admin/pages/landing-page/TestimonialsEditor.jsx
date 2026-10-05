@@ -7,7 +7,21 @@ import toast from 'react-hot-toast';
 
 const TestimonialsEditor = () => {
   const navigate = useNavigate();
-  const { testimonials, updateTestimonials } = useLandingPageStore();
+  const { testimonials, updateTestimonials, testimonialsHeader, updateTestimonialsHeader } = useLandingPageStore();
+
+  const [headerData, setHeaderData] = useState({
+    title: testimonialsHeader?.title || 'CLIENT SAYS:'
+  });
+
+  const handleHeaderChange = (e) => {
+    const { name, value } = e.target;
+    setHeaderData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSaveHeader = () => {
+    updateTestimonialsHeader(headerData);
+    toast.success('Testimonials header title updated!');
+  };
 
   const [editingIndex, setEditingIndex] = useState(null);
   const [formData, setFormData] = useState({
@@ -96,6 +110,32 @@ const TestimonialsEditor = () => {
             Add Testimonial
           </button>
         )}
+      </div>
+
+      {/* Section Header Controls */}
+      <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm space-y-4">
+        <h2 className="text-xs font-bold text-[#C07A3D] uppercase tracking-wider">
+          Section Title & Header Settings
+        </h2>
+        <div>
+          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Section Heading Title</label>
+          <input
+            type="text"
+            name="title"
+            value={headerData.title}
+            onChange={handleHeaderChange}
+            className="w-full text-sm border border-gray-200 rounded-lg p-2.5 outline-none focus:border-[#C07A3D]"
+            placeholder="e.g. CLIENT SAYS:"
+          />
+        </div>
+        <div className="flex justify-end pt-1">
+          <button
+            onClick={handleSaveHeader}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-black transition text-xs font-bold uppercase tracking-wider"
+          >
+            <FiSave size={14} /> Save Header Settings
+          </button>
+        </div>
       </div>
 
       {editingIndex !== null ? (

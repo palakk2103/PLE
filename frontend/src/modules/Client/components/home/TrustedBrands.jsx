@@ -3,10 +3,16 @@ import { motion } from 'framer-motion';
 import axios from 'axios';
 import { ArrowRight, Award } from 'lucide-react';
 import { API_BASE_URL } from '../../../../shared/utils/constants';
+import { useCMS } from '../../hooks/useCMS';
 
 export default function TrustedBrands() {
+  const { trustedBrands } = useCMS();
   const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const badgeText = trustedBrands?.badge || "Authorized Portfolios";
+  const titleText = trustedBrands?.title || "Trusted Electronics Brands";
+  const subtitleText = trustedBrands?.subtitle || "Direct partnerships with global manufacturers ensuring official warranty coverage, premium enterprise support, and bulk inventory access.";
 
   useEffect(() => {
     const fetchBrands = async () => {
@@ -49,17 +55,24 @@ export default function TrustedBrands() {
           <div className="flex items-center justify-center gap-3">
             <span className="w-8 h-[2px] bg-client-primary" />
             <span className="text-xs font-black text-client-primary uppercase tracking-[0.3em]">
-              Authorized Portfolios
+              {badgeText}
             </span>
             <span className="w-8 h-[2px] bg-client-primary" />
           </div>
           
           <h2 className="text-3xl sm:text-5xl font-black font-heading text-app-text leading-tight">
-            Trusted <span className="text-client-primary">Electronics Brands</span>
+            {titleText.includes('Electronics Brands') ? (
+              <>
+                {titleText.replace('Electronics Brands', '')}
+                <span className="text-client-primary">Electronics Brands</span>
+              </>
+            ) : (
+              titleText
+            )}
           </h2>
 
           <p className="text-app-text-muted text-xs sm:text-sm max-w-2xl mx-auto leading-relaxed">
-            Direct partnerships with global manufacturers ensuring official warranty coverage, premium enterprise support, and bulk inventory access.
+            {subtitleText}
           </p>
         </div>
 

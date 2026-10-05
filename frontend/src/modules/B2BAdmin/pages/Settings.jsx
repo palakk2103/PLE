@@ -217,7 +217,7 @@ const Settings = () => {
       <div className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/20 border border-red-100 dark:border-red-900/30 rounded-2xl p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
           <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#D71920] to-[#B51218] text-white flex items-center justify-center font-bold text-base shadow-sm flex-shrink-0">
-            {companyName.charAt(0)}
+            {typeof companyName === 'string' && companyName.length > 0 ? companyName.charAt(0).toUpperCase() : 'B'}
           </div>
           <div className="min-w-0">
             <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white truncate">

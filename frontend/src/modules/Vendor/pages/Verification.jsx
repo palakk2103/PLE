@@ -98,7 +98,7 @@ const VendorVerification = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass-card rounded-3xl p-8 w-full max-w-md shadow-2xl"
+        className="glass-card rounded-3xl p-5 sm:p-8 w-full max-w-md shadow-2xl"
       >
         {/* Header */}
         <div className="text-center mb-8">
@@ -108,14 +108,14 @@ const VendorVerification = () => {
           <h1 className="text-3xl font-extrabold text-gray-800 mb-2">Verify Your Email</h1>
           <p className="text-gray-600">
             We've sent a verification code to <br />
-            <span className="font-semibold text-gray-800">{email}</span>
+            <span className="font-semibold text-gray-800 break-all">{email}</span>
           </p>
         </div>
 
         {/* Verification Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Code Inputs */}
-          <div className="flex justify-center gap-3">
+          <div className="flex items-center justify-center gap-1.5 sm:gap-3">
             {codes.map((code, index) => (
               <input
                 key={index}
@@ -127,7 +127,7 @@ const VendorVerification = () => {
                 onChange={(e) => handleChange(index, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(index, e)}
                 onPaste={index === 0 ? handlePaste : undefined}
-                className="w-16 h-16 text-center text-2xl font-bold bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary-500 text-gray-800"
+                className="w-10 h-11 xs:w-11 xs:h-12 sm:w-12 sm:h-12 text-center text-lg sm:text-xl font-bold bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary-500 text-gray-800 transition-all flex-shrink-0"
               />
             ))}
           </div>

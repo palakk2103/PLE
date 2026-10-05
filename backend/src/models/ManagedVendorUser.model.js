@@ -22,6 +22,8 @@ const managedVendorUserSchema = new mongoose.Schema(
         twoFactorOtp: { type: String, select: false },
         twoFactorOtpExpiry: { type: Date, select: false },
         twoFactorAttempts: { type: Number, default: 0, select: false },
+        loginAttempts: { type: Number, default: 0, select: false },
+        lockUntil: { type: Date, default: null, select: false },
         refreshTokenHash: { type: String, select: false },
         refreshTokenExpiresAt: { type: Date, select: false }
     },

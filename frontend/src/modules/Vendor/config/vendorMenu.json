@@ -142,15 +142,6 @@
                      ]
     },
     {
-        "title":  "My Offers",
-        "route":  "/vendor/my-offers",
-        "children":  [
-                         "Dashboard",
-                         "My Offers List",
-                         "Create Offer"
-                     ]
-    },
-    {
         "title": "Festival Campaigns",
         "route": "/vendor/festival-campaigns",
         "children": []

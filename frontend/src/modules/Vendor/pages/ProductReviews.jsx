@@ -26,7 +26,7 @@ const ProductReviews = () => {
   const [selectedReview, setSelectedReview] = useState(null);
   const [responseText, setResponseText] = useState("");
 
-  const vendorId = vendor?.id || vendor?._id;
+  const vendorId = vendor?.id || vendor?._id || vendor?.shopId;
 
   useEffect(() => {
     if (!vendorId) {
@@ -42,9 +42,10 @@ const ProductReviews = () => {
           limit: 100,
           reviewerType: selectedReviewerType === "all" ? undefined : selectedReviewerType
         });
-        const payload = res?.data ?? res;
-        setReviews(payload?.reviews ?? []);
-      } catch {
+        const reviewsList = res?.reviews ?? res?.data?.reviews ?? (Array.isArray(res) ? res : []);
+        setReviews(reviewsList);
+      } catch (err) {
+        console.error('Failed to fetch reviews:', err);
         setReviews([]);
       } finally {
         setIsLoading(false);
@@ -414,8 +415,31 @@ const ProductReviews = () => {
           itemsPerPage={10}
         />
       ) : (
-        <div className="bg-white rounded-xl p-12 shadow-sm border border-gray-200 text-center">
-          <p className="text-gray-500">No reviews found</p>
+        <div className="bg-white rounded-2xl p-12 shadow-sm border border-gray-200/80 text-center flex flex-col items-center justify-center">
+          <div className="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center mb-4 border border-amber-100">
+            <FiStar className="text-3xl text-amber-500" />
+          </div>
+          <h3 className="text-lg font-bold text-gray-800 mb-1">
+            {reviews.length === 0 ? "No Customer Reviews Yet" : "No Matching Reviews"}
+          </h3>
+          <p className="text-sm text-gray-500 max-w-md mb-4">
+            {reviews.length === 0
+              ? "Customer reviews and feedback for your delivered products will appear here. You can track ratings, respond to buyer feedback, and moderate reviews."
+              : "No reviews match your current filter criteria. Try clearing search query or filter settings."}
+          </p>
+          {(searchQuery || selectedRating !== "all" || selectedProduct !== "all" || selectedReviewerType !== "all") && (
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                setSelectedRating("all");
+                setSelectedProduct("all");
+                setSelectedReviewerType("all");
+              }}
+              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-xs rounded-xl transition-colors"
+            >
+              Reset Filters
+            </button>
+          )}
         </div>
       )}
 

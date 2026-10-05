@@ -158,16 +158,44 @@ export const useSettingsStore = create(
 
       // Initialize settings
       initialize: async () => {
-        const savedSettings = localStorage.getItem("admin-settings");
-        if (savedSettings) {
-          set({ settings: JSON.parse(savedSettings) });
-        } else {
-          set({ settings: defaultSettings });
+        let loadedSettings = defaultSettings;
+        try {
+          const savedSettings = localStorage.getItem("admin-settings");
+          if (savedSettings) {
+            const parsed = JSON.parse(savedSettings);
+            if (parsed && typeof parsed === "object") {
+              loadedSettings = {
+                ...defaultSettings,
+                ...parsed,
+                general: { ...defaultSettings.general, ...(parsed.general || {}) },
+                payment: { ...defaultSettings.payment, ...(parsed.payment || {}) },
+                shipping: { ...defaultSettings.shipping, ...(parsed.shipping || {}) },
+                orders: { ...defaultSettings.orders, ...(parsed.orders || {}) },
+                customers: { ...defaultSettings.customers, ...(parsed.customers || {}) },
+                products: { ...defaultSettings.products, ...(parsed.products || {}) },
+                tax: { ...defaultSettings.tax, ...(parsed.tax || {}) },
+                content: { ...defaultSettings.content, ...(parsed.content || {}) },
+                features: { ...defaultSettings.features, ...(parsed.features || {}) },
+                homepage: { ...defaultSettings.homepage, ...(parsed.homepage || {}) },
+                reviews: { ...defaultSettings.reviews, ...(parsed.reviews || {}) },
+                email: { ...defaultSettings.email, ...(parsed.email || {}) },
+                notifications: { ...defaultSettings.notifications, ...(parsed.notifications || {}) },
+                seo: { ...defaultSettings.seo, ...(parsed.seo || {}) },
+                theme: { ...defaultSettings.theme, ...(parsed.theme || {}) },
+              };
+            }
+          }
+        } catch (e) {
+          console.warn("Failed to parse admin-settings from localStorage", e);
+        }
+
+        set({ settings: loadedSettings });
+        try {
           localStorage.setItem(
             "admin-settings",
-            JSON.stringify(defaultSettings)
+            JSON.stringify(loadedSettings)
           );
-        }
+        } catch (_) {}
         
         // Async fetch from backend to sync
         try {

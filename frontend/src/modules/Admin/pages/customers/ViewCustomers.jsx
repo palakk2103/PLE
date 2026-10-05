@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { FiSearch } from 'react-icons/fi';
+import { FiSearch, FiUsers, FiUserCheck, FiUserX, FiDollarSign } from 'react-icons/fi';
+
 import { motion } from 'framer-motion';
 import { useCustomerStore } from '../../../../shared/store/customerStore';
 import CustomerCard from '../../components/Customers/CustomerCard';
@@ -142,9 +143,59 @@ const ViewCustomers = () => {
         </div>
       </div>
 
+      {/* Summary KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        {[
+          {
+            label: 'Total Customers',
+            value: pagination.total || customers.length,
+            icon: FiUsers,
+            color: 'text-blue-600',
+            bg: 'bg-blue-50 border-blue-100',
+          },
+          {
+            label: 'Active Customers',
+            value: customers.filter((c) => c.status === 'active').length,
+            icon: FiUserCheck,
+            color: 'text-green-600',
+            bg: 'bg-green-50 border-green-100',
+          },
+          {
+            label: 'Blocked Customers',
+            value: customers.filter((c) => c.status === 'blocked').length,
+            icon: FiUserX,
+            color: 'text-red-600',
+            bg: 'bg-red-50 border-red-100',
+          },
+          {
+            label: 'Revenue Generated',
+            value: formatPrice(customers.reduce((acc, c) => acc + (Number(c.totalSpent) || 0), 0)),
+            icon: FiDollarSign,
+            color: 'text-primary-600',
+            bg: 'bg-primary-50 border-primary-100',
+          },
+        ].map((stat, idx) => {
+          const Icon = stat.icon;
+          return (
+            <div
+              key={idx}
+              className={`p-4 rounded-xl border bg-white shadow-sm flex items-center justify-between min-w-0`}
+            >
+              <div className="min-w-0 flex-1 mr-2">
+                <p className="text-xs text-gray-500 font-medium truncate mb-1">{stat.label}</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-800 truncate">{stat.value}</p>
+              </div>
+              <div className={`p-2.5 rounded-xl ${stat.bg} ${stat.color} shrink-0`}>
+                <Icon className="text-lg" />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
       <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
         <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 sm:gap-4">
-          <div className="relative flex-1 w-full">
+          <div className="relative flex-1 w-full min-w-0">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
@@ -166,7 +217,7 @@ const ViewCustomers = () => {
             className="w-full sm:w-auto min-w-[140px]"
           />
 
-          <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1 w-full sm:w-auto">
+          <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1 w-full sm:w-auto shrink-0">
             <button
               onClick={() => setViewMode('grid')}
               className={`flex-1 sm:flex-initial px-3 py-2 rounded text-sm font-medium transition-colors ${viewMode === 'grid'
@@ -189,20 +240,21 @@ const ViewCustomers = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+      <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 min-w-0">
         {customers.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-500">No customers found</p>
           </div>
         ) : viewMode === 'grid' ? (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5 w-full min-w-0">
               {customers.map((customer) => (
-                <CustomerCard
-                  key={customer.id}
-                  customer={customer}
-                  onView={handleViewCustomer}
-                />
+                <div key={customer.id} className="min-w-0 w-full flex">
+                  <CustomerCard
+                    customer={customer}
+                    onView={handleViewCustomer}
+                  />
+                </div>
               ))}
             </div>
             <Pagination
@@ -215,13 +267,16 @@ const ViewCustomers = () => {
             />
           </>
         ) : (
-          <DataTable
-            data={customers}
-            columns={columns}
-            pagination={false}
-          />
+          <div className="overflow-x-auto min-w-0">
+            <DataTable
+              data={customers}
+              columns={columns}
+              pagination={false}
+            />
+          </div>
         )}
       </div>
+
 
       {showDetail && selectedCustomer && (
         <CustomerDetail

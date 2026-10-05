@@ -29,7 +29,12 @@ export const getVendorReviews = asyncHandler(async (req, res) => {
     const numericPage = Math.max(1, Number(page) || 1);
     const numericLimit = Math.max(1, Number(limit) || 20);
 
-    const vendorProducts = await Product.find({ vendorId: req.user.id }).select('_id').lean();
+    const isManaged = req.user.role === 'managed_vendor';
+    const productQuery = isManaged
+        ? { $or: [{ shopId: req.user.shopId }, { vendorId: req.user.id }, { vendorId: req.user.shopId }] }
+        : { vendorId: req.user.id };
+
+    const vendorProducts = await Product.find(productQuery).select('_id').lean();
     const vendorProductIds = vendorProducts.map((p) => p._id);
     if (vendorProductIds.length === 0) {
         return res.status(200).json(
@@ -61,7 +66,7 @@ export const getVendorReviews = asyncHandler(async (req, res) => {
     const [reviews, total] = await Promise.all([
         Review.find(filter)
             .populate('userId', 'name email')
-            .populate('productId', 'name')
+            .populate('productId', 'name vendorId shopId')
             .sort({ createdAt: -1 })
             .skip((numericPage - 1) * numericLimit)
             .limit(numericLimit),
@@ -94,9 +99,16 @@ export const updateVendorReviewStatus = asyncHandler(async (req, res) => {
         throw new ApiError(400, `Status must be one of: ${allowed.join(', ')}`);
     }
 
-    const review = await Review.findById(req.params.id).populate('productId', 'vendorId name');
+    const review = await Review.findById(req.params.id).populate('productId', 'vendorId shopId name');
     if (!review) throw new ApiError(404, 'Review not found.');
-    if (String(review.productId?.vendorId) !== String(req.user.id)) {
+
+    const isManaged = req.user.role === 'managed_vendor';
+    const allowedVendorIds = isManaged
+        ? [String(req.user.shopId), String(req.user.id)]
+        : [String(req.user.id)];
+
+    const prodVendorId = String(review.productId?.vendorId || review.productId?.shopId || '');
+    if (!allowedVendorIds.includes(prodVendorId)) {
         throw new ApiError(404, 'Review not found.');
     }
 
@@ -124,9 +136,16 @@ export const addVendorReviewResponse = asyncHandler(async (req, res) => {
     const cleanResponse = String(response ?? '').trim();
     if (!cleanResponse) throw new ApiError(400, 'Response is required.');
 
-    const review = await Review.findById(req.params.id).populate('productId', 'vendorId name');
+    const review = await Review.findById(req.params.id).populate('productId', 'vendorId shopId name');
     if (!review) throw new ApiError(404, 'Review not found.');
-    if (String(review.productId?.vendorId) !== String(req.user.id)) {
+
+    const isManaged = req.user.role === 'managed_vendor';
+    const allowedVendorIds = isManaged
+        ? [String(req.user.shopId), String(req.user.id)]
+        : [String(req.user.id)];
+
+    const prodVendorId = String(review.productId?.vendorId || review.productId?.shopId || '');
+    if (!allowedVendorIds.includes(prodVendorId)) {
         throw new ApiError(404, 'Review not found.');
     }
 

@@ -92,6 +92,8 @@ export const getAllProductRequests = asyncHandler(async (req, res) => {
             path: 'acceptedVendorId',
             select: 'name storeName email phone companyName storeLogo'
         })
+        .populate('releasedVendors.vendorId', 'name storeName email phone companyName storeLogo')
+        .populate('chatThreadId')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limitNum);
@@ -124,7 +126,9 @@ export const getAllProductRequests = asyncHandler(async (req, res) => {
         vendorAcceptedAt: reqItem.vendorAcceptedAt,
         vendorFulfillmentExpiresAt: reqItem.vendorFulfillmentExpiresAt,
         vendorFulfillmentStatus: reqItem.vendorFulfillmentStatus,
-        vendorQuotations: reqItem.vendorQuotations
+        vendorQuotations: reqItem.vendorQuotations,
+        releasedVendors: reqItem.releasedVendors || [],
+        chatThreadId: reqItem.chatThreadId || null
     }));
 
     res.status(200).json(
@@ -629,4 +633,45 @@ export const selectVendorQuotation = asyncHandler(async (req, res) => {
         new ApiResponse(200, request, 'Vendor quotation selected as final proposal')
     );
 });
+
+// @desc    Get chat thread and messages for a product request (Admin view)
+// @route   GET /api/admin/product-requests/:id/chat-thread/:threadId
+// @access  Private (Admin)
+export const getProductRequestChatMessages = asyncHandler(async (req, res) => {
+    const { id, threadId } = req.params;
+
+    const { default: VendorChatThread } = await import('../../../models/VendorChatThread.model.js');
+    const { default: VendorChatMessage } = await import('../../../models/VendorChatMessage.model.js');
+    const { decryptMessage } = await import('../../../utils/chatEncryption.util.js');
+
+    const thread = await VendorChatThread.findById(threadId)
+        .populate('vendorId', 'name storeName email phone storeLogo')
+        .populate('customerUserId', 'name email phone');
+
+    if (!thread) {
+        throw new ApiError(404, 'Chat thread not found.');
+    }
+
+    const messages = await VendorChatMessage.find({ threadId: thread._id })
+        .sort({ createdAt: 1 });
+
+    const decryptedMessages = messages.map((m) => {
+        const obj = m.toObject ? m.toObject({ getters: true }) : { ...m };
+        if (obj.message) {
+            obj.message = decryptMessage(obj.message);
+        }
+        return obj;
+    });
+
+    const threadObj = thread.toObject ? thread.toObject({ getters: true }) : { ...thread };
+    if (threadObj.lastMessage) {
+        threadObj.lastMessage = decryptMessage(threadObj.lastMessage);
+    }
+
+    res.status(200).json(
+        new ApiResponse(200, { thread: threadObj, messages: decryptedMessages }, 'Chat messages fetched successfully.')
+    );
+});
+
+
 

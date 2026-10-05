@@ -415,11 +415,15 @@ export const getAllVendorReviews = async (params = {}) => {
 
     do {
         const res = await getVendorReviews({ ...params, page, limit: pageSize });
-        const payload = res?.data ?? res;
-        const pageReviews = Array.isArray(payload?.reviews) ? payload.reviews : [];
+        const payload = res?.data?.reviews 
+            ? res.data 
+            : (res?.data?.data?.reviews ? res.data.data : (res?.data ?? res));
+        const pageReviews = Array.isArray(payload?.reviews) 
+            ? payload.reviews 
+            : (Array.isArray(payload?.data?.reviews) ? payload.data.reviews : (Array.isArray(payload) ? payload : []));
         allReviews.push(...pageReviews);
 
-        const pagination = payload?.pagination || {};
+        const pagination = payload?.pagination || res?.data?.pagination || res?.data?.data?.pagination || {};
         total = Number(pagination?.total || allReviews.length);
         pages = Math.max(Number(pagination?.pages || 1), 1);
         page += 1;
@@ -634,6 +638,18 @@ export const uploadPartnershipAgreement = (file) => {
 };
 
 /**
+ * Upload Business / Authority Letter
+ * @param {File} file
+ */
+export const uploadBusinessLetter = (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/vendor/business-profile/upload-business-letter', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    });
+};
+
+/**
  * Bulk create vendor orders
  * @param {Array} orders
  */
@@ -675,5 +691,14 @@ export const uploadB2BGstCertificate = (file) => {
         headers: { 'Content-Type': 'multipart/form-data' }
     });
 };
+
+/**
+ * Submit unflag appeal
+ * @param {string} reason
+ */
+export const submitUnflagAppeal = (reason) => {
+    return api.post('/vendor/appeal-unflag', { reason });
+};
+
 
 

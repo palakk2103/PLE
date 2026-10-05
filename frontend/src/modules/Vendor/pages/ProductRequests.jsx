@@ -5,10 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import api from "../../../shared/utils/api";
 import { useVendorAuthStore } from "../store/vendorAuthStore";
+import { submitUnflagAppeal } from "../services/vendorService";
 
 const VendorProductRequests = () => {
   const navigate = useNavigate();
-  const { vendor } = useVendorAuthStore();
+  const { vendor, refreshProfile } = useVendorAuthStore();
   const vendorId = vendor?._id || vendor?.id || "";
   const [requests, setRequests] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -39,6 +40,32 @@ const VendorProductRequests = () => {
   const [extensionDays, setExtensionDays] = useState("");
   const [extensionReason, setExtensionReason] = useState("");
   const [isSubmittingExtension, setIsSubmittingExtension] = useState(false);
+
+  // Unflag Appeal state
+  const [showAppealModal, setShowAppealModal] = useState(false);
+  const [appealReason, setAppealReason] = useState("");
+  const [isSubmittingAppeal, setIsSubmittingAppeal] = useState(false);
+
+  const handleAppealSubmit = async () => {
+    if (!appealReason.trim()) {
+      toast.error("Please provide an explanation or reason for your unflag appeal.");
+      return;
+    }
+    setIsSubmittingAppeal(true);
+    try {
+      await submitUnflagAppeal(appealReason.trim());
+      toast.success("Unflag appeal submitted! Administrator has been notified.");
+      setShowAppealModal(false);
+      setAppealReason("");
+      if (refreshProfile) {
+        await refreshProfile();
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || "Failed to submit appeal.");
+    } finally {
+      setIsSubmittingAppeal(false);
+    }
+  };
 
   useEffect(() => {
     loadRequests();
@@ -312,28 +339,78 @@ const VendorProductRequests = () => {
 
       {/* Account Flagged Warning Banner */}
       {vendor?.isFlagged && (
-        <div className="bg-rose-50 border border-rose-250 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
-          <div className="flex items-start gap-3.5">
-            <span className="text-2xl mt-0.5">⚠️</span>
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-black text-rose-900 text-base sm:text-lg">
-                  Your Vendor Account is Currently FLAGGED
-                </h3>
-                {vendor?.strikeCount > 0 && (
-                  <span className="bg-rose-200 text-rose-800 text-xs px-2.5 py-0.5 rounded-full font-bold">
-                    {vendor.strikeCount} {vendor.strikeCount === 1 ? 'Strike' : 'Strikes'}
-                  </span>
-                )}
+        <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 sm:p-5 flex flex-col gap-4 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <span className="text-2xl mt-0.5">⚠️</span>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-black text-rose-900 text-base sm:text-lg">
+                    Your Vendor Account is Currently FLAGGED
+                  </h3>
+                  {vendor?.strikeCount > 0 && (
+                    <span className="bg-rose-200 text-rose-800 text-xs px-2.5 py-0.5 rounded-full font-bold">
+                      {vendor.strikeCount} {vendor.strikeCount === 1 ? 'Strike' : 'Strikes'}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs sm:text-sm text-rose-800 mt-1">
+                  <strong>Reason:</strong> {vendor?.flagReason || "You failed to fulfill or release an accepted product request within the deadline."}
+                </p>
+                <p className="text-xs text-rose-600 mt-1 font-semibold">
+                  ⛔ You are temporarily restricted from accepting new product requests.
+                </p>
               </div>
-              <p className="text-xs sm:text-sm text-rose-800 mt-1">
-                {vendor?.flagReason || "You failed to fulfill or release an accepted product request within the deadline."}
-              </p>
-              <p className="text-xs text-rose-600 mt-1 font-semibold">
-                ⛔ You are temporarily restricted from accepting new product requests. Please contact Administrator/Support to unflag your account.
-              </p>
             </div>
+
+            {/* Appeal Action Button (when not pending) */}
+            {vendor?.unflagAppeal?.status !== 'PENDING' && (
+              <button
+                onClick={() => setShowAppealModal(true)}
+                className="self-start sm:self-center px-4 py-2.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow transition-all whitespace-nowrap flex items-center gap-2"
+              >
+                <span>📝</span> {vendor?.unflagAppeal?.status === 'REJECTED' ? 'Re-submit Unflag Appeal' : 'Request Unflag / Appeal'}
+              </button>
+            )}
           </div>
+
+          {/* If Appeal is Pending */}
+          {vendor?.unflagAppeal?.status === 'PENDING' && (
+            <div className="p-3.5 bg-amber-100/90 border border-amber-300 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs sm:text-sm">
+              <div className="flex items-start gap-2.5 text-amber-900">
+                <span className="text-lg">⏳</span>
+                <div>
+                  <span className="font-extrabold text-amber-950">Unflag Appeal Submitted & Under Admin Review</span>
+                  <p className="text-xs text-amber-800 mt-0.5 italic">
+                    "{vendor.unflagAppeal.reason}"
+                  </p>
+                  {vendor.unflagAppeal.requestedAt && (
+                    <p className="text-[11px] text-amber-700 mt-0.5">
+                      Submitted on: {new Date(vendor.unflagAppeal.requestedAt).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <span className="self-start sm:self-center px-2.5 py-1 bg-amber-200 text-amber-900 rounded-lg text-xs font-black uppercase tracking-wider whitespace-nowrap border border-amber-300">
+                Pending Admin Action
+              </span>
+            </div>
+          )}
+
+          {/* If Previous Appeal was Rejected */}
+          {vendor?.unflagAppeal?.status === 'REJECTED' && (
+            <div className="p-3 bg-rose-100/80 border border-rose-300 rounded-xl text-xs sm:text-sm">
+              <div className="flex items-center gap-2 text-rose-900 font-bold">
+                <span>❌</span>
+                <span>Previous Appeal Rejected by Administrator</span>
+              </div>
+              {vendor.unflagAppeal.adminRemarks && (
+                <p className="text-xs text-rose-800 mt-1 pl-6">
+                  <strong>Admin Remarks:</strong> {vendor.unflagAppeal.adminRemarks}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -1241,6 +1318,80 @@ const VendorProductRequests = () => {
                     Submit Response
                   </button>
                 </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Unflag Appeal Modal */}
+      <AnimatePresence>
+        {showAppealModal && (
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 sm:p-4 backdrop-blur-sm overflow-y-auto">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-3xl p-5 sm:p-6 shadow-2xl max-w-md w-full border border-gray-100 space-y-4 my-auto"
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-lg font-black text-gray-900 flex items-center gap-2">
+                    <span className="text-amber-500">📝</span>
+                    <span>Submit Unflag Appeal</span>
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Explain why your account should be unflagged so Administrator can review it.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowAppealModal(false)}
+                  className="p-1 text-gray-400 hover:text-gray-600 font-bold text-lg"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800 space-y-1">
+                <p className="font-bold text-amber-900">Current Strike / Flag Info:</p>
+                <p>• Reason: {vendor?.flagReason || "Fulfillment deadline lapsed"}</p>
+                <p>• Strikes: {vendor?.strikeCount || 1}</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                  Your Explanation / Resolution Plan <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  rows={4}
+                  placeholder="e.g. Stock has been replenished from our warehouse and we have dedicated staff to fulfill product requests on time..."
+                  value={appealReason}
+                  onChange={(e) => setAppealReason(e.target.value)}
+                  maxLength={600}
+                  className="w-full p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+                />
+                <p className="text-[10px] text-gray-400 mt-1">
+                  Provide detailed justification to help Admin make a fast decision.
+                </p>
+              </div>
+
+              <div className="flex flex-col-reverse sm:flex-row gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAppealModal(false)}
+                  disabled={isSubmittingAppeal}
+                  className="w-full sm:w-auto px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs sm:text-sm transition-colors text-center"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAppealSubmit}
+                  disabled={isSubmittingAppeal || !appealReason.trim()}
+                  className="flex-1 py-2.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold rounded-xl text-xs sm:text-sm transition-all shadow disabled:opacity-60 flex items-center justify-center gap-2"
+                >
+                  {isSubmittingAppeal ? "Submitting..." : "Send Appeal to Admin"}
+                </button>
               </div>
             </motion.div>
           </div>

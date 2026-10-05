@@ -162,16 +162,16 @@ export const useB2BAdminStore = create(
     }
   },
 
-  uploadCompanyLegalDocument: async (file) => {
+  uploadCompanyLegalDocument: async (file, docType = 'acceptanceExecutionDocument') => {
     set({ isLoading: true, error: null });
     try {
-      const response = await api.uploadCompanyLegalDocument(file);
+      const response = await api.uploadCompanyLegalDocument(file, docType);
       const payload = response.data || response;
       set({ companyProfile: payload });
-      toast.success('Legal document uploaded successfully');
+      toast.success('Document uploaded successfully');
       return true;
     } catch (err) {
-      const msg = err.response?.data?.message || 'Failed to upload legal document';
+      const msg = err.response?.data?.message || 'Failed to upload document';
       set({ error: msg });
       toast.error(msg);
       return false;
@@ -212,7 +212,7 @@ export const useB2BAdminStore = create(
   verifyAdminProfileOTP: async (pendingUpdateId, otp) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await api.post('/b2b-user/admin/profile/verify-otp', {
+      const response = await api.verifyAdminProfileOTP({
         pendingUpdateId,
         otp
       });
@@ -233,7 +233,7 @@ export const useB2BAdminStore = create(
   resendAdminProfileOTP: async (pendingUpdateId) => {
     set({ isLoading: true, error: null });
     try {
-      await api.post('/b2b-user/admin/profile/resend-otp', {
+      await api.resendAdminProfileOTP({
         pendingUpdateId
       });
       toast.success('OTP resent successfully');

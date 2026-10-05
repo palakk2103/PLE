@@ -6,42 +6,56 @@ import api from '../utils/api';
 const STORAGE_KEY = 'mock-campaigns';
 
 const initializeLocalStorage = () => {
-  if (!localStorage.getItem(STORAGE_KEY)) {
+  const existing = localStorage.getItem(STORAGE_KEY);
+  let needRefresh = !existing;
+  
+  if (existing) {
+    try {
+      const parsed = JSON.parse(existing);
+      // If all campaigns have passed their endDate, refresh with future dates
+      const hasActive = Array.isArray(parsed) && parsed.some(c => new Date(c.endDate) >= new Date());
+      if (!hasActive) needRefresh = true;
+    } catch {
+      needRefresh = true;
+    }
+  }
+
+  if (needRefresh) {
     const defaultCampaigns = [
       {
         _id: 'camp_diwali',
-        name: 'Diwali Sale',
+        name: 'Festive Season Mega Sale',
         type: 'festival',
-        description: 'Celebrate the festival of lights with premium traditional wear and fashion deals!',
+        description: 'Celebrate the festive season with premium deals and special offers!',
         discountType: 'percentage',
         discountValue: 20,
         startDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Started 2 days ago
-        endDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Ends in 5 days
+        endDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Valid for next 60 days
         productIds: [],
         isActive: true,
-        slug: 'diwali-sale',
+        slug: 'festive-season-sale',
         bannerConfig: {
-          title: 'Diwali Festive Sale',
-          subtitle: 'Flat 20% Off on All Traditional Wear',
+          title: 'Festive Season Mega Sale',
+          subtitle: 'Flat 20% Off on Featured Festival Products',
           image: 'https://images.unsplash.com/photo-1605152276897-4f618f831968?w=1200&auto=format&fit=crop&q=80',
           customImage: false
         }
       },
       {
-        _id: 'camp_christmas',
-        name: 'Christmas Deals',
+        _id: 'camp_holiday',
+        name: 'Special Holiday Deals',
         type: 'festival',
-        description: 'Merry Christmas! Enjoy holiday special discounts.',
+        description: 'Exclusive holiday season festival campaign for all verified sellers.',
         discountType: 'percentage',
         discountValue: 15,
-        startDate: new Date(Date.now() + 100 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        endDate: new Date(Date.now() + 105 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        startDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         productIds: [],
-        isActive: false,
-        slug: 'christmas-deals',
+        isActive: true,
+        slug: 'holiday-deals',
         bannerConfig: {
-          title: 'Christmas Deals',
-          subtitle: 'Warm winter fashion special',
+          title: 'Special Holiday Deals',
+          subtitle: 'Great discounts across top categories',
           image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?w=1200&auto=format&fit=crop&q=80',
           customImage: false
         }

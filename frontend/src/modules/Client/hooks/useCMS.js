@@ -30,6 +30,7 @@ export const useCMS = () => {
               ...parsed,
               sections: mergedSections,
               portfolioHighlights: parsed.portfolioHighlights || prev.portfolioHighlights,
+              catalogue: parsed.catalogue ? { ...prev.catalogue, ...parsed.catalogue } : prev.catalogue,
               cpoSection: parsed.cpoSection ? { ...prev.cpoSection, ...parsed.cpoSection } : prev.cpoSection,
               gpoSection: parsed.gpoSection ? { ...prev.gpoSection, ...parsed.gpoSection } : prev.gpoSection,
               smartDeals: parsed.smartDeals ? { ...prev.smartDeals, ...parsed.smartDeals } : prev.smartDeals,
@@ -37,6 +38,13 @@ export const useCMS = () => {
               zeroMaintenance: parsed.zeroMaintenance ? { ...prev.zeroMaintenance, ...parsed.zeroMaintenance } : prev.zeroMaintenance,
               trustedBrands: parsed.trustedBrands ? { ...prev.trustedBrands, ...parsed.trustedBrands } : prev.trustedBrands,
               productCategories: parsed.productCategories ? { ...prev.productCategories, ...parsed.productCategories } : prev.productCategories,
+              productCategoriesShowcase: parsed.productCategoriesShowcase ? { ...prev.productCategoriesShowcase, ...parsed.productCategoriesShowcase } : prev.productCategoriesShowcase,
+              portfolioHighlightsHeader: parsed.portfolioHighlightsHeader ? { ...prev.portfolioHighlightsHeader, ...parsed.portfolioHighlightsHeader } : prev.portfolioHighlightsHeader,
+              whyChooseUsHeader: parsed.whyChooseUsHeader ? { ...prev.whyChooseUsHeader, ...parsed.whyChooseUsHeader } : prev.whyChooseUsHeader,
+              galleryHeader: parsed.galleryHeader ? { ...prev.galleryHeader, ...parsed.galleryHeader } : prev.galleryHeader,
+              testimonialsHeader: parsed.testimonialsHeader ? { ...prev.testimonialsHeader, ...parsed.testimonialsHeader } : prev.testimonialsHeader,
+              productsHeader: parsed.productsHeader ? { ...prev.productsHeader, ...parsed.productsHeader } : prev.productsHeader,
+              adLandingPages: parsed.adLandingPages ? { ...prev.adLandingPages, ...parsed.adLandingPages } : prev.adLandingPages,
               presenceMap: parsed.presenceMap ? {
                 ...parsed.presenceMap,
                 locations: (parsed.presenceMap.locations || []).map(loc => 
@@ -49,18 +57,18 @@ export const useCMS = () => {
               ctaBanner: { ...prev.ctaBanner, ...parsed.ctaBanner },
               contact: { 
                 ...prev.contact, 
-                ...parsed.contact,
-                phone: '+91 9071149100',
-                phoneDisplay: '+91 9071149100',
-                email: 'support@plebusiness.com'
+                ...(parsed.contact || {}),
+                phone: parsed.contact?.phone || prev.contact?.phone || '+91 9071149100',
+                phoneDisplay: parsed.contact?.phoneDisplay || prev.contact?.phoneDisplay || '+91 9071149100',
+                email: parsed.contact?.email || prev.contact?.email || 'support@plebusiness.com'
               },
-              social: {
-                ...prev.social,
-                ...parsed.social,
-                facebook: 'https://www.facebook.com/share/1EaNrat2yr/',
-                instagram: 'https://www.instagram.com/peoplesleagueofelectronics?igsh=MWdtbTNzajdqMGV4cQ==',
-                linkedin: 'https://www.linkedin.com/company/ple-electronics',
-                twitter: 'https://x.com/PeoplesE9405',
+              social: { 
+                ...prev.social, 
+                ...(parsed.social || {}),
+                facebook: parsed.social?.facebook || prev.social?.facebook || 'https://www.facebook.com/share/1EaNrat2yr/',
+                instagram: parsed.social?.instagram || prev.social?.instagram || 'https://www.instagram.com/peoplesleagueofelectronics?igsh=MWdtbTNzajdqMGV4cQ==',
+                linkedin: parsed.social?.linkedin || prev.social?.linkedin || 'https://www.linkedin.com/company/ple-electronics',
+                twitter: parsed.social?.twitter || prev.social?.twitter || 'https://x.com/PeoplesE9405',
               },
               footer: { ...prev.footer, ...parsed.footer },
               seo: { ...prev.seo, ...parsed.seo },

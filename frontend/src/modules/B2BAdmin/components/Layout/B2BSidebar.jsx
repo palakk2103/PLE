@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { FiHome, FiUsers, FiBriefcase, FiUser, FiActivity, FiBell, FiSettings, FiLogOut, FiX, FiFileText, FiTrendingUp, FiMessageCircle, FiDollarSign, FiMessageSquare, FiCreditCard, FiArrowLeft, FiShoppingBag } from 'react-icons/fi';
+import { FiHome, FiUsers, FiBriefcase, FiUser, FiActivity, FiBell, FiSettings, FiLogOut, FiX, FiFileText, FiTrendingUp, FiMessageCircle, FiDollarSign, FiMessageSquare, FiCreditCard, FiArrowLeft, FiShoppingBag, FiHelpCircle } from 'react-icons/fi';
 import { useB2BAdminStore } from '../../store/b2bAdminStore';
 import { useB2bStore } from '../../../../shared/store/b2bStore';
 import { performUserLogout } from '../../../../shared/utils/userLogout';
@@ -34,11 +34,12 @@ const B2BSidebar = ({ isOpen, setIsOpen, isMobile }) => {
     { name: 'Legal Documents', path: '/b2b-dashboard/legal-documents', icon: FiFileText },
     { name: 'Admin Profile', path: '/b2b-dashboard/admin-profile', icon: FiUser },
     { name: 'Request Products', path: '/b2b-dashboard/product-requests', icon: FiBriefcase },
+    { name: 'Support Desk', path: '/b2b-dashboard/support', icon: FiHelpCircle },
     { name: 'Notifications', path: '/b2b-dashboard/notifications', icon: FiBell },
     { name: 'Settings', path: '/b2b-dashboard/settings', icon: FiSettings },
   ].filter(item => {
     if (isEmployee) {
-      return ['RFQs', 'Quotations', 'RFQ Discussions', 'Shop Chats', 'Request Products'].includes(item.name);
+      return ['RFQs', 'Quotations', 'RFQ Discussions', 'Shop Chats', 'Request Products', 'Support Desk'].includes(item.name);
     }
     return true;
   });

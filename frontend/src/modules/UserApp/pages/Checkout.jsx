@@ -650,22 +650,24 @@ const MobileCheckout = () => {
       <div className="flex flex-col min-h-screen bg-gray-50 pb-32">
           {/* Header */}
           <div className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
-            {/* Title Bar */}
-            <div className="px-4 py-3 flex items-center gap-3">
-              <button
-                onClick={() => navigate(-1)}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                <FiArrowLeft className="text-xl text-gray-700" />
-              </button>
-              <h1 className="text-xl font-bold text-gray-800">Checkout</h1>
-            </div>
-            {/* Steps Bar */}
-            <div className="px-4 pb-3">
-              <MobileCheckoutSteps currentStep={step} totalSteps={2} />
+            <div className="max-w-7xl mx-auto w-full">
+              {/* Title Bar */}
+              <div className="px-4 py-3 flex items-center gap-3">
+                <button
+                  onClick={() => navigate(-1)}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                  <FiArrowLeft className="text-xl text-gray-700" />
+                </button>
+                <h1 className="text-xl font-bold text-gray-800">Checkout</h1>
+              </div>
+              {/* Steps Bar */}
+              <div className="px-4 pb-3">
+                <MobileCheckoutSteps currentStep={step} totalSteps={2} />
+              </div>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="lg:px-4 lg:py-6">
+          <form onSubmit={handleSubmit} className="w-full max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-6">
             <div className="lg:grid lg:grid-cols-12 lg:gap-8">
               {/* Left Column - Steps */}
               <div className="lg:col-span-8 space-y-6">

@@ -93,16 +93,16 @@ const TwoFactorVerify = ({ tempToken, email, apiVerifyEndpoint, onSuccess, onCan
   };
 
   return (
-    <div className="w-full max-w-md mx-auto p-8 bg-white/80 backdrop-blur-lg rounded-2xl border border-gray-100 shadow-xl">
+    <div className="w-full max-w-md mx-auto p-5 sm:p-8 bg-white/80 backdrop-blur-lg rounded-2xl border border-gray-100 shadow-xl">
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800 mb-2">Two-Factor Authentication</h2>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-500 break-all px-1">
           Enter the 6-digit verification code sent to <span className="font-semibold text-gray-700">{email}</span>
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="flex justify-between gap-2" onPaste={handlePaste}>
+        <div className="flex items-center justify-center gap-1.5 sm:gap-2.5" onPaste={handlePaste}>
           {otp.map((digit, index) => (
             <input
               key={index}
@@ -113,7 +113,7 @@ const TwoFactorVerify = ({ tempToken, email, apiVerifyEndpoint, onSuccess, onCan
               value={digit}
               onChange={(e) => handleChange(index, e.target.value)}
               onKeyDown={(e) => handleKeyDown(index, e)}
-              className="w-12 h-14 text-center text-xl font-bold border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-gray-55/30 transition-all shadow-inner"
+              className="w-10 h-11 xs:w-11 xs:h-12 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-bold border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-gray-55/30 transition-all shadow-inner flex-shrink-0"
             />
           ))}
         </div>

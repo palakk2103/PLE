@@ -31,8 +31,16 @@ const vendorSchema = new mongoose.Schema(
             flaggedAt: { type: Date, default: Date.now },
             unflaggedAt: { type: Date },
             unflaggedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
-            action: { type: String, enum: ['AUTO_FLAG', 'MANUAL_FLAG', 'MANUAL_UNFLAG'], default: 'AUTO_FLAG' }
+            action: { type: String, enum: ['AUTO_FLAG', 'MANUAL_FLAG', 'MANUAL_UNFLAG', 'APPEAL_REJECTED'], default: 'AUTO_FLAG' }
         }],
+        unflagAppeal: {
+            status: { type: String, enum: ['NONE', 'PENDING', 'APPROVED', 'REJECTED'], default: 'NONE', index: true },
+            reason: { type: String, default: null },
+            requestedAt: { type: Date, default: null },
+            reviewedAt: { type: Date, default: null },
+            reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', default: null },
+            adminRemarks: { type: String, default: null }
+        },
         commissionRate: { type: Number, default: 10, min: 0, max: 100 },
         isVerified: { type: Boolean, default: false },
         rating: { type: Number, default: 0 },
@@ -87,6 +95,8 @@ const vendorSchema = new mongoose.Schema(
         twoFactorOtp: { type: String, select: false },
         twoFactorOtpExpiry: { type: Date, select: false },
         twoFactorAttempts: { type: Number, default: 0, select: false },
+        loginAttempts: { type: Number, default: 0, select: false },
+        lockUntil: { type: Date, default: null, select: false },
         refreshTokenHash: { type: String, select: false },
         refreshTokenExpiresAt: { type: Date, select: false },
         joinDate: { type: Date, default: Date.now },

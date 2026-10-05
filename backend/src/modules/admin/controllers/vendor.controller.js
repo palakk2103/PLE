@@ -53,6 +53,8 @@ export const getAllVendors = asyncHandler(async (req, res) => {
         filter.verificationStatus = 'Rejected';
     } else if (status === 'flagged') {
         filter.isFlagged = true;
+    } else if (status === 'appeals') {
+        filter['unflagAppeal.status'] = 'PENDING';
     } else if (typeof status === 'string' && status !== 'all' && allowedStatuses.has(status)) {
         filter.status = status;
     }
@@ -153,6 +155,12 @@ export const unflagVendor = asyncHandler(async (req, res) => {
 
     vendor.isFlagged = false;
     vendor.flagReason = null;
+    if (vendor.unflagAppeal && vendor.unflagAppeal.status === 'PENDING') {
+        vendor.unflagAppeal.status = 'APPROVED';
+        vendor.unflagAppeal.reviewedAt = new Date();
+        vendor.unflagAppeal.reviewedBy = adminId;
+        vendor.unflagAppeal.adminRemarks = unflagReason;
+    }
     vendor.flagHistory.push({
         reason: unflagReason,
         flaggedAt: vendor.flaggedAt || new Date(),
@@ -190,6 +198,64 @@ export const unflagVendor = asyncHandler(async (req, res) => {
 
     res.status(200).json(new ApiResponse(200, toApiVendor(vendor), 'Vendor unflagged successfully.'));
 });
+
+// PATCH /api/admin/vendors/:id/reject-unflag-appeal
+export const rejectUnflagAppeal = asyncHandler(async (req, res) => {
+    const { remarks } = req.body;
+    const vendor = await Vendor.findById(req.params.id);
+    if (!vendor) throw new ApiError(404, 'Vendor not found.');
+
+    const adminId = req.user?._id || req.user?.id;
+    const rejectRemarks = remarks?.trim() || 'Unflag appeal rejected by Administrator.';
+
+    if (!vendor.unflagAppeal || vendor.unflagAppeal.status !== 'PENDING') {
+        throw new ApiError(400, 'No pending unflag appeal found for this vendor.');
+    }
+
+    const previousAppealReason = vendor.unflagAppeal.reason;
+    vendor.unflagAppeal.status = 'REJECTED';
+    vendor.unflagAppeal.reviewedAt = new Date();
+    vendor.unflagAppeal.reviewedBy = adminId;
+    vendor.unflagAppeal.adminRemarks = rejectRemarks;
+
+    vendor.flagHistory.push({
+        reason: `Appeal Rejected: ${rejectRemarks} (Original appeal: ${previousAppealReason})`,
+        flaggedAt: vendor.flaggedAt || new Date(),
+        unflaggedAt: new Date(),
+        unflaggedBy: adminId,
+        action: 'APPEAL_REJECTED'
+    });
+
+    await vendor.save();
+
+    const message = `Your unflag appeal has been reviewed and REJECTED by Administrator. Remarks: ${rejectRemarks}. You remain restricted from accepting product requests.`;
+
+    await createNotification({
+        recipientId: vendor._id,
+        recipientType: 'vendor',
+        title: '❌ Unflag Appeal Rejected',
+        message,
+        type: 'system',
+        data: {
+            vendorId: String(vendor._id),
+            action: 'appeal_rejected'
+        }
+    });
+
+    try {
+        await sendEmail({
+            to: vendor.email,
+            subject: 'Vendor Unflag Appeal Status',
+            text: message,
+            html: `<p>${message}</p>`
+        });
+    } catch (err) {
+        console.warn(`Vendor appeal rejection email failed for ${vendor.email}: ${err.message}`);
+    }
+
+    res.status(200).json(new ApiResponse(200, toApiVendor(vendor), 'Unflag appeal rejected successfully.'));
+});
+
 
 // PATCH /api/admin/vendors/:id/flag
 export const flagVendor = asyncHandler(async (req, res) => {

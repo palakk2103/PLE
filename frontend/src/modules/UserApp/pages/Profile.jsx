@@ -28,6 +28,7 @@ import {
   FiAward,
   FiSettings,
   FiTrash2,
+  FiShield,
 } from "react-icons/fi";
 
 // Offers System Imports
@@ -462,6 +463,14 @@ const MobileProfile = () => {
           color: "text-[#7B0A0A]",
           bg: "bg-[#7B0A0A]/10",
           link: "/b2b-dashboard/company-profile",
+        },
+        {
+          id: "legal-documents",
+          label: "Legal Documents",
+          icon: FiShield,
+          color: "text-[#7B0A0A]",
+          bg: "bg-[#7B0A0A]/10",
+          link: "/b2b-dashboard/legal-documents",
         },
         {
           id: "personal",

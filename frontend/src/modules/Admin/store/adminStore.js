@@ -13,10 +13,10 @@ export const useAdminAuthStore = create(
       isLoading: false,
 
       // Admin login — calls real backend
-      login: async (email, password) => {
+      login: async (credentials, password) => {
         set({ isLoading: true });
         try {
-          const response = await apiLogin(email, password);
+          const response = await apiLogin(credentials, password);
           const data = response.data || response;
           if (data?.status === '2FA_PENDING') {
             set({ isLoading: false });

@@ -131,10 +131,10 @@ const ManagedShops = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
-            Managed Shops
+            In-House Shops & Staff
           </h1>
           <p className="text-sm text-gray-500">
-            Admin-owned outlets and stores.
+            Admin-owned shops and internal staff / managed vendors.
           </p>
         </div>
         <button

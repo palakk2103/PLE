@@ -17,11 +17,24 @@ import {
   Briefcase,
   FileText
 } from 'lucide-react';
+import { useCMS } from '../hooks/useCMS';
 import { LANDING_PAGES_CONFIG } from '../constants/landingPages';
 
 export default function LandingPage() {
   const { slug } = useParams();
-  const pageData = LANDING_PAGES_CONFIG[slug];
+  const cms = useCMS();
+  const fallbackData = LANDING_PAGES_CONFIG[slug];
+  const cmsPageData = cms?.adLandingPages?.[slug];
+
+  const pageData = (cmsPageData && cmsPageData.title)
+    ? {
+        ...fallbackData,
+        ...cmsPageData,
+        highlights: (cmsPageData.highlights && cmsPageData.highlights.length > 0)
+          ? cmsPageData.highlights
+          : fallbackData?.highlights || []
+      }
+    : fallbackData;
   
   const [isSubmitSuccess, setIsSubmitSuccess] = useState(false);
   const { register, handleSubmit, formState: { errors }, reset } = useForm();
@@ -340,13 +353,13 @@ export default function LandingPage() {
       {/* 8. Sticky Mobile CTA Bar */}
       <div className="md:hidden fixed bottom-0 left-0 w-full bg-app-card border-t border-app-border p-3 flex gap-3 z-50">
         <a 
-          href="tel:+919876543210"
+          href={`tel:${cms?.contact?.phone || '+919071149100'}`}
           className="flex-1 flex justify-center items-center gap-2 py-3 bg-app-bg border border-app-border rounded-lg text-app-text text-sm font-bold"
         >
           <Phone className="w-4 h-4" /> Call
         </a>
         <a 
-          href="https://wa.me/919876543210"
+          href={`https://wa.me/${(cms?.contact?.phone || '919071149100').replace(/[^0-9]/g, '')}`}
           target="_blank"
           rel="noopener noreferrer"
           className="flex-1 flex justify-center items-center gap-2 py-3 bg-[#25D366] text-white rounded-lg text-sm font-bold"

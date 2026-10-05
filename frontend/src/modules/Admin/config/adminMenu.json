@@ -5,6 +5,16 @@
     "children": []
   },
   {
+    "title": "Account Team",
+    "route": "/admin/account-team",
+    "children": []
+  },
+  {
+    "title": "Activity / Audit Logs",
+    "route": "/admin/audit-logs",
+    "children": []
+  },
+  {
     "title": "Orders",
     "route": "/admin/orders",
     "children": [
@@ -56,7 +66,6 @@
     "children": [
       "Business Users",
       "Company Management",
-      "B2B Seller Requests",
       "B2B Products",
       "B2B Orders",
       "B2B Settings",
@@ -69,7 +78,6 @@
     "children": [
       "Manage B2B Users",
       "Pending Approvals",
-      "B2B Seller Requests",
       "B2B Analytics"
     ]
   },
@@ -106,25 +114,24 @@
     ]
   },
   {
-    "title": "My Shops",
+    "title": "In-House Shops & Staff",
     "route": "/admin/vendors/managed-shops",
     "children": []
   },
   {
-    "title": "Managed Vendor Chats",
+    "title": "In-House Staff Chats",
     "route": "/admin/managed-vendor-chats",
     "children": []
   },
   {
-    "title": "Vendors",
+    "title": "Marketplace Sellers",
     "route": "/admin/vendors",
     "children": [
-      "Manage Vendors",
-      "Pending Approvals",
+      "All Sellers",
+      "Seller Approvals",
       "B2B Seller Requests",
       "Commission Rates",
       "Vendor Analytics",
-      "Managed Vendor Chats",
       "Product Approvals"
     ]
   },
@@ -253,6 +260,9 @@
     "children": [
       "Dashboard",
       "Hero Section",
+      "Portfolio Highlights",
+      "Explore Catalogue",
+      "Product Categories",
       "Services / Categories",
       "Features",
       "Comparison Table",
@@ -260,6 +270,11 @@
       "Testimonials",
       "Product Showcase",
       "Deals & Rewards",
+      "CPO Section",
+      "GPO Section",
+      "Smart Deals",
+      "Loyalty Rewards",
+      "Zero Maintenance",
       "FAQ Section",
       "Gallery",
       "Contact & Social",

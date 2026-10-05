@@ -8,7 +8,23 @@ import { uploadAdminImage } from '../../services/adminService';
 
 const PortfolioHighlightsEditor = () => {
   const navigate = useNavigate();
-  const { portfolioHighlights, updatePortfolioHighlights } = useLandingPageStore();
+  const { portfolioHighlights, updatePortfolioHighlights, portfolioHighlightsHeader, updatePortfolioHighlightsHeader } = useLandingPageStore();
+
+  const [headerData, setHeaderData] = useState({
+    badge: portfolioHighlightsHeader?.badge || 'Capability Showcase',
+    title: portfolioHighlightsHeader?.title || 'Enterprise Procurement Highlights',
+    subtitle: portfolioHighlightsHeader?.subtitle || 'Strategic purchasing support options designed to maximize value, reduce IT administrative costs, and secure business operations.'
+  });
+
+  const handleHeaderChange = (e) => {
+    const { name, value } = e.target;
+    setHeaderData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSaveHeader = () => {
+    updatePortfolioHighlightsHeader(headerData);
+    toast.success('Section header copy updated!');
+  };
 
   const [editingIndex, setEditingIndex] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -144,6 +160,56 @@ const PortfolioHighlightsEditor = () => {
             Add Capability Card
           </button>
         )}
+      </div>
+
+      {/* Section Header Controls */}
+      <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm space-y-4">
+        <h2 className="text-xs font-bold text-[#C07A3D] uppercase tracking-wider">
+          Section Title & Header Settings
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Badge Text</label>
+            <input
+              type="text"
+              name="badge"
+              value={headerData.badge}
+              onChange={handleHeaderChange}
+              className="w-full text-sm border border-gray-200 rounded-lg p-2.5 outline-none focus:border-[#C07A3D]"
+              placeholder="e.g. Capability Showcase"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Heading Title</label>
+            <input
+              type="text"
+              name="title"
+              value={headerData.title}
+              onChange={handleHeaderChange}
+              className="w-full text-sm border border-gray-200 rounded-lg p-2.5 outline-none focus:border-[#C07A3D]"
+              placeholder="e.g. Enterprise Procurement Highlights"
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Subtitle / Description</label>
+          <textarea
+            rows="2"
+            name="subtitle"
+            value={headerData.subtitle}
+            onChange={handleHeaderChange}
+            className="w-full text-sm border border-gray-200 rounded-lg p-2.5 outline-none focus:border-[#C07A3D]"
+            placeholder="Description of the procurement capability showcase"
+          />
+        </div>
+        <div className="flex justify-end pt-1">
+          <button
+            onClick={handleSaveHeader}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-black transition text-xs font-bold uppercase tracking-wider"
+          >
+            <FiSave size={14} /> Save Header Settings
+          </button>
+        </div>
       </div>
 
       {editingIndex !== null ? (

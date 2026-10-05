@@ -10,11 +10,12 @@ import { getIO } from '../../../config/socket.js';
 import { moderateMessage, checkMultiMessageEvasion, MODERATION_ACTION } from '../../../services/chatModeration.service.js';
 import ChatViolation from '../../../models/ChatViolation.model.js';
 import ChatReport from '../../../models/ChatReport.model.js';
+import { decryptMessage } from '../../../utils/chatEncryption.util.js';
 
 const serializeMessage = (messageDoc) => ({
     id: messageDoc._id,
     sender: messageDoc.senderType,
-    message: messageDoc.message,
+    message: decryptMessage(messageDoc.message),
     time: messageDoc.createdAt,
 });
 
@@ -52,8 +53,17 @@ export const getCustomerChatThreads = asyncHandler(async (req, res) => {
         .populate('vendorId', 'name storeName storeLogo isVerified rating')
         .sort({ lastActivity: -1 });
 
-    res.status(200).json(new ApiResponse(200, threads, 'Chat threads fetched.'));
+    const decryptedThreads = threads.map((t) => {
+        const threadObj = t.toObject ? t.toObject({ getters: true }) : { ...t };
+        if (threadObj.lastMessage) {
+            threadObj.lastMessage = decryptMessage(threadObj.lastMessage);
+        }
+        return threadObj;
+    });
+
+    res.status(200).json(new ApiResponse(200, decryptedThreads, 'Chat threads fetched.'));
 });
+
 
 export const getCustomerChatMessages = asyncHandler(async (req, res) => {
     const thread = await VendorChatThread.findOne({
@@ -89,8 +99,8 @@ export const sendCustomerChatMessage = asyncHandler(async (req, res) => {
     }
 
     // 3. Thread status check
-    if (['resolved', 'closed'].includes(thread.status)) {
-        throw new ApiError(400, 'This conversation has been closed.');
+    if (thread.isReleased || ['resolved', 'closed'].includes(thread.status)) {
+        throw new ApiError(400, thread.isReleased ? 'The vendor has released this product request. This conversation has ended.' : 'This conversation has been closed.');
     }
 
     // 4. Order lifecycle check

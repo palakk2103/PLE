@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { encryptMessage, decryptMessage } from '../utils/chatEncryption.util.js';
 
 const vendorChatThreadSchema = new mongoose.Schema(
     {
@@ -25,7 +26,12 @@ const vendorChatThreadSchema = new mongoose.Schema(
         customerName: { type: String, default: 'Customer' },
         customerEmail: { type: String, default: '' },
         customerPhone: { type: String, default: '' },
-        lastMessage: { type: String, default: '' },
+        lastMessage: {
+            type: String,
+            default: '',
+            set: encryptMessage,
+            get: decryptMessage,
+        },
         lastActivity: { type: Date, default: Date.now, index: true },
         unreadCount: { type: Number, default: 0, min: 0 },
         status: {
@@ -42,6 +48,14 @@ const vendorChatThreadSchema = new mongoose.Schema(
             index: true,
         },
         productRequestId: { type: String, default: '' }, // requestId string for display
+        archivedProductRequestRef: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'ProductRequest',
+            default: null,
+            index: true,
+        },
+        isReleased: { type: Boolean, default: false, index: true },
+        hiddenForVendor: { type: Boolean, default: false, index: true },
         // Communication Control fields
         isBlocked: { type: Boolean, default: false, index: true },
         blockedBy: { type: String, enum: ['customer', 'vendor', 'admin', null], default: null },
@@ -49,8 +63,13 @@ const vendorChatThreadSchema = new mongoose.Schema(
         customerMuted: { type: Boolean, default: false },
         vendorMuted: { type: Boolean, default: false },
     },
-    { timestamps: true }
+    {
+        timestamps: true,
+        toJSON: { getters: true },
+        toObject: { getters: true },
+    }
 );
+
 
 vendorChatThreadSchema.index(
     { vendorId: 1, customerUserId: 1, orderRef: 1 }, 

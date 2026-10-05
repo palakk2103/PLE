@@ -13,14 +13,18 @@ export const useLandingPageStore = create(
           sections, hero, services, whyChooseUs, comparison, stats, testimonials, products, 
           pricing, gallery, presenceMap, ctaBanner, faq, contact, social, footer, seo, blogs, 
           adLandingPages, trustedBrands, productCategories, portfolioHighlights, cpoSection, 
-          gpoSection, smartDeals, loyaltyRewards, zeroMaintenance 
+          gpoSection, smartDeals, loyaltyRewards, zeroMaintenance,
+          whyChooseUsHeader, portfolioHighlightsHeader, galleryHeader, testimonialsHeader, productsHeader,
+          catalogue, productCategoriesShowcase
         } = state;
         
         const payload = { 
           sections, hero, services, whyChooseUs, comparison, stats, testimonials, products, 
           pricing, gallery, presenceMap, ctaBanner, faq, contact, social, footer, seo, blogs, 
           adLandingPages, trustedBrands, productCategories, portfolioHighlights, cpoSection, 
-          gpoSection, smartDeals, loyaltyRewards, zeroMaintenance 
+          gpoSection, smartDeals, loyaltyRewards, zeroMaintenance,
+          whyChooseUsHeader, portfolioHighlightsHeader, galleryHeader, testimonialsHeader, productsHeader,
+          catalogue, productCategoriesShowcase
         };
         await api.put('/admin/settings/landingPageCms', { value: payload });
         return true;
@@ -66,11 +70,15 @@ export const useLandingPageStore = create(
               } : state.presenceMap,
               contact: {
                 ...state.contact,
-                ...payload.contact,
-                phone: '+91 9071149100',
-                phoneDisplay: '+91 9071149100',
-                email: 'support@plebusiness.com'
+                ...(payload.contact || {})
               },
+              whyChooseUsHeader: payload.whyChooseUsHeader ? { ...state.whyChooseUsHeader, ...payload.whyChooseUsHeader } : state.whyChooseUsHeader,
+              portfolioHighlightsHeader: payload.portfolioHighlightsHeader ? { ...state.portfolioHighlightsHeader, ...payload.portfolioHighlightsHeader } : state.portfolioHighlightsHeader,
+              galleryHeader: payload.galleryHeader ? { ...state.galleryHeader, ...payload.galleryHeader } : state.galleryHeader,
+              testimonialsHeader: payload.testimonialsHeader ? { ...state.testimonialsHeader, ...payload.testimonialsHeader } : state.testimonialsHeader,
+              productsHeader: payload.productsHeader ? { ...state.productsHeader, ...payload.productsHeader } : state.productsHeader,
+              catalogue: payload.catalogue ? { ...state.catalogue, ...payload.catalogue } : state.catalogue,
+              productCategoriesShowcase: payload.productCategoriesShowcase ? { ...state.productCategoriesShowcase, ...payload.productCategoriesShowcase } : state.productCategoriesShowcase,
             };
           });
         }
@@ -221,6 +229,41 @@ export const useLandingPageStore = create(
 
     updateAdLandingPages: (data) => {
       set((state) => ({ adLandingPages: { ...state.adLandingPages, ...data } }));
+      get().saveToBackend();
+    },
+
+    updateWhyChooseUsHeader: (data) => {
+      set((state) => ({ whyChooseUsHeader: { ...state.whyChooseUsHeader, ...data } }));
+      get().saveToBackend();
+    },
+
+    updatePortfolioHighlightsHeader: (data) => {
+      set((state) => ({ portfolioHighlightsHeader: { ...state.portfolioHighlightsHeader, ...data } }));
+      get().saveToBackend();
+    },
+
+    updateGalleryHeader: (data) => {
+      set((state) => ({ galleryHeader: { ...state.galleryHeader, ...data } }));
+      get().saveToBackend();
+    },
+
+    updateTestimonialsHeader: (data) => {
+      set((state) => ({ testimonialsHeader: { ...state.testimonialsHeader, ...data } }));
+      get().saveToBackend();
+    },
+
+    updateProductsHeader: (data) => {
+      set((state) => ({ productsHeader: { ...state.productsHeader, ...data } }));
+      get().saveToBackend();
+    },
+
+    updateCatalogue: (data) => {
+      set((state) => ({ catalogue: { ...state.catalogue, ...data } }));
+      get().saveToBackend();
+    },
+
+    updateProductCategoriesShowcase: (data) => {
+      set((state) => ({ productCategoriesShowcase: { ...state.productCategoriesShowcase, ...data } }));
       get().saveToBackend();
     },
 

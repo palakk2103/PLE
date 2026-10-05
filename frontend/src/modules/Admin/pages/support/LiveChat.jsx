@@ -16,13 +16,15 @@ const LiveChat = () => {
 
   const chats = useMemo(() => {
     return (tickets || [])
-      .filter((ticket) => ['open', 'in_progress'].includes(ticket.status))
+      .filter((ticket) => ['open', 'in_progress', 'waiting_for_user'].includes(ticket.status))
       .map((ticket) => {
       const lastMessage = ticket.messages?.[ticket.messages.length - 1];
+      const tid = ticket.ticketNumber || ticket.id || ticket._id;
       return {
-        id: ticket.id,
-        customerName: ticket.customer?.name || 'Anonymous',
-        customerId: ticket.customer?._id || ticket.userId || ticket.vendorId || 'N/A',
+        id: tid,
+        _id: ticket._id,
+        customerName: ticket.customer?.name || ticket.userId?.name || 'Customer',
+        customerId: ticket.customer?._id || ticket.userId?._id || ticket.userId || 'N/A',
         lastMessage: lastMessage?.message || ticket.subject || 'No messages yet',
         unreadCount: 0,
         status: ticket.status,
@@ -32,21 +34,23 @@ const LiveChat = () => {
   }, [tickets]);
 
   const handleSelectChat = async (chat) => {
-    const detail = await fetchTicketById(chat.id);
+    const detail = await fetchTicketById(chat.id || chat._id);
     if (detail) {
       setSelectedChat(detail);
     }
   };
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedChat?.id) return;
-    const sent = await addReply(selectedChat.id, newMessage.trim());
+    const tid = selectedChat?.ticketNumber || selectedChat?.id || selectedChat?._id;
+    if (!newMessage.trim() || !tid) return;
+    const sent = await addReply(tid, newMessage.trim(), 'admin');
     if (!sent) return;
 
-    const refreshed = await fetchTicketById(selectedChat.id);
+    const refreshed = await fetchTicketById(tid);
     if (refreshed) setSelectedChat(refreshed);
     setNewMessage('');
   };
+
 
   const selectedMessages = selectedChat?.messages || [];
 
@@ -121,12 +125,23 @@ const LiveChat = () => {
                       ? 'bg-primary-600 text-white'
                       : 'bg-gray-100 text-gray-800'
                   }`}>
-                    <p>{msg.message}</p>
-                    <p className={`text-xs mt-1 ${
-                      msg.senderType === 'admin' ? 'text-primary-100' : 'text-gray-500'
+                    <p className="whitespace-pre-wrap">{msg.message}</p>
+                    {msg.attachment && (
+                      <div className="mt-2 pt-1 border-t border-black/10">
+                        <img src={msg.attachment} alt="Attachment" className="max-h-40 rounded object-contain" />
+                      </div>
+                    )}
+                    {Array.isArray(msg.attachments) && msg.attachments.map((att, aIdx) => (
+                      <div key={aIdx} className="mt-2 pt-1 border-t border-black/10">
+                        <img src={att} alt={`Attachment ${aIdx + 1}`} className="max-h-40 rounded object-contain" />
+                      </div>
+                    ))}
+                    <p className={`text-[10px] mt-1 ${
+                      msg.senderType === 'admin' ? 'text-primary-100' : 'text-gray-400'
                     }`}>
                       {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString() : ''}
                     </p>
+
                   </div>
                 </div>
               ))}

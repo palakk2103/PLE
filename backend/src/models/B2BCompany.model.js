@@ -68,6 +68,20 @@ const b2bCompanySchema = new mongoose.Schema(
             size: { type: Number },
             uploadedAt: { type: Date }
         },
+        gstCertificate: {
+            url: { type: String },
+            fileName: { type: String },
+            mimeType: { type: String },
+            size: { type: Number },
+            uploadedAt: { type: Date }
+        },
+        companyRegistrationProof: {
+            url: { type: String },
+            fileName: { type: String },
+            mimeType: { type: String },
+            size: { type: Number },
+            uploadedAt: { type: Date }
+        },
         settings: {
             type: mongoose.Schema.Types.Mixed,
             default: {}

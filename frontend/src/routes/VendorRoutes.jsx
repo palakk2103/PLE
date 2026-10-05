@@ -146,13 +146,8 @@ export default function VendorRoutes() {
         <Route path="direct-rfqs" element={<VendorDirectRFQs />} />
         <Route path="direct-rfqs/:id" element={<VendorDirectRFQDetail />} />
 
-        {/* Offers & Promotion Management System (Seller) */}
-        <Route path="my-offers" element={<Navigate to="dashboard" replace />} />
-        <Route path="my-offers/dashboard" element={<OfferDashboard />} />
-        <Route path="my-offers/list" element={<OfferList />} />
-        <Route path="my-offers/create" element={<CreateOffer />} />
-        <Route path="my-offers/edit/:id" element={<EditOffer />} />
-        <Route path="my-offers/details/:id" element={<OfferDetails />} />
+        {/* Offers & Promotion Management System (Seller) - Removed */}
+        <Route path="my-offers/*" element={<Navigate to="/vendor/dashboard" replace />} />
 
         <Route path="delivery-settings" element={<VendorDeliverySettings />} />
         <Route path="festival-campaigns" element={<VendorFestivalCampaigns />} />

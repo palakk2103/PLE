@@ -6,6 +6,8 @@ import AdminLayout from "../modules/Admin/components/Layout/AdminLayout";
 // Lazy Loaded Pages
 const AdminLogin = lazy(() => import("../modules/Admin/pages/Login"));
 const Dashboard = lazy(() => import("../modules/Admin/pages/Dashboard"));
+const AccountTeamList = lazy(() => import("../modules/Admin/pages/accountTeam/AccountTeamList"));
+const AuditLogs = lazy(() => import("../modules/Admin/pages/auditLogs/AuditLogs"));
 const Products = lazy(() => import("../modules/Admin/pages/Products"));
 const ProductForm = lazy(() => import("../modules/Admin/pages/ProductForm"));
 const AdminOrders = lazy(() => import("../modules/Admin/pages/Orders"));
@@ -150,9 +152,11 @@ const GPOEditor = lazy(() => import("../modules/Admin/pages/landing-page/GPOEdit
 const SmartDealsEditor = lazy(() => import("../modules/Admin/pages/landing-page/SmartDealsEditor"));
 const LoyaltyRewardsEditor = lazy(() => import("../modules/Admin/pages/landing-page/LoyaltyRewardsEditor"));
 const ZeroMaintenanceEditor = lazy(() => import("../modules/Admin/pages/landing-page/ZeroMaintenanceEditor"));
+const CatalogueEditor = lazy(() => import("../modules/Admin/pages/landing-page/CatalogueEditor"));
+const CategoriesShowcaseEditor = lazy(() => import("../modules/Admin/pages/landing-page/CategoriesShowcaseEditor"));
 
-// About Page CMS Pages
 const AboutPageDashboard = lazy(() => import("../modules/Admin/pages/about-page/AboutPageDashboard"));
+
 
 // Portfolio Page CMS Pages
 const PortfolioPageDashboard = lazy(() => import("../modules/Admin/pages/portfolio-page/PortfolioPageDashboard"));
@@ -171,6 +175,8 @@ export default function AdminRoutes() {
       >
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
+        <Route path="account-team" element={<AccountTeamList />} />
+        <Route path="audit-logs" element={<AuditLogs />} />
         <Route path="products" element={<Products />} />
         <Route path="products/:id" element={<ProductForm />} />
         <Route path="products/manage-products" element={<ManageProducts />} />
@@ -321,11 +327,14 @@ export default function AdminRoutes() {
           <Route path="smart-deals" element={<SmartDealsEditor />} />
           <Route path="loyalty-rewards" element={<LoyaltyRewardsEditor />} />
           <Route path="zero-maintenance" element={<ZeroMaintenanceEditor />} />
+          <Route path="catalogue" element={<CatalogueEditor />} />
+          <Route path="product-categories" element={<CategoriesShowcaseEditor />} />
         </Route>
 
         <Route path="about-page/*" element={<AboutPageDashboard />} />
         <Route path="portfolio-page/*" element={<PortfolioPageDashboard />} />
         <Route path="chat-moderation" element={<ChatModerationDashboard />} />
+
       </Route>
     </Routes>
   );

@@ -23,6 +23,8 @@ import cmsRoutes from './cms.routes.js';
 import * as managedShopController from '../controllers/managedShop.controller.js';
 import * as productRequestController from '../controllers/productRequest.controller.js';
 import * as productEnquiryController from '../controllers/productEnquiry.controller.js';
+import * as accountTeamController from '../controllers/accountTeam.controller.js';
+import * as auditLogController from '../controllers/auditLog.controller.js';
 import { authenticate } from '../../../middlewares/authenticate.js';
 import { authorize, enforceAccountStatus } from '../../../middlewares/authorize.js';
 import { authLimiter } from '../../../middlewares/rateLimiter.js';
@@ -72,9 +74,11 @@ import {
     marketingIdParamSchema,
     campaignListQuerySchema,
 } from '../validators/marketing.validator.js';
+import { auditAdminMutation } from '../../../middlewares/auditLogger.middleware.js';
 
 const router = Router();
-const adminAuth = [authenticate, authorize('admin', 'superadmin'), enforceAccountStatus];
+const superAdminAuth = [authenticate, authorize('admin', 'superadmin'), enforceAccountStatus, auditAdminMutation];
+const adminAuth = [authenticate, authorize('admin', 'superadmin', 'account_team'), enforceAccountStatus, auditAdminMutation];
 router.put('/products/tax-pricing-rules', ...adminAuth, validate(taxPricingRulesSchema), catalogController.updateTaxPricingRules);
 
 router.put('/products/:id', ...adminAuth, validate(updateProductSchema), catalogController.updateProduct);
@@ -112,6 +116,7 @@ router.patch('/vendors/:id/commission', ...adminAuth, validate(vendorIdParamSche
 router.patch('/vendors/:id/verify-business', ...adminAuth, validate(vendorIdParamSchema, 'params'), vendorController.verifyVendorBusiness);
 router.patch('/vendors/:id/reject-business', ...adminAuth, validate(vendorIdParamSchema, 'params'), validate(vendorRejectBusinessSchema), vendorController.rejectVendorBusiness);
 router.patch('/vendors/:id/unflag', ...adminAuth, validate(vendorIdParamSchema, 'params'), vendorController.unflagVendor);
+router.patch('/vendors/:id/reject-unflag-appeal', ...adminAuth, validate(vendorIdParamSchema, 'params'), vendorController.rejectUnflagAppeal);
 router.patch('/vendors/:id/flag', ...adminAuth, validate(vendorIdParamSchema, 'params'), vendorController.flagVendor);
 
 // ─── Managed Shops & Vendors ───────────────────────────────────────────────
@@ -248,9 +253,23 @@ router.post('/wallet/users/:userId/debit', ...adminAuth, walletController.debitU
 router.post('/wallet/users/:userId/freeze', ...adminAuth, walletController.freezeUserWallet);
 router.post('/wallet/users/:userId/unfreeze', ...adminAuth, walletController.unfreezeUserWallet);
 
-// Settings (Logistics, etc)
-router.get('/settings/:key', ...adminAuth, settingsController.getSettings);
-router.put('/settings/:key', ...adminAuth, settingsController.updateSettings);
+// Settings (Logistics, etc) - Super Admin only
+router.get('/settings/:key', ...superAdminAuth, settingsController.getSettings);
+router.put('/settings/:key', ...superAdminAuth, settingsController.updateSettings);
+
+// ─── Account Team Management (Super Admin only) ─────────────────────────────
+router.get('/account-team/next-id', ...superAdminAuth, accountTeamController.getNextId);
+router.post('/account-team/provision', ...superAdminAuth, accountTeamController.provisionMember);
+router.get('/account-team', ...superAdminAuth, accountTeamController.getTeamMembers);
+router.get('/account-team/:id', ...superAdminAuth, accountTeamController.getMemberById);
+router.patch('/account-team/:id', ...superAdminAuth, accountTeamController.updateMember);
+router.patch('/account-team/:id/status', ...superAdminAuth, accountTeamController.toggleMemberStatus);
+router.post('/account-team/:id/reset-credentials', ...superAdminAuth, accountTeamController.resetCredentials);
+
+// ─── Activity & Audit Logs (Super Admin only) ──────────────────────────────
+router.get('/audit-logs/filters', ...superAdminAuth, auditLogController.getAuditLogFilters);
+router.get('/audit-logs', ...superAdminAuth, auditLogController.getAuditLogs);
+router.get('/audit-logs/:id', ...superAdminAuth, auditLogController.getAuditLogById);
 
 // Product Requests
 router.get('/product-requests', ...adminAuth, productRequestController.getAllProductRequests);
@@ -261,6 +280,7 @@ router.post('/product-requests/:id/assign-sourcing', ...adminAuth, productReques
 router.post('/product-requests/:id/select-fulfillment', ...adminAuth, productRequestController.selectFulfillment);
 // --- Vendor Window routes (new) ---
 router.get('/product-requests/:id', ...adminAuth, productRequestController.getProductRequestById);
+router.get('/product-requests/:id/chat-thread/:threadId', ...adminAuth, productRequestController.getProductRequestChatMessages);
 router.post('/product-requests/:id/open-vendor-window', ...adminAuth, productRequestController.openVendorWindow);
 router.post('/product-requests/:id/close-vendor-window', ...adminAuth, productRequestController.closeVendorWindow);
 router.post('/product-requests/:id/select-vendor-quotation', ...adminAuth, productRequestController.selectVendorQuotation);
@@ -342,8 +362,17 @@ router.patch('/managed-vendor-chat/threads/:threadId/read', ...adminAuth, adminM
 import * as chatModerationController from '../controllers/chatModeration.controller.js';
 router.get('/chat-moderation/violations', ...adminAuth, chatModerationController.getChatViolations);
 router.post('/chat-moderation/violations/:id/action', ...adminAuth, chatModerationController.takeViolationAction);
-router.get('/chat-moderation/reports', ...adminAuth, chatModerationController.getChatReports);
-router.post('/chat-moderation/reports/:id/action', ...adminAuth, chatModerationController.takeReportAction);
-router.get('/chat-moderation/stats', ...adminAuth, chatModerationController.getChatViolationStats);
+// ─── Admin Support & Ticket Routes ───────────────────────────────────────────
+router.get('/support/tickets', ...adminAuth, supportController.getAllTickets);
+router.get('/support/tickets/:id', ...adminAuth, supportController.getTicketById);
+router.patch('/support/tickets/:id/status', ...adminAuth, supportController.updateTicketStatus);
+router.post('/support/tickets/:id/messages', ...adminAuth, supportController.addTicketMessage);
+router.delete('/support/tickets/:id', ...adminAuth, supportController.deleteTicket);
+
+router.get('/support/ticket-types', ...adminAuth, supportController.getAllTicketTypes);
+router.post('/support/ticket-types', ...adminAuth, supportController.createTicketType);
+router.put('/support/ticket-types/:id', ...adminAuth, supportController.updateTicketType);
+router.delete('/support/ticket-types/:id', ...adminAuth, supportController.deleteTicketType);
 
 export default router;
+

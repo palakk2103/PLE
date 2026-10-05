@@ -9,8 +9,12 @@
 import api from '../../../shared/utils/api';
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
-export const adminLogin = (email, password) =>
-    api.post('/admin/auth/login', { email, password });
+export const adminLogin = (credentials, password) => {
+    if (typeof credentials === 'object' && credentials !== null) {
+        return api.post('/admin/auth/login', credentials);
+    }
+    return api.post('/admin/auth/login', { email: credentials, password });
+};
 
 export const getAdminProfile = () =>
     api.get('/admin/auth/profile');
@@ -154,6 +158,9 @@ export const rejectVendorBusiness = (id, remark) =>
 export const unflagVendor = (id, reason = '') =>
     api.patch(`/admin/vendors/${id}/unflag`, { reason });
 
+export const rejectUnflagAppeal = (id, remarks = '') =>
+    api.patch(`/admin/vendors/${id}/reject-unflag-appeal`, { remarks });
+
 export const flagVendor = (id, reason = '') =>
     api.patch(`/admin/vendors/${id}/flag`, { reason });
 
@@ -251,11 +258,14 @@ export const getAllTickets = (params = {}) =>
 export const getTicketById = (id) =>
     api.get(`/admin/support/tickets/${id}`);
 
-export const updateTicketStatus = (id, status) =>
-    api.patch(`/admin/support/tickets/${id}/status`, { status });
+export const updateTicketStatus = (id, status, note = '') =>
+    api.patch(`/admin/support/tickets/${id}/status`, { status, note });
 
-export const addTicketMessage = (id, message) =>
-    api.post(`/admin/support/tickets/${id}/messages`, { message });
+export const addTicketMessage = (id, message, attachment = null) =>
+    api.post(`/admin/support/tickets/${id}/messages`, { message, attachment });
+
+export const deleteTicket = (id) =>
+    api.delete(`/admin/support/tickets/${id}`);
 
 export const getAllTicketTypes = (params = {}) =>
     api.get('/admin/support/ticket-types', { params });
@@ -268,6 +278,7 @@ export const updateTicketType = (id, data) =>
 
 export const deleteTicketType = (id) =>
     api.delete(`/admin/support/ticket-types/${id}`);
+
 
 // ─── Reports ──────────────────────────────────────────────────────────────────
 export const getSalesReport = (params = {}) =>
@@ -376,6 +387,11 @@ export const deleteB2BUser = async (id) => {
   return res.data;
 };
 
+export const getB2BAnalytics = async (params) => {
+  const res = await api.get('/admin/b2b-users/analytics', { params });
+  return res.data;
+};
+
 // ─── CMS ──────────────────────────────────────────────────────────────────────
 export const getAboutContent = () => api.get('/admin/cms/about');
 export const updateAboutContent = (data) => api.put('/admin/cms/about', data);
@@ -397,4 +413,37 @@ export const uploadAgreementTemplateGeneric = (formData) =>
     });
 export const updateAgreementTemplateStatus = (id, status) => api.patch(`/admin/b2b-users/agreement-templates/${id}/status`, { status });
 export const deleteAgreementTemplateGeneric = (id) => api.delete(`/admin/b2b-users/agreement-templates/${id}`);
+
+// ─── Account Team Management ───────────────────────────────────────────────────
+export const getNextIdentityId = (identityClass = 'employee') =>
+    api.get('/admin/account-team/next-id', { params: { class: identityClass } });
+
+export const provisionAccountTeamMember = (data) =>
+    api.post('/admin/account-team/provision', data);
+
+export const getAccountTeamMembers = (params = {}) =>
+    api.get('/admin/account-team', { params });
+
+export const getAccountTeamMemberById = (id) =>
+    api.get(`/admin/account-team/${id}`);
+
+export const updateAccountTeamMember = (id, data) =>
+    api.patch(`/admin/account-team/${id}`, data);
+
+export const toggleAccountTeamMemberStatus = (id, status) =>
+    api.patch(`/admin/account-team/${id}/status`, { status });
+
+export const resetAccountTeamCredentials = (id, data) =>
+    api.post(`/admin/account-team/${id}/reset-credentials`, data);
+
+// ─── Audit / Activity Logs ─────────────────────────────────────────────────────
+export const getAuditLogs = (params = {}) =>
+    api.get('/admin/audit-logs', { params });
+
+export const getAuditLogFilters = () =>
+    api.get('/admin/audit-logs/filters');
+
+export const getAuditLogById = (id) =>
+    api.get(`/admin/audit-logs/${id}`);
+
 

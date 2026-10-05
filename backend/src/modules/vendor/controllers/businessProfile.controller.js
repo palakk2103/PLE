@@ -35,7 +35,7 @@ export const getBusinessProfile = asyncHandler(async (req, res) => {
     }
 
     const vendor = await Vendor.findById(req.user.id).select(
-        'businessType gstRegistered businessName tradeName gstNumber panNumber gstCertificate msmeCertificate ownerName businessAddress city state pincode identityProof verificationStatus verifiedBy verifiedAt verificationRemark'
+        'businessType gstRegistered businessName tradeName gstNumber panNumber gstCertificate msmeCertificate ownerName businessAddress city state pincode identityProof verificationStatus verifiedBy verifiedAt verificationRemark registrationProofUrl registrationProofName registrationProofUploadedAt businessLetterUrl businessLetterName businessLetterUploadedAt partnershipAgreementUrl partnershipAgreementName partnershipAgreementUploadedAt documents b2bSellingGstCertificate b2bSellingDeclaration'
     );
     if (!vendor) throw new ApiError(404, 'Vendor not found.');
     res.status(200).json(new ApiResponse(200, vendor, 'Business profile fetched.'));
@@ -273,3 +273,51 @@ export const uploadPartnershipAgreement = asyncHandler(async (req, res) => {
         throw error;
     }
 });
+
+// POST /api/vendor/business-profile/upload-business-letter
+export const uploadBusinessLetter = asyncHandler(async (req, res) => {
+    if (!req.file?.path) {
+        throw new ApiError(400, 'Document file is required.');
+    }
+
+    const vendor = await Vendor.findById(req.user.id);
+    if (!vendor) throw new ApiError(404, 'Vendor not found.');
+
+    let uploaded = null;
+    try {
+        uploaded = await uploadLocalFileToCloudinaryAndCleanupWithType(
+            req.file.path,
+            'vendors/verification/business_letters',
+            req.file.mimetype === 'application/pdf' ? 'raw' : 'auto'
+        );
+
+        if (vendor.businessLetterUrl && vendor.businessLetterUrl.includes('cloudinary')) {
+            const publicIdMatch = vendor.businessLetterUrl.match(/\/v\d+\/([^/.]+)\.[a-z0-9]+$/i);
+            if (publicIdMatch && publicIdMatch[1]) {
+                await deleteFromCloudinary(publicIdMatch[1]).catch(() => null);
+            }
+        }
+
+        vendor.businessLetterUrl = uploaded.url;
+        vendor.businessLetterName = req.file.originalname;
+        vendor.businessLetterUploadedAt = new Date();
+
+        if (vendor.verificationStatus === 'Rejected') {
+            vendor.verificationStatus = 'Pending';
+        }
+
+        await vendor.save();
+
+        res.status(200).json(new ApiResponse(200, {
+            businessLetterUrl: vendor.businessLetterUrl,
+            businessLetterName: vendor.businessLetterName,
+            verificationStatus: vendor.verificationStatus
+        }, 'Business Letter uploaded successfully.'));
+    } catch (error) {
+        if (!uploaded) {
+            await cleanupLocalFiles([req.file?.path]);
+        }
+        throw error;
+    }
+});
+

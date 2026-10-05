@@ -36,9 +36,24 @@ const AdminProtectedRoute = ({ children }) => {
     return <Navigate to="/admin/login" state={{ from: location }} replace />;
   }
 
-  if (role && role !== 'admin' && role !== 'superadmin') {
+  const isSuperAdminOnlyPath = (path) => {
+    return (
+      path.startsWith('/admin/account-team') ||
+      path.startsWith('/admin/audit-logs') ||
+      path.startsWith('/admin/settings') ||
+      path.startsWith('/admin/firebase') ||
+      path.startsWith('/admin/policies')
+    );
+  };
+
+  if (role && role !== 'admin' && role !== 'superadmin' && role !== 'account_team') {
     useAdminAuthStore.getState().logout();
     return <Navigate to="/admin/login" state={{ from: location }} replace />;
+  }
+
+  // Account Team users cannot access Super Admin-only management/audit routes
+  if (role === 'account_team' && isSuperAdminOnlyPath(location.pathname)) {
+    return <Navigate to="/admin/dashboard" replace />;
   }
 
   return children;

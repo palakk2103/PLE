@@ -5,6 +5,8 @@ import ChatViolation from '../../../models/ChatViolation.model.js';
 import ChatReport from '../../../models/ChatReport.model.js';
 import User from '../../../models/User.model.js';
 import Vendor from '../../../models/Vendor.model.js';
+import { decryptMessage } from '../../../utils/chatEncryption.util.js';
+
 
 /**
  * GET /api/admin/chat-moderation/violations
@@ -118,10 +120,17 @@ export const getChatReports = asyncHandler(async (req, res) => {
         ChatReport.countDocuments(filter),
     ]);
 
+    reports.forEach((r) => {
+        if (r.messageSnippet) {
+            r.messageSnippet = decryptMessage(r.messageSnippet);
+        }
+    });
+
     res.status(200).json(new ApiResponse(200, {
         reports,
         pagination: { page, limit, total, pages: Math.ceil(total / limit) },
     }, 'Chat reports fetched.'));
+
 });
 
 /**

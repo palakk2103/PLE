@@ -10,11 +10,11 @@ export default function WhyChooseUs() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   
-  const { whyChooseUs: features } = useCMS();
+  const { whyChooseUs: features, whyChooseUsHeader } = useCMS();
   const header = {
-    tagline: 'Why Shop With Us',
-    heading: 'A Smarter Way to',
-    highlightText: 'Shop Online'
+    tagline: whyChooseUsHeader?.tagline || 'Why Shop With Us',
+    heading: whyChooseUsHeader?.heading || 'A Smarter Way to',
+    highlightText: whyChooseUsHeader?.highlightText || 'Shop Online'
   };
 
   // Detect Mobile View

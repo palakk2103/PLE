@@ -322,7 +322,7 @@ const ManagedShopDetails = () => {
               : "border-transparent text-gray-500 hover:text-gray-700"
           }`}
         >
-          Vendor Users ({vendorUsers.length})
+          In-House Staff / Users ({vendorUsers.length})
         </button>
         <button
           onClick={() => setActiveTab("products")}

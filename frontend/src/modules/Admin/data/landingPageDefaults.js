@@ -34,15 +34,108 @@ export const LANDING_PAGE_DEFAULTS = {
     videoBackground: '/hero-video.mp4',
     imageFallback: '/hero_modern.png',
   },
+  catalogue: {
+    badge: 'Catalogue Portfolio',
+    title: 'Explore Our Digital Catalogue',
+    subtitle: 'Flip through our verified selection of commercial components, IT infrastructure assets, corporate categories, and service capabilities.',
+    pdfUrl: '/catalogue/PLE-Catalogue.pdf',
+    videoUrl: '/PLE_2026_Catalogue_Book_Slow_Pages.mp4',
+    status: true
+  },
   trustedBrands: {
-    title: 'Trusted Brands',
-    subtitle: 'Leading electronics brands available on our marketplace',
+    badge: 'Authorized Portfolios',
+    title: 'Trusted Electronics Brands',
+    subtitle: 'Direct partnerships with global manufacturers ensuring official warranty coverage, premium enterprise support, and bulk inventory access.',
     status: true,
+  },
+  portfolioHighlightsHeader: {
+    badge: 'Capability Showcase',
+    title: 'Enterprise Procurement Highlights',
+    subtitle: 'Strategic purchasing support options designed to maximize value, reduce IT administrative costs, and secure business operations.'
   },
   productCategories: {
     title: 'Product Categories',
     subtitle: 'Explore dynamic electronics categories and bulk catalogs',
     status: true,
+  },
+  productCategoriesShowcase: {
+    badge: 'Product Sourcing',
+    title: 'Dynamic Categories',
+    subtitle: 'Procure authentic hardware, custom configurations, and volume software licensing built for business scalability.',
+    categories: [
+      {
+        id: 'cat-1',
+        title: "PC Components",
+        subItems: ["Motherboards", "GPUs", "Cabinets", "SMPS", "Cooling", "RAM"],
+        categoryGroup: "hardware",
+        iconName: "Cpu",
+        brands: ["ASUS ROG", "MSI", "Gigabyte", "Corsair", "Intel", "AMD", "NVIDIA", "G.Skill"],
+        description: "Sourcing for high-performance processors, graphics accelerators, system memory, and chassis solutions."
+      },
+      {
+        id: 'cat-2',
+        title: "Laptops, Desktops & AIOs",
+        subItems: ["Consumer Systems", "Commercial Systems", "Workstations"],
+        categoryGroup: "hardware",
+        iconName: "Laptop",
+        brands: ["HP", "Dell", "Lenovo", "Apple", "Acer", "ASUS"],
+        description: "Commercial and consumer computing solutions configured for enterprise scaling, office productivity, and remote setups."
+      },
+      {
+        id: 'cat-3',
+        title: "Monitors & Commercial Displays",
+        subItems: ["Monitors", "Large-Format Displays", "Interactive Panels", "Video Walls"],
+        categoryGroup: "av",
+        iconName: "Monitor",
+        brands: ["Samsung", "LG", "BenQ", "ViewSonic", "Dell"],
+        description: "Pro-grade visual setups, high-resolution business monitors, collaborative touch panels, and signage systems."
+      },
+      {
+        id: 'cat-4',
+        title: "Commercial Printers & Consumables",
+        subItems: ["Printers", "Copiers", "Toners", "Cartridges", "Accessories"],
+        categoryGroup: "hardware",
+        iconName: "Printer",
+        brands: ["HP", "Canon", "Epson", "Brother", "Xerox"],
+        description: "High-volume business copy systems, document scanners, and replacement toners or consumables."
+      },
+      {
+        id: 'cat-5',
+        title: "Enterprise Networking & Security",
+        subItems: ["Routers", "Switches", "Access Points", "Firewalls"],
+        categoryGroup: "network",
+        iconName: "Wifi",
+        brands: ["Cisco", "Ubiquiti", "Aruba", "Ruckus", "Sophos", "Fortinet"],
+        description: "Corporate wired/wireless network hardware, high-throughput routers, firewalls, and active load balancers."
+      },
+      {
+        id: 'cat-6',
+        title: "Server & Data Center Infrastructure",
+        subItems: ["Servers", "Enterprise Hardware", "NAS/SAN Storage"],
+        categoryGroup: "network",
+        iconName: "Server",
+        brands: ["Dell Technologies", "HPE", "Cisco", "Lenovo Enterprise"],
+        description: "Scalable rack/tower servers, hyper-converged hardware systems, and automated cloud infrastructure."
+      },
+      {
+        id: 'cat-7',
+        title: "Software & Volume Security Licenses",
+        subItems: ["Antivirus", "Endpoint Security", "Operating Systems", "Volume Licensing"],
+        categoryGroup: "software",
+        iconName: "ShieldCheck",
+        brands: ["Microsoft", "Adobe", "Quick Heal", "Kaspersky", "Norton", "Red Hat"],
+        description: "Productivity suites, virtualization platforms, business security antivirus, and enterprise software volume licensing."
+      },
+      {
+        id: 'cat-8',
+        title: "Custom OEM Sourcing",
+        subItems: ["Hard-to-Find Components", "Specialized Sourcing", "Listed Replacements"],
+        categoryGroup: "custom",
+        iconName: "FileQuestion",
+        brands: ["Global OEM Sourcing"],
+        description: "Tailored procurement channels for niche, customized, obsolete, or multi-brand hardware integrations."
+      }
+    ]
   },
   portfolioHighlights: [
     { id: 'hl-cpo', title: 'CPO', subtitle: 'Certified Pre-Owned', description: 'Rigorous 40+ point quality inspection with warranty.', icon: 'Shield', image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=300&h=200&fit=crop', buttonText: 'Learn More', buttonLink: '#cpo', status: true, order: 0 },
@@ -137,6 +230,11 @@ export const LANDING_PAGE_DEFAULTS = {
       cta: 'Get Started'
     }
   ],
+  whyChooseUsHeader: {
+    tagline: 'Why Shop With Us',
+    heading: 'A Smarter Way to',
+    highlightText: 'Shop Online'
+  },
   whyChooseUs: [
     { title: 'Bulk Purchase Discounts', description: 'Volume-negotiated rates that fit scale and maximize margins.', icon: 'Briefcase', image: '', status: true, order: 0 },
     { title: 'Trusted Electronics Brands', description: 'Curated lineup from Apple, Dell, HP, Samsung, LG, Sony and more.', icon: 'Award', image: '', status: true, order: 1 },
@@ -170,10 +268,17 @@ export const LANDING_PAGE_DEFAULTS = {
     { value: '15,000+', label: 'Commercial IT Assets Listed' },
     { value: '99.9%', label: 'Uptime & Service Level Agreement' }
   ],
+  testimonialsHeader: {
+    title: 'CLIENT SAYS:'
+  },
   testimonials: [
     { quote: 'Consolidating our office IT requirements through PLE saved us nearly 30% on laptop acquisitions. The zero maintenance warranty is a game-changer.', author: 'Vikram Mehta', role: 'Head of IT, TechCorp India', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&h=150&fit=crop', country: 'India', countryFlag: '🇮🇳' },
     { quote: 'Direct B2B quotes and transparent GPO buying terms allowed us to scale our regional operations with ease. Very professional support team.', author: 'Priya R.', role: 'Operations Lead, GrowFast Solutions', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&h=150&fit=crop', country: 'India', countryFlag: '🇮🇳' }
   ],
+  productsHeader: {
+    badge: 'Featured Picks',
+    title: 'Curated Collections'
+  },
   products: [
     { id: 1, name: 'Enterprise Laptop - 16GB RAM / 512GB SSD', price: '₹42,500', image: 'https://images.unsplash.com/photo-1496181130204-7552cc14ac1a?q=80&w=300&h=300&fit=crop', link: '#', featured: true },
     { id: 2, name: 'Ultra-Wide LED Commercial Monitor 34"', price: '₹28,999', image: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?q=80&w=300&h=300&fit=crop', link: '#', featured: true },
@@ -191,6 +296,10 @@ export const LANDING_PAGE_DEFAULTS = {
       highlight: false
     }
   ],
+  galleryHeader: {
+    title: 'Our Gallery',
+    subtitle: 'Take a look at our creative projects, events, and modern working spaces.'
+  },
   gallery: [
     { id: 'gal-1', url: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=400&h=300&fit=crop', title: 'Modern Workspace' },
     { id: 'gal-2', url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=400&h=300&fit=crop', title: 'Data Analytics Chart' }

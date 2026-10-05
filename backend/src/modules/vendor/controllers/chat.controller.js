@@ -11,6 +11,7 @@ import { getIO } from '../../../config/socket.js';
 import { moderateMessage, checkMultiMessageEvasion, MODERATION_ACTION } from '../../../services/chatModeration.service.js';
 import ChatViolation from '../../../models/ChatViolation.model.js';
 import ChatReport from '../../../models/ChatReport.model.js';
+import { decryptMessage } from '../../../utils/chatEncryption.util.js';
 
 const buildThreadSeedFromOrder = (order) => {
     const customerName =
@@ -40,14 +41,20 @@ const buildThreadSeedFromOrder = (order) => {
 const serializeMessage = (messageDoc) => ({
     id: messageDoc._id,
     sender: messageDoc.senderType,
-    message: messageDoc.message,
+    message: decryptMessage(messageDoc.message),
     time: messageDoc.createdAt,
 });
+
 
 export const getVendorChatThreads = asyncHandler(async (req, res) => {
     const vendorId = req.user.id;
 
-    const recentOrders = await Order.find({ 'vendorItems.vendorId': vendorId })
+    const recentOrders = await Order.find({
+        $or: [
+            { 'vendorItems.vendorId': vendorId },
+            { 'items.vendorId': vendorId },
+        ],
+    })
         .sort({ createdAt: -1 })
         .limit(100)
         .select('_id orderId userId guestInfo shippingAddress createdAt')
@@ -78,11 +85,14 @@ export const getVendorChatThreads = asyncHandler(async (req, res) => {
         );
     }
 
-    const threads = await VendorChatThread.find({ vendorId }).sort({ lastActivity: -1 }).lean();
+    const threads = await VendorChatThread.find({ vendorId, hiddenForVendor: { $ne: true } }).sort({ lastActivity: -1 }).lean();
 
     // Mask customer contact details in thread listing to prevent off-platform diversion
     const sanitized = threads.map(t => {
         const threadObj = { ...t };
+        if (threadObj.lastMessage) {
+            threadObj.lastMessage = decryptMessage(threadObj.lastMessage);
+        }
         if (threadObj.customerEmail) {
             const parts = String(threadObj.customerEmail).split('@');
             threadObj.customerEmail = (parts[0].slice(0, 2) || '**') + '***@' + (parts[1] || 'customer.com');
@@ -94,12 +104,14 @@ export const getVendorChatThreads = asyncHandler(async (req, res) => {
     });
 
     res.status(200).json(new ApiResponse(200, sanitized, 'Chat threads fetched.'));
+
 });
 
 export const getVendorChatMessages = asyncHandler(async (req, res) => {
     const thread = await VendorChatThread.findOne({
         _id: req.params.id,
         vendorId: req.user.id,
+        hiddenForVendor: { $ne: true },
     });
     if (!thread) throw new ApiError(404, 'Chat thread not found.');
 
@@ -419,7 +431,8 @@ export const initiateProductRequestChat = asyncHandler(async (req, res) => {
     // Find or create thread for this vendor + productRequest combo
     let thread = await VendorChatThread.findOne({
         vendorId,
-        productRequestRef: request._id
+        productRequestRef: request._id,
+        hiddenForVendor: { $ne: true }
     });
 
     if (!thread) {

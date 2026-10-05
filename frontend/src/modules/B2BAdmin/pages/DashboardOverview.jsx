@@ -45,7 +45,8 @@ const DashboardOverview = () => {
     try {
       if (isRefresh) setRefreshing(true); else setLoading(true);
       const res = await api.get('/b2b-user/admin/dashboard');
-      if (res?.data) setData(res.data);
+      const payload = res?.data?.data || res?.data || res;
+      if (payload && typeof payload === 'object') setData(payload);
     } catch (error) {
       console.error(error);
       toast.error('Failed to load dashboard analytics');
@@ -63,48 +64,48 @@ const DashboardOverview = () => {
   const statCards = data ? [
     {
       title: 'Total RFQs',
-      value: data.rfq.total,
-      sub: `${data.rfq.draft} drafts`,
+      value: data.rfq?.total ?? 0,
+      sub: `${data.rfq?.draft ?? 0} drafts`,
       icon: <FiFileText className="w-5 h-5 text-[#D71920]" />,
       bg: 'bg-[#D71920]/10',
       onClick: () => navigate('/b2b-dashboard/rfqs')
     },
     {
       title: 'In Progress',
-      value: data.rfq.inProgress,
-      sub: `${data.rfq.submitted} submitted`,
+      value: data.rfq?.inProgress ?? 0,
+      sub: `${data.rfq?.submitted ?? 0} submitted`,
       icon: <FiActivity className="w-5 h-5 text-indigo-600" />,
       bg: 'bg-indigo-50',
       onClick: () => navigate('/b2b-dashboard/rfqs')
     },
     {
       title: 'Completed RFQs',
-      value: data.rfq.completed,
-      sub: `${data.rfq.rejected} rejected`,
+      value: data.rfq?.completed ?? 0,
+      sub: `${data.rfq?.rejected ?? 0} rejected`,
       icon: <FiCheckCircle className="w-5 h-5 text-emerald-600" />,
       bg: 'bg-emerald-50',
       onClick: () => navigate('/b2b-dashboard/rfqs')
     },
     {
       title: 'Purchase Orders',
-      value: data.procurement.totalPOs,
-      sub: `${data.procurement.thisMonthPOs} this month`,
+      value: data.procurement?.totalPOs ?? 0,
+      sub: `${data.procurement?.thisMonthPOs ?? 0} this month`,
       icon: <FiPackage className="w-5 h-5 text-purple-600" />,
       bg: 'bg-purple-50',
       onClick: () => navigate('/b2b-dashboard/purchase-orders')
     },
     {
       title: 'Total Spend',
-      value: formatPrice(data.procurement.totalSpend),
-      sub: `Avg PO: ${formatPrice(data.procurement.avgPOValue)}`,
+      value: formatPrice(data.procurement?.totalSpend || 0),
+      sub: `Avg PO: ${formatPrice(data.procurement?.avgPOValue || 0)}`,
       icon: <FiDollarSign className="w-5 h-5 text-blue-600" />,
       bg: 'bg-blue-50',
       isLarge: true
     },
     {
       title: 'Employees',
-      value: data.employees.total,
-      sub: `${data.employees.active} active`,
+      value: data.employees?.total ?? 0,
+      sub: `${data.employees?.active ?? 0} active`,
       icon: <FiUsers className="w-5 h-5 text-amber-600" />,
       bg: 'bg-amber-50',
       onClick: () => navigate('/b2b-dashboard/employees')
@@ -256,7 +257,7 @@ const DashboardOverview = () => {
                 </ResponsiveContainer>
                 <div className="absolute text-center pointer-events-none">
                   <span className="text-[9px] text-gray-400 font-bold uppercase block">Total</span>
-                  <span className="text-2xl font-black text-gray-800">{data.rfq.total}</span>
+                  <span className="text-2xl font-black text-gray-800">{data?.rfq?.total || 0}</span>
                 </div>
               </>
             )}
@@ -321,15 +322,15 @@ const DashboardOverview = () => {
             {[
               {
                 label: 'Completion Rate',
-                value: data?.rfq?.total > 0 ? `${Math.round((data.rfq.completed / data.rfq.total) * 100)}%` : '0%',
+                value: data?.rfq?.total > 0 ? `${Math.round(((data?.rfq?.completed || 0) / data.rfq.total) * 100)}%` : '0%',
                 color: 'bg-emerald-500',
-                pct: data?.rfq?.total > 0 ? (data.rfq.completed / data.rfq.total) * 100 : 0
+                pct: data?.rfq?.total > 0 ? ((data?.rfq?.completed || 0) / data.rfq.total) * 100 : 0
               },
               {
                 label: 'Active Pipeline',
-                value: data?.rfq?.total > 0 ? `${Math.round((data.rfq.inProgress / data.rfq.total) * 100)}%` : '0%',
+                value: data?.rfq?.total > 0 ? `${Math.round(((data?.rfq?.inProgress || 0) / data.rfq.total) * 100)}%` : '0%',
                 color: 'bg-indigo-500',
-                pct: data?.rfq?.total > 0 ? (data.rfq.inProgress / data.rfq.total) * 100 : 0
+                pct: data?.rfq?.total > 0 ? ((data?.rfq?.inProgress || 0) / data.rfq.total) * 100 : 0
               },
               {
                 label: 'Avg PO Value',
