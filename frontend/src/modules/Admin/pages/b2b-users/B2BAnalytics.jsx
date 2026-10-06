@@ -69,7 +69,9 @@ const B2BAnalytics = () => {
       setData(payload);
     } catch (err) {
       console.error("Failed to load B2B Analytics:", err);
-      toast.error("Failed to load B2B Analytics");
+      if (err?.response?.status !== 401 && err?.response?.status !== 403) {
+        toast.error("Failed to load B2B Analytics");
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);

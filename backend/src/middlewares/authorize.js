@@ -14,7 +14,14 @@ export const authorize = (...roles) =>
         if (!req.user) {
             return next(new ApiError(401, 'Authentication required.'));
         }
-        if (!roles.includes(req.user.role)) {
+        const userRole = String(req.user.role || '').toLowerCase();
+        const normalizedRoles = roles.map(r => String(r).toLowerCase());
+
+        const hasAccess = 
+            normalizedRoles.includes(userRole) ||
+            (userRole === 'superadmin' && (normalizedRoles.includes('admin') || normalizedRoles.includes('account_team')));
+
+        if (!hasAccess) {
             return next(new ApiError(403, `Access denied. Required role: ${roles.join(' or ')}`));
         }
         next();

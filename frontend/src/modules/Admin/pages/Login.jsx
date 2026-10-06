@@ -13,8 +13,8 @@ const AdminLogin = () => {
   const { login, isAuthenticated, isLoading } = useAdminAuthStore();
   const [twoFactorData, setTwoFactorData] = useState(null);
 
-  // Tab mode: 'organizational' (Account Team) vs 'gateway' (Super Admin)
-  const [activeTab, setActiveTab] = useState('organizational');
+  // Tab mode: 'gateway' (Super Admin) vs 'organizational' (Account Team)
+  const [activeTab, setActiveTab] = useState('gateway');
 
   // Super Admin form state
   const [superAdminData, setSuperAdminData] = useState({
@@ -58,13 +58,16 @@ const AdminLogin = () => {
 
   const handleSuperAdminSubmit = async (e) => {
     e.preventDefault();
-    if (!superAdminData.email || !superAdminData.password) {
+    const emailTrimmed = String(superAdminData.email || '').trim();
+    const passwordTrimmed = String(superAdminData.password || '').trim();
+
+    if (!emailTrimmed || !passwordTrimmed) {
       toast.error('Please enter domain email/username and password');
       return;
     }
 
     try {
-      const result = await login(superAdminData.email, superAdminData.password, rememberMe);
+      const result = await login(emailTrimmed, passwordTrimmed, rememberMe);
       if (result?.twoFactorRequired) {
         setTwoFactorData({
           tempToken: result.tempToken,
@@ -83,17 +86,21 @@ const AdminLogin = () => {
 
   const handleOrgSubmit = async (e) => {
     e.preventDefault();
-    if (!orgData.identityId || !orgData.password || !orgData.personalSecret) {
+    const identityIdTrimmed = String(orgData.identityId || '').trim().toUpperCase();
+    const passwordTrimmed = String(orgData.password || '').trim();
+    const secretTrimmed = String(orgData.personalSecret || '').trim();
+
+    if (!identityIdTrimmed || !passwordTrimmed || !secretTrimmed) {
       toast.error('Please provide Identity ID, Domain Password, and Personal Secret Code');
       return;
     }
 
     try {
       const result = await login({
-        identityId: orgData.identityId.trim().toUpperCase(),
+        identityId: identityIdTrimmed,
         email: orgData.email ? orgData.email.trim() : undefined,
-        password: orgData.password,
-        personalSecret: orgData.personalSecret.trim()
+        password: passwordTrimmed,
+        personalSecret: secretTrimmed
       }, rememberMe);
 
       if (result?.twoFactorRequired) {
@@ -170,18 +177,6 @@ const AdminLogin = () => {
         <div className="grid grid-cols-2 p-1.5 bg-[#0D0D11] rounded-2xl mb-6 border border-white/10 text-xs sm:text-sm font-semibold">
           <button
             type="button"
-            onClick={() => setActiveTab('organizational')}
-            className={`py-2.5 px-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 ${
-              activeTab === 'organizational'
-                ? 'bg-[#D71920] text-white shadow-lg shadow-[#D71920]/30 font-bold'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <FiUserCheck className="text-base" />
-            <span>Account Team</span>
-          </button>
-          <button
-            type="button"
             onClick={() => setActiveTab('gateway')}
             className={`py-2.5 px-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 ${
               activeTab === 'gateway'
@@ -191,6 +186,18 @@ const AdminLogin = () => {
           >
             <FiShield className="text-base" />
             <span>Super Admin</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('organizational')}
+            className={`py-2.5 px-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 ${
+              activeTab === 'organizational'
+                ? 'bg-[#D71920] text-white shadow-lg shadow-[#D71920]/30 font-bold'
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <FiUserCheck className="text-base" />
+            <span>Account Team</span>
           </button>
         </div>
 

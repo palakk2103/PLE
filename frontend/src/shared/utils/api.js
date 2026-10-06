@@ -445,7 +445,19 @@ api.interceptors.response.use(
       );
       if (isRoleMismatch && pathScope !== 'user') {
         const routeConfig = AUTH_SCOPES[pathScope];
-        if (routeConfig && currentPath.startsWith(routeConfig.areaPrefix) && currentPath !== routeConfig.loginPath) {
+        const reqUrl = originalRequest?.url || '';
+        
+        // Only evict the portal session if the request was to the portal's OWN base auth/profile verification endpoint
+        // (e.g. /admin/auth/me or /vendor/auth/profile), indicating the stored token has no access to this portal at all.
+        // For feature-level, sub-actions, or shared endpoints (like /wallet), keep the session intact and display the standard error toast.
+        const isCorePortalAuth = routeConfig && (
+          reqUrl.includes(`${routeConfig.prefix}/auth/me`) ||
+          reqUrl.includes(`${routeConfig.prefix}/auth/profile`) ||
+          reqUrl.includes(`${routeConfig.prefix}/profile`) ||
+          reqUrl.includes(`${routeConfig.prefix}/auth/verify`)
+        );
+
+        if (isCorePortalAuth && currentPath.startsWith(routeConfig.areaPrefix) && currentPath !== routeConfig.loginPath) {
           await clearScopeAuth(pathScope);
           toast.error(`Session unauthorized for this portal (${rawMessage}). Please log in with the correct account.`);
           redirectTo(routeConfig.loginPath);

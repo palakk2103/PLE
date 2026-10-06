@@ -252,6 +252,8 @@ router.post('/wallet/users/:userId/credit', ...adminAuth, walletController.credi
 router.post('/wallet/users/:userId/debit', ...adminAuth, walletController.debitUserWallet);
 router.post('/wallet/users/:userId/freeze', ...adminAuth, walletController.freezeUserWallet);
 router.post('/wallet/users/:userId/unfreeze', ...adminAuth, walletController.unfreezeUserWallet);
+router.get('/wallet/settings', ...adminAuth, walletController.getWalletSettings);
+router.put('/wallet/settings', ...adminAuth, walletController.updateWalletSettings);
 
 // Settings (Logistics, etc) - Super Admin only
 router.get('/settings/:key', ...superAdminAuth, settingsController.getSettings);

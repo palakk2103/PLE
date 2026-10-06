@@ -1,6 +1,6 @@
 /**
- * Generates a responsive, modern HTML email for customer tax invoice / order bill delivery.
- * Styled in Peoples League of Electronics (PLE) signature crimson / dark theme,
+ * Generates a responsive, ultra-clean, modern HTML email for customer tax invoice / order bill delivery.
+ * Designed with generous whitespace, elegant typography, and a spacious layout
  * fully compatible with Gmail, Apple Mail, Outlook, Yahoo, and mobile email clients.
  */
 export const getInvoiceEmailTemplate = ({
@@ -36,8 +36,9 @@ export const getInvoiceEmailTemplate = ({
         grandTotal: order.total || 0,
     };
 
-    const paymentMethod = (invoice?.payment?.method || order.paymentMethod || 'cod').toUpperCase();
-    const paymentStatus = (invoice?.payment?.status || order.paymentStatus || 'pending').toUpperCase();
+    const rawPaymentMethod = String(invoice?.payment?.method || order.paymentMethod || 'cod').toLowerCase();
+    const paymentMethodLabel = rawPaymentMethod === 'cod' ? 'Cash on Delivery (COD)' : rawPaymentMethod.toUpperCase();
+    const paymentStatus = String(invoice?.payment?.status || order.paymentStatus || 'pending').toUpperCase();
     const transactionId = invoice?.payment?.transactionId || order.paymentDetails?.razorpayPaymentId || '';
 
     // Currency formatting helper
@@ -46,31 +47,41 @@ export const getInvoiceEmailTemplate = ({
         return `₹${val.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     };
 
-    // Render line items
+    // Render line items with generous breathing room
     const renderItemsTable = () => {
         if (!items.length) {
-            return `<tr><td colspan="3" style="padding: 12px; color: #a1a1aa; font-size: 12px; text-align: center;">No item details recorded</td></tr>`;
+            return `
+                <tr>
+                    <td colspan="2" style="padding: 24px; color: #64748b; font-size: 14px; text-align: center; background-color: #ffffff;">
+                        No item details recorded
+                    </td>
+                </tr>
+            `;
         }
 
-        return items.map((item) => {
+        return items.map((item, idx) => {
             const name = item.name || 'Product Item';
             const qty = item.quantity || 1;
             const price = Number(item.price) || 0;
             const total = item.totalAmount || (price * qty);
             const gstRate = item.gstRate !== undefined ? `${item.gstRate}%` : '18%';
+            const isLast = idx === items.length - 1;
+            const borderStyle = isLast ? '' : 'border-bottom: 1px solid #e2e8f0;';
 
             return `
-                <tr style="border-bottom: 1px solid #27272a;">
-                    <td style="padding: 10px 8px; vertical-align: middle;">
-                        <p style="margin: 0; color: #f4f4f5; font-size: 13px; font-weight: 600; line-height: 1.3;">
+                <tr style="${borderStyle}">
+                    <td style="padding: 18px 16px; vertical-align: top;">
+                        <p style="margin: 0 0 6px 0; color: #0f172a; font-size: 14px; font-weight: 600; line-height: 1.4;">
                             ${name}
                         </p>
-                        <p style="margin: 3px 0 0 0; color: #a1a1aa; font-size: 11px;">
-                            Qty: <strong style="color: #e4e4e7;">${qty}</strong> × ${formatINR(price)} <span style="color: #71717a;">(GST: ${gstRate})</span>
+                        <p style="margin: 0; color: #64748b; font-size: 12px; line-height: 1.5;">
+                            Quantity: <strong style="color: #1e293b;">${qty}</strong> &nbsp;•&nbsp; Unit Price: <strong style="color: #1e293b;">${formatINR(price)}</strong> &nbsp;•&nbsp; <span style="color: #475569;">GST: ${gstRate}</span>
                         </p>
                     </td>
-                    <td align="right" style="padding: 10px 8px; vertical-align: middle; color: #f4f4f5; font-size: 13px; font-weight: 700;">
-                        ${formatINR(total)}
+                    <td align="right" style="padding: 18px 16px; vertical-align: top; white-space: nowrap;">
+                        <p style="margin: 0; color: #0f172a; font-size: 15px; font-weight: 700; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                            ${formatINR(total)}
+                        </p>
                     </td>
                 </tr>
             `;
@@ -88,181 +99,256 @@ export const getInvoiceEmailTemplate = ({
     body {
       margin: 0;
       padding: 0;
-      background-color: #0d0d11;
+      background-color: #f1f5f9;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    @media only screen and (max-width: 600px) {
+      .email-container {
+        width: 100% !important;
+        border-radius: 0 !important;
+      }
+      .responsive-column {
+        display: block !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin-bottom: 14px !important;
+      }
+      .content-padding {
+        padding: 24px 18px !important;
+      }
+      .header-padding {
+        padding: 24px 18px !important;
+      }
     }
   </style>
 </head>
-<body style="margin: 0; padding: 16px 8px; background-color: #0d0d11;">
+<body style="margin: 0; padding: 28px 12px; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
   <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
     <tr>
       <td align="center">
-        <!-- Main Container -->
-        <table role="presentation" width="100%" style="max-width: 560px; background-color: #16161b; border: 1px solid #2a2a32; border-radius: 14px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.5);" border="0" cellspacing="0" cellpadding="0">
+        <!-- Main Card Container -->
+        <table role="presentation" class="email-container" width="100%" style="max-width: 620px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);" border="0" cellspacing="0" cellpadding="0">
           
-          <!-- Gradient Header Banner -->
+          <!-- Top Brand Header Bar -->
           <tr>
-            <td style="background: linear-gradient(135deg, #AE020B 0%, #C7141B 50%, #7B0A0A 100%); padding: 24px 20px; text-align: center;">
-              <h1 style="margin: 0 0 4px 0; color: #ffffff; font-size: 22px; font-weight: 800; letter-spacing: 0.5px;">
-                ${storeName}
-              </h1>
-              <p style="margin: 0; color: rgba(255, 255, 255, 0.9); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;">
-                Official Tax Invoice / Bill
-              </p>
+            <td class="header-padding" style="background: linear-gradient(135deg, #7B0A0A 0%, #991B1B 50%, #B91C1C 100%); padding: 32px 32px 28px 32px; text-align: left;">
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td style="vertical-align: middle;">
+                    <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 800; letter-spacing: -0.3px; line-height: 1.2;">
+                      ${storeName}
+                    </h1>
+                    <p style="margin: 4px 0 0 0; color: rgba(255, 255, 255, 0.85); font-size: 13px; font-weight: 500;">
+                      Commercial Electronics & Wholesale Marketplace
+                    </p>
+                  </td>
+                  <td align="right" style="vertical-align: middle;">
+                    <span style="display: inline-block; background-color: rgba(255, 255, 255, 0.18); border: 1px solid rgba(255, 255, 255, 0.35); color: #ffffff; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 6px 14px; border-radius: 20px;">
+                      TAX INVOICE
+                    </span>
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
 
-          <!-- Content Body -->
+          <!-- Main Content Body -->
           <tr>
-            <td style="padding: 24px 24px 12px 24px;">
-              <p style="margin: 0 0 6px 0; color: #a1a1aa; font-size: 13px;">
-                Hello <strong>${customerName}</strong>,
+            <td class="content-padding" style="padding: 32px 32px 24px 32px; background-color: #ffffff;">
+
+              <!-- Greeting & Hero Message -->
+              <p style="margin: 0 0 6px 0; color: #64748b; font-size: 14px; font-weight: 500;">
+                Hello <strong style="color: #0f172a;">${customerName}</strong>,
               </p>
-              <h2 style="margin: 0 0 8px 0; color: #ffffff; font-size: 18px; font-weight: 700;">
-                Your Order Bill & Invoice is Ready
+              <h2 style="margin: 0 0 10px 0; color: #0f172a; font-size: 20px; font-weight: 700; letter-spacing: -0.3px; line-height: 1.3;">
+                Thank you for your purchase! 🎉
               </h2>
-              <p style="margin: 0; color: #d4d4d8; font-size: 13px; line-height: 1.5;">
-                Thank you for shopping with ${storeName}. Your order has been placed and confirmed. Your official tax invoice has been generated and is attached to this email as a PDF document.
+              <p style="margin: 0 0 24px 0; color: #475569; font-size: 14px; line-height: 1.6;">
+                Your order has been received and confirmed. Your official GST-compliant tax invoice has been generated and is attached to this email as a PDF document for your records.
               </p>
 
-              <!-- PDF Attachment Notice Card -->
-              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin: 16px 0; background-color: #1c261e; border: 1px dashed #22c55e; border-radius: 10px; padding: 12px 16px;">
+              <!-- PDF Attachment Highlight Box -->
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 24px; background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 16px 20px;">
                 <tr>
-                  <td style="width: 32px; font-size: 20px; vertical-align: middle;">
-                    📎
+                  <td style="width: 38px; vertical-align: top; font-size: 24px; line-height: 1;">
+                    📄
                   </td>
                   <td style="vertical-align: middle;">
-                    <p style="margin: 0; color: #86efac; font-size: 13px; font-weight: 700;">
-                      Invoice PDF Attached: <span style="font-family: monospace; color: #ffffff;">Invoice-${invoiceNumber}.pdf</span>
+                    <p style="margin: 0 0 3px 0; color: #166534; font-size: 14px; font-weight: 700;">
+                      Invoice PDF Attached: <span style="font-family: 'Courier New', Courier, monospace; color: #0f172a; background-color: #dcfce7; padding: 2px 6px; border-radius: 4px;">Invoice-${invoiceNumber}.pdf</span>
                     </p>
-                    <p style="margin: 2px 0 0 0; color: #d1fae5; font-size: 11px;">
-                      Open or download the attachment to view your complete computer-generated tax bill.
+                    <p style="margin: 0; color: #15803d; font-size: 12px; line-height: 1.5;">
+                      Please find your official tax bill attached at the bottom of this email. You can open, print, or download it anytime.
                     </p>
                   </td>
                 </tr>
               </table>
 
-              <!-- Invoice & Order Metadata Box -->
-              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #1f1f26; border-radius: 8px; padding: 12px 14px; margin-bottom: 16px;">
+              <!-- Invoice & Order Metadata Cards -->
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 28px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px;">
                 <tr>
-                  <td style="color: #a1a1aa; font-size: 12px; padding: 3px 0;">
-                    Invoice No: <strong style="color: #ffffff; font-family: monospace;">${invoiceNumber}</strong>
+                  <td style="width: 50%; vertical-align: top; padding-right: 12px;">
+                    <p style="margin: 0 0 4px 0; color: #64748b; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                      Invoice Number
+                    </p>
+                    <p style="margin: 0 0 14px 0; color: #0f172a; font-size: 14px; font-weight: 700; font-family: monospace;">
+                      ${invoiceNumber}
+                    </p>
+
+                    <p style="margin: 0 0 4px 0; color: #64748b; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                      Order Reference
+                    </p>
+                    <p style="margin: 0; color: #0f172a; font-size: 14px; font-weight: 700; font-family: monospace;">
+                      #${orderId}
+                    </p>
                   </td>
-                  <td align="right" style="color: #a1a1aa; font-size: 12px; padding: 3px 0;">
-                    Date: <strong style="color: #ffffff;">${formattedDate}</strong>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="color: #a1a1aa; font-size: 12px; padding: 3px 0;">
-                    Order ID: <strong style="color: #ffffff; font-family: monospace;">#${orderId}</strong>
-                  </td>
-                  <td align="right" style="color: #a1a1aa; font-size: 12px; padding: 3px 0;">
-                    Status: <span style="color: #22c55e; font-weight: 700;">${paymentStatus}</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td colspan="2" style="color: #a1a1aa; font-size: 11px; padding: 3px 0; border-top: 1px solid #2a2a34; margin-top: 4px;">
-                    Payment: <strong style="color: #e4e4e7;">${paymentMethod}</strong> ${transactionId ? `(Txn: ${transactionId})` : ''}
+                  <td style="width: 50%; vertical-align: top; padding-left: 12px; border-left: 1px solid #e2e8f0;">
+                    <p style="margin: 0 0 4px 0; color: #64748b; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                      Invoice Date
+                    </p>
+                    <p style="margin: 0 0 14px 0; color: #0f172a; font-size: 13px; font-weight: 600;">
+                      ${formattedDate}
+                    </p>
+
+                    <p style="margin: 0 0 4px 0; color: #64748b; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                      Payment Details
+                    </p>
+                    <p style="margin: 0; color: #0f172a; font-size: 13px; font-weight: 600;">
+                      ${paymentMethodLabel} &nbsp;<span style="display: inline-block; background-color: #dbeafe; color: #1e40af; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 12px; text-transform: uppercase;">${paymentStatus}</span>
+                    </p>
+                    ${transactionId ? `<p style="margin: 3px 0 0 0; color: #64748b; font-size: 11px; font-family: monospace;">Txn: ${transactionId}</p>` : ''}
                   </td>
                 </tr>
               </table>
 
-              <!-- Order Items Section -->
-              <h3 style="margin: 18px 0 10px 0; color: #f4f4f5; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #27272a; padding-bottom: 6px;">
-                Order Summary
-              </h3>
+              <!-- Section: Order Items -->
+              <div style="margin-bottom: 28px;">
+                <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 12px;">
+                  <tr>
+                    <td>
+                      <h3 style="margin: 0; color: #0f172a; font-size: 15px; font-weight: 700; letter-spacing: -0.2px;">
+                        Purchased Items Summary
+                      </h3>
+                    </td>
+                    <td align="right">
+                      <span style="color: #64748b; font-size: 12px; font-weight: 500;">
+                        ${items.length} item${items.length !== 1 ? 's' : ''}
+                      </span>
+                    </td>
+                  </tr>
+                </table>
 
-              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
-                ${renderItemsTable()}
-              </table>
+                <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background-color: #ffffff;">
+                  <thead style="background-color: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+                    <tr>
+                      <th align="left" style="padding: 12px 16px; color: #475569; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                        Item Description
+                      </th>
+                      <th align="right" style="padding: 12px 16px; color: #475569; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                        Total Amount
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${renderItemsTable()}
+                  </tbody>
+                </table>
+              </div>
 
-              <!-- Financial Totals Breakdown -->
-              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top: 14px; border-top: 1px solid #27272a; padding-top: 10px;">
+              <!-- Section: Financial Breakdown Box -->
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 28px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px 24px;">
                 <tr>
-                  <td style="padding: 4px 0; color: #a1a1aa; font-size: 12px;">Items Subtotal</td>
-                  <td align="right" style="padding: 4px 0; color: #e4e4e7; font-size: 12px;">${formatINR(financial.subtotal || 0)}</td>
+                  <td style="padding: 6px 0; color: #64748b; font-size: 13px;">Items Subtotal</td>
+                  <td align="right" style="padding: 6px 0; color: #1e293b; font-size: 13px; font-weight: 600;">${formatINR(financial.subtotal || 0)}</td>
                 </tr>
                 ${Number(financial.discount || 0) > 0 ? `
                   <tr>
-                    <td style="padding: 4px 0; color: #22c55e; font-size: 12px;">Discount Applied</td>
-                    <td align="right" style="padding: 4px 0; color: #22c55e; font-size: 12px;">-${formatINR(financial.discount)}</td>
+                    <td style="padding: 6px 0; color: #16a34a; font-size: 13px; font-weight: 600;">Discount / Coupon Savings</td>
+                    <td align="right" style="padding: 6px 0; color: #16a34a; font-size: 13px; font-weight: 700;">-${formatINR(financial.discount)}</td>
                   </tr>
                 ` : ''}
                 <tr>
-                  <td style="padding: 4px 0; color: #a1a1aa; font-size: 12px;">Tax (GST)</td>
-                  <td align="right" style="padding: 4px 0; color: #e4e4e7; font-size: 12px;">${formatINR(financial.tax || 0)}</td>
+                  <td style="padding: 6px 0; color: #64748b; font-size: 13px;">Applicable Taxes (GST)</td>
+                  <td align="right" style="padding: 6px 0; color: #1e293b; font-size: 13px; font-weight: 600;">${formatINR(financial.tax || 0)}</td>
                 </tr>
                 <tr>
-                  <td style="padding: 4px 0; color: #a1a1aa; font-size: 12px;">Shipping / Delivery</td>
-                  <td align="right" style="padding: 4px 0; color: #e4e4e7; font-size: 12px;">${Number(financial.shipping || 0) > 0 ? formatINR(financial.shipping) : 'FREE'}</td>
+                  <td style="padding: 6px 0; color: #64748b; font-size: 13px;">Shipping & Delivery Charges</td>
+                  <td align="right" style="padding: 6px 0; color: #16a34a; font-size: 13px; font-weight: 700;">
+                    ${Number(financial.shipping || 0) > 0 ? formatINR(financial.shipping) : 'FREE'}
+                  </td>
                 </tr>
                 <tr>
-                  <td style="padding: 10px 0 4px 0; color: #ffffff; font-size: 14px; font-weight: 700; border-top: 1px solid #3f3f46;">Total Amount</td>
-                  <td align="right" style="padding: 10px 0 4px 0; color: #AE020B; font-size: 16px; font-weight: 800; border-top: 1px solid #3f3f46;">
+                  <td style="padding: 16px 0 0 0; color: #0f172a; font-size: 16px; font-weight: 800; border-top: 2px solid #cbd5e1;">
+                    Total Payable Amount
+                  </td>
+                  <td align="right" style="padding: 16px 0 0 0; color: #7B0A0A; font-size: 20px; font-weight: 800; border-top: 2px solid #cbd5e1; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
                     ${formatINR(financial.grandTotal || order.total || 0)}
                   </td>
                 </tr>
               </table>
 
-              <!-- Addresses Section -->
-              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top: 20px;">
+              <!-- Section: Addresses (Side-by-Side with ample breathing room) -->
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 32px;">
                 <tr>
-                  <td style="vertical-align: top; width: 50%; padding-right: 8px;">
-                    <div style="padding: 12px; background-color: #1a1a20; border-radius: 8px; border-left: 3px solid #AE020B; min-height: 80px;">
-                      <p style="margin: 0 0 4px 0; color: #a1a1aa; font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">
-                        Shipping Address
+                  <td class="responsive-column" style="width: 50%; vertical-align: top; padding-right: 10px;">
+                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 3px solid #7B0A0A; border-radius: 12px; padding: 18px 20px; min-height: 110px;">
+                      <p style="margin: 0 0 8px 0; color: #7B0A0A; font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.6px;">
+                        📍 Shipping Address
                       </p>
-                      <p style="margin: 0; color: #f4f4f5; font-size: 11.5px; line-height: 1.4;">
+                      <p style="margin: 0; color: #1e293b; font-size: 13px; line-height: 1.6;">
                         ${shipping.name ? `<strong>${shipping.name}</strong><br/>` : ''}
-                        ${shipping.address || ''}<br/>
+                        ${shipping.address ? `${shipping.address}<br/>` : ''}
                         ${[shipping.city, shipping.state, shipping.zipCode].filter(Boolean).join(', ')}<br/>
-                        ${shipping.phone ? `Phone: ${shipping.phone}` : ''}
+                        ${shipping.phone ? `<span style="color: #64748b;">Phone:</span> ${shipping.phone}` : ''}
                       </p>
                     </div>
                   </td>
-                  <td style="vertical-align: top; width: 50%; padding-left: 8px;">
-                    <div style="padding: 12px; background-color: #1a1a20; border-radius: 8px; border-left: 3px solid #71717a; min-height: 80px;">
-                      <p style="margin: 0 0 4px 0; color: #a1a1aa; font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">
-                        Billing Address
+                  <td class="responsive-column" style="width: 50%; vertical-align: top; padding-left: 10px;">
+                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 3px solid #64748b; border-radius: 12px; padding: 18px 20px; min-height: 110px;">
+                      <p style="margin: 0 0 8px 0; color: #475569; font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.6px;">
+                        📋 Billing Address
                       </p>
-                      <p style="margin: 0; color: #f4f4f5; font-size: 11.5px; line-height: 1.4;">
+                      <p style="margin: 0; color: #1e293b; font-size: 13px; line-height: 1.6;">
                         ${billing.name ? `<strong>${billing.name}</strong><br/>` : ''}
-                        ${billing.address || shipping.address || ''}<br/>
+                        ${(billing.address || shipping.address) ? `${billing.address || shipping.address}<br/>` : ''}
                         ${[billing.city || shipping.city, billing.state || shipping.state, billing.zipCode || shipping.zipCode].filter(Boolean).join(', ')}<br/>
-                        ${billing.phone ? `Phone: ${billing.phone}` : (shipping.phone ? `Phone: ${shipping.phone}` : '')}
+                        ${(billing.phone || shipping.phone) ? `<span style="color: #64748b;">Phone:</span> ${billing.phone || shipping.phone}` : ''}
                       </p>
                     </div>
                   </td>
                 </tr>
               </table>
 
-              <!-- View Order CTA Button -->
-              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin: 24px 0 12px 0;">
+              <!-- Call to Action Button -->
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 20px;">
                 <tr>
                   <td align="center">
-                    <a href="${storeUrl}/orders/${orderId}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #AE020B 0%, #7B0A0A 100%); color: #ffffff; text-decoration: none; font-size: 13px; font-weight: 700; padding: 12px 32px; border-radius: 8px; box-shadow: 0 4px 12px rgba(174, 2, 11, 0.4);">
+                    <a href="${storeUrl}/orders/${orderId}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #7B0A0A 0%, #991B1B 100%); color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 700; padding: 14px 38px; border-radius: 10px; box-shadow: 0 4px 14px rgba(123, 10, 10, 0.28); letter-spacing: 0.2px;">
                       View Order & Bill Online
                     </a>
                   </td>
                 </tr>
               </table>
 
-              <p style="margin: 12px 0 0 0; color: #71717a; font-size: 11px; text-align: center;">
-                You can always view, print, or download your invoices anytime from your account dashboard.
+              <p style="margin: 0; color: #94a3b8; font-size: 12px; text-align: center; line-height: 1.5;">
+                Need help or have questions regarding this invoice? We're here for you at <a href="mailto:${supportEmail}" style="color: #7B0A0A; font-weight: 600; text-decoration: none;">${supportEmail}</a>
               </p>
 
             </td>
           </tr>
 
-          <!-- Footer -->
+          <!-- Clean Modern Footer -->
           <tr>
-            <td style="background-color: #111114; padding: 16px 20px; text-align: center; border-top: 1px solid #24242c;">
-              <p style="margin: 0 0 4px 0; color: #71717a; font-size: 11px;">
-                Questions or issues with your bill? Contact our support team at <a href="mailto:${supportEmail}" style="color: #a1a1aa; text-decoration: underline;">${supportEmail}</a>
+            <td style="background-color: #f8fafc; padding: 24px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
+              <p style="margin: 0 0 6px 0; color: #64748b; font-size: 12px; line-height: 1.5;">
+                © ${new Date().getFullYear()} ${storeName}. All rights reserved.
               </p>
-              <p style="margin: 0; color: #52525b; font-size: 10px;">
-                © ${new Date().getFullYear()} ${storeName}. All rights reserved. • This is an electronically generated valid tax invoice.
+              <p style="margin: 0; color: #94a3b8; font-size: 11px; line-height: 1.5;">
+                This is a system-generated electronic tax invoice compliant with Indian GST norms • No physical signature required.
               </p>
             </td>
           </tr>
@@ -275,4 +361,5 @@ export const getInvoiceEmailTemplate = ({
 </html>
 `;
 };
+
 export default getInvoiceEmailTemplate;

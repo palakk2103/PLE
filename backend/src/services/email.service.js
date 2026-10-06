@@ -1,14 +1,23 @@
 import "../loadEnv.js";
 import nodemailer from 'nodemailer';
 
+let cachedTransporter = null;
+
 const getTransporter = () => {
+    if (cachedTransporter) {
+        return cachedTransporter;
+    }
+
     const cleanPass = (process.env.SMTP_PASS || '').replace(/\s+/g, '');
     const isGmail = process.env.SMTP_HOST === 'smtp.gmail.com';
     
-    return nodemailer.createTransport(
+    cachedTransporter = nodemailer.createTransport(
         isGmail
             ? {
                 service: 'gmail',
+                pool: true,
+                maxConnections: 5,
+                maxMessages: 100,
                 auth: {
                     user: process.env.SMTP_USER,
                     pass: cleanPass,
@@ -21,6 +30,9 @@ const getTransporter = () => {
                 host: process.env.SMTP_HOST,
                 port: Number(process.env.SMTP_PORT) || 587,
                 secure: Number(process.env.SMTP_PORT) === 465,
+                pool: true,
+                maxConnections: 5,
+                maxMessages: 100,
                 auth: {
                     user: process.env.SMTP_USER,
                     pass: cleanPass,
@@ -30,6 +42,8 @@ const getTransporter = () => {
                 }
             }
     );
+
+    return cachedTransporter;
 };
 
 /**
@@ -38,7 +52,7 @@ const getTransporter = () => {
  */
 export const sendEmail = async ({ to, subject, html, text, attachments = [] }) => {
     const mailOptions = {
-        from: `"${process.env.FROM_NAME || 'Appzeto Store'}" <${process.env.FROM_EMAIL || process.env.SMTP_USER}>`,
+        from: `"${process.env.FROM_NAME || 'Peoples League of Electronics'}" <${process.env.FROM_EMAIL || process.env.SMTP_USER}>`,
         to,
         subject,
         html,

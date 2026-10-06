@@ -15,7 +15,8 @@ import crypto from 'crypto';
 const router = Router();
 
 const userAuth = [authenticate, authorize('b2bAdmin', 'b2bEmployee', 'customer'), enforceAccountStatus];
-const adminAuth = [authenticate, authorize('admin', 'superadmin'), enforceAccountStatus];
+const adminAuth = [authenticate, authorize('admin', 'superadmin', 'account_team'), enforceAccountStatus];
+const generalWalletAuth = [authenticate, authorize('admin', 'superadmin', 'account_team', 'b2bAdmin', 'b2bEmployee', 'customer'), enforceAccountStatus];
 
 // Helper to get default or saved wallet settings
 const getWalletSettingsHelper = async () => {
@@ -174,7 +175,7 @@ router.post('/pay', ...userAuth, asyncHandler(async (req, res) => {
 }));
 
 // POST /wallet/refund - Credit refund back to wallet (used internally or by admin)
-router.post('/refund', ...userAuth, asyncHandler(async (req, res) => {
+router.post('/refund', ...generalWalletAuth, asyncHandler(async (req, res) => {
     const { amount, orderId, reason } = req.body;
     const parsedAmount = Number(amount);
 
@@ -253,7 +254,7 @@ router.post('/unfreeze', ...adminAuth, asyncHandler(async (req, res) => {
 }));
 
 // GET /wallet/settings - Get settings
-router.get('/settings', ...userAuth, asyncHandler(async (req, res) => {
+router.get('/settings', ...generalWalletAuth, asyncHandler(async (req, res) => {
     const settings = await getWalletSettingsHelper();
     res.status(200).json(new ApiResponse(200, settings, 'Wallet settings fetched successfully.'));
 }));

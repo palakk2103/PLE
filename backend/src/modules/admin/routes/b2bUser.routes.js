@@ -7,14 +7,14 @@ import {
     getB2BAnalytics
 } from '../controllers/b2bUser.controller.js';
 import { authenticate } from '../../../middlewares/authenticate.js';
-import { authorize } from '../../../middlewares/authorize.js';
+import { authorize, enforceAccountStatus } from '../../../middlewares/authorize.js';
 import { uploadPDFSingle } from '../../../middlewares/upload.js';
 import { getTemplates, getTemplateConfigs, uploadTemplate, toggleTemplateStatus, deleteTemplate } from '../controllers/agreement.controller.js';
 
 const router = express.Router();
 
 // Apply admin protection to all routes in this file
-router.use(authenticate, authorize('admin'));
+router.use(authenticate, authorize('admin', 'superadmin', 'account_team'), enforceAccountStatus);
 
 router.get('/agreement-templates/configs', getTemplateConfigs);
 router.get('/agreement-templates', getTemplates);

@@ -145,13 +145,13 @@ export const verifyPayment = asyncHandler(async (req, res) => {
         console.error("Invoice sync / email error after payment verification:", invErr?.message);
     }
 
-    // Trigger Order Confirmed lifecycle & customer confirmation email
+    // Trigger Order Confirmed lifecycle
     try {
         await handleOrderStatusTransition(order, 'pending', {
             updatedBy: order.userId,
             updatedByRole: 'user',
             note: 'Payment verified via online gateway',
-            notifyCustomer: true,
+            notifyCustomer: false, // Invoice email is already sent above with PDF
         });
     } catch (statusErr) {
         console.error("Error triggering order status transition after payment verification:", statusErr);

@@ -5,6 +5,7 @@ import Wallet from '../../../models/Wallet.model.js';
 import WalletTransaction from '../../../models/WalletTransaction.model.js';
 import User from '../../../models/User.model.js';
 import ReturnRequest from '../../../models/ReturnRequest.model.js';
+import Settings from '../../../models/Settings.model.js';
 import * as walletService from '../../../services/wallet.service.js';
 
 // GET /api/admin/wallet/dashboard
@@ -166,3 +167,40 @@ export const unfreezeUserWallet = asyncHandler(async (req, res) => {
     const wallet = await walletService.unfreezeWallet(userId);
     res.status(200).json(new ApiResponse(200, wallet, 'Wallet unfrozen successfully.'));
 });
+
+// GET /api/admin/wallet/settings
+export const getWalletSettings = asyncHandler(async (req, res) => {
+    const setting = await Settings.findOne({ key: 'wallet_settings' });
+    const settings = setting ? setting.value : {
+        minRecharge: 100,
+        maxRecharge: 50000,
+        maxBalance: 100000,
+        cashbackPercent: 0,
+        refundPolicy: 'Refund will be processed back to the wallet.'
+    };
+    res.status(200).json(new ApiResponse(200, settings, 'Wallet settings fetched successfully.'));
+});
+
+// PUT /api/admin/wallet/settings
+export const updateWalletSettings = asyncHandler(async (req, res) => {
+    const { minRecharge, maxRecharge, maxBalance, cashbackPercent, refundPolicy } = req.body;
+
+    const value = {
+        minRecharge: Number(minRecharge) || 100,
+        maxRecharge: Number(maxRecharge) || 50000,
+        maxBalance: Number(maxBalance) || 100000,
+        cashbackPercent: Number(cashbackPercent) || 0,
+        refundPolicy: refundPolicy || 'Refund will be processed back to the wallet.'
+    };
+
+    let setting = await Settings.findOne({ key: 'wallet_settings' });
+    if (setting) {
+        setting.value = value;
+        await setting.save();
+    } else {
+        setting = await Settings.create({ key: 'wallet_settings', value });
+    }
+
+    res.status(200).json(new ApiResponse(200, setting.value, 'Wallet settings updated successfully.'));
+});
+

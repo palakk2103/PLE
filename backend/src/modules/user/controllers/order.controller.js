@@ -765,9 +765,32 @@ export const placeOrder = asyncHandler(async (req, res) => {
     const responseMessage = idempotentReplay
         ? 'Duplicate order request ignored. Returning existing order.'
         : 'Order placed successfully.';
-    if (!idempotentReplay && order && (order.paymentStatus === 'paid' || order.paymentMethod === 'cod')) {
-        // Trigger real-time notifications to vendors
+    const isCod = ['cod', 'cash'].includes(String(order?.paymentMethod || '').toLowerCase());
+    if (!idempotentReplay && order && (order.paymentStatus === 'paid' || isCod)) {
         (async () => {
+            // 1. Prioritize Invoice generation and customer tax invoice PDF email
+            try {
+                const inv = await generateInvoiceForOrder(order._id);
+                if (inv) {
+                    await sendOrderInvoiceEmail(order._id, { invoice: inv });
+                }
+            } catch (invErr) {
+                console.error("Automatic invoice / email generation error on placeOrder:", invErr?.message);
+            }
+
+            // 2. Trigger Order Confirmed status lifecycle, record initial history
+            try {
+                await handleOrderStatusTransition(order, 'pending', {
+                    updatedBy: order.userId,
+                    updatedByRole: 'user',
+                    note: 'Order placed successfully by customer',
+                    notifyCustomer: false, // Invoice email is already sent above with complete PDF & details
+                });
+            } catch (statusErr) {
+                console.error("Order status transition error on placeOrder:", statusErr?.message);
+            }
+
+            // 3. Trigger real-time notifications to vendors & push to buyer
             try {
                 let io;
                 try {
@@ -779,7 +802,7 @@ export const placeOrder = asyncHandler(async (req, res) => {
                 if (order.vendorItems && order.vendorItems.length > 0) {
                     for (const v of order.vendorItems) {
                         // Create Database notification
-                        await createNotification({
+                        createNotification({
                             recipientId: v.vendorId,
                             recipientType: 'vendor',
                             title: 'New Order Received',
@@ -822,28 +845,6 @@ export const placeOrder = asyncHandler(async (req, res) => {
                 }
             } catch (err) {
                 console.error("Error in sending order notifications to vendors:", err);
-            }
-
-            // Trigger Order Confirmed status lifecycle, record initial history, and send confirmation email
-            try {
-                await handleOrderStatusTransition(order, 'pending', {
-                    updatedBy: order.userId,
-                    updatedByRole: 'user',
-                    note: 'Order placed successfully by customer',
-                    notifyCustomer: true,
-                });
-            } catch (statusErr) {
-                console.error("Order status transition error on placeOrder:", statusErr?.message);
-            }
-
-            // Generate invoice and send customer invoice email idempotently in background
-            try {
-                const inv = await generateInvoiceForOrder(order._id);
-                if (inv) {
-                    await sendOrderInvoiceEmail(order._id, { invoice: inv });
-                }
-            } catch (invErr) {
-                console.error("Automatic invoice / email generation error on placeOrder:", invErr?.message);
             }
         })();
     }
