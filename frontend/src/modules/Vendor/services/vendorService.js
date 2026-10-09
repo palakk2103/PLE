@@ -522,6 +522,42 @@ export const deleteVendorShippingRate = (id) =>
  */
 export const getVendorEarnings = () => api.get('/vendor/earnings');
 
+/**
+ * Get vendor wallet summary & settings (authoritative ledger balance)
+ */
+export const getVendorWallet = () => api.get('/vendor/finance/wallet');
+
+/**
+ * Get vendor ledger financial transactions
+ */
+export const getVendorTransactions = (params = {}) =>
+    api.get('/vendor/finance/transactions', { params });
+
+/**
+ * Get vendor withdrawal requests
+ */
+export const getVendorWithdrawals = (params = {}) =>
+    api.get('/vendor/finance/withdrawals', { params });
+
+/**
+ * Submit withdrawal request
+ */
+export const requestVendorWithdrawal = (data) =>
+    api.post('/vendor/finance/withdrawals', data);
+
+/**
+ * Get vendor bank details (masked)
+ */
+export const getVendorFinanceBankDetails = () =>
+    api.get('/vendor/finance/bank-details');
+
+/**
+ * Update vendor bank details
+ */
+export const updateVendorFinanceBankDetails = (data) =>
+    api.put('/vendor/finance/bank-details', data);
+
+
 
 // ─── BANK DETAILS ───────────────────────────────────────────────────────────────
 

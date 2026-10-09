@@ -100,9 +100,13 @@ export default function VendorRoutes() {
         <Route path="analytics" element={<VendorAnalytics />} />
         <Route path="reports" element={<VendorReports />} />
         <Route path="earnings" element={<VendorEarnings />} />
-        <Route path="earnings/overview" element={<VendorEarnings />} />
-        <Route path="earnings/commission-history" element={<VendorEarnings />} />
-        <Route path="earnings/settlement-history" element={<VendorEarnings />} />
+        <Route path="earnings/overview" element={<VendorEarnings defaultTab="overview" />} />
+        <Route path="earnings/wallet" element={<VendorEarnings defaultTab="wallet" />} />
+        <Route path="earnings/withdrawals" element={<VendorEarnings defaultTab="withdrawals" />} />
+        <Route path="earnings/transactions" element={<VendorEarnings defaultTab="transactions" />} />
+        <Route path="earnings/settlements" element={<VendorEarnings defaultTab="settlements" />} />
+        <Route path="earnings/commission-history" element={<VendorEarnings defaultTab="commission" />} />
+        <Route path="earnings/settlement-history" element={<VendorEarnings defaultTab="settlements" />} />
         <Route path="stock-management" element={<VendorStockManagement />} />
         <Route path="wallet-history" element={<VendorWalletHistory />} />
         <Route path="chat" element={<VendorChat />} />

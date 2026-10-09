@@ -63,6 +63,104 @@ const autoSeedDeliveryBoy = async () => {
   }
 };
 
+const autoSeedVendor = async () => {
+  try {
+    const { Vendor } = await import('../models/Vendor.model.js');
+    let vendor = await Vendor.findOne({ email: 'vendor@vendor.com' }).select('+password');
+    if (!vendor) {
+      vendor = new Vendor({
+        name: 'Vikas Sharma',
+        storeName: 'Fashion Hub Official',
+        ownerName: 'Vikas Sharma',
+        email: 'vendor@vendor.com',
+        phone: '9876543211',
+        password: 'vendor123',
+        status: 'approved',
+        isVerified: true,
+        verificationStatus: 'Approved',
+        commissionRate: 10,
+        address: {
+          street: '12 Commercial Street',
+          city: 'Mumbai',
+          state: 'Maharashtra',
+          zipCode: '400001',
+          country: 'India'
+        },
+        bankDetails: {
+          accountName: 'Fashion Hub Official',
+          bankName: 'HDFC Bank',
+          ifscCode: 'HDFC0001234',
+          accountNumber: '123456789012',
+          upiId: 'fashionhub@okhdfcbank'
+        }
+      });
+      await vendor.save();
+      console.log('✅ DATABASE AUTO-SEED SUCCESS: Vendor account created (vendor@vendor.com / vendor123)');
+    } else {
+      vendor.name = vendor.name || 'Vikas Sharma';
+      vendor.status = 'approved';
+      vendor.isVerified = true;
+      vendor.verificationStatus = 'Approved';
+      vendor.password = 'vendor123';
+      if (!vendor.bankDetails || (!vendor.bankDetails.accountNumber && !vendor.bankDetails.upiId)) {
+        vendor.bankDetails = {
+          accountName: 'Fashion Hub Official',
+          bankName: 'HDFC Bank',
+          ifscCode: 'HDFC0001234',
+          accountNumber: '123456789012',
+          upiId: 'fashionhub@okhdfcbank'
+        };
+      }
+      await vendor.save();
+      console.log('✅ DATABASE AUTO-SEED SUCCESS: Vendor account reset & ready (vendor@vendor.com / vendor123)');
+    }
+
+    // Auto-seed or top-up vendor wallet with ₹5,000 test balance for withdrawal testing
+    const VendorWallet = (await import('../models/VendorWallet.model.js')).default;
+    const VendorTransaction = (await import('../models/VendorTransaction.model.js')).default;
+
+    let wallet = await VendorWallet.findOne({ vendorId: vendor._id });
+    if (!wallet) {
+      wallet = await VendorWallet.create({
+        vendorId: vendor._id,
+        totalEarnings: 5000,
+        available: 5000,
+        onHold: 0,
+        reserved: 0,
+        withdrawn: 0,
+      });
+      await VendorTransaction.create({
+        vendorId: vendor._id,
+        type: 'EARNING_CLEARED',
+        amount: 5000,
+        balanceSnapshot: { onHold: 0, available: 5000, reserved: 0, withdrawn: 0 },
+        referenceType: 'order',
+        referenceNumber: 'INITIAL-TEST-BALANCE',
+        description: 'Test cleared earnings credited for testing withdrawals',
+        status: 'completed',
+      });
+      console.log('✅ DATABASE AUTO-SEED SUCCESS: Vendor wallet created with ₹5,000 available balance');
+    } else if (wallet.available === 0 && wallet.reserved === 0 && wallet.withdrawn === 0) {
+      wallet.totalEarnings = Math.max(wallet.totalEarnings, 5000);
+      wallet.available = 5000;
+      await wallet.save();
+      await VendorTransaction.create({
+        vendorId: vendor._id,
+        type: 'EARNING_CLEARED',
+        amount: 5000,
+        balanceSnapshot: { onHold: wallet.onHold, available: 5000, reserved: 0, withdrawn: 0 },
+        referenceType: 'order',
+        referenceNumber: 'TOPUP-TEST-BALANCE',
+        description: 'Test balance top-up for testing withdrawals',
+        status: 'completed',
+      });
+      console.log('✅ DATABASE AUTO-SEED SUCCESS: Vendor wallet topped up with ₹5,000 available balance');
+    }
+  } catch (err) {
+    console.error('⚠️ DATABASE AUTO-SEED FAILED for Vendor:', err.message);
+  }
+};
+
 const autoSeedB2B = async () => {
   try {
     const User = (await import('../models/User.model.js')).default;
@@ -210,6 +308,22 @@ const autoMigrateCategories = async () => {
   }
 };
 
+const autoMigrateProducts = async () => {
+  try {
+    const { default: Product } = await import('../models/Product.model.js');
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const result = await Product.updateMany(
+      { createdAt: { $gte: thirtyDaysAgo }, isNewArrival: { $ne: true } },
+      { $set: { isNewArrival: true } }
+    );
+    if (result.modifiedCount > 0) {
+      console.log(`✅ DATABASE MIGRATION SUCCESS: Marked ${result.modifiedCount} recent products as new arrivals.`);
+    }
+  } catch (err) {
+    console.error('⚠️ DATABASE MIGRATION FAILED for Products:', err.message);
+  }
+};
+
 const connectDB = async () => {
   try {
     const conn = await mongoose.connect(process.env.MONGO_URI, {
@@ -218,8 +332,10 @@ const connectDB = async () => {
     console.log(`MongoDB Connected: ${conn.connection.host}`);
     await autoSeedAdmin();
     await autoSeedDeliveryBoy();
+    await autoSeedVendor();
     await autoSeedB2B();
     await autoMigrateCategories();
+    await autoMigrateProducts();
   } catch (error) {
     const publicIP = await getPublicIP();
     console.error(`
@@ -264,8 +380,10 @@ to switch back to your persistent remote cluster.
       `);
       await autoSeedAdmin();
       await autoSeedDeliveryBoy();
+      await autoSeedVendor();
       await autoSeedB2B();
       await autoMigrateCategories();
+      await autoMigrateProducts();
     } catch (localError) {
       console.log('❌ Local MongoDB is not running. Attempting to spin up an in-memory MongoDB fallback server...');
       try {
@@ -290,8 +408,10 @@ to switch back to your persistent remote cluster.
         `);
         await autoSeedAdmin();
         await autoSeedDeliveryBoy();
+        await autoSeedVendor();
         await autoSeedB2B();
         await autoMigrateCategories();
+        await autoMigrateProducts();
       } catch (fallbackError) {
         console.error('❌ Failed to start in-memory MongoDB server:', fallbackError.message);
         process.exit(1);

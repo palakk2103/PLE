@@ -51,8 +51,14 @@ const getTransporter = () => {
  * @param {Object} options - { to, subject, html, text, attachments }
  */
 export const sendEmail = async ({ to, subject, html, text, attachments = [] }) => {
+    const fromName = process.env.FROM_NAME || 'Peoples League of Electronics';
+    const fromEmail = process.env.FROM_EMAIL || process.env.SMTP_USER;
+    const replyToEmail = process.env.REPLY_TO_EMAIL || fromEmail;
+
     const mailOptions = {
-        from: `"${process.env.FROM_NAME || 'Peoples League of Electronics'}" <${process.env.FROM_EMAIL || process.env.SMTP_USER}>`,
+        from: `"${fromName}" <${fromEmail}>`,
+        sender: fromEmail,
+        replyTo: replyToEmail,
         to,
         subject,
         html,

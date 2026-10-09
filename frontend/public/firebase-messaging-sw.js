@@ -23,14 +23,20 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Received background message', payload);
   
-  const notificationTitle = payload.notification.title;
-  const notificationOptions = {
-    body: payload.notification.body,
-    icon: payload.notification.icon || '/favicon.png',
-    data: payload.data
-  };
+  // Note: If payload.notification exists, Firebase Web automatically displays the notification.
+  // Calling showNotification manually here causes a duplicate popup. Only show for data-only payloads.
+  if (!payload.notification) {
+    const notificationTitle = payload.data?.title || 'PLE Notification';
+    const notificationOptions = {
+      body: payload.data?.body || '',
+      icon: payload.data?.icon || '/favicon.png',
+      data: payload.data,
+      tag: payload.data?.title || 'ple-notification',
+      renotify: false
+    };
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
+    self.registration.showNotification(notificationTitle, notificationOptions);
+  }
 });
 
 // Handle notification click

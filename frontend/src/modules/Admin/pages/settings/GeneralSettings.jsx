@@ -46,7 +46,7 @@ const GeneralSettings = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const {
       primaryColor,
@@ -58,20 +58,22 @@ const GeneralSettings = () => {
       ...generalData
     } = formData;
 
-    updateSettings("general", {
-      ...generalData,
-      socialMedia: socialMedia || {},
-      storeDescription: storeDescription || "",
-    });
+    try {
+      await updateSettings("general", {
+        ...generalData,
+        socialMedia: socialMedia || {},
+        storeDescription: storeDescription || "",
+      });
 
-    updateSettings("theme", {
-      primaryColor: primaryColor || "#10B981",
-      secondaryColor: secondaryColor || "#3B82F6",
-      accentColor: accentColor || "#FFE11B",
-      fontFamily: fontFamily || "Inter",
-    });
-
-    toast.success("Settings saved successfully");
+      await updateSettings("theme", {
+        primaryColor: primaryColor || "#7B0A0A",
+        secondaryColor: secondaryColor || "#3B82F6",
+        accentColor: accentColor || "#FFE11B",
+        fontFamily: fontFamily || "Inter",
+      });
+    } catch (err) {
+      console.error("Save settings error:", err);
+    }
   };
 
   const sections = [
@@ -369,14 +371,14 @@ const GeneralSettings = () => {
                     <input
                       type="color"
                       name="primaryColor"
-                      value={formData.primaryColor || "#10B981"}
+                      value={formData.primaryColor || "#7B0A0A"}
                       onChange={handleChange}
                       className="w-12 sm:w-16 h-9 sm:h-10 border border-gray-300 rounded cursor-pointer flex-shrink-0"
                     />
                     <input
                       type="text"
                       name="primaryColor"
-                      value={formData.primaryColor || "#10B981"}
+                      value={formData.primaryColor || "#7B0A0A"}
                       onChange={handleChange}
                       className="flex-1 min-w-0 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
                     />

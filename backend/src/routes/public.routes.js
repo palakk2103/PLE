@@ -259,7 +259,16 @@ const listProducts = asyncHandler(async (req, res) => {
     }
 
     const searchQuery = String(search || q || '').trim();
-    if (searchQuery) filter.$text = { $search: searchQuery };
+    if (searchQuery) {
+        const escaped = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const searchRegex = new RegExp(escaped, 'i');
+        filter.$or = [
+            { name: searchRegex },
+            { description: searchRegex },
+            { customCategoryName: searchRegex },
+            { customBrandName: searchRegex },
+        ];
+    }
 
     const sortMap = { newest: { createdAt: -1 }, oldest: { createdAt: 1 }, 'price-asc': { price: 1 }, 'price-desc': { price: -1 }, popular: { reviewCount: -1 }, rating: { rating: -1, createdAt: -1 } };
 
@@ -272,8 +281,8 @@ const listProducts = asyncHandler(async (req, res) => {
 router.get('/', listProducts);
 router.get('/products', listProducts);
 
-// GET /api/products/flash-sale
-router.get('/flash-sale', asyncHandler(async (req, res) => {
+// GET /api/flash-sale & /api/products/flash-sale
+const getFlashSale = asyncHandler(async (req, res) => {
     const filter = { isActive: true, flashSale: true };
     const channelQuery = req.query.channel;
     if (channelQuery === 'b2c') {
@@ -283,10 +292,10 @@ router.get('/flash-sale', asyncHandler(async (req, res) => {
     }
     const products = await Product.find(filter).limit(20);
     res.status(200).json(new ApiResponse(200, products, 'Flash sale products.'));
-}));
+});
 
-// GET /api/products/new-arrivals
-router.get('/new-arrivals', asyncHandler(async (req, res) => {
+// GET /api/new-arrivals & /api/products/new-arrivals
+const getNewArrivals = asyncHandler(async (req, res) => {
     const {
         page = 1,
         limit = 20,
@@ -302,7 +311,14 @@ router.get('/new-arrivals', asyncHandler(async (req, res) => {
     const numericLimit = Math.max(Number(limit) || 20, 1);
     const skip = (numericPage - 1) * numericLimit;
 
-    const filter = { isActive: true, isNewArrival: true };
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const filter = {
+        isActive: true,
+        $or: [
+            { isNewArrival: true },
+            { createdAt: { $gte: thirtyDaysAgo } }
+        ]
+    };
     
     // Channel filter based on user type context
     const channelQuery = req.query.channel;
@@ -313,7 +329,26 @@ router.get('/new-arrivals', asyncHandler(async (req, res) => {
     }
 
     const searchQuery = String(search || q || '').trim();
-    if (searchQuery) filter.$text = { $search: searchQuery };
+    if (searchQuery) {
+        const escaped = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const searchRegex = new RegExp(escaped, 'i');
+        const arrivalCondition = {
+            $or: [
+                { isNewArrival: true },
+                { createdAt: { $gte: thirtyDaysAgo } }
+            ]
+        };
+        const textCondition = {
+            $or: [
+                { name: searchRegex },
+                { description: searchRegex },
+                { customCategoryName: searchRegex },
+                { customBrandName: searchRegex }
+            ]
+        };
+        delete filter.$or;
+        filter.$and = [arrivalCondition, textCondition];
+    }
     if (minPrice || maxPrice) {
         filter.price = {
             ...(minPrice ? { $gte: Number(minPrice) } : {}),
@@ -330,7 +365,7 @@ router.get('/new-arrivals', asyncHandler(async (req, res) => {
         'price-asc': { price: 1 },
         'price-desc': { price: -1 },
         popular: { reviewCount: -1 },
-        rating: { rating: -1 },
+        rating: { rating: -1, createdAt: -1 },
     };
 
     const [products, total] = await Promise.all([
@@ -350,10 +385,10 @@ router.get('/new-arrivals', asyncHandler(async (req, res) => {
         page: numericPage,
         pages: Math.ceil(total / numericLimit),
     }, 'New arrivals fetched.'));
-}));
+});
 
-// GET /api/products/popular
-router.get('/popular', asyncHandler(async (req, res) => {
+// GET /api/popular & /api/products/popular
+const getPopular = asyncHandler(async (req, res) => {
     const filter = { isActive: true };
     const channelQuery = req.query.channel;
     if (channelQuery === 'b2c') {
@@ -363,7 +398,16 @@ router.get('/popular', asyncHandler(async (req, res) => {
     }
     const products = await Product.find(filter).sort({ reviewCount: -1, rating: -1 }).limit(10);
     res.status(200).json(new ApiResponse(200, products, 'Popular products.'));
-}));
+});
+
+router.get('/flash-sale', getFlashSale);
+router.get('/products/flash-sale', getFlashSale);
+
+router.get('/new-arrivals', getNewArrivals);
+router.get('/products/new-arrivals', getNewArrivals);
+
+router.get('/popular', getPopular);
+router.get('/products/popular', getPopular);
 
 // GET /api/products/similar/:id
 router.get('/similar/:id', asyncHandler(async (req, res) => {

@@ -8,6 +8,8 @@ import { useB2BAdminStore } from "../../modules/B2BAdmin/store/b2bAdminStore";
 import { useB2bStore } from "../store/b2bStore";
 import socketService from "../utils/socket";
 import toast from "react-hot-toast";
+import { useSettingsStore } from "../store/settingsStore";
+import { useDynamicTheme } from "../hooks/useDynamicTheme";
 import { 
   initializePushNotifications, 
   registerFCMToken, 
@@ -52,6 +54,7 @@ const normalizeBrand = (raw) => ({
 });
 
 const AppBootstrap = () => {
+  useDynamicTheme();
   const user = useAuthStore((state) => state.user);
   const mainAuthIsAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const b2bAuthIsAuthenticated = useB2BAdminStore((state) => state.isAuthenticated);
@@ -62,6 +65,7 @@ const AppBootstrap = () => {
     try { useVendorAuthStore.getState().initialize(); } catch (e) { console.warn(e); }
     try { useDeliveryAuthStore.getState().initialize(); } catch (e) { console.warn(e); }
     try { useAdminAuthStore.getState().initialize(); } catch (e) { console.warn(e); }
+    try { useSettingsStore.getState().initialize(); } catch (e) { console.warn(e); }
     
     // Initialize FCM Service Worker
     initializePushNotifications();

@@ -17,9 +17,20 @@ const commissionSchema = new mongoose.Schema(
         },
         paidAt: Date,
         settlementId: { type: mongoose.Schema.Types.ObjectId, ref: 'Settlement' },
+        clearanceStatus: {
+            type: String,
+            enum: ['pending_delivery', 'on_hold', 'cleared', 'settled', 'cancelled', 'refunded'],
+            default: 'pending_delivery',
+            index: true,
+        },
+        deliveredAt: Date,
+        clearedAt: Date,
+        withdrawalId: { type: mongoose.Schema.Types.ObjectId, ref: 'WithdrawalRequest' },
+        isHistorical: { type: Boolean, default: false },
     },
     { timestamps: true }
 );
 
 const Commission = mongoose.models.Commission || mongoose.model('Commission', commissionSchema);
+export { Commission };
 export default Commission;

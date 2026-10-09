@@ -173,6 +173,10 @@ const getChildRoute = (parentRoute, childName) => {
       "Inventory Report": "/admin/reports/inventory-report",
     },
     "/admin/finance": {
+      "Finance Overview": "/admin/finance/overview",
+      "Vendor Withdrawals": "/admin/finance/vendor-withdrawals",
+      "Settlements": "/admin/finance/settlements",
+      "Transactions": "/admin/finance/transactions",
       "Revenue Overview": "/admin/finance/revenue-overview",
       "Profit & Loss": "/admin/finance/profit-loss",
       "Order Trends": "/admin/finance/order-trends",

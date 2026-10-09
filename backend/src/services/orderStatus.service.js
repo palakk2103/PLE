@@ -4,6 +4,7 @@ import { sendOrderStatusEmail } from './email.service.js';
 import { createNotification } from './notification.service.js';
 import { getIO } from '../config/socket.js';
 import { ORDER_STATUS_CONFIG, ORDER_STATUSES } from '../constants/orderStatus.constants.js';
+import { recordDeliveredEarnings, handleOrderCancellation } from './vendorWallet.service.js';
 
 import mongoose from 'mongoose';
 
@@ -182,6 +183,22 @@ export const handleOrderStatusTransition = async (order, nextStatus, options = {
     }
 
     console.log(`[OrderStatus] Order ${orderId} successfully transitioned: ${previousStatus || 'initial'} -> ${normalizedNextStatus} (by: ${updatedByRole})`);
+
+    // Seller Wallet Lifecycle Integration:
+    // If transitioning to DELIVERED, record seller earnings (starts clearance on-hold period)
+    if (normalizedNextStatus === ORDER_STATUSES.DELIVERED) {
+        try {
+            await recordDeliveredEarnings(order, { session });
+        } catch (walletErr) {
+            console.error(`[OrderStatus] Failed to record delivered earnings for order ${orderId}:`, walletErr.message);
+        }
+    } else if (normalizedNextStatus === ORDER_STATUSES.CANCELLED) {
+        try {
+            await handleOrderCancellation(order);
+        } catch (cancelErr) {
+            console.error(`[OrderStatus] Failed to handle cancellation earnings for order ${orderId}:`, cancelErr.message);
+        }
+    }
 
     // Handle Customer Notifications
     if (notifyCustomer) {

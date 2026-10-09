@@ -193,6 +193,10 @@
     "title": "Analytics & Finance",
     "route": "/admin/finance",
     "children": [
+      "Finance Overview",
+      "Vendor Withdrawals",
+      "Settlements",
+      "Transactions",
       "Revenue Overview",
       "Profit & Loss",
       "Order Trends",

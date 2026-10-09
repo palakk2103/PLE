@@ -278,6 +278,22 @@ export const updateVendorReturnRequestStatus = asyncHandler(async (req, res) => 
                         await order.save();
                     }
                 }
+
+                // Process customer refund and vendor wallet deduction when refund is marked processed
+                if (nextRefundStatus === 'processed' && currentRefundStatus !== 'processed') {
+                    try {
+                        const refundService = await import('../../../services/refund.service.js');
+                        await refundService.processReturnRequestRefund(request, {
+                            triggeredBy: req.user.id,
+                            triggeredByRole: 'vendor',
+                        });
+
+                        const { handleReturnRefund } = await import('../../../services/vendorWallet.service.js');
+                        await handleReturnRefund(order, request, request.refundAmount);
+                    } catch (refundErr) {
+                        console.error('[VendorReturn] Error executing return refund:', refundErr.message);
+                    }
+                }
             }
         }
     }

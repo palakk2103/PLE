@@ -339,6 +339,7 @@ const MobileHome = () => {
       String(p.categoryId) === String(activeCategory.id) || 
       String(p.categoryName || "").toLowerCase().includes(String(activeCategory.name || "").toLowerCase())
     );
+    return [...list].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
   }, [activeCategoryId, activeCategory, catalogProducts]);
 
   const fallbackMostPopular = getMostPopular();
@@ -352,7 +353,11 @@ const MobileHome = () => {
 
   const computedNewArrivals = useMemo(() => {
     if (catalogProducts.length === 0) return fallbackNewArrivals;
-    return catalogProducts.filter((p) => p.isNew).slice(0, 6);
+    const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    const newItems = [...catalogProducts]
+      .filter((p) => p.isNew || (p.createdAt && new Date(p.createdAt).getTime() >= thirtyDaysAgo))
+      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    return (newItems.length > 0 ? newItems : catalogProducts).slice(0, 10);
   }, [catalogProducts, fallbackNewArrivals]);
 
   const computedDailyDeals = useMemo(() => {
@@ -421,7 +426,7 @@ const MobileHome = () => {
 
         const [productsRes, vendorsRes, brandsRes, bannersRes] =
         await Promise.allSettled([
-          api.get("/products", { params: { page: 1, limit: 120, channel } }),
+          api.get("/products", { params: { page: 1, limit: 200, sort: "newest", channel } }),
           api.get("/vendors/all", {
             params: { status: "approved", page: 1, limit: 50 },
           }),

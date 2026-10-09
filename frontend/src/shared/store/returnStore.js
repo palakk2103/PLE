@@ -188,6 +188,7 @@ export const useReturnStore = create((set, get) => ({
                 items: transformedItems,
                 reason: requestData.reason,
                 description: requestData.description,
+                refundDestination: requestData.refundDestination || 'Original Payment Method',
                 images: requestData.images || []
             });
 

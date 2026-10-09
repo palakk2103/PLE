@@ -58,6 +58,14 @@ const MobileCheckout = () => {
   const { balance: walletBalance, fetchWallet } = useWalletStore();
   const [useWallet, setUseWallet] = useState(false);
 
+  const userWalletBalance = user?.role === 'b2bEmployee' ? (user?.b2bWalletBalance || 0) : (walletBalance || 0);
+  const employeeSpendingLimit = (user?.role === 'b2bEmployee' && Number(user?.b2bSpendingLimit) > 0)
+    ? Number(user.b2bSpendingLimit)
+    : null;
+  const effectiveWalletUsable = employeeSpendingLimit !== null
+    ? Math.min(userWalletBalance, employeeSpendingLimit)
+    : userWalletBalance;
+
   useEffect(() => {
     if (isAuthenticated && isBusiness) {
       fetchWallet().catch(() => null);
@@ -452,8 +460,7 @@ const MobileCheckout = () => {
     } else if (step === 2) {
       setIsPlacingOrder(true);
       try {
-        const userWalletBalance = user?.role === 'b2bEmployee' ? (user?.b2bWalletBalance || 0) : (walletBalance || 0);
-        const walletAmountToUse = useWallet ? Math.min(userWalletBalance, finalTotal) : 0;
+        const walletAmountToUse = useWallet ? Math.min(effectiveWalletUsable, finalTotal) : 0;
         const finalPaymentMethod = walletAmountToUse >= finalTotal ? 'wallet' : (useWallet ? 'mixed' : formData.paymentMethod);
 
         const order = await createOrder({
@@ -543,7 +550,8 @@ const MobileCheckout = () => {
           }, 2000);
         }
       } catch (error) {
-        toast.error(error?.message || "Failed to place order");
+        const errorMsg = error?.response?.data?.message || (Array.isArray(error?.response?.data?.errors) && error?.response?.data?.errors[0]?.message) || error?.message || "Failed to place order";
+        toast.error(errorMsg);
       } finally {
         setIsPlacingOrder(false);
       }
@@ -865,9 +873,16 @@ const MobileCheckout = () => {
                           <div className="flex items-center justify-between">
                             <span className="font-semibold text-blue-800 text-sm">Use Business Wallet Balance</span>
                             <span className="font-bold text-blue-900 text-sm">
-                              ₹{((user?.role === 'b2bEmployee' ? user?.b2bWalletBalance : walletBalance) || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                              ₹{userWalletBalance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                             </span>
                           </div>
+
+                          {employeeSpendingLimit !== null && (
+                            <div className="text-xs text-blue-800 bg-blue-100/70 border border-blue-200/60 px-3 py-1.5 rounded-xl flex items-center justify-between">
+                              <span className="font-medium">Per-Order Spending Limit:</span>
+                              <span className="font-bold">₹{employeeSpendingLimit.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
+                            </div>
+                          )}
                           
                           <label className="flex items-center gap-3 cursor-pointer select-none">
                             <input
@@ -877,20 +892,23 @@ const MobileCheckout = () => {
                               className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                             />
                             <span className="text-xs text-blue-700 font-medium">
-                              Pay ₹{Math.min(((user?.role === 'b2bEmployee' ? user?.b2bWalletBalance : walletBalance) || 0), finalTotal).toLocaleString("en-IN")} from wallet
+                              Pay ₹{Math.min(effectiveWalletUsable, finalTotal).toLocaleString("en-IN")} from wallet
+                              {employeeSpendingLimit !== null && effectiveWalletUsable < userWalletBalance && (
+                                <span className="ml-1 text-[11px] text-blue-600 font-semibold">(Capped by spending limit)</span>
+                              )}
                             </span>
                           </label>
 
-                          {useWallet && ((user?.role === 'b2bEmployee' ? user?.b2bWalletBalance : walletBalance) || 0) < finalTotal && (
+                          {useWallet && effectiveWalletUsable < finalTotal && (
                             <div className="text-xs text-amber-700 font-semibold bg-amber-50 p-2.5 rounded-xl border border-amber-100">
-                              Partial payment: Wallet covers ₹{((user?.role === 'b2bEmployee' ? user?.b2bWalletBalance : walletBalance) || 0).toLocaleString("en-IN")}. Remaining ₹{(finalTotal - ((user?.role === 'b2bEmployee' ? user?.b2bWalletBalance : walletBalance) || 0)).toLocaleString("en-IN")} will be paid online.
+                              Partial payment: Wallet covers ₹{effectiveWalletUsable.toLocaleString("en-IN")}. Remaining ₹{(finalTotal - effectiveWalletUsable).toLocaleString("en-IN")} will be paid online.
                             </div>
                           )}
                         </div>
                       )}
 
                       <div className="space-y-3 mb-6">
-                        {(!useWallet || ((user?.role === 'b2bEmployee' ? user?.b2bWalletBalance : walletBalance) || 0) < finalTotal) ? (
+                        {(!useWallet || effectiveWalletUsable < finalTotal) ? (
                           [
                             {
                               id: "card",

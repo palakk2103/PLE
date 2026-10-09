@@ -11,6 +11,8 @@ import PageTransition from '../../../shared/components/PageTransition';
 import { useCategoryStore } from '../../../shared/store/categoryStore';
 import toast from 'react-hot-toast';
 import api from '../../../shared/utils/api';
+import { useAuthStore } from '../../../shared/store/authStore';
+import { getChannelParam } from '../../../shared/utils/salesChannel';
 
 const normalizeId = (value) => String(value ?? '').trim();
 
@@ -217,12 +219,10 @@ const MobileSearch = () => {
 
       // Include sales channel constraint based on user role context
       try {
-        const { useAuthStore } = require('../../../shared/store/authStore');
-        const { getChannelParam } = require('../../../shared/utils/salesChannel');
         const userRole = useAuthStore.getState().user?.role;
         query.channel = getChannelParam(userRole);
       } catch (err) {
-        // Fallback if store is imported inside browser asynchronously
+        // Fallback
       }
 
       return query;

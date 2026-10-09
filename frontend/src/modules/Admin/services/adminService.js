@@ -446,4 +446,41 @@ export const getAuditLogFilters = () =>
 export const getAuditLogById = (id) =>
     api.get(`/admin/audit-logs/${id}`);
 
+// ─── Finance, Withdrawals & Settlements ───────────────────────────────────────
+export const getAdminFinanceOverview = () =>
+    api.get('/admin/finance/overview');
+
+export const getAdminWithdrawals = (params = {}) =>
+    api.get('/admin/finance/withdrawals', { params });
+
+export const getAdminWithdrawalById = (id) =>
+    api.get(`/admin/finance/withdrawals/${id}`);
+
+export const approveAdminWithdrawal = (id, data = {}) =>
+    api.patch(`/admin/finance/withdrawals/${id}/approve`, data);
+
+export const rejectAdminWithdrawal = (id, data = {}) =>
+    api.patch(`/admin/finance/withdrawals/${id}/reject`, data);
+
+export const recordAdminManualPayout = (id, data) =>
+    api.post(`/admin/finance/withdrawals/${id}/record-payout`, data);
+
+export const getAdminSettlements = (params = {}) =>
+    api.get('/admin/finance/settlements', { params });
+
+export const getAdminSettlementById = (id) =>
+    api.get(`/admin/finance/settlements/${id}`);
+
+export const getAdminFinanceTransactions = (params = {}) =>
+    api.get('/admin/finance/transactions', { params });
+
+export const getAdminPayoutSettings = () =>
+    api.get('/admin/finance/settings');
+
+export const updateAdminPayoutSettings = (data) =>
+    api.put('/admin/finance/settings', data);
+
+export const getAdminVendorWallet = (vendorId) =>
+    api.get(`/admin/finance/vendor/${vendorId}/wallet`);
+
 

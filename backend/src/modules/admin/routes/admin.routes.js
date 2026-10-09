@@ -376,5 +376,27 @@ router.post('/support/ticket-types', ...adminAuth, supportController.createTicke
 router.put('/support/ticket-types/:id', ...adminAuth, supportController.updateTicketType);
 router.delete('/support/ticket-types/:id', ...adminAuth, supportController.deleteTicketType);
 
+// ─── Finance, Withdrawals, Settlements & Settings ───────────────────────────
+import * as financeController from '../controllers/finance.controller.js';
+router.get('/finance/overview', ...adminAuth, financeController.getFinanceOverview);
+router.get('/finance/withdrawals', ...adminAuth, financeController.getWithdrawals);
+router.get('/finance/withdrawals/:id', ...adminAuth, financeController.getWithdrawalById);
+router.patch('/finance/withdrawals/:id/approve', ...adminAuth, financeController.approveWithdrawal);
+router.patch('/finance/withdrawals/:id/reject', ...adminAuth, financeController.rejectWithdrawal);
+router.post('/finance/withdrawals/:id/record-payout', ...adminAuth, financeController.recordManualPayout);
+router.get('/finance/settlements', ...adminAuth, financeController.getSettlements);
+router.get('/finance/settlements/:id', ...adminAuth, financeController.getSettlementById);
+router.get('/finance/transactions', ...adminAuth, financeController.getAllTransactions);
+router.get('/finance/settings', ...adminAuth, financeController.getSettings);
+router.put('/finance/settings', ...adminAuth, financeController.updateSettings);
+router.get('/finance/vendor/:vendorId/wallet', ...adminAuth, financeController.getVendorWalletAdmin);
+
+// ─── Notifications & Broadcast Routes ────────────────────────────────────────
+router.get('/notifications', ...adminAuth, notificationController.getAdminNotifications);
+router.put('/notifications/read-all', ...adminAuth, notificationController.markAllAsRead);
+router.put('/notifications/:id/read', ...adminAuth, notificationController.markAsRead);
+router.post('/notifications/broadcast', ...adminAuth, notificationController.sendBroadcastNotification);
+router.get('/notifications/broadcast-history', ...adminAuth, notificationController.getBroadcastHistory);
+
 export default router;
 

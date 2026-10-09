@@ -357,6 +357,76 @@ const ReturnRequestForm = () => {
               </div>
             </div>
 
+            {/* Refund Destination Selection */}
+            <div className="glass-card rounded-2xl p-4 bg-white shadow-sm border border-gray-100">
+              <label className="block text-sm font-bold text-gray-800 mb-1">
+                Choose Refund Destination
+              </label>
+              <p className="text-xs text-gray-500 mb-3">
+                Select where you want your refund credited once approved.
+              </p>
+
+              <div className="space-y-2.5">
+                <label
+                  onClick={() => setRefundDestination('Wallet')}
+                  className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
+                    refundDestination === 'Wallet'
+                      ? 'border-[#7B0A0A] bg-red-50/50 shadow-sm'
+                      : 'border-gray-200 hover:border-gray-300 bg-white'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="refundDestination"
+                    value="Wallet"
+                    checked={refundDestination === 'Wallet'}
+                    onChange={() => setRefundDestination('Wallet')}
+                    className="mt-1 text-[#7B0A0A] focus:ring-[#7B0A0A]"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm font-bold text-gray-900">PLE Wallet</span>
+                      <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                        ⚡ Instant
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Credited instantly upon approval. Can be used anytime for any future order.
+                    </p>
+                  </div>
+                </label>
+
+                <label
+                  onClick={() => setRefundDestination('Original Payment Method')}
+                  className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
+                    refundDestination === 'Original Payment Method'
+                      ? 'border-[#7B0A0A] bg-red-50/50 shadow-sm'
+                      : 'border-gray-200 hover:border-gray-300 bg-white'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="refundDestination"
+                    value="Original Payment Method"
+                    checked={refundDestination === 'Original Payment Method'}
+                    onChange={() => setRefundDestination('Original Payment Method')}
+                    className="mt-1 text-[#7B0A0A] focus:ring-[#7B0A0A]"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm font-bold text-gray-900">Original Payment Method</span>
+                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-gray-100 text-gray-700">
+                        3-5 Business Days
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Refunded directly back to your original Bank Account, Card, or UPI ID.
+                    </p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
             {/* Additional notes */}
             <div className="glass-card rounded-2xl p-4 bg-white shadow-sm border border-gray-100">
               <label className="block text-sm font-bold text-gray-800 mb-2">

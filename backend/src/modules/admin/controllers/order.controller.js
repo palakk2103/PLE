@@ -214,6 +214,18 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
                 },
             }
         );
+
+        // Auto-refund if order was prepaid
+        try {
+            const refundService = await import('../../../services/refund.service.js');
+            await refundService.processOrderCancellationRefund(order, {
+                reason: req.body.note || req.body.reason || 'Cancelled by admin',
+                triggeredBy: req.user?.id || req.user?._id,
+                triggeredByRole: 'admin',
+            });
+        } catch (refundErr) {
+            console.error('[AdminOrder] Cancellation refund error:', refundErr.message);
+        }
     }
 
     const notificationTasks = [];

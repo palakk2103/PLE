@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import toast from "react-hot-toast";
 import logoImage from "../../../data/logos/ChatGPT Image Dec 2, 2025, 03_01_19 PM.png";
 import api from "../utils/api";
+import { applyThemeToDom } from "../hooks/useDynamicTheme";
 
 const defaultSettings = {
   general: {
@@ -144,8 +145,9 @@ const defaultSettings = {
     canonicalUrl: "",
   },
   theme: {
-    primaryColor: "#10B981",
+    primaryColor: "#7B0A0A",
     secondaryColor: "#3B82F6",
+    accentColor: "#FFE11B",
     fontFamily: "Inter",
   },
 };
@@ -190,6 +192,14 @@ export const useSettingsStore = create(
         }
 
         set({ settings: loadedSettings });
+        if (loadedSettings.theme) {
+          try {
+            applyThemeToDom(loadedSettings.theme);
+          } catch (e) {
+            console.warn("Failed to apply initial theme to DOM", e);
+          }
+        }
+
         try {
           localStorage.setItem(
             "admin-settings",
@@ -197,7 +207,32 @@ export const useSettingsStore = create(
           );
         } catch (_) {}
         
-        // Async fetch from backend to sync
+        // 1. Public theme sync from backend (accessible by all users/guests)
+        try {
+          const themeRes = await api.get('/settings/theme');
+          if (themeRes?.data && typeof themeRes.data === 'object') {
+            const backendTheme = themeRes.data;
+            set((state) => {
+              const updatedTheme = {
+                ...state.settings.theme,
+                ...backendTheme,
+              };
+              const updated = {
+                ...state.settings,
+                theme: updatedTheme,
+              };
+              try {
+                localStorage.setItem("admin-settings", JSON.stringify(updated));
+              } catch (_) {}
+              applyThemeToDom(updatedTheme);
+              return { settings: updated };
+            });
+          }
+        } catch (error) {
+          console.debug("Public theme sync bypassed or unavailable:", error.message);
+        }
+
+        // 2. Async fetch from backend to sync admin general settings
         try {
           const res = await api.get('/admin/settings/general');
           if (res?.data) {
@@ -210,7 +245,9 @@ export const useSettingsStore = create(
                   ...backendGeneral,
                 }
               };
-              localStorage.setItem("admin-settings", JSON.stringify(updated));
+              try {
+                localStorage.setItem("admin-settings", JSON.stringify(updated));
+              } catch (_) {}
               return { settings: updated };
             });
           }
@@ -244,13 +281,23 @@ export const useSettingsStore = create(
           
           if (category === 'general') {
             await api.put('/admin/settings/general', updatedSettings.general);
+          } else if (category === 'theme') {
+            await api.put('/admin/settings/theme', updatedSettings.theme);
+            applyThemeToDom(updatedSettings.theme);
           }
           
           set({ settings: updatedSettings, isLoading: false });
-          localStorage.setItem(
-            "admin-settings",
-            JSON.stringify(updatedSettings)
-          );
+          try {
+            localStorage.setItem(
+              "admin-settings",
+              JSON.stringify(updatedSettings)
+            );
+          } catch (_) {}
+
+          if (category === 'theme') {
+            applyThemeToDom(updatedSettings.theme);
+          }
+
           toast.success("Settings updated successfully");
           return updatedSettings;
         } catch (error) {

@@ -91,6 +91,10 @@ const OrderTrends = lazy(() => import("../modules/Admin/pages/finance/OrderTrend
 const PaymentBreakdown = lazy(() => import("../modules/Admin/pages/finance/PaymentBreakdown"));
 const TaxReports = lazy(() => import("../modules/Admin/pages/finance/TaxReports"));
 const RefundReports = lazy(() => import("../modules/Admin/pages/finance/RefundReports"));
+const AdminFinanceOverview = lazy(() => import("../modules/Admin/pages/finance/AdminFinanceOverview"));
+const AdminVendorWithdrawals = lazy(() => import("../modules/Admin/pages/finance/AdminVendorWithdrawals"));
+const AdminSettlements = lazy(() => import("../modules/Admin/pages/finance/AdminSettlements"));
+const AdminFinanceTransactions = lazy(() => import("../modules/Admin/pages/finance/AdminFinanceTransactions"));
 const GeneralSettings = lazy(() => import("../modules/Admin/pages/settings/GeneralSettings"));
 const PaymentShippingSettings = lazy(() => import("../modules/Admin/pages/settings/PaymentShippingSettings"));
 const OrdersCustomersSettings = lazy(() => import("../modules/Admin/pages/settings/OrdersCustomersSettings"));
@@ -268,7 +272,11 @@ export default function AdminRoutes() {
         <Route path="reports" element={<SalesReport />} />
         <Route path="reports/sales-report" element={<SalesReport />} />
         <Route path="reports/inventory-report" element={<InventoryReport />} />
-        <Route path="finance" element={<RevenueOverview />} />
+        <Route path="finance" element={<AdminFinanceOverview />} />
+        <Route path="finance/overview" element={<AdminFinanceOverview />} />
+        <Route path="finance/vendor-withdrawals" element={<AdminVendorWithdrawals />} />
+        <Route path="finance/settlements" element={<AdminSettlements />} />
+        <Route path="finance/transactions" element={<AdminFinanceTransactions />} />
         <Route path="finance/revenue-overview" element={<RevenueOverview />} />
         <Route path="finance/profit-loss" element={<ProfitLoss />} />
         <Route path="finance/order-trends" element={<OrderTrends />} />

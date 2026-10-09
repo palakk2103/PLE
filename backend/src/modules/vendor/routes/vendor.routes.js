@@ -147,6 +147,15 @@ router.get('/analytics/overview', ...strictVendorAuth, analyticsController.getAn
 // Earnings
 router.get('/earnings', ...strictVendorAuth, orderController.getEarnings);
 
+// Finance & Wallet
+import * as financeController from '../controllers/finance.controller.js';
+router.get('/finance/wallet', ...strictVendorAuth, financeController.getWalletSummary);
+router.get('/finance/transactions', ...strictVendorAuth, financeController.getTransactions);
+router.get('/finance/withdrawals', ...strictVendorAuth, financeController.getWithdrawals);
+router.post('/finance/withdrawals', ...strictVendorAuth, financeController.createWithdrawal);
+router.get('/finance/bank-details', ...strictVendorAuth, financeController.getBankDetails);
+router.put('/finance/bank-details', ...strictVendorAuth, financeController.updateBankDetails);
+
 // Return requests
 router.get('/return-requests', ...strictVendorAuth, returnController.getVendorReturnRequests);
 router.get('/return-requests/:id', ...strictVendorAuth, returnController.getVendorReturnRequestById);

@@ -77,9 +77,9 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     const allowed = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
     if (!allowed.includes(status)) throw new ApiError(400, `Status must be one of: ${allowed.join(', ')}`);
     const transitionMap = {
-        pending: ['pending', 'processing', 'cancelled'],
-        processing: ['processing', 'shipped', 'cancelled'],
-        shipped: ['shipped', 'delivered'],
+        pending: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
+        processing: ['processing', 'shipped', 'delivered', 'cancelled'],
+        shipped: ['shipped', 'delivered', 'cancelled'],
         delivered: ['delivered'],
         cancelled: ['cancelled'],
     };
@@ -90,16 +90,31 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
         idFilter.push({ _id: id });
     }
 
-    const vendorIdsToMatch = req.user.role === 'managed_vendor'
-        ? [req.user.shopId, req.user.id].filter(Boolean)
-        : [req.user.id];
+    const vendorIdsToMatch = [
+        req.user.id,
+        req.user._id,
+        req.user.vendorId,
+        req.user.shopId,
+    ].filter(Boolean).map(String);
 
     const order = await Order.findOne({
         $or: idFilter,
-        'vendorItems.vendorId': { $in: vendorIdsToMatch },
+        $or: [
+            { 'vendorItems.vendorId': { $in: vendorIdsToMatch } },
+            { orderId: id },
+            ...(mongoose.Types.ObjectId.isValid(id) ? [{ _id: id }] : [])
+        ]
     });
     if (!order) throw new ApiError(404, 'Order not found.');
-    const vendorItem = order.vendorItems.find((vi) => vendorIdsToMatch.map(String).includes(String(vi.vendorId)));
+
+    let vendorItem = (order.vendorItems || []).find((vi) => {
+        const viVid = String(vi.vendorId?._id || vi.vendorId || '');
+        return vendorIdsToMatch.includes(viVid);
+    });
+
+    if (!vendorItem && (order.vendorItems || []).length === 1) {
+        vendorItem = order.vendorItems[0];
+    }
     if (!vendorItem) throw new ApiError(404, 'Vendor order item not found.');
 
     const currentStatus = String(vendorItem.status || 'pending');
@@ -108,19 +123,22 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
         throw new ApiError(409, `Cannot move order from ${currentStatus} to ${status}.`);
     }
 
-    // Update only this vendor's items status
-    order.vendorItems = order.vendorItems.map((vi) =>
-        vendorIdsToMatch.map(String).includes(String(vi.vendorId)) ? { ...vi.toObject(), status } : vi
-    );
+    // Update vendor items status
+    order.vendorItems = (order.vendorItems || []).map((vi) => {
+        const viVid = String(vi.vendorId?._id || vi.vendorId || '');
+        const isMatch = vendorIdsToMatch.includes(viVid) || order.vendorItems.length === 1;
+        return isMatch ? { ...vi.toObject(), status } : vi;
+    });
+
     const oldStatus = order.status;
-    const nextDerivedStatus = deriveTopLevelOrderStatus(order.vendorItems, order.status);
+    const nextDerivedStatus = deriveTopLevelOrderStatus(order.vendorItems, status);
 
     if (nextDerivedStatus !== oldStatus) {
         order.status = nextDerivedStatus;
         await handleOrderStatusTransition(order, nextDerivedStatus, {
             updatedBy: req.user?.id || req.user?._id,
             updatedByRole: 'vendor',
-            note: `Vendor updated item status to ${status}`,
+            note: `Vendor updated status to ${status}`,
             notifyCustomer: true,
         });
     } else {

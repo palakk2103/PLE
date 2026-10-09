@@ -131,16 +131,8 @@ export function setupForegroundNotificationHandler(handler) {
     return onMessage(messaging, (payload) => {
       console.log('📬 Foreground message received:', payload);
       
-      // Show notification
-      if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification(payload.notification.title, {
-          body: payload.notification.body,
-          icon: payload.notification.icon || '/favicon.png',
-          data: payload.data
-        });
-      }
-      
-      // Call custom handler
+      // Let custom handler (e.g. in-app toast / badge updater) handle foreground UI.
+      // Background notifications are already handled cleanly by firebase-messaging-sw.js.
       if (handler) {
         handler(payload);
       }

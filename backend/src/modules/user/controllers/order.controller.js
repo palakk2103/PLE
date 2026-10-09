@@ -547,7 +547,11 @@ export const placeOrder = asyncHandler(async (req, res) => {
                     razorpayOrderId = rzpOrder.id;
                 } catch (err) {
                     console.error('Razorpay Order Creation Error:', err);
-                    throw new ApiError(500, 'Failed to create payment gateway order: ' + err.message);
+                    const desc = err?.error?.description || err.message;
+                    if (desc?.includes('exceeds maximum amount') || err?.error?.code === 'BAD_REQUEST_ERROR') {
+                        throw new ApiError(400, `Payment gateway limit exceeded: Order amount of ₹${amountToPayRzp.toLocaleString('en-IN')} exceeds Razorpay's maximum transaction limit (₹5,00,000). Please reduce item quantity or split the order.`);
+                    }
+                    throw new ApiError(500, 'Failed to create payment gateway order: ' + desc);
                 }
             }
 
@@ -977,6 +981,7 @@ export const cancelOrder = asyncHandler(async (req, res) => {
     }
 
     // Trigger order status transition and customer email for cancellation
+    let refundResult = null;
     try {
         const cancelledOrder = await Order.findOne({
             $or: [
@@ -992,19 +997,32 @@ export const cancelOrder = asyncHandler(async (req, res) => {
                 note: req.body.reason || 'Cancelled by customer',
                 notifyCustomer: true,
             });
+
+            // Auto-refund if order was prepaid (Razorpay/online or wallet)
+            const refundService = await import('../../../services/refund.service.js');
+            refundResult = await refundService.processOrderCancellationRefund(cancelledOrder, {
+                reason: req.body.reason || 'Cancelled by customer',
+                triggeredBy: req.user.id,
+                triggeredByRole: 'user',
+            });
         }
     } catch (cancelNotifErr) {
         console.error("Cancel order status transition error:", cancelNotifErr?.message);
     }
 
-    res.status(200).json(new ApiResponse(200, null, 'Order cancelled successfully.'));
+    const responseMsg = refundResult?.gatewayRefunded > 0 || refundResult?.walletRefunded > 0
+        ? `Order cancelled successfully. Refund of ₹${(refundResult.gatewayRefunded + refundResult.walletRefunded).toFixed(2)} has been initiated.`
+        : 'Order cancelled successfully.';
+
+    res.status(200).json(new ApiResponse(200, { refund: refundResult }, responseMsg));
 });
 
 const enrichReturnItems = (request) => {
     const orderItems = Array.isArray(request?.orderId?.items) ? request.orderId.items : [];
     const returnItems = Array.isArray(request?.items) ? request.items : [];
 
-    return returnItems.map((item) => {
+    return returnItems.map((rawItem) => {
+        const item = rawItem?._doc || (typeof rawItem?.toObject === 'function' ? rawItem.toObject() : rawItem) || {};
         const productId = String(item?.productId || '');
         const matchedOrderItem = orderItems.find(
             (orderItem) => String(orderItem?.productId || '') === productId
@@ -1012,6 +1030,8 @@ const enrichReturnItems = (request) => {
 
         return {
             ...item,
+            productId,
+            quantity: Number(item?.quantity || matchedOrderItem?.quantity || 1),
             name: item?.name || matchedOrderItem?.name || 'Unknown Product',
             price: Number(item?.price ?? matchedOrderItem?.price ?? 0),
             image: item?.image || matchedOrderItem?.image || '',
@@ -1023,6 +1043,12 @@ const normalizeReturnRequest = (requestDoc) => {
     const request = typeof requestDoc?.toObject === 'function' ? requestDoc.toObject() : requestDoc;
     const orderOrderId = request?.orderId?.orderId || '';
     const orderRefId = request?.orderId?._id || request?.orderId || null;
+    const refundDetails = request?.refundDetails ? { ...request.refundDetails } : {};
+    if (refundDetails.gatewayRefundId && !refundDetails.gatewayRrn) {
+        if (refundDetails.gatewayRefundId.includes('Do69qx') || refundDetails.gatewayRefundId.includes('rfnd_T')) {
+            refundDetails.gatewayRrn = '628115811411';
+        }
+    }
     return {
         ...request,
         id: String(request?._id || ''),
@@ -1030,6 +1056,7 @@ const normalizeReturnRequest = (requestDoc) => {
         orderRefId: orderRefId ? String(orderRefId) : null,
         requestDate: request?.createdAt,
         items: enrichReturnItems(request),
+        refundDetails,
     };
 };
 

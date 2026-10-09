@@ -46,6 +46,15 @@ const UserNotifications = () => {
       if (orderId) {
         navigate(`/orders/${orderId}`);
       }
+    } else if (notification?.type === 'promotion') {
+      const actionUrl = notification?.data?.actionUrl || notification?.data?.link;
+      if (actionUrl) {
+        if (actionUrl.startsWith('http://') || actionUrl.startsWith('https://')) {
+          window.open(actionUrl, '_blank');
+        } else {
+          navigate(actionUrl);
+        }
+      }
     }
   };
 

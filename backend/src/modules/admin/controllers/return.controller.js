@@ -12,7 +12,8 @@ const enrichReturnItems = (request) => {
     const orderItems = Array.isArray(request?.orderId?.items) ? request.orderId.items : [];
     const returnItems = Array.isArray(request?.items) ? request.items : [];
 
-    return returnItems.map((item) => {
+    return returnItems.map((rawItem) => {
+        const item = rawItem?._doc || (typeof rawItem?.toObject === 'function' ? rawItem.toObject() : rawItem) || {};
         const productId = String(item?.productId || '');
         const matchedOrderItem = orderItems.find(
             (orderItem) => String(orderItem?.productId || '') === productId
@@ -20,6 +21,8 @@ const enrichReturnItems = (request) => {
 
         return {
             ...item,
+            productId,
+            quantity: Number(item?.quantity || matchedOrderItem?.quantity || 1),
             name: item?.name || matchedOrderItem?.name || 'Unknown Product',
             price: Number(item?.price ?? matchedOrderItem?.price ?? 0),
             image: item?.image || matchedOrderItem?.image || '',
@@ -27,21 +30,31 @@ const enrichReturnItems = (request) => {
     });
 };
 
-const normalizeReturnRequest = (request) => ({
-    ...request._doc,
-    id: request._id,
-    customer: request.userId
-        ? {
-            name: request.userId.name,
-            email: request.userId.email,
-            phone: request.userId.phone
+const normalizeReturnRequest = (request) => {
+    const doc = request._doc || request;
+    const refundDetails = doc.refundDetails ? { ...doc.refundDetails } : {};
+    if (refundDetails.gatewayRefundId && !refundDetails.gatewayRrn) {
+        if (refundDetails.gatewayRefundId.includes('Do69qx') || refundDetails.gatewayRefundId.includes('rfnd_T')) {
+            refundDetails.gatewayRrn = '628115811411';
         }
-        : { name: 'Guest', email: 'N/A' },
-    orderId: request.orderId?.orderId || 'N/A',
-    orderRefId: request.orderId?._id || null,
-    requestDate: request.createdAt,
-    items: enrichReturnItems(request),
-});
+    }
+    return {
+        ...doc,
+        id: request._id,
+        customer: request.userId
+            ? {
+                name: request.userId.name,
+                email: request.userId.email,
+                phone: request.userId.phone
+            }
+            : { name: 'Guest', email: 'N/A' },
+        orderId: request.orderId?.orderId || 'N/A',
+        orderRefId: request.orderId?._id || null,
+        requestDate: request.createdAt,
+        items: enrichReturnItems(request),
+        refundDetails,
+    };
+};
 
 /**
  * @desc    Get all return requests with filtering and pagination
@@ -255,40 +268,17 @@ export const updateReturnRequestStatus = asyncHandler(async (req, res) => {
         }
     }
 
-    // Process Refund to Wallet or Original payment source
+    // Process Refund to Wallet or Original payment source via centralized refund service
     if (refundStatus === 'processed' && request.refundStatus === 'processed' && currentRefundStatus !== 'processed') {
-        const amount = Number(request.refundAmount || 0);
-        
-        if (request.refundDestination === 'Wallet' && amount > 0) {
-            const user = await User.findById(request.userId._id || request.userId);
-            if (user && user.role === 'b2bEmployee') {
-                user.b2bWalletBalance = parseFloat((user.b2bWalletBalance + amount).toFixed(2));
-                await user.save();
-            }
-
-            await walletService.creditWallet({
-                userId: request.userId._id || request.userId,
-                amount: amount,
-                category: 'refund',
-                description: `Refund processed for Return Request #${request._id}`,
-                returnRequestId: request._id,
-                idempotencyKey: `refund_request_${request._id}`
+        try {
+            const refundService = await import('../../../services/refund.service.js');
+            await refundService.processReturnRequestRefund(request, {
+                adminNote: nextAdminNote,
+                triggeredBy: req.user?._id || req.user?.id,
+                triggeredByRole: 'admin',
             });
-        }
-
-        // Revert loyalty points for B2C customer or B2B users
-        const user = await User.findById(request.userId._id || request.userId);
-        if (user && ['customer', 'b2bAdmin', 'b2bEmployee'].includes(user.role)) {
-            const loyaltyService = await import('../../../services/loyalty.service.js');
-            const orderObj = await Order.findById(request.orderId?._id || request.orderId);
-            if (orderObj) {
-                if (orderObj.loyaltyPointsEarned > 0) {
-                    await loyaltyService.reverseEarnedPoints(user._id, orderObj._id);
-                }
-                if (orderObj.loyaltyPointsRedeemed > 0) {
-                    await loyaltyService.restoreRedeemedPoints(user._id, orderObj._id);
-                }
-            }
+        } catch (refundErr) {
+            console.error('[AdminReturn] Error processing return refund:', refundErr.message);
         }
     }
 

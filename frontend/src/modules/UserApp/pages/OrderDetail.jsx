@@ -71,7 +71,10 @@ const MobileOrderDetail = () => {
     return () => { mounted = false; };
   }, [orderId, fetchOrderById, fetchUserReturns]);
 
-  const order = getOrder(orderId);
+  const storeOrder = useOrderStore((state) =>
+    state.orders.find((o) => String(o.id) === String(orderId) || String(o.orderId) === String(orderId))
+  );
+  const order = storeOrder || getOrder(orderId);
   const shippingAddress = order?.shippingAddress || {};
   const orderItems = Array.isArray(order?.items) ? order.items : [];
   const vendorOptions = Array.isArray(order?.vendorItems)
@@ -348,7 +351,7 @@ const MobileOrderDetail = () => {
 
             <div className="px-4 py-4 space-y-4">
               {/* Order Status Stepper Timeline */}
-              <OrderStatusTimeline order={order} showTrackingLink={true} />
+              <OrderStatusTimeline order={order} returnRequest={existingReturn} showTrackingLink={true} />
 
               {/* Order Items */}
               <div className="glass-card rounded-2xl p-4">
@@ -515,6 +518,44 @@ const MobileOrderDetail = () => {
                   )}
                 </div>
               </div>
+
+              {/* Refund Processed Banner */}
+              {(order.paymentStatus === 'refunded' || order.refundDetails?.totalRefunded > 0) && (
+                <div className="glass-card rounded-2xl p-4 bg-emerald-50/70 border border-emerald-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-bold">
+                      ✓
+                    </div>
+                    <h3 className="text-sm font-bold text-emerald-900">Refund Processed</h3>
+                  </div>
+                  <div className="space-y-1 text-xs text-emerald-800">
+                    <div className="flex justify-between">
+                      <span>Total Refunded:</span>
+                      <span className="font-bold text-emerald-950">
+                        {formatPrice(order.refundDetails?.totalRefunded || order.total)}
+                      </span>
+                    </div>
+                    {order.refundDetails?.walletAmountRefunded > 0 && (
+                      <div className="flex justify-between text-[11px] text-emerald-700">
+                        <span>• Credited to PLE Wallet:</span>
+                        <span className="font-semibold">{formatPrice(order.refundDetails.walletAmountRefunded)}</span>
+                      </div>
+                    )}
+                    {order.refundDetails?.gatewayAmountRefunded > 0 && (
+                      <div className="flex justify-between text-[11px] text-emerald-700">
+                        <span>• Original Payment Method:</span>
+                        <span className="font-semibold">{formatPrice(order.refundDetails.gatewayAmountRefunded)}</span>
+                      </div>
+                    )}
+                    {order.refundDetails?.gatewayRefundId && (
+                      <div className="flex justify-between text-[11px] text-emerald-700 pt-1 border-t border-emerald-200/60 font-mono">
+                        <span>Gateway Ref ID:</span>
+                        <span>{order.refundDetails.gatewayRefundId}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Order Summary */}
               <div className="glass-card rounded-2xl p-4">

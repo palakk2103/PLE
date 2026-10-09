@@ -186,11 +186,6 @@ export const useOrderStore = create(
       },
 
       fetchOrderById: async (orderId) => {
-        const existing = get().orders.find(
-          (order) => String(order.id) === String(orderId),
-        );
-        if (existing) return existing;
-
         try {
           const response = await api.get(`/user/orders/${orderId}`);
           const payload = response?.data ?? response;
@@ -200,7 +195,7 @@ export const useOrderStore = create(
             orders: [
               normalized,
               ...state.orders.filter(
-                (o) => String(o.id) !== String(normalized.id),
+                (o) => String(o.id) !== String(normalized.id) && String(o.orderId) !== String(normalized.id),
               ),
             ],
             lastError: null,
@@ -208,6 +203,10 @@ export const useOrderStore = create(
 
           return normalized;
         } catch (error) {
+          const existing = get().orders.find(
+            (order) => String(order.id) === String(orderId) || String(order.orderId) === String(orderId),
+          );
+          if (existing) return existing;
           // Use mock data as fallback
           const mockOrder = mockOrders.find(o => String(o.id) === String(orderId));
           if (mockOrder) {
@@ -353,6 +352,7 @@ export const useOrderStore = create(
         const body = {
           reason: String(payload?.reason || "").trim(),
           ...(payload?.vendorId ? { vendorId: payload.vendorId } : {}),
+          ...(payload?.refundDestination ? { refundDestination: payload.refundDestination } : {}),
           ...(Array.isArray(payload?.items) ? { items: payload.items } : {}),
           ...(Array.isArray(payload?.images) ? { images: payload.images } : {}),
         };

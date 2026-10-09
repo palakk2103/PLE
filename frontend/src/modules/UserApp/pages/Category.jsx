@@ -141,7 +141,7 @@ const MobileCategory = () => {
             category: categoryId,
             page: 1,
             limit: 200,
-            sort: "rating",
+            sort: "newest",
             channel,
           },
         });

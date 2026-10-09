@@ -137,8 +137,10 @@
         "route":  "/vendor/earnings",
         "children":  [
                          "Earnings Overview",
-                         "Commission History",
-                         "Settlement History"
+                         "Wallet",
+                         "Withdrawals",
+                         "Transactions",
+                         "Settlements"
                      ]
     },
     {

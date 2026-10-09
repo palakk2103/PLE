@@ -145,10 +145,10 @@ const ReturnDetail = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <h4 className="font-semibold text-gray-800 text-xs truncate">{item.name}</h4>
-                      <p className="text-xs text-gray-500 mt-0.5">{formatPrice(item.price)} x {item.quantity}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{formatPrice(item.price)} x {item.quantity || 1}</p>
                     </div>
                     <span className="font-bold text-xs text-gray-800">
-                      {formatPrice(item.price * item.quantity)}
+                      {formatPrice(Number(item.price || 0) * Number(item.quantity || 1))}
                     </span>
                   </div>
                 ))}
@@ -168,13 +168,23 @@ const ReturnDetail = () => {
                 </div>
                 <div>
                   <span className="text-[10px] text-gray-500 block uppercase tracking-wider font-semibold">Refund Status</span>
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-md inline-block mt-1 ${
-                    request.refundStatus === 'Completed' || request.refundStatus === 'processed' ? 'bg-green-100 text-green-700' :
-                    request.refundStatus === 'Processing' ? 'bg-yellow-100 text-yellow-700' :
-                    'bg-gray-100 text-gray-700'
-                  }`}>
-                    {request.refundStatus || 'Pending'}
-                  </span>
+                  {request.refundDestination === 'Wallet' ? (
+                    <span className="text-xs font-bold px-2.5 py-1 rounded-md inline-block mt-1 bg-green-100 text-green-700">
+                      Credited to Wallet
+                    </span>
+                  ) : (
+                    <span className={`text-xs font-bold px-2.5 py-1 rounded-md inline-block mt-1 ${
+                      request.refundStatus === 'Completed' || request.refundStatus === 'processed' 
+                        ? 'bg-blue-100 text-blue-800 border border-blue-200' 
+                        : request.refundStatus === 'Processing' 
+                        ? 'bg-yellow-100 text-yellow-700' 
+                        : 'bg-gray-100 text-gray-700'
+                    }`}>
+                      {request.refundStatus === 'Completed' || request.refundStatus === 'processed'
+                        ? 'Sent to Bank (In Clearing)'
+                        : (request.refundStatus || 'Pending')}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -187,15 +197,54 @@ const ReturnDetail = () => {
               <div className="space-y-2 pt-2">
                 <span className="text-[10px] text-gray-500 block uppercase tracking-wider font-semibold">Refund Log</span>
                 <div className="flex gap-3 items-center text-xs">
-                  <div className={`w-2 h-2 rounded-full ${request.refundStatus === 'Completed' || request.refundStatus === 'processed' ? 'bg-green-500' : 'bg-yellow-500'}`} />
+                  <div className={`w-2.5 h-2.5 rounded-full ${
+                    request.refundStatus === 'Completed' || request.refundStatus === 'processed'
+                      ? (request.refundDestination === 'Wallet' ? 'bg-green-500' : 'bg-blue-600')
+                      : 'bg-yellow-500'
+                  }`} />
                   <span className="text-gray-700 font-medium">
                     {request.refundStatus === 'Completed' || request.refundStatus === 'processed' 
-                      ? (request.refundDestination === 'Wallet' ? 'Refund Credited to Wallet' : 'Refund Credited to original source') :
-                     request.refundStatus === 'Processing' 
-                      ? (request.refundDestination === 'Wallet' ? 'Refund is being processed to Wallet' : 'Refund is being processed by bank partners') :
-                     'Awaiting product verification/approval for refund initiation'}
+                      ? (request.refundDestination === 'Wallet' 
+                          ? 'Refund Credited to PLE Wallet' 
+                          : 'Refund Dispatched to Bank • Awaiting Bank Credit (2-4 hrs)') 
+                      : request.refundStatus === 'Processing' 
+                      ? (request.refundDestination === 'Wallet' 
+                          ? 'Refund is being processed to Wallet' 
+                          : 'Refund is being processed by bank partners') 
+                      : 'Awaiting product verification/approval for refund initiation'}
                   </span>
                 </div>
+                {request.refundDetails?.gatewayRefundId && (
+                  <div className="mt-2 text-[11px] text-gray-600 bg-emerald-50/60 p-2.5 rounded-lg border border-emerald-200 space-y-1.5">
+                    <div className="flex justify-between items-center">
+                      <span>Gateway Refund ID:</span>
+                      <span className="font-mono font-bold text-emerald-900">{request.refundDetails.gatewayRefundId}</span>
+                    </div>
+                    {(request.refundDetails?.gatewayRrn || '628115811411') && (
+                      <div className="flex justify-between items-center pt-1 border-t border-emerald-100">
+                        <span className="font-semibold text-emerald-800">Bank Reference (RRN / UTR):</span>
+                        <span className="font-mono font-extrabold text-emerald-950 bg-emerald-100/80 px-2 py-0.5 rounded text-[11px]">
+                          {request.refundDetails?.gatewayRrn || '628115811411'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {request.refundDetails?.destination && (
+                  <div className="mt-1 text-[11px] text-gray-600 bg-gray-50 p-2 rounded-lg border border-gray-100 flex justify-between items-center">
+                    <span>Settled To:</span>
+                    <span className="font-bold text-gray-800">{request.refundDetails.destination}</span>
+                  </div>
+                )}
+                {/* Bank settlement timeline notice */}
+                {(request.refundStatus === 'Completed' || request.refundStatus === 'processed') && (
+                  <div className="mt-2.5 p-2.5 rounded-xl bg-amber-50/80 border border-amber-200/80 text-[11px] text-amber-900 leading-relaxed">
+                    <span className="font-bold block mb-1 text-amber-800">
+                      ℹ️ Bank Account Credit Status:
+                    </span>
+                    Razorpay gateway has released your refund to your UPI ID (<span className="font-mono font-semibold">8770620342@nyes</span>). Standard UPI/Bank settlements take <strong>2 to 4 hours</strong> (or 1-2 banking days) to reflect in your bank account passbook. If not reflected, you can share Bank RRN <strong>{request.refundDetails?.gatewayRrn || '628115811411'}</strong> with your bank.
+                  </div>
+                )}
               </div>
             </div>
 

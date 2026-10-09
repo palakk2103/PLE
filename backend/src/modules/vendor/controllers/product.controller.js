@@ -501,6 +501,7 @@ export const createProduct = asyncHandler(async (req, res) => {
         customBrandName: customBrandName || undefined,
         brandId: resolvedBrandId || undefined,
         isActive: !shouldBePending,
+        isNewArrival: true,
         auditLog: [{
             action: 'created',
             userId: req.user.id,
