@@ -9,6 +9,7 @@ import mongoose from 'mongoose';
 import { createNotification } from '../../../services/notification.service.js';
 import { createShipment } from '../../delivery/deliveryManager.js';
 import { handleOrderStatusTransition } from '../../../services/orderStatus.service.js';
+import { sendVendorOrderProgressEmail } from '../../../services/vendorNotification.service.js';
 
 const deriveTopLevelOrderStatus = (vendorItems = [], fallback = 'pending') => {
     const statuses = (vendorItems || [])
@@ -178,6 +179,13 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     );
 
     await Promise.allSettled(notificationTasks);
+
+    // Vendor Notification Items 94-108: Fulfillment Progress
+    sendVendorOrderProgressEmail({
+        vendorId: req.user.id,
+        order,
+        stage: status === 'processing' ? 'packed' : (status === 'shipped' ? 'picked_up' : status),
+    }).catch(err => console.error('[VendorNotification] Progress email error:', err.message));
 
     res.status(200).json(new ApiResponse(200, order, 'Order status updated.'));
 });

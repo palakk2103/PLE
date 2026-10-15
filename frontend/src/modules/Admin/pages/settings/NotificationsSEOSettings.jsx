@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { FiSave, FiBell, FiSearch, FiMail } from "react-icons/fi";
+import { FiSave, FiBell, FiSearch, FiMail, FiSend, FiCheckCircle } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { useSettingsStore } from "../../../../shared/store/settingsStore";
 import AnimatedSelect from "../../components/AnimatedSelect";
 import toast from "react-hot-toast";
+import api from "../../../../shared/utils/api";
 
 const NotificationsSEOSettings = () => {
   const { settings, updateSettings, initialize } = useSettingsStore();
@@ -11,6 +12,8 @@ const NotificationsSEOSettings = () => {
   const [notificationsData, setNotificationsData] = useState({});
   const [seoData, setSeoData] = useState({});
   const [activeSection, setActiveSection] = useState("email");
+  const [testRecipient, setTestRecipient] = useState("");
+  const [isTestingEmail, setIsTestingEmail] = useState(false);
 
   useEffect(() => {
     initialize();
@@ -53,6 +56,25 @@ const NotificationsSEOSettings = () => {
       ...seoData,
       [name]: value,
     });
+  };
+
+  const handleTestEmail = async () => {
+    if (!testRecipient) {
+      toast.error("Please enter a test recipient email address.");
+      return;
+    }
+    setIsTestingEmail(true);
+    try {
+      const res = await api.post('/admin/settings/email/test', {
+        ...emailData,
+        testRecipient,
+      });
+      toast.success(res.data?.message || "SMTP verified & test email dispatched successfully!");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to verify SMTP settings.");
+    } finally {
+      setIsTestingEmail(false);
+    }
   };
 
   const handleSubmit = (e) => {
@@ -187,6 +209,43 @@ const NotificationsSEOSettings = () => {
                     onChange={handleEmailChange}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
+                </div>
+              </div>
+
+              {/* SMTP Test Verification Panel */}
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <h4 className="text-sm font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                  <FiSend className="text-primary-600" /> Test SMTP Configuration
+                </h4>
+                <p className="text-xs text-gray-500 mb-4">
+                  Send a live test email to verify your SMTP host, credentials, and network connectivity before saving.
+                </p>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <input
+                    type="email"
+                    placeholder="Enter test recipient email (e.g. admin@example.com)"
+                    value={testRecipient}
+                    onChange={(e) => setTestRecipient(e.target.value)}
+                    className="flex-1 px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleTestEmail}
+                    disabled={isTestingEmail}
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 rounded-lg transition-colors shadow-sm whitespace-nowrap"
+                  >
+                    {isTestingEmail ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Verifying...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FiCheckCircle className="text-base" />
+                        <span>Test Connection</span>
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
             </div>

@@ -17,7 +17,7 @@ const More = () => {
 
   const menuItems = [
     { 
-      path: '/admin/categories', 
+      path: '/ple-ops-desk/categories', 
       label: 'Categories', 
       icon: FiGrid, 
       gradient: 'from-blue-500 via-blue-600 to-blue-700',
@@ -27,7 +27,7 @@ const More = () => {
       description: 'Manage categories'
     },
     { 
-      path: '/admin/brands', 
+      path: '/ple-ops-desk/brands', 
       label: 'Brands', 
       icon: FiTag, 
       gradient: 'from-purple-500 via-purple-600 to-purple-700',
@@ -37,7 +37,7 @@ const More = () => {
       description: 'Manage brands'
     },
     { 
-      path: '/admin/customers', 
+      path: '/ple-ops-desk/customers', 
       label: 'Customers', 
       icon: FiUsers, 
       gradient: 'from-emerald-500 via-emerald-600 to-emerald-700',
@@ -47,7 +47,7 @@ const More = () => {
       description: 'View customers'
     },
     { 
-      path: '/admin/inventory', 
+      path: '/ple-ops-desk/inventory', 
       label: 'Inventory', 
       icon: FiPackage, 
       gradient: 'from-orange-500 via-orange-600 to-orange-700',
@@ -57,7 +57,7 @@ const More = () => {
       description: 'Track inventory'
     },
     { 
-      path: '/admin/campaigns', 
+      path: '/ple-ops-desk/campaigns', 
       label: 'Campaigns', 
       icon: FiTrendingUp, 
       gradient: 'from-rose-500 via-rose-600 to-rose-700',
@@ -67,7 +67,7 @@ const More = () => {
       description: 'Create campaigns'
     },
     { 
-      path: '/admin/banners', 
+      path: '/ple-ops-desk/banners', 
       label: 'Banners', 
       icon: FiImage, 
       gradient: 'from-pink-500 via-pink-600 to-pink-700',
@@ -77,7 +77,7 @@ const More = () => {
       description: 'Manage banners'
     },
     { 
-      path: '/admin/reviews', 
+      path: '/ple-ops-desk/reviews', 
       label: 'Reviews', 
       icon: FiMessageSquare, 
       gradient: 'from-amber-500 via-amber-600 to-amber-700',
@@ -87,7 +87,7 @@ const More = () => {
       description: 'Moderate reviews'
     },
     { 
-      path: '/admin/analytics', 
+      path: '/ple-ops-desk/analytics', 
       label: 'Analytics', 
       icon: FiBarChart2, 
       gradient: 'from-indigo-500 via-indigo-600 to-indigo-700',
@@ -97,7 +97,7 @@ const More = () => {
       description: 'View analytics'
     },
     { 
-      path: '/admin/content', 
+      path: '/ple-ops-desk/content', 
       label: 'Content', 
       icon: FiFileText, 
       gradient: 'from-cyan-500 via-cyan-600 to-cyan-700',

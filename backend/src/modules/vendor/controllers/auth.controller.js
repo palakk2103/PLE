@@ -19,6 +19,10 @@ import {
 
 import { uploadLocalFileToCloudinaryAndCleanupWithType } from '../../../services/upload.service.js';
 import { checkLoginLockout, handleFailedLogin, handleSuccessfulLogin } from '../../../services/loginAttempt.service.js';
+import {
+    sendVendorRegistrationReceivedEmail,
+    sendVendorBankDetailsEmail,
+} from '../../../services/vendorNotification.service.js';
 
 export const register = asyncHandler(async (req, res) => {
     const { name, email, password, phone, storeName, storeDescription, address } = req.body;
@@ -151,6 +155,11 @@ export const register = asyncHandler(async (req, res) => {
     // Send OTP and notifications asynchronously in the background so registration returns instantly
     sendOTP(vendor, 'vendor_verification').catch((err) => {
         console.error(`Background OTP sending failed for ${vendor.email}:`, err.message);
+    });
+
+    // Vendor Notification Item 62: Vendor Registration Received
+    sendVendorRegistrationReceivedEmail({ vendor }).catch((err) => {
+        console.error('[VendorNotification] Reg email error:', err.message);
     });
 
     // Notify all active admins about a new vendor registration request.
@@ -564,6 +573,16 @@ export const updateBankDetails = asyncHandler(async (req, res) => {
         { $set: updates },
         { new: true, runValidators: true }
     ).select('-password -otp -otpExpiry');
+
+    // Vendor Notification Items 70-72: Bank details updated
+    if (vendor?.email) {
+        sendVendorBankDetailsEmail({
+            vendor,
+            status: 'updated',
+            bankName: vendor.bankDetails?.bankName,
+            accountNumberLast4: vendor.bankDetails?.accountNumber ? String(vendor.bankDetails.accountNumber).slice(-4) : '',
+        }).catch((err) => console.error('[VendorNotification] Bank details email error:', err.message));
+    }
 
     res.status(200).json(new ApiResponse(200, vendor, 'Bank details updated.'));
 });

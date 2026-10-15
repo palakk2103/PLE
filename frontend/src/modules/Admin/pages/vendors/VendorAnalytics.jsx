@@ -178,7 +178,7 @@ const VendorAnalytics = () => {
                 <tr
                   key={vendor.id}
                   className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
-                  onClick={() => navigate(`/admin/vendors/${vendor.id}`)}>
+                  onClick={() => navigate(`/ple-ops-desk/vendors/${vendor.id}`)}>
                   <td className="py-3 px-4">
                     <div>
                       <p className="font-semibold text-gray-800">
@@ -211,7 +211,7 @@ const VendorAnalytics = () => {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate(`/admin/vendors/${vendor.id}`);
+                        navigate(`/ple-ops-desk/vendors/${vendor.id}`);
                       }}
                       className="px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                       View

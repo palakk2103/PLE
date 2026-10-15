@@ -26,6 +26,16 @@ import { sendNotificationToUser } from '../../../utils/pushNotificationHelper.js
 import { resolveProductGST, calculateItemGST } from '../../../utils/gstUtils.js';
 import { generateInvoiceForOrder, sendOrderInvoiceEmail } from '../../../services/invoice.service.js';
 import { handleOrderStatusTransition } from '../../../services/orderStatus.service.js';
+import { sendReturnRequestSubmittedNotification } from '../../../services/customerNotification.service.js';
+import {
+    sendVendorNewOrderNotification,
+    sendVendorOrderCancelledNotification,
+    sendVendorReturnNotification,
+} from '../../../services/vendorNotification.service.js';
+import {
+    sendAdminOrderAlert,
+    sendAdminFinanceAlert,
+} from '../../../services/adminNotification.service.js';
 
 const normalizeVariantPart = (value) => String(value || '').trim().toLowerCase();
 const normalizeAxisName = (value) =>
@@ -820,6 +830,12 @@ export const placeOrder = asyncHandler(async (req, res) => {
                             }
                         }).catch(e => console.error("Error creating database notification for vendor:", e));
 
+                        // Vendor Notification Item 90: New Order Received with Multi-Vendor Isolation
+                        sendVendorNewOrderNotification({
+                            vendorId: v.vendorId,
+                            order,
+                        }).catch(e => console.error('[VendorNotification] New order email error:', e.message));
+
                         // Emit socket event to the vendor's room
                         if (io) {
                             io.to(`user_${v.vendorId}`).emit('new_order_placed', {
@@ -833,6 +849,16 @@ export const placeOrder = asyncHandler(async (req, res) => {
                             });
                         }
                     }
+                }
+
+                // Admin Notification Items 130 & 153: High-Value / Large Order Alert
+                const orderTotal = Number(order.total || order.totalAmount || 0);
+                if (orderTotal >= 50000) {
+                    sendAdminOrderAlert({
+                        order,
+                        alertType: 'high_value',
+                        reason: `Order value (₹${orderTotal.toLocaleString('en-IN')}) exceeds high-value threshold of ₹50,000.`,
+                    }).catch(e => console.error('[AdminNotification] High-value order email error:', e.message));
                 }
 
                 // Send push notification to buyer
@@ -1005,6 +1031,15 @@ export const cancelOrder = asyncHandler(async (req, res) => {
                 triggeredBy: req.user.id,
                 triggeredByRole: 'user',
             });
+
+            // Vendor Notification Items 85 & 86: Order Cancelled
+            for (const vi of cancelledOrder.vendorItems || []) {
+                sendVendorOrderCancelledNotification({
+                    vendorId: vi.vendorId,
+                    order: cancelledOrder,
+                    reason: req.body.reason || 'Cancelled by customer',
+                }).catch(err => console.error('[VendorNotification] Cancel order email error:', err.message));
+            }
         }
     } catch (cancelNotifErr) {
         console.error("Cancel order status transition error:", cancelNotifErr?.message);
@@ -1183,6 +1218,21 @@ export const createReturnRequest = asyncHandler(async (req, res) => {
             orderId: String(order.orderId),
         },
     });
+
+    sendReturnRequestSubmittedNotification({ returnRequest: request, order }).catch((err) =>
+        console.warn(`[ReturnRequestEmail] Failed to send customer notification: ${err.message}`)
+    );
+
+    // Vendor Notification Item 109: Customer Requested Return
+    sendVendorReturnNotification({
+        vendorId,
+        order,
+        returnRequest: request,
+        status: 'requested',
+        reason: req.body.reason,
+    }).catch((err) =>
+        console.warn(`[ReturnRequestEmail] Failed to send vendor notification: ${err.message}`)
+    );
 
     const populated = await ReturnRequest.findById(request._id)
         .populate('orderId', 'orderId total items createdAt')

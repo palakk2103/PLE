@@ -1,6 +1,10 @@
 import ProductRequest from '../models/ProductRequest.model.js';
 import Notification from '../models/Notification.model.js';
 import Vendor from '../models/Vendor.model.js';
+import {
+    sendSourceNowQuoteExpiredEmail,
+    sendVendorQuoteDeadlinePassedEmail
+} from './sourcingNotification.service.js';
 
 const CRON_INTERVAL_MS = 60 * 60 * 1000; // every 1 hour
 
@@ -30,6 +34,7 @@ const expireOpenWindows = async () => {
         await Notification.create({ recipientType: 'admin', type: 'system', title: '14-Day Vendor Window Expired', message: `Product request "${req.productName}" (${req.requestId}) expired — no vendor accepted within 14 days.`, data: { relatedId: req._id.toString(), onModel: 'ProductRequest', requestId: req.requestId } });
         if (req.userId) {
             await Notification.create({ recipientId: req.userId, recipientType: 'user', type: 'system', title: 'Vendor Search Expired', message: `We were unable to find a vendor for your request "${req.productName}". Our team will review and contact you shortly.`, data: { relatedId: req._id.toString(), onModel: 'ProductRequest' } });
+            sendSourceNowQuoteExpiredEmail({ customer: req.userId, request: req }).catch(err => console.warn(`[QuoteExpiredEmail] Failed: ${err.message}`));
         }
         console.log(`[ProductRequestExpiry] Window expired: ${req.requestId}`);
     }
@@ -102,6 +107,12 @@ const expireFulfillmentWindows = async () => {
                 message: `Your account has been FLAGGED for failing to submit quotation or fulfill product request "${req.productName}". You are restricted from accepting new product requests until reviewed and unflagged by Administrator.`,
                 data: { relatedId: req._id.toString(), onModel: 'ProductRequest', requestId: req.requestId }
             });
+
+            // Dispatch Vendor Deadline Passed Email (Item 210)
+            sendVendorQuoteDeadlinePassedEmail({
+                vendor: req.acceptedVendorId,
+                request: req
+            }).catch(err => console.warn(`[VendorDeadlinePassedEmail] Failed: ${err.message}`));
         }
 
         await Notification.create({

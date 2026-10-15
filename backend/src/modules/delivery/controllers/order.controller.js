@@ -298,6 +298,16 @@ export const updateDeliveryStatus = asyncHandler(async (req, res) => {
         if (!isMatch) {
             order.deliveryOtpAttempts = attempts + 1;
             await order.save();
+            if (order.deliveryOtpAttempts >= DELIVERY_OTP_MAX_ATTEMPTS) {
+                // Customer Notification Item 39: Delivery Attempted
+                import('../../../services/customerNotification.service.js').then(({ sendDeliveryAttemptedNotification }) => {
+                    sendDeliveryAttemptedNotification({
+                        order,
+                        nextAttemptDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toLocaleDateString('en-IN'),
+                        deliveryAgentPhone: req.user?.phone || 'Customer Support',
+                    }).catch(err => console.error('[Delivery] Delivery attempted email error:', err.message));
+                }).catch(() => null);
+            }
             throw new ApiError(400, 'Invalid delivery OTP.');
         }
 

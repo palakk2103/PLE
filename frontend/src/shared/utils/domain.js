@@ -1,3 +1,5 @@
+import { ADMIN_BASE_ROUTE } from '../../modules/Admin/config/adminRoutesConfig';
+
 /**
  * Utility helper to determine the current execution domain/hostname.
  * Support landing (plebusiness.com) and portal (peoplesleagueofelectronics.com).
@@ -66,6 +68,7 @@ const isPortalPath = () => {
     '/notifications',
     '/b2b',
     '/admin',
+    ADMIN_BASE_ROUTE,
     '/vendor',
     '/delivery',
     '/daily-deals',

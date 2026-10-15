@@ -230,7 +230,7 @@ const OrderTracking = () => {
                 })}
               </div>
               <button
-                onClick={() => navigate(`/admin/orders/${selectedOrder.id}`)}
+                onClick={() => navigate(`/ple-ops-desk/orders/${selectedOrder.id}`)}
                 className="w-full mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-semibold">
                 View Full Details
               </button>

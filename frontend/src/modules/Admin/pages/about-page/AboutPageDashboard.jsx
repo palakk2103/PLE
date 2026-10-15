@@ -3,6 +3,7 @@ import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiLayout, FiImage, FiGrid, FiFeather, FiStar, FiChevronRight } from 'react-icons/fi';
 import { useAboutPageStore } from '../../store/aboutPageStore';
+import { getAdminPath, ADMIN_DASHBOARD_ROUTE } from '../../config/adminRoutesConfig';
 
 // Import Editors
 import HeroEditor from './HeroEditor';
@@ -27,7 +28,7 @@ export default function AboutPageDashboard() {
     { id: 'our-edge', title: 'Our Edge', desc: 'Why shoppers trust PLE (4 steps)', icon: FiStar, path: 'our-edge', color: 'text-rose-500', bg: 'bg-rose-50' },
   ];
 
-  if (isLoading && location.pathname === '/admin/about-page') {
+  if (isLoading && location.pathname === getAdminPath('about-page')) {
     return (
       <div className="p-8 flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C07A3D]"></div>
@@ -39,9 +40,9 @@ export default function AboutPageDashboard() {
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Breadcrumb Navigation */}
       <div className="flex items-center text-sm text-gray-500">
-        <Link to="/admin" className="hover:text-[#C07A3D]">Dashboard</Link>
+        <Link to={ADMIN_DASHBOARD_ROUTE} className="hover:text-[#C07A3D]">Dashboard</Link>
         <FiChevronRight className="mx-2" />
-        <Link to="/admin/about-page" className={`hover:text-[#C07A3D] ${location.pathname === '/admin/about-page' ? 'text-gray-900 font-semibold' : ''}`}>
+        <Link to={getAdminPath('about-page')} className={`hover:text-[#C07A3D] ${location.pathname === getAdminPath('about-page') ? 'text-gray-900 font-semibold' : ''}`}>
           About Page CMS
         </Link>
       </div>

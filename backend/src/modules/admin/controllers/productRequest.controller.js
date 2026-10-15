@@ -5,7 +5,13 @@ import ProductRequest from '../../../models/ProductRequest.model.js';
 import Notification from '../../../models/Notification.model.js';
 import Product from '../../../models/Product.model.js';
 import Vendor from '../../../models/Vendor.model.js';
+import User from '../../../models/User.model.js';
 import { ManagedShop } from '../../../models/ManagedShop.model.js';
+import { sendSourceNowUpdateEmail } from '../../../services/customerNotification.service.js';
+import {
+    sendSourceNowQuoteAvailableEmail,
+    sendVendorSelectedEmail
+} from '../../../services/sourcingNotification.service.js';
 
 // @desc    Get all product requests (for admin)
 // @route   GET /api/admin/product-requests
@@ -413,6 +419,35 @@ export const selectFulfillment = asyncHandler(async (req, res) => {
             onModel: 'ProductRequest'
         }
     });
+
+    const buyer = await User.findById(request.userId).select('name email').lean();
+    if (buyer?.email) {
+        sendSourceNowQuoteAvailableEmail({
+            customer: buyer,
+            request,
+            quote: {
+                finalPrice,
+                estimatedDelivery,
+                notes
+            }
+        }).catch(err => console.warn(`[SourceNowQuoteAvailableEmail] Failed: ${err.message}`));
+    }
+
+    // Notify selected vendors (Item 211)
+    if (Array.isArray(vendors)) {
+        for (const vItem of vendors) {
+            if (vItem.vendorId) {
+                sendVendorSelectedEmail({
+                    vendor: vItem.vendorId,
+                    request,
+                    quote: {
+                        finalPrice: vItem.price,
+                        estimatedDelivery
+                    }
+                }).catch(err => console.warn(`[VendorSelectedEmail] Failed: ${err.message}`));
+            }
+        }
+    }
 
     res.status(200).json(
         new ApiResponse(200, request, 'Fulfillment proposal sent to user')

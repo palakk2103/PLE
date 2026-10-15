@@ -2,6 +2,7 @@ import { lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import AdminProtectedRoute from "../modules/Admin/components/AdminProtectedRoute";
 import AdminLayout from "../modules/Admin/components/Layout/AdminLayout";
+import { getAdminPath } from "../modules/Admin/config/adminRoutesConfig";
 
 // Lazy Loaded Pages
 const AdminLogin = lazy(() => import("../modules/Admin/pages/Login"));
@@ -290,7 +291,7 @@ export default function AdminRoutes() {
         <Route path="finance/tax-reports" element={<TaxReports />} />
         <Route path="finance/refund-reports" element={<RefundReports />} />
         <Route path="analytics" element={<Analytics />} />
-        <Route path="settings" element={<Navigate to="/admin/settings/general" replace />} />
+        <Route path="settings" element={<Navigate to={getAdminPath('settings/general')} replace />} />
         <Route path="settings/general" element={<Settings />} />
         <Route path="settings/payment-shipping" element={<Settings />} />
         <Route path="settings/orders-customers" element={<Settings />} />
@@ -348,8 +349,10 @@ export default function AdminRoutes() {
         <Route path="about-page/*" element={<AboutPageDashboard />} />
         <Route path="portfolio-page/*" element={<PortfolioPageDashboard />} />
         <Route path="chat-moderation" element={<ChatModerationDashboard />} />
+        <Route path="*" element={<Navigate to="dashboard" replace />} />
 
       </Route>
+      <Route path="*" element={<Navigate to={getAdminPath('login')} replace />} />
     </Routes>
   );
 }

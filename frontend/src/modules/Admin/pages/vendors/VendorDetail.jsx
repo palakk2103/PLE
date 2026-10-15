@@ -299,7 +299,7 @@ const VendorDetail = () => {
         }
       } else {
         toast.error("Vendor not found");
-        navigate("/admin/vendors");
+        navigate("/ple-ops-desk/vendors");
       }
     };
     fetchVendorData();
@@ -417,7 +417,7 @@ const VendorDetail = () => {
       sortable: false,
       render: (_, row) => (
         <button
-          onClick={() => navigate(`/admin/orders/${row.id}`)}
+          onClick={() => navigate(`/ple-ops-desk/orders/${row.id}`)}
           className="px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
           View
         </button>

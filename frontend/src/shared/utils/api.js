@@ -2,6 +2,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { API_BASE_URL, AUTH_REDIRECT_LOCK_KEY, AUTH_REDIRECT_LOCK_MS } from './constants';
 import { products as mockProductsList } from '../../data/products';
+import { ADMIN_BASE_ROUTE, ADMIN_LOGIN_ROUTE } from '../../modules/Admin/config/adminRoutesConfig';
 
 
 const AUTH_SCOPES = {
@@ -10,8 +11,8 @@ const AUTH_SCOPES = {
     accessKey: 'adminToken',
     refreshKey: 'adminRefreshToken',
     persistKey: 'admin-auth-storage',
-    loginPath: '/admin/login',
-    areaPrefix: '/admin',
+    loginPath: ADMIN_LOGIN_ROUTE,
+    areaPrefix: ADMIN_BASE_ROUTE,
   },
   vendor: {
     prefix: '/vendor',
@@ -114,7 +115,7 @@ const getContextScope = (url = '', currentPath = (typeof window !== 'undefined' 
 
   // Context-aware fallback: if URL is a shared endpoint (e.g. /settings, /categories, /brands, /chat, /wallet, /notifications, etc.),
   // check which dashboard portal the user is currently browsing!
-  if (currentPath.startsWith('/admin')) return 'admin';
+  if (currentPath.startsWith(ADMIN_BASE_ROUTE) || currentPath.startsWith('/admin')) return 'admin';
   if (currentPath.startsWith('/vendor')) return 'vendor';
   if (currentPath.startsWith('/delivery')) return 'delivery';
   if (currentPath.startsWith('/b2b-dashboard')) return 'b2bAdmin';
@@ -128,7 +129,7 @@ const getScopeFromUrl = (url = '') => {
 };
 
 const getScopeFromPath = (path = (typeof window !== 'undefined' ? window.location.pathname : '')) => {
-  if (path.startsWith('/admin')) return 'admin';
+  if (path.startsWith(ADMIN_BASE_ROUTE) || path.startsWith('/admin')) return 'admin';
   if (path.startsWith('/vendor')) return 'vendor';
   if (path.startsWith('/delivery')) return 'delivery';
   if (path.startsWith('/b2b-dashboard')) return 'b2bAdmin';
@@ -267,7 +268,7 @@ api.interceptors.request.use(
     let token = getStorageItem(AUTH_SCOPES[scope]?.accessKey || 'token');
 
     // Only apply B2B Admin token for storefront requests if explicitly in business buyer context and NOT on another portal dashboard
-    if (scope === 'user' && !currentPath.startsWith('/admin') && !currentPath.startsWith('/vendor') && !currentPath.startsWith('/delivery')) {
+    if (scope === 'user' && !currentPath.startsWith(ADMIN_BASE_ROUTE) && !currentPath.startsWith('/admin') && !currentPath.startsWith('/vendor') && !currentPath.startsWith('/delivery')) {
       const isBusinessBuyer = localStorage.getItem('b2b-storage') || sessionStorage.getItem('b2b-storage');
       const b2bToken = getStorageItem('b2bAdminToken');
       if (b2bToken && isBusinessBuyer) {

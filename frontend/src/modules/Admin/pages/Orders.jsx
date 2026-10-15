@@ -120,7 +120,7 @@ const Orders = () => {
   // Option cards configuration
   const optionCards = [
     {
-      path: '/admin/orders/all-orders',
+      path: '/ple-ops-desk/orders/all-orders',
       label: 'All Orders',
       icon: FiList,
       gradient: 'from-blue-500 via-blue-600 to-blue-700',
@@ -130,7 +130,7 @@ const Orders = () => {
       description: 'View and manage all orders',
     },
     {
-      path: '/admin/orders/order-tracking',
+      path: '/ple-ops-desk/orders/order-tracking',
       label: 'Order Tracking',
       icon: FiMapPin,
       gradient: 'from-purple-500 via-purple-600 to-purple-700',
@@ -140,7 +140,7 @@ const Orders = () => {
       description: 'Track order status',
     },
     {
-      path: '/admin/b2b/b2b-orders',
+      path: '/ple-ops-desk/b2b/b2b-orders',
       label: 'B2B Orders',
       icon: FiBriefcase,
       gradient: 'from-amber-500 via-amber-600 to-amber-700',

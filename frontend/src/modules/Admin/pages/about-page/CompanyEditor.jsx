@@ -90,7 +90,7 @@ const CompanyEditor = () => {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 max-w-5xl mx-auto p-4">
       <div className="flex items-center justify-between border-b border-gray-100 pb-5">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/admin/about-page')} className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition">
+          <button onClick={() => navigate('/ple-ops-desk/about-page')} className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition">
             <FiArrowLeft size={18} />
           </button>
           <div>

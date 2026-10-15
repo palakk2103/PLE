@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { FiMenu, FiBell, FiLogOut, FiSun, FiMoon } from 'react-icons/fi';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAdminAuthStore } from '../../store/adminStore';
+import { ADMIN_LOGIN_ROUTE } from '../../config/adminRoutesConfig';
 import { useNotificationStore } from '../../store/notificationStore';
 import { useThemeStore } from '../../../../shared/store/themeStore';
 import { useEffect } from 'react';
@@ -27,7 +28,7 @@ const AdminHeader = ({ onMenuClick }) => {
   const handleLogout = () => {
     logout();
     toast.success('Logged out successfully');
-    navigate('/admin/login');
+    navigate(ADMIN_LOGIN_ROUTE);
   };
 
   const toggleNotifications = () => {

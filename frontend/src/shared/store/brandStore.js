@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { getAllBrands, getPublicBrands, createBrand, updateBrand, reviewBrand, deleteBrand } from '../../modules/Admin/services/adminService';
+import { ADMIN_BASE_ROUTE } from '../../modules/Admin/config/adminRoutesConfig';
 import toast from 'react-hot-toast';
 
 export const useBrandStore = create(
@@ -15,7 +16,7 @@ export const useBrandStore = create(
         try {
           const isAdminArea =
             typeof window !== 'undefined' &&
-            window.location.pathname.startsWith('/admin');
+            (window.location.pathname.startsWith(ADMIN_BASE_ROUTE) || window.location.pathname.startsWith('/admin'));
           const response = isAdminArea
             ? await getAllBrands()
             : await getPublicBrands();

@@ -3,6 +3,7 @@ import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
 import Admin from '../../../models/Admin.model.js';
 import { logActivity } from '../../../services/auditLog.service.js';
+import { sendSecurityAlert } from '../../../services/adminNotification.service.js';
 import bcrypt from 'bcryptjs';
 
 const CLASS_PREFIX_MAP = {
@@ -152,6 +153,20 @@ export const provisionMember = asyncHandler(async (req, res) => {
             contractType: member.contractType
         }
     });
+
+    // Security Notification Item 188: Employee account created
+    sendSecurityAlert({
+        user: member,
+        recipientEmail: member.email,
+        eventType: 'employee_created',
+        ipAddress: req.ip || req.connection?.remoteAddress,
+        userAgent: req.headers['user-agent'] || 'Admin Console',
+        details: [
+            { label: 'Identity ID', value: identityId },
+            { label: 'Department', value: member.department },
+            { label: 'Designation', value: member.designation },
+        ]
+    }).catch(err => console.warn(`[SecurityAlert] Employee created email failed: ${err.message}`));
 
     return res.status(201).json(new ApiResponse(201, {
         id: member._id,
@@ -304,6 +319,21 @@ export const toggleMemberStatus = asyncHandler(async (req, res) => {
         }
     });
 
+    // Security Notification Item 189: Employee account disabled
+    if (status === 'inactive') {
+        sendSecurityAlert({
+            user: member,
+            recipientEmail: member.email,
+            eventType: 'employee_disabled',
+            ipAddress: req.ip || req.connection?.remoteAddress,
+            userAgent: req.headers['user-agent'] || 'Admin Console',
+            details: [
+                { label: 'Identity ID', value: member.identityId || 'N/A' },
+                { label: 'Deactivated By', value: req.user?.name || req.user?.email || 'Super Admin' },
+            ]
+        }).catch(err => console.warn(`[SecurityAlert] Employee disabled email failed: ${err.message}`));
+    }
+
     return res.status(200).json(new ApiResponse(200, {
         id: member._id,
         status: member.status,
@@ -356,6 +386,21 @@ export const resetCredentials = asyncHandler(async (req, res) => {
             credentialsChanged: changes
         }
     });
+
+    // Security Notification Item 169: Password changed
+    if (changes.includes('password')) {
+        sendSecurityAlert({
+            user: member,
+            recipientEmail: member.email,
+            eventType: 'password_changed',
+            ipAddress: req.ip || req.connection?.remoteAddress,
+            userAgent: req.headers['user-agent'] || 'Admin Console',
+            details: [
+                { label: 'Updated Credentials', value: changes.join(', ') },
+                { label: 'Action By', value: req.user?.name || req.user?.email || 'Super Admin' }
+            ]
+        }).catch(err => console.warn(`[SecurityAlert] Password changed email failed: ${err.message}`));
+    }
 
     return res.status(200).json(new ApiResponse(200, null, 'Credentials successfully reset.'));
 });

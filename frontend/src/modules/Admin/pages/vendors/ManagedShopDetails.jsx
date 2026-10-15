@@ -245,7 +245,7 @@ const ManagedShopDetails = () => {
       {/* Back button & Action Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <button
-          onClick={() => navigate("/admin/vendors/managed-shops")}
+          onClick={() => navigate("/ple-ops-desk/vendors/managed-shops")}
           className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-semibold transition-all"
         >
           <FiArrowLeft /> Back to Shops

@@ -32,6 +32,7 @@ import {
   FiLayout,
 } from "react-icons/fi";
 import { useAdminAuthStore } from "../../store/adminStore";
+import { ADMIN_BASE_ROUTE, ADMIN_DASHBOARD_ROUTE } from "../../config/adminRoutesConfig";
 import adminMenu from "../../config/adminMenu.json";
 
 // Icon mapping for parent menu items
@@ -153,13 +154,18 @@ const legacyRouteMap = {
 };
 
 const getChildRoute = (child, parentRoute) => {
+  let route = parentRoute;
   if (typeof child === "object" && child !== null && child.route) {
-    return child.route;
+    route = child.route;
+  } else if (typeof child === "string") {
+    route = legacyRouteMap[parentRoute]?.[child] ||
+            legacyRouteMap[String(parentRoute).replace(ADMIN_BASE_ROUTE, '/admin')]?.[child] ||
+            parentRoute;
   }
-  if (typeof child === "string") {
-    return legacyRouteMap[parentRoute]?.[child] || parentRoute;
+  if (typeof route === "string" && route.startsWith('/admin/')) {
+    route = route.replace(/^\/admin/, ADMIN_BASE_ROUTE);
   }
-  return parentRoute;
+  return route;
 };
 
 const getChildTitle = (child) => {
@@ -237,8 +243,8 @@ const AdminSidebar = ({ isOpen, onClose }) => {
     if (item.children && item.children.length > 0) {
       return getActiveChildIndex(item) !== -1;
     }
-    if (item.route === "/admin/dashboard") {
-      return location.pathname === "/admin/dashboard";
+    if (item.route === "/admin/dashboard" || item.route === ADMIN_DASHBOARD_ROUTE) {
+      return location.pathname === ADMIN_DASHBOARD_ROUTE || location.pathname === "/admin/dashboard";
     }
     return (
       location.pathname === item.route ||

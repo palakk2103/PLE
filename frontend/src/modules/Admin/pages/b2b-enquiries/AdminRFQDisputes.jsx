@@ -163,7 +163,7 @@ const AdminRFQDisputes = () => {
       sortable: true,
       render: (value, row) => (
         <span
-          onClick={() => navigate(`/admin/b2b-enquiries/${row.enquiryId}`)}
+          onClick={() => navigate(`/ple-ops-desk/b2b-enquiries/${row.enquiryId}`)}
           className="font-bold text-primary-600 font-mono select-all hover:underline cursor-pointer flex items-center gap-1 text-xs"
         >
           {value}
@@ -463,7 +463,7 @@ const AdminRFQDisputes = () => {
                   <button
                     onClick={() => {
                       setSelectedDispute(null);
-                      navigate(`/admin/b2b-enquiries/${selectedDispute.enquiryId}`);
+                      navigate(`/ple-ops-desk/b2b-enquiries/${selectedDispute.enquiryId}`);
                     }}
                     className="py-1.5 px-3 bg-white hover:bg-gray-50 border border-gray-250 rounded-xl font-bold flex items-center gap-1.5 text-gray-700 transition-colors shadow-sm"
                   >

@@ -9,6 +9,7 @@ import OrdersCustomersSettings from './settings/OrdersCustomersSettings';
 import ProductsInventorySettings from './settings/ProductsInventorySettings';
 import ContentFeaturesSettings from './settings/ContentFeaturesSettings';
 import NotificationsSEOSettings from './settings/NotificationsSEOSettings';
+import { getAdminPath } from '../config/adminRoutesConfig';
 
 const Settings = () => {
   const { initialize } = useSettingsStore();
@@ -35,16 +36,16 @@ const Settings = () => {
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
-    navigate(`/admin/settings/${tabId}`);
+    navigate(getAdminPath(`settings/${tabId}`));
   };
 
   const tabs = [
-    { id: 'general', label: 'General', icon: FiSettings, component: GeneralSettings, route: '/admin/settings/general' },
-    { id: 'payment-shipping', label: 'Payment & Shipping', icon: FiCreditCard, component: PaymentShippingSettings, route: '/admin/settings/payment-shipping' },
-    { id: 'orders-customers', label: 'Orders & Customers', icon: FiShoppingBag, component: OrdersCustomersSettings, route: '/admin/settings/orders-customers' },
-    { id: 'products-inventory', label: 'Products & Inventory', icon: FiPackage, component: ProductsInventorySettings, route: '/admin/settings/products-inventory' },
-    { id: 'content-features', label: 'Content & Features', icon: FiFileText, component: ContentFeaturesSettings, route: '/admin/settings/content-features' },
-    { id: 'notifications-seo', label: 'Notifications & SEO', icon: FiBell, component: NotificationsSEOSettings, route: '/admin/settings/notifications-seo' },
+    { id: 'general', label: 'General', icon: FiSettings, component: GeneralSettings, route: getAdminPath('settings/general') },
+    { id: 'payment-shipping', label: 'Payment & Shipping', icon: FiCreditCard, component: PaymentShippingSettings, route: getAdminPath('settings/payment-shipping') },
+    { id: 'orders-customers', label: 'Orders & Customers', icon: FiShoppingBag, component: OrdersCustomersSettings, route: getAdminPath('settings/orders-customers') },
+    { id: 'products-inventory', label: 'Products & Inventory', icon: FiPackage, component: ProductsInventorySettings, route: getAdminPath('settings/products-inventory') },
+    { id: 'content-features', label: 'Content & Features', icon: FiFileText, component: ContentFeaturesSettings, route: getAdminPath('settings/content-features') },
+    { id: 'notifications-seo', label: 'Notifications & SEO', icon: FiBell, component: NotificationsSEOSettings, route: getAdminPath('settings/notifications-seo') },
   ];
 
   const ActiveComponent = tabs.find((tab) => tab.id === activeTab)?.component || GeneralSettings;

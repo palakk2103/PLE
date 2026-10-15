@@ -47,28 +47,28 @@ const LandingPageDashboard = () => {
 
   const getSectionEditorPath = (id) => {
     const paths = {
-      hero: '/admin/landing-page/hero',
-      trustedBrands: '/admin/brands',
-      productCategories: '/admin/landing-page/product-categories',
-      catalogue: '/admin/landing-page/catalogue',
-      portfolioHighlights: '/admin/landing-page/portfolio-highlights',
-      cpoSection: '/admin/landing-page/cpo',
-      gpoSection: '/admin/landing-page/gpo',
-      smartDeals: '/admin/landing-page/smart-deals',
-      loyaltyRewards: '/admin/landing-page/loyalty-rewards',
-      zeroMaintenance: '/admin/landing-page/zero-maintenance',
-      services: '/admin/landing-page/services',
-      whyChooseUs: '/admin/landing-page/features',
-      comparison: '/admin/landing-page/comparison',
-      stats: '/admin/landing-page/stats',
-      testimonials: '/admin/landing-page/testimonials',
-      portfolio: '/admin/landing-page/products',
-      pricing: '/admin/landing-page/pricing',
-      gallery: '/admin/landing-page/gallery',
-      presenceMap: '/admin/landing-page/contact', // map is edited alongside contact info
-      ctaBanner: '/admin/landing-page/footer',
+      hero: '/ple-ops-desk/landing-page/hero',
+      trustedBrands: '/ple-ops-desk/brands',
+      productCategories: '/ple-ops-desk/landing-page/product-categories',
+      catalogue: '/ple-ops-desk/landing-page/catalogue',
+      portfolioHighlights: '/ple-ops-desk/landing-page/portfolio-highlights',
+      cpoSection: '/ple-ops-desk/landing-page/cpo',
+      gpoSection: '/ple-ops-desk/landing-page/gpo',
+      smartDeals: '/ple-ops-desk/landing-page/smart-deals',
+      loyaltyRewards: '/ple-ops-desk/landing-page/loyalty-rewards',
+      zeroMaintenance: '/ple-ops-desk/landing-page/zero-maintenance',
+      services: '/ple-ops-desk/landing-page/services',
+      whyChooseUs: '/ple-ops-desk/landing-page/features',
+      comparison: '/ple-ops-desk/landing-page/comparison',
+      stats: '/ple-ops-desk/landing-page/stats',
+      testimonials: '/ple-ops-desk/landing-page/testimonials',
+      portfolio: '/ple-ops-desk/landing-page/products',
+      pricing: '/ple-ops-desk/landing-page/pricing',
+      gallery: '/ple-ops-desk/landing-page/gallery',
+      presenceMap: '/ple-ops-desk/landing-page/contact', // map is edited alongside contact info
+      ctaBanner: '/ple-ops-desk/landing-page/footer',
     };
-    return paths[id] || `/admin/landing-page/${id}`;
+    return paths[id] || `/ple-ops-desk/landing-page/${id}`;
   };
 
   return (

@@ -19,6 +19,7 @@ import Badge from '../../../shared/components/Badge';
 import AnimatedSelect from '../components/AnimatedSelect';
 import { formatCurrency, formatDateTime } from '../utils/adminHelpers';
 import { useReturnStore } from '../../../shared/store/returnStore';
+import { getAdminPath } from '../config/adminRoutesConfig';
 
 const ReturnRequestDetail = () => {
   const navigate = useNavigate();
@@ -49,7 +50,7 @@ const ReturnRequestDetail = () => {
         setReturnRequest(data);
         setStatus(data.status);
       } else {
-        navigate('/admin/return-requests');
+        navigate(getAdminPath('return-requests'));
       }
     };
     loadDetail();
@@ -250,7 +251,7 @@ const ReturnRequestDetail = () => {
               Original Order
             </h2>
             <Link
-              to={`/admin/orders/${returnRequest.orderId}`}
+              to={getAdminPath(`orders/${returnRequest.orderId}`)}
               className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-semibold text-sm"
             >
               <span>View Order: {returnRequest.orderId}</span>
@@ -448,7 +449,7 @@ const ReturnRequestDetail = () => {
             <h2 className="text-sm font-bold text-gray-800 mb-3">Quick Actions</h2>
             <div className="space-y-1.5">
               <Link
-                to={`/admin/orders/${returnRequest.orderId}`}
+                to={getAdminPath(`orders/${returnRequest.orderId}`)}
                 className="w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-xs font-semibold"
               >
                 <FiShoppingBag className="text-sm" />

@@ -23,6 +23,7 @@ import AnimatedSelect from '../components/AnimatedSelect';
 import InvoiceModal from '../../../shared/components/InvoiceModal';
 import api from '../../../shared/utils/api';
 import { formatCurrency, formatDateTime } from '../utils/adminHelpers';
+import { getAdminPath } from '../config/adminRoutesConfig';
 import { getOrderById, updateOrderStatus } from '../services/adminService';
 import toast from 'react-hot-toast';
 
@@ -84,7 +85,7 @@ const OrderDetail = () => {
       } catch (error) {
         console.error("Fetch order detail error:", error);
         toast.error('Order not found');
-        navigate('/admin/orders/all-orders');
+        navigate(getAdminPath('orders/all-orders'));
       } finally {
         setIsLoading(false);
       }

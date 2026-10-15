@@ -502,7 +502,7 @@ const AdminB2BEnquiries = () => {
             <FiEye className="w-4 h-4" />
           </button>
           <button
-            onClick={() => navigate(`/admin/b2b-enquiries/${row.id}`)}
+            onClick={() => navigate(`/ple-ops-desk/b2b-enquiries/${row.id}`)}
             className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
             title="Full Detail View"
           >
@@ -957,7 +957,7 @@ const AdminB2BEnquiries = () => {
               {/* Drawer Footer */}
               <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex gap-3">
                 <button
-                  onClick={() => navigate(`/admin/b2b-enquiries/${selectedEnquiry.id}`)}
+                  onClick={() => navigate(`/ple-ops-desk/b2b-enquiries/${selectedEnquiry.id}`)}
                   className="flex-1 py-2.5 px-4 bg-gray-900 hover:bg-black text-white rounded-xl font-bold flex items-center justify-center gap-2 text-sm transition-colors shadow-sm"
                 >
                   Go to Full Detail Page <FiExternalLink className="w-4 h-4" />

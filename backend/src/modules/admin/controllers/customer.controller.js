@@ -4,6 +4,7 @@ import ApiError from '../../../utils/ApiError.js';
 import User from '../../../models/User.model.js';
 import Order from '../../../models/Order.model.js';
 import Address from '../../../models/Address.model.js';
+import { sendAccountStatusNotification } from '../../../services/customerNotification.service.js';
 
 /**
  * @desc    Get all customers with pagination and filters
@@ -167,6 +168,11 @@ export const updateCustomerStatus = asyncHandler(async (req, res) => {
     if (!customer) {
         throw new ApiError(404, 'Customer not found');
     }
+
+    sendAccountStatusNotification({
+        user: customer,
+        action: isActive ? 'reactivated' : 'deactivated',
+    }).catch(err => console.warn(`[CustomerStatusEmail] Failed: ${err.message}`));
 
     res.status(200).json(
         new ApiResponse(200, customer, `Customer status updated to ${isActive ? 'active' : 'inactive'}`)

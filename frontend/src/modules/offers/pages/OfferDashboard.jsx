@@ -4,12 +4,13 @@ import { useOffers } from "../hooks/useOffers";
 import { OfferStatsCard } from "../components/OfferStatsCard";
 import { FiPercent, FiCheckCircle, FiClock, FiXCircle, FiUser, FiActivity, FiArrowUpRight, FiTag } from "react-icons/fi";
 import { useAdminAuthStore } from "../../Admin/store/adminStore";
+import { ADMIN_BASE_ROUTE, getAdminPath } from "../../Admin/config/adminRoutesConfig";
 import { useVendorAuthStore } from "../../Vendor/store/vendorAuthStore";
 
 export const OfferDashboard = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const isAdmin = location.pathname.startsWith("/admin");
+  const isAdmin = location.pathname.startsWith(ADMIN_BASE_ROUTE) || location.pathname.startsWith("/admin");
   
   const { admin } = useAdminAuthStore();
   const { vendor } = useVendorAuthStore();
@@ -22,7 +23,7 @@ export const OfferDashboard = () => {
     ? getDashboardStats() 
     : getSellerDashboardStats(sellerName);
 
-  const baseRoute = isAdmin ? "/admin/offers-management" : "/vendor/my-offers";
+  const baseRoute = isAdmin ? getAdminPath("offers-management") : "/vendor/my-offers";
 
   // Mock analytics for Seller/Admin dashboard charts
   const mockMonthlyData = [

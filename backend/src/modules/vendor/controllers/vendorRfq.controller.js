@@ -9,6 +9,12 @@ import {
     cleanupLocalFiles
 } from '../../../services/upload.service.js';
 import { getIO } from '../../../config/socket.js';
+import User from '../../../models/User.model.js';
+import { sendRfqResponseCustomerEmail } from '../../../services/customerNotification.service.js';
+import {
+    sendRfqVendorResponseReceivedEmail,
+    sendRfqMultipleQuotesAvailableEmail
+} from '../../../services/sourcingNotification.service.js';
 
 // GET /api/vendor/rfq
 export const getVendorRFQs = asyncHandler(async (req, res) => {
@@ -86,7 +92,40 @@ export const vendorSendQuote = asyncHandler(async (req, res) => {
         message: `Vendor ${quoteData.vendorName} submitted a quote for RFQ ${rfq.rfqId}.`,
         type: 'system',
         data: { rfqId: rfq.rfqId, id: String(rfq._id) }
-    });
+    }).catch(() => null);
+
+    // Customer Notification Item 17: RFQ Response Received / Quote Available
+    if (rfq.buyerId) {
+        User.findById(rfq.buyerId).select('name email').then(buyer => {
+            if (buyer?.email) {
+                sendRfqResponseCustomerEmail({
+                    customerEmail: buyer.email,
+                    customerName: buyer.name,
+                    rfq,
+                    quotation: {
+                        quotePrice: totalPrice,
+                        validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                    }
+                }).catch(err => console.error('[CustomerNotification] RFQ response email error:', err.message));
+
+                // Phase 5 RFQ Vendor Response Notification (Item 215)
+                sendRfqVendorResponseReceivedEmail({
+                    customer: buyer,
+                    rfq,
+                    quotation: quoteData
+                }).catch(err => console.error('[SourcingNotification] RFQ response email error:', err.message));
+
+                // If multiple quotes are present, notify buyer to compare (Item 216)
+                if (rfq.quotations && rfq.quotations.length > 1) {
+                    sendRfqMultipleQuotesAvailableEmail({
+                        customer: buyer,
+                        rfq,
+                        quotations: rfq.quotations
+                    }).catch(err => console.error('[SourcingNotification] Multiple RFQ quotes email error:', err.message));
+                }
+            }
+        }).catch(() => null);
+    }
 
     res.status(200).json(new ApiResponse(200, rfq, 'Quotation submitted successfully.'));
 });

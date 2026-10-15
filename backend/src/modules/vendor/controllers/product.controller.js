@@ -6,6 +6,8 @@ import Category from '../../../models/Category.model.js';
 import Brand from '../../../models/Brand.model.js';
 import Vendor from '../../../models/Vendor.model.js';
 import { slugify } from '../../../utils/slugify.js';
+import { notifyBackInStockWishlistUsers } from '../../../services/customerNotification.service.js';
+import { sendVendorStockAlertEmail } from '../../../services/vendorNotification.service.js';
 
 const checkB2BPermission = async (vendorId, salesChannel) => {
     if (salesChannel === 'B2B' || salesChannel === 'BOTH') {
@@ -685,9 +687,34 @@ export const updateStock = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'Invalid stock quantity.');
     }
 
+    const previousStock = Number(product.stockQuantity || 0);
     product.stockQuantity = numericStockQuantity;
     product.stock = deriveStockStatus(numericStockQuantity, product.lowStockThreshold);
     await product.save();
+
+    // Customer Notification Item 11: Back-in-stock notification
+    if (previousStock === 0 && numericStockQuantity > 0) {
+        notifyBackInStockWishlistUsers(product).catch(() => null);
+    }
+
+    // Vendor Notification Items 85 & 86: Stock alerts
+    if (numericStockQuantity <= 0) {
+        sendVendorStockAlertEmail({
+            vendor: product.vendorId,
+            product,
+            type: 'out_of_stock',
+            currentStock: 0,
+            threshold: product.lowStockThreshold || 10,
+        }).catch(() => null);
+    } else if (numericStockQuantity <= (product.lowStockThreshold || 10)) {
+        sendVendorStockAlertEmail({
+            vendor: product.vendorId,
+            product,
+            type: 'low_stock',
+            currentStock: numericStockQuantity,
+            threshold: product.lowStockThreshold || 10,
+        }).catch(() => null);
+    }
 
     res.status(200).json(new ApiResponse(200, product, 'Stock updated.'));
 });

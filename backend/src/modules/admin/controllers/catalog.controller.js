@@ -7,6 +7,7 @@ import Brand from '../../../models/Brand.model.js';
 import Settings from '../../../models/Settings.model.js';
 import { createNotification } from '../../../services/notification.service.js';
 import { slugify } from '../../../utils/slugify.js';
+import { sendVendorProductReviewEmail } from '../../../services/vendorNotification.service.js';
 
 const sanitizeFaqs = (faqs) => {
     if (!Array.isArray(faqs)) return [];
@@ -941,5 +942,16 @@ export const reviewProduct = asyncHandler(async (req, res) => {
     });
 
     await product.save();
+
+    // Vendor Notification Items 77 & 78: Product approved / rejected
+    if (product.vendorId) {
+        sendVendorProductReviewEmail({
+            vendor: product.vendorId,
+            product,
+            status,
+            reason: reason || product.rejectionReason,
+        }).catch((err) => console.error('[VendorNotification] Product review email error:', err.message));
+    }
+
     res.status(200).json(new ApiResponse(200, product, `Product successfully ${status}.`));
 });

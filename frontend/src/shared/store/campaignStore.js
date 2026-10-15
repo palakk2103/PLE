@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import * as adminService from '../../modules/Admin/services/adminService';
+import { ADMIN_BASE_ROUTE } from '../../modules/Admin/config/adminRoutesConfig';
 import toast from 'react-hot-toast';
 import api from '../utils/api';
 
@@ -80,7 +81,7 @@ export const useCampaignStore = create((set, get) => ({
     
     let backendCampaigns = [];
     try {
-      const isAdminPath = window.location.pathname.startsWith('/admin');
+      const isAdminPath = window.location.pathname.startsWith(ADMIN_BASE_ROUTE) || window.location.pathname.startsWith('/admin');
       if (isAdminPath) {
         const response = await adminService.getAllCampaigns(params);
         const data = response.data;

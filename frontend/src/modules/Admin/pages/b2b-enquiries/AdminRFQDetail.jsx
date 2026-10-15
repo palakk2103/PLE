@@ -314,7 +314,7 @@ const AdminRFQDetail = () => {
       <div className="text-center py-16">
         <h2 className="text-xl font-bold text-gray-800">RFQ not found</h2>
         <button
-          onClick={() => navigate("/admin/b2b-enquiries/all")}
+          onClick={() => navigate("/ple-ops-desk/b2b-enquiries/all")}
           className="mt-4 px-4 py-2 bg-[#C07A3D] text-white rounded-xl text-sm font-semibold"
         >
           Back to RFQs
@@ -332,7 +332,7 @@ const AdminRFQDetail = () => {
       {/* Navigation Header */}
       <div className="flex items-center justify-between pb-2">
         <button
-          onClick={() => navigate("/admin/b2b-enquiries/all")}
+          onClick={() => navigate("/ple-ops-desk/b2b-enquiries/all")}
           className="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors"
         >
           <FiArrowLeft strokeWidth={2.5} /> Back to RFQ Management

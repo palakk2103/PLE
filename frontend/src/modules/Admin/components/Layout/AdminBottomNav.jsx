@@ -8,21 +8,22 @@ import {
   FiSettings,
 } from "react-icons/fi";
 import useKeyboardVisible from "../../../../shared/hooks/useKeyboardVisible";
+import { getAdminPath, ADMIN_DASHBOARD_ROUTE } from "../../config/adminRoutesConfig";
 
 const AdminBottomNav = () => {
   const location = useLocation();
   const isKeyboardVisible = useKeyboardVisible();
 
   const navItems = [
-    { path: "/admin/dashboard", icon: FiHome, label: "Home" },
-    { path: "/admin/products", icon: FiPackage, label: "Products" },
-    { path: "/admin/orders", icon: FiShoppingBag, label: "Orders" },
-    { path: "/admin/settings", icon: FiSettings, label: "Setting" },
+    { path: ADMIN_DASHBOARD_ROUTE, icon: FiHome, label: "Home" },
+    { path: getAdminPath('products'), icon: FiPackage, label: "Products" },
+    { path: getAdminPath('orders'), icon: FiShoppingBag, label: "Orders" },
+    { path: getAdminPath('settings/general'), icon: FiSettings, label: "Setting" },
   ];
 
   const isActive = (path) => {
-    if (path === "/admin/dashboard") {
-      return location.pathname === "/admin/dashboard";
+    if (path === ADMIN_DASHBOARD_ROUTE) {
+      return location.pathname === ADMIN_DASHBOARD_ROUTE;
     }
     return location.pathname.startsWith(path);
   };

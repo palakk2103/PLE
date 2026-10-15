@@ -7,13 +7,14 @@ import { OfferModal } from "../components/OfferModal";
 import { OfferEmptyState } from "../components/OfferEmptyState";
 import { CREATOR_TYPES } from "../constants/offerTypes";
 import { useVendorAuthStore } from "../../Vendor/store/vendorAuthStore";
+import { ADMIN_BASE_ROUTE, getAdminPath } from "../../Admin/config/adminRoutesConfig";
 import toast from "react-hot-toast";
 
 export const OfferList = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const isAdmin = location.pathname.startsWith("/admin");
-  const baseRoute = isAdmin ? "/admin/offers-management" : "/vendor/my-offers";
+  const isAdmin = location.pathname.startsWith(ADMIN_BASE_ROUTE) || location.pathname.startsWith("/admin");
+  const baseRoute = isAdmin ? getAdminPath("offers-management") : "/vendor/my-offers";
 
   const { vendor } = useVendorAuthStore();
   const sellerName = vendor?.storeName || vendor?.name || "Fashion Hub";

@@ -334,7 +334,7 @@ const Dashboard = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
             className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-900/30 rounded-xl p-4 sm:p-6 shadow-md border border-amber-100 dark:border-amber-800/40 hover:shadow-lg transition-all duration-300 relative overflow-hidden cursor-pointer"
-            onClick={() => navigate("/admin/b2b/business-users")}
+            onClick={() => navigate("/ple-ops-desk/b2b/business-users")}
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-amber-500 to-orange-600 opacity-10 rounded-full -mr-16 -mt-16"></div>
             <div className="flex items-center justify-between mb-3 sm:mb-4 relative z-10">
@@ -356,7 +356,7 @@ const Dashboard = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
             className="bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-teal-950/40 dark:to-emerald-900/30 rounded-xl p-4 sm:p-6 shadow-md border border-teal-100 dark:border-teal-800/40 hover:shadow-lg transition-all duration-300 relative overflow-hidden cursor-pointer"
-            onClick={() => navigate("/admin/b2b/b2b-products")}
+            onClick={() => navigate("/ple-ops-desk/b2b/b2b-products")}
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-teal-500 to-emerald-600 opacity-10 rounded-full -mr-16 -mt-16"></div>
             <div className="flex items-center justify-between mb-3 sm:mb-4 relative z-10">
@@ -378,7 +378,7 @@ const Dashboard = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
             className="bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-950/40 dark:to-blue-900/30 rounded-xl p-4 sm:p-6 shadow-md border border-indigo-100 dark:border-indigo-800/40 hover:shadow-lg transition-all duration-300 relative overflow-hidden cursor-pointer"
-            onClick={() => navigate("/admin/b2b/b2b-orders")}
+            onClick={() => navigate("/ple-ops-desk/b2b/b2b-orders")}
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-500 to-blue-600 opacity-10 rounded-full -mr-16 -mt-16"></div>
             <div className="flex items-center justify-between mb-3 sm:mb-4 relative z-10">
@@ -400,7 +400,7 @@ const Dashboard = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
             className="bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950/40 dark:to-green-900/30 rounded-xl p-4 sm:p-6 shadow-md border border-emerald-100 dark:border-emerald-800/40 hover:shadow-lg transition-all duration-300 relative overflow-hidden cursor-pointer"
-            onClick={() => navigate("/admin/b2b/b2b-orders")}
+            onClick={() => navigate("/ple-ops-desk/b2b/b2b-orders")}
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-500 to-green-600 opacity-10 rounded-full -mr-16 -mt-16"></div>
             <div className="flex items-center justify-between mb-3 sm:mb-4 relative z-10">
@@ -441,7 +441,7 @@ const Dashboard = () => {
         <TopProducts products={topProducts} />
         <RecentOrders
           orders={recentOrders}
-          onViewOrder={(order) => navigate(`/admin/orders/${order._id || order.orderId}`)}
+          onViewOrder={(order) => navigate(`/ple-ops-desk/orders/${order._id || order.orderId}`)}
         />
       </div>
     </motion.div>

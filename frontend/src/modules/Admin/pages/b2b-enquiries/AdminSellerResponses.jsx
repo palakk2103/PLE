@@ -168,7 +168,7 @@ const AdminSellerResponses = () => {
       sortable: true,
       render: (value, row) => (
         <span
-          onClick={() => navigate(`/admin/b2b-enquiries/${row.rfqId}`)}
+          onClick={() => navigate(`/ple-ops-desk/b2b-enquiries/${row.rfqId}`)}
           className="font-bold text-primary-600 font-mono select-all hover:underline cursor-pointer flex items-center gap-1.5"
         >
           {value}
@@ -287,7 +287,7 @@ const AdminSellerResponses = () => {
       sortable: false,
       render: (_, row) => (
         <button
-          onClick={() => navigate(`/admin/b2b-enquiries/${row.rfqId}`)}
+          onClick={() => navigate(`/ple-ops-desk/b2b-enquiries/${row.rfqId}`)}
           className="p-1.5 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors flex items-center gap-1 text-xs font-bold"
           title="Inspect Details"
         >

@@ -203,25 +203,30 @@ export const useSettingsStore = create(
           );
         } catch (_) {}
 
-        // 2. Async fetch from backend to sync admin general settings
+        // 2. Async fetch from backend to sync admin general, email, and notifications settings
         try {
-          const res = await api.get('/admin/settings/general');
-          if (res?.data) {
-            const backendGeneral = res.data;
-            set((state) => {
-              const updated = {
-                ...state.settings,
-                general: {
-                  ...state.settings.general,
-                  ...backendGeneral,
-                }
-              };
-              try {
-                localStorage.setItem("admin-settings", JSON.stringify(updated));
-              } catch (_) {}
-              return { settings: updated };
-            });
-          }
+          const [generalRes, emailRes, notifRes] = await Promise.allSettled([
+            api.get('/admin/settings/general'),
+            api.get('/admin/settings/email'),
+            api.get('/admin/settings/notifications'),
+          ]);
+
+          set((state) => {
+            const updated = { ...state.settings };
+            if (generalRes.status === 'fulfilled' && generalRes.value?.data) {
+              updated.general = { ...updated.general, ...generalRes.value.data };
+            }
+            if (emailRes.status === 'fulfilled' && emailRes.value?.data) {
+              updated.email = { ...updated.email, ...emailRes.value.data };
+            }
+            if (notifRes.status === 'fulfilled' && notifRes.value?.data) {
+              updated.notifications = { ...updated.notifications, ...notifRes.value.data };
+            }
+            try {
+              localStorage.setItem("admin-settings", JSON.stringify(updated));
+            } catch (_) {}
+            return { settings: updated };
+          });
         } catch (error) {
           // Silent catch to handle guest page / unauthenticated states gracefully
           console.debug("Backend settings sync bypassed or unauthorized:", error.message);
@@ -250,8 +255,8 @@ export const useSettingsStore = create(
             },
           };
           
-          if (category === 'general') {
-            await api.put('/admin/settings/general', updatedSettings.general);
+          if (['general', 'email', 'notifications', 'seo'].includes(category)) {
+            await api.put(`/admin/settings/${category}`, updatedSettings[category]);
           }
           
           set({ settings: updatedSettings, isLoading: false });

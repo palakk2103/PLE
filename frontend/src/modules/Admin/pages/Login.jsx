@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { FiMail, FiLock, FiEye, FiEyeOff, FiArrowLeft, FiShield, FiKey, FiUserCheck } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAdminAuthStore } from '../store/adminStore';
+import { ADMIN_DASHBOARD_ROUTE } from '../config/adminRoutesConfig';
 import toast from 'react-hot-toast';
 import TwoFactorVerify from '../../../shared/components/TwoFactorVerify';
 import logoImage from '../../../assets/PLEwhite.png';
@@ -37,7 +38,7 @@ const AdminLogin = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      const from = location.state?.from?.pathname || '/admin/dashboard';
+      const from = location.state?.from?.pathname || ADMIN_DASHBOARD_ROUTE;
       navigate(from, { replace: true });
     }
   }, [isAuthenticated, navigate, location]);
@@ -77,7 +78,7 @@ const AdminLogin = () => {
         return;
       }
       toast.success('Super Admin terminal authenticated successfully!');
-      const from = location.state?.from?.pathname || '/admin/dashboard';
+      const from = location.state?.from?.pathname || ADMIN_DASHBOARD_ROUTE;
       navigate(from, { replace: true });
     } catch (error) {
       toast.error(error.response?.data?.message || error.message || 'Invalid Super Admin credentials');
@@ -113,7 +114,7 @@ const AdminLogin = () => {
       }
 
       toast.success(`Identity Verified: Welcome, ${result.admin?.name || 'Team Member'}!`);
-      const from = location.state?.from?.pathname || '/admin/dashboard';
+      const from = location.state?.from?.pathname || ADMIN_DASHBOARD_ROUTE;
       navigate(from, { replace: true });
     } catch (error) {
       toast.error(error.response?.data?.message || error.message || 'Authentication failed. Please verify Identity credentials.');
@@ -123,7 +124,7 @@ const AdminLogin = () => {
   if (twoFactorData) {
     const handleSuccess = () => {
       toast.success('Login successful!');
-      const from = location.state?.from?.pathname || '/admin/dashboard';
+      const from = location.state?.from?.pathname || ADMIN_DASHBOARD_ROUTE;
       navigate(from, { replace: true });
     };
 
@@ -418,18 +419,20 @@ const AdminLogin = () => {
           )}
         </AnimatePresence>
 
-        {/* Demo Credentials Helper Box */}
-        <div className="mt-6 p-3.5 bg-[#0D0D11]/80 border border-white/10 rounded-xl">
-          <p className="text-xs text-gray-300 font-semibold mb-1.5 flex items-center justify-between">
-            <span>Terminal Access Credentials:</span>
-            <span className="text-[10px] text-emerald-400 font-mono font-semibold px-2 py-0.5 bg-emerald-500/10 rounded border border-emerald-500/20">AUTHORIZED</span>
-          </p>
-          <div className="text-[11px] text-gray-400 space-y-1 font-mono">
-            <p><span className="text-gray-200 font-medium">Super Admin:</span> superadmin / admin@123</p>
-            <p><span className="text-gray-200 font-medium">Team Identity:</span> PLE-EMP-000001</p>
-            <p><span className="text-gray-200 font-medium">Team Pass / Secret:</span> TempPassword@123 / PLE#Sec99</p>
+        {/* Development Credentials Helper Box */}
+        {import.meta.env.DEV && (
+          <div className="mt-6 p-3.5 bg-[#0D0D11]/80 border border-white/10 rounded-xl">
+            <p className="text-xs text-gray-300 font-semibold mb-1.5 flex items-center justify-between">
+              <span>Terminal Access Credentials (DEV ONLY):</span>
+              <span className="text-[10px] text-emerald-400 font-mono font-semibold px-2 py-0.5 bg-emerald-500/10 rounded border border-emerald-500/20">DEV MODE</span>
+            </p>
+            <div className="text-[11px] text-gray-400 space-y-1 font-mono">
+              <p><span className="text-gray-200 font-medium">Super Admin:</span> superadmin / admin@123</p>
+              <p><span className="text-gray-200 font-medium">Team Identity:</span> PLE-EMP-000001</p>
+              <p><span className="text-gray-200 font-medium">Team Pass / Secret:</span> TempPassword@123 / PLE#Sec99</p>
+            </div>
           </div>
-        </div>
+        )}
       </motion.div>
     </div>
   );

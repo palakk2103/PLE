@@ -1,4 +1,5 @@
 import { ApiError } from '../utils/ApiError.js';
+import { sendSecurityAlert } from './adminNotification.service.js';
 
 export const ATTEMPT_CONFIG = {
     vendor: {
@@ -99,6 +100,8 @@ export const handleFailedLogin = async ({ scope, identifier, doc = null, default
 
     currentAttempts += 1;
 
+    const recipientEmail = doc?.email || (String(identifier).includes('@') ? String(identifier) : null);
+
     if (currentAttempts >= config.maxAttempts) {
         const lockUntilDate = new Date(now.getTime() + lockoutMs);
 
@@ -118,6 +121,19 @@ export const handleFailedLogin = async ({ scope, identifier, doc = null, default
             }
         }
 
+        if (recipientEmail) {
+            sendSecurityAlert({
+                user: doc,
+                recipientEmail,
+                eventType: 'account_locked',
+                details: [
+                    { label: 'Scope', value: config.label },
+                    { label: 'Lockout Duration', value: `${config.lockoutMinutes} Minutes` },
+                    { label: 'Failed Attempts', value: `${currentAttempts}` },
+                ]
+            }).catch(err => console.error('[SecurityAlert] Account locked email error:', err.message));
+        }
+
         throw new ApiError(401, config.lockoutMessage);
     } else {
         memoryAttempts.set(key, {
@@ -135,6 +151,19 @@ export const handleFailedLogin = async ({ scope, identifier, doc = null, default
             }
         }
 
+        // Alert on nearing threshold (one attempt before lockout)
+        if (currentAttempts === config.maxAttempts - 1 && recipientEmail) {
+            sendSecurityAlert({
+                user: doc,
+                recipientEmail,
+                eventType: 'login_threshold',
+                details: [
+                    { label: 'Scope', value: config.label },
+                    { label: 'Warning', value: `1 attempt remaining before 15-minute security lockout` },
+                ]
+            }).catch(err => console.error('[SecurityAlert] Login threshold email error:', err.message));
+        }
+
         const remaining = config.maxAttempts - currentAttempts;
         const attemptWord = remaining === 1 ? 'attempt' : 'attempts';
         throw new ApiError(401, `${defaultMessage} ${remaining} ${attemptWord} remaining.`);
@@ -149,6 +178,7 @@ export const handleSuccessfulLogin = async ({ scope, identifier, doc = null }) =
     memoryAttempts.delete(key);
 
     if (doc) {
+        const wasLocked = doc.lockUntil && new Date(doc.lockUntil) > new Date();
         const hasAttempts = doc.loginAttempts > 0 || doc.lockUntil;
         if (hasAttempts) {
             doc.loginAttempts = 0;
@@ -157,6 +187,15 @@ export const handleSuccessfulLogin = async ({ scope, identifier, doc = null }) =
                 await doc.save({ validateBeforeSave: false });
             } catch (err) {
                 console.error('[LoginAttempt] Error resetting doc attempts on success:', err.message);
+            }
+
+            if (wasLocked && doc.email) {
+                sendSecurityAlert({
+                    user: doc,
+                    recipientEmail: doc.email,
+                    eventType: 'account_unlocked',
+                    details: [{ label: 'Scope', value: scope }]
+                }).catch(err => console.error('[SecurityAlert] Account unlocked email error:', err.message));
             }
         }
     }
