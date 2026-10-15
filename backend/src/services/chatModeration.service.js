@@ -82,11 +82,30 @@ function convertSpelledOutDigits(text) {
     return text;
 }
 
+// Unicode and special digit mappings (Hindi numerals, circled numbers, etc.)
+const UNICODE_DIGIT_MAP = {
+    // Hindi / Devanagari numerals
+    '०': '0', '१': '1', '२': '2', '३': '3', '४': '4',
+    '५': '5', '६': '6', '७': '7', '८': '8', '९': '9',
+    // Circled numbers
+    '⓪': '0', '①': '1', '②': '2', '③': '3', '④': '4',
+    '⑤': '5', '⑥': '6', '⑦': '7', '⑧': '8', '⑨': '9',
+    '⑴': '1', '⑵': '2', '⑶': '3', '⑷': '4', '⑸': '5',
+    '⑹': '6', '⑺': '7', '⑻': '8', '⑼': '9',
+    '⒈': '1', '⒉': '2', '⒊': '3', '⒋': '4', '⒌': '5',
+    '⒍': '6', '⒎': '7', '⒏': '8', '⒐': '9',
+    // Fullwidth digits (also handled by NFKC)
+    '０': '0', '１': '1', '２': '2', '３': '3', '４': '4',
+    '５': '5', '６': '6', '７': '7', '８': '8', '９': '9',
+};
+
 /**
  * Normalize text for detection:
  * - Lowercase
  * - Normalize unicode (NFKC)
- * - Convert (at) / [at] obfuscation
+ * - Map Devanagari & circled digits to ASCII digits
+ * - Convert (at) / [at] / " at " obfuscation
+ * - Convert (dot) / [dot] / " dot " obfuscation
  * - Convert 'o'/'O' surrounded by digits to '0'
  * - Collapse zero-width chars
  */
@@ -95,9 +114,15 @@ export function normalizeText(text) {
     let norm = text
         .normalize('NFKC')
         .toLowerCase()
-        .replace(/\u200b|\u200c|\u200d|\ufeff/g, '') // zero-width chars
-        .replace(/\(at\)|\[at\]|\bat\b(?=\s*\w+\s*\.\s*\w)/gi, '@') // (at) → @
-        .replace(/\(dot\)|\[dot\]/gi, '.'); // (dot) → .
+        .replace(/\u200b|\u200c|\u200d|\ufeff/g, ''); // zero-width chars
+
+    // Map Devanagari and circled numbers to 0-9
+    norm = norm.replace(/[\u0966-\u096F\u2460-\u2468\u24EA\u2474-\u247C\uFF10-\uFF19]/g, (ch) => UNICODE_DIGIT_MAP[ch] || ch);
+
+    // Replace (at), [at], " at " with @
+    norm = norm
+        .replace(/\(at\)|\[at\]|\{at\}|\bat\b(?=\s*\w+[\s.]+\w+)/gi, '@')
+        .replace(/\(dot\)|\[dot\]|\{dot\}|\bdot\b(?=\s*\w+)/gi, '.');
 
     // Replace letter 'o' between digits (e.g. "98765o4321" -> "9876504321")
     norm = norm.replace(/(\d)[oO](\d)/g, '$10$2');
@@ -109,9 +134,10 @@ export function normalizeText(text) {
  * Used specifically for phone-number detection.
  * Example: "98765 43210" → "9876543210"
  * Example: "9 8 7 6 5 4 3 2 1 0" → "9876543210"
+ * Example: "9...8---7...6...5...4...3...2...1...0" -> "9876543210"
  */
 function collapseDigitSeparators(text) {
-    const chars = new Set([' ', '\t', '\n', '\r', '-', '_', '.', ',', '/', '\\', '|', '*', '~', '(', ')', '+', '=', ':', ';', '!', '#']);
+    const chars = new Set([' ', '\t', '\n', '\r', '-', '_', '.', ',', '/', '\\', '|', '*', '~', '(', ')', '+', '=', ':', ';', '!', '#', '^', '%', '&', '<', '>', '`', '"', "'"]);
     let res = '';
     for (let i = 0; i < text.length; i++) {
         const c = text[i];
@@ -202,6 +228,23 @@ export function detectPhoneNumber(text) {
         return true;
     }
 
+    // 6. Digits mixed with letters (e.g. "98abc76543210" or "98xx76543210")
+    // Detects when user injects alphabetic noise into a 10-digit mobile number
+    const mixedPattern = /\b([a-z0-9_-]{10,25})\b/gi;
+    let mixedMatch;
+    while ((mixedMatch = mixedPattern.exec(norm)) !== null) {
+        const rawToken = mixedMatch[1];
+        // Exclude system identifiers, orders, RFQs, SKUs
+        if (/^(?:ord|sku|inv|po|pr|item|ref|req|tr|order|rfq)[-_0-9]/i.test(rawToken)) continue;
+        const digitsOnly = rawToken.replace(/\D/g, '');
+        if (digitsOnly.length === 10 && /^[6-9]\d{9}$/.test(digitsOnly)) {
+            const letterCount = rawToken.replace(/[^a-z]/gi, '').length;
+            if (letterCount > 0 && letterCount <= 6) {
+                return true;
+            }
+        }
+    }
+
     return false;
 }
 
@@ -230,10 +273,14 @@ const UPI_HANDLE_REGEX = new RegExp(
 
 /**
  * Detects UPI IDs (e.g., "abc@ybl", "name@okaxis").
- * Handles obfuscation: "abc @ ybl", "abc(at)ybl"
+ * Handles obfuscation: "abc @ ybl", "abc(at)ybl", "abc at ybl", "abc dot bank at ybl"
  */
 export function detectUPI(text) {
-    const norm = normalizeText(text);
+    let norm = normalizeText(text);
+    // Convert "user at ybl" -> "user@ybl"
+    norm = norm.replace(/([a-z0-9._-]+)\s*(?:\(at\)|\[at\]|\{at\}|\bat\b)\s*([a-z0-9._-]+)/gi, '$1@$2');
+    norm = norm.replace(/([a-z0-9._-]+)\s*(?:\(dot\)|\[dot\]|\{dot\}|\bdot\b)\s*([a-z0-9._-]+)/gi, '$1.$2');
+
     // Also check collapsed form (e.g., "abc @ ybl" → "abc@ybl")
     const noSpaceAroundAt = norm.replace(/\s*@\s*/g, '@');
     return UPI_HANDLE_REGEX.test(noSpaceAroundAt);
@@ -583,38 +630,85 @@ export function checkMultiMessageEvasion(currentText, recentMessages = []) {
         return { action: MODERATION_ACTION.ALLOW, category: null, reason: 'none', userMessage: '' };
     }
 
-    // Evaluate combination of recent messages + current message
-    const combined = messages.slice(-2).concat(currentText).join(' ');
-    const combinedTight = messages.slice(-2).concat(currentText).join('');
+    // Use up to the last 9 recent messages plus currentText (analysis window of up to 10 messages)
+    const windowSlice = messages.slice(-9);
+    const allMessages = [...windowSlice, currentText];
 
-    // Check phone number on combined
-    if (detectPhoneNumber(combined) || detectPhoneNumber(combinedTight)) {
-        return {
-            action:      MODERATION_ACTION.BLOCK,
-            category:    MODERATION_CATEGORY.PHONE_NUMBER,
-            reason:      'Split phone number detected across messages',
-            userMessage: USER_MESSAGES[MODERATION_CATEGORY.PHONE_NUMBER],
-        };
+    // 1. Sliding sub-window check (evaluating windows of 2, 3, 4, ... up to 10 messages)
+    for (let w = 2; w <= allMessages.length; w++) {
+        const sub = allMessages.slice(-w);
+        const subJoined = sub.join(' ');
+        const subTight = sub.join('');
+
+        // Check phone number on combined subwindow
+        if (detectPhoneNumber(subJoined) || detectPhoneNumber(subTight)) {
+            return {
+                action:      MODERATION_ACTION.BLOCK,
+                category:    MODERATION_CATEGORY.PHONE_NUMBER,
+                reason:      `Split phone number detected across ${w} messages`,
+                userMessage: USER_MESSAGES[MODERATION_CATEGORY.PHONE_NUMBER],
+            };
+        }
+
+        // Check email on combined subwindow
+        if (detectEmail(subJoined) || detectEmail(subTight)) {
+            return {
+                action:      MODERATION_ACTION.BLOCK,
+                category:    MODERATION_CATEGORY.EMAIL,
+                reason:      `Split email address detected across ${w} messages`,
+                userMessage: USER_MESSAGES[MODERATION_CATEGORY.EMAIL],
+            };
+        }
+
+        // Check UPI on combined subwindow
+        if (detectUPI(subJoined) || detectUPI(subTight)) {
+            return {
+                action:      MODERATION_ACTION.BLOCK,
+                category:    MODERATION_CATEGORY.UPI_ID,
+                reason:      `Split UPI handle detected across ${w} messages`,
+                userMessage: USER_MESSAGES[MODERATION_CATEGORY.UPI_ID],
+            };
+        }
+
+        // Check bank details on combined subwindow
+        const bankCheck = detectBankDetails(subJoined);
+        if (bankCheck.found) {
+            return {
+                action:      MODERATION_ACTION.BLOCK,
+                category:    bankCheck.category,
+                reason:      `Split bank details detected across ${w} messages`,
+                userMessage: USER_MESSAGES[bankCheck.category],
+            };
+        }
     }
 
-    // Check email on combined
-    if (detectEmail(combined) || detectEmail(combinedTight)) {
-        return {
-            action:      MODERATION_ACTION.BLOCK,
-            category:    MODERATION_CATEGORY.EMAIL,
-            reason:      'Split email address detected across messages',
-            userMessage: USER_MESSAGES[MODERATION_CATEGORY.EMAIL],
-        };
-    }
+    // 2. Fragmented single/double digit stream detection (e.g., '9', '8', '7', '6', '5', '4', '3', '2', '1', '0' or '98','76','54','32','10')
+    const digitExtracts = allMessages.map(m => {
+        const norm = normalizeText(m);
+        // Exclude messages that have explicit unit tags like "2 kg", "500 gram", "₹50"
+        if (PRODUCT_CONTEXT_BEFORE.test(norm) || PRODUCT_CONTEXT_AFTER.test(norm)) {
+            return '';
+        }
+        return norm.replace(/\D/g, '');
+    });
 
-    // Check UPI on combined
-    if (detectUPI(combined) || detectUPI(combinedTight)) {
-        return {
-            action:      MODERATION_ACTION.BLOCK,
-            category:    MODERATION_CATEGORY.UPI_ID,
-            reason:      'Split UPI handle detected across messages',
-            userMessage: USER_MESSAGES[MODERATION_CATEGORY.UPI_ID],
-        };
+    const concatenatedDigits = digitExtracts.join('');
+    const phoneInDigits = /(?:(?:\+91|91|0))?([6-9]\d{9})/.exec(concatenatedDigits);
+    if (phoneInDigits) {
+        // Confirm this was built from short fragmented messages (average length <= 6)
+        // to avoid false positives on large independent product queries
+        const activeMessages = allMessages.filter(m => m.trim().length > 0);
+        const shortCount = activeMessages.filter(m => m.trim().length <= 6).length;
+        const hasContactIntent = allMessages.some(m => CONTACT_CONTEXT_BEFORE.test(normalizeText(m)) || /\b(?:call|ph|mob|contact|whatsapp|number)\b/i.test(m));
+
+        if (shortCount >= 3 || hasContactIntent) {
+            return {
+                action:      MODERATION_ACTION.BLOCK,
+                category:    MODERATION_CATEGORY.PHONE_NUMBER,
+                reason:      'Fragmented phone number stream detected across messages',
+                userMessage: USER_MESSAGES[MODERATION_CATEGORY.PHONE_NUMBER],
+            };
+        }
     }
 
     return { action: MODERATION_ACTION.ALLOW, category: null, reason: 'ok', userMessage: '' };

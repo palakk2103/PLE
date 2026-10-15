@@ -1,11 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, Link } from 'react-router-dom';
+import { FiAlertTriangle } from 'react-icons/fi';
 import B2BSidebar from './B2BSidebar';
 import B2BHeader from './B2BHeader';
+import { useB2BAdminStore } from '../../store/b2bAdminStore';
 
 const B2BDashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const location = useLocation();
+  const { companyProfile, fetchCompanyProfile } = useB2BAdminStore();
+
+  useEffect(() => {
+    if (!companyProfile) {
+      fetchCompanyProfile();
+    }
+  }, [companyProfile, fetchCompanyProfile]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -43,6 +53,19 @@ const B2BDashboardLayout = () => {
         <div className="print:hidden">
           <B2BHeader toggleSidebar={toggleSidebar} />
         </div>
+
+        {/* Resubmission Alert Banner */}
+        {companyProfile?.verificationStatus === 'Resubmission Required' && location.pathname !== '/b2b-dashboard/legal-documents' && (
+          <div className="bg-amber-400 text-amber-950 px-4 py-2.5 font-bold text-xs sm:text-sm flex items-center justify-between shadow-sm z-30 shrink-0">
+            <div className="flex items-center gap-2">
+              <FiAlertTriangle className="text-lg shrink-0" />
+              <span>Action Required: Administrator requested document re-upload. Verification is currently pending your submission.</span>
+            </div>
+            <Link to="/b2b-dashboard/legal-documents" className="underline hover:text-black font-extrabold shrink-0 ml-4">
+              Go to Legal Documents &rarr;
+            </Link>
+          </div>
+        )}
 
         {/* Main section */}
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-[#0A0A0A] p-4 lg:p-6 transition-colors duration-200">

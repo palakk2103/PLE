@@ -3,6 +3,7 @@ import {
     getAllB2BUsers,
     getB2BUserDetail,
     updateB2BUserStatus,
+    requestDocumentResubmission,
     deleteB2BUser,
     getB2BAnalytics
 } from '../controllers/b2bUser.controller.js';
@@ -26,6 +27,7 @@ router.get('/analytics', getB2BAnalytics);
 router.get('/', getAllB2BUsers);
 router.get('/:id', getB2BUserDetail);
 router.patch('/:id/status', updateB2BUserStatus);
+router.post('/:id/request-resubmit', requestDocumentResubmission);
 router.delete('/:id', deleteB2BUser);
 
 export default router;

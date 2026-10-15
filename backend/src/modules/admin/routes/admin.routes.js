@@ -352,6 +352,14 @@ router.get('/ple-shop/threads/:id/messages', ...adminAuth, pleShopChatController
 router.post('/ple-shop/threads/:id/messages', ...adminAuth, pleShopChatController.sendPLEShopMessage);
 router.patch('/ple-shop/threads/:id/read', ...adminAuth, pleShopChatController.markPLEShopRead);
 
+// ─── Unified Admin Chat Hub (Role-Based) Routes ───────────────────────────────
+import * as adminChatHubController from '../controllers/adminChatHub.controller.js';
+router.get('/chat-hub/stats', ...adminAuth, adminChatHubController.getAdminChatStats);
+router.get('/chat-hub/threads', ...adminAuth, adminChatHubController.getAdminChatThreads);
+router.get('/chat-hub/threads/:threadId/messages', ...adminAuth, adminChatHubController.getAdminChatMessages);
+router.post('/chat-hub/threads/:threadId/messages', ...adminAuth, adminChatHubController.sendAdminChatMessage);
+router.patch('/chat-hub/threads/:threadId/read', ...adminAuth, adminChatHubController.markAdminChatRead);
+
 // ─── Admin Managed Vendor Chat Routes ──────────────────────────────────────────
 import * as adminManagedVendorChatController from '../controllers/adminManagedVendorChat.controller.js';
 router.get('/managed-vendor-chat/threads', ...adminAuth, adminManagedVendorChatController.getAdminManagedVendorThreads);

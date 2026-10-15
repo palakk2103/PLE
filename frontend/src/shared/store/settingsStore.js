@@ -183,7 +183,7 @@ export const useSettingsStore = create(
                 email: { ...defaultSettings.email, ...(parsed.email || {}) },
                 notifications: { ...defaultSettings.notifications, ...(parsed.notifications || {}) },
                 seo: { ...defaultSettings.seo, ...(parsed.seo || {}) },
-                theme: { ...defaultSettings.theme, ...(parsed.theme || {}) },
+                theme: { ...defaultSettings.theme },
               };
             }
           }
@@ -192,13 +192,9 @@ export const useSettingsStore = create(
         }
 
         set({ settings: loadedSettings });
-        if (loadedSettings.theme) {
-          try {
-            applyThemeToDom(loadedSettings.theme);
-          } catch (e) {
-            console.warn("Failed to apply initial theme to DOM", e);
-          }
-        }
+        try {
+          applyThemeToDom();
+        } catch (_) {}
 
         try {
           localStorage.setItem(
@@ -206,31 +202,6 @@ export const useSettingsStore = create(
             JSON.stringify(loadedSettings)
           );
         } catch (_) {}
-        
-        // 1. Public theme sync from backend (accessible by all users/guests)
-        try {
-          const themeRes = await api.get('/settings/theme');
-          if (themeRes?.data && typeof themeRes.data === 'object') {
-            const backendTheme = themeRes.data;
-            set((state) => {
-              const updatedTheme = {
-                ...state.settings.theme,
-                ...backendTheme,
-              };
-              const updated = {
-                ...state.settings,
-                theme: updatedTheme,
-              };
-              try {
-                localStorage.setItem("admin-settings", JSON.stringify(updated));
-              } catch (_) {}
-              applyThemeToDom(updatedTheme);
-              return { settings: updated };
-            });
-          }
-        } catch (error) {
-          console.debug("Public theme sync bypassed or unavailable:", error.message);
-        }
 
         // 2. Async fetch from backend to sync admin general settings
         try {
@@ -281,9 +252,6 @@ export const useSettingsStore = create(
           
           if (category === 'general') {
             await api.put('/admin/settings/general', updatedSettings.general);
-          } else if (category === 'theme') {
-            await api.put('/admin/settings/theme', updatedSettings.theme);
-            applyThemeToDom(updatedSettings.theme);
           }
           
           set({ settings: updatedSettings, isLoading: false });
@@ -293,10 +261,6 @@ export const useSettingsStore = create(
               JSON.stringify(updatedSettings)
             );
           } catch (_) {}
-
-          if (category === 'theme') {
-            applyThemeToDom(updatedSettings.theme);
-          }
 
           toast.success("Settings updated successfully");
           return updatedSettings;

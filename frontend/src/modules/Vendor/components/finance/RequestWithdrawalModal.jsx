@@ -22,6 +22,15 @@ const RequestWithdrawalModal = ({ isOpen, onClose, walletData, onWithdrawalSucce
     e.preventDefault();
     const numAmount = parseFloat(amount);
 
+    if (!hasBank) {
+      toast.error("Please add your bank details or UPI ID first.");
+      if (onOpenBankModal) onOpenBankModal();
+      return;
+    }
+    if (available < minAmount) {
+      toast.error(`Withdrawal ke liye aapke wallet me minimum ${formatPrice(minAmount)} available balance hona chahiye. Current available: ${formatPrice(available)}.`);
+      return;
+    }
     if (isNaN(numAmount) || numAmount <= 0) {
       toast.error("Please enter a valid withdrawal amount.");
       return;
@@ -31,11 +40,7 @@ const RequestWithdrawalModal = ({ isOpen, onClose, walletData, onWithdrawalSucce
       return;
     }
     if (numAmount > available) {
-      toast.error(`Amount exceeds your available balance of ${formatPrice(available)}.`);
-      return;
-    }
-    if (!hasBank) {
-      toast.error("Please add your bank details or UPI ID first.");
+      toast.error(`Entered amount (${formatPrice(numAmount)}) exceeds your available balance (${formatPrice(available)}).`);
       return;
     }
 
@@ -83,6 +88,30 @@ const RequestWithdrawalModal = ({ isOpen, onClose, walletData, onWithdrawalSucce
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 space-y-5">
+            {/* Bank Missing Alert Callout */}
+            {!hasBank && (
+              <div className="p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-xl flex items-start justify-between gap-3 text-xs text-amber-900 dark:text-amber-200">
+                <div className="flex items-start gap-2.5">
+                  <FiAlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold">Bank Details Missing</p>
+                    <p className="text-amber-800/80 dark:text-amber-300/80 mt-0.5">
+                      Aap withdraw isliye nahi kar pa rahe kyunki aapne payout ke liye Bank Account ya UPI ID save nahi ki hai.
+                    </p>
+                  </div>
+                </div>
+                {onOpenBankModal && (
+                  <button
+                    type="button"
+                    onClick={onOpenBankModal}
+                    className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg whitespace-nowrap transition-colors flex-shrink-0 cursor-pointer"
+                  >
+                    Add Bank Now
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* Available Balance Preview */}
             <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/20">
               <div className="flex items-center justify-between">
@@ -168,8 +197,6 @@ const RequestWithdrawalModal = ({ isOpen, onClose, walletData, onWithdrawalSucce
                 <input
                   type="number"
                   step="0.01"
-                  min={minAmount}
-                  max={Math.min(available, maxAmount)}
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder={`e.g. ${minAmount}`}
@@ -222,20 +249,31 @@ const RequestWithdrawalModal = ({ isOpen, onClose, walletData, onWithdrawalSucce
               >
                 Cancel
               </button>
-              <button
-                type="submit"
-                disabled={isSubmitting || !hasBank || available < minAmount}
-                className="px-5 py-2.5 text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-lg shadow-purple-600/20 transition-all flex items-center gap-2"
-              >
-                {isSubmitting ? (
-                  <>
-                    <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Submitting...
-                  </>
-                ) : (
-                  "Confirm Withdrawal"
-                )}
-              </button>
+              {!hasBank && onOpenBankModal ? (
+                <button
+                  type="button"
+                  onClick={onOpenBankModal}
+                  className="px-5 py-2.5 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-lg shadow-amber-600/20 transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <FiCreditCard className="w-4 h-4" />
+                  <span>Setup Bank Details First</span>
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-5 py-2.5 text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-lg shadow-purple-600/20 transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    "Confirm Withdrawal"
+                  )}
+                </button>
+              )}
             </div>
           </form>
         </motion.div>

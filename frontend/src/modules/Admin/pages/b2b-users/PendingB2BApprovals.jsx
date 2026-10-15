@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiSearch, FiEye, FiCheckCircle, FiXCircle } from "react-icons/fi";
+import { FiSearch, FiEye, FiCheckCircle, FiXCircle, FiRefreshCw, FiFileText } from "react-icons/fi";
 import { motion } from "framer-motion";
 import DataTable from "../../components/DataTable";
 import ConfirmModal from "../../components/ConfirmModal";
@@ -11,7 +11,7 @@ import { FiDownload } from "react-icons/fi";
 
 const PendingB2BApprovals = () => {
   const navigate = useNavigate();
-  const { b2bUsers, updateB2BUserStatus, initialize } = useB2BUserStore();
+  const { b2bUsers, updateB2BUserStatus, requestDocumentResubmission, initialize } = useB2BUserStore();
 
   const [platformTemplate, setPlatformTemplate] = useState(null);
 
@@ -31,14 +31,18 @@ const PendingB2BApprovals = () => {
   const [selectedUserForDetails, setSelectedUserForDetails] = useState(null);
   const [actionModal, setActionModal] = useState({
     isOpen: false,
-    type: null, // 'approve', 'reject'
+    type: null, // 'approve', 'reject', 'resubmit'
     userId: null,
     companyName: null,
   });
   const [rejectReason, setRejectReason] = useState("");
+  const [resubmitReason, setResubmitReason] = useState("");
+  const [selectedDocs, setSelectedDocs] = useState(["acceptanceExecutionDocument"]);
 
   const pendingUsers = useMemo(() => {
-    let filtered = b2bUsers.filter((u) => u.verificationStatus === "Pending Verification");
+    let filtered = b2bUsers.filter(
+      (u) => u.verificationStatus === "Pending Verification" || u.verificationStatus === "Resubmission Required"
+    );
 
     if (searchQuery) {
       filtered = filtered.filter(
@@ -97,6 +101,25 @@ const PendingB2BApprovals = () => {
       render: (value) => <span className="text-sm text-gray-700 uppercase">{value}</span>,
     },
     {
+      key: "verificationStatus",
+      label: "Status",
+      sortable: true,
+      render: (value, row) => {
+        if (value === "Resubmission Required") {
+          return (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-amber-800 bg-amber-100 rounded-full" title={row.documentResubmitNotes || ''}>
+              <FiRefreshCw className="text-[10px]" /> Re-upload Requested
+            </span>
+          );
+        }
+        return (
+          <span className="inline-flex items-center px-2.5 py-1 text-xs font-semibold text-yellow-800 bg-yellow-100 rounded-full">
+            Pending Approval
+          </span>
+        );
+      },
+    },
+    {
       key: "createdAt",
       label: "Registration Date",
       sortable: true,
@@ -111,7 +134,7 @@ const PendingB2BApprovals = () => {
       label: "Actions",
       sortable: false,
       render: (_, row) => (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -120,6 +143,22 @@ const PendingB2BApprovals = () => {
             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
             title="View Details">
             <FiEye />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setActionModal({
+                isOpen: true,
+                type: "resubmit",
+                userId: row.id || row._id,
+                companyName: row.companyName,
+              });
+              setResubmitReason(row.documentResubmitNotes || "");
+              setSelectedDocs(row.resubmitRequestedDocs?.length ? row.resubmitRequestedDocs : ["acceptanceExecutionDocument"]);
+            }}
+            className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+            title="Request Document Re-upload">
+            <FiRefreshCw />
           </button>
           <button
             onClick={(e) => {
@@ -189,6 +228,30 @@ const PendingB2BApprovals = () => {
     }
   };
 
+  const handleResubmit = async () => {
+    if (!resubmitReason.trim()) {
+      toast.error("Please provide instructions / feedback for re-uploading documents");
+      return;
+    }
+    const success = await requestDocumentResubmission(
+      actionModal.userId,
+      resubmitReason.trim(),
+      selectedDocs
+    );
+    if (success) {
+      toast.success("Document re-upload requested. Email notification sent to user.");
+      setActionModal({
+        isOpen: false,
+        type: null,
+        userId: null,
+        companyName: null,
+      });
+      setResubmitReason("");
+    } else {
+      toast.error("Failed to request document re-upload");
+    }
+  };
+
   const getModalContent = () => {
     if (actionModal.type === "approve") {
       return {
@@ -220,6 +283,58 @@ const PendingB2BApprovals = () => {
             </div>
           ),
         };
+    } else if (actionModal.type === "resubmit") {
+      return {
+        title: "Request Document Re-upload?",
+        message: `Send a document re-upload request to "${actionModal.companyName}". The user will receive an email and can log in to update their documents.`,
+        confirmText: "Send Re-upload Request",
+        onConfirm: handleResubmit,
+        type: "warning",
+        customContent: (
+          <div className="mt-4 space-y-3">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
+                Admin Review Notes / Reason <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={resubmitReason}
+                onChange={(e) => setResubmitReason(e.target.value)}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+                placeholder="E.g., Signature missing on page 2, or uploaded agreement is blur/corrupted..."
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+                Select Documents to Request:
+              </label>
+              <div className="space-y-2 bg-gray-50 p-3 rounded-xl border border-gray-100 text-sm">
+                {[
+                  { key: "acceptanceExecutionDocument", label: "Signed Acceptance & Execution Agreement" },
+                  { key: "gstCertificate", label: "GST Registration Certificate" },
+                  { key: "companyRegistrationProof", label: "Company Incorporation / Registration Proof" }
+                ].map(doc => (
+                  <label key={doc.key} className="flex items-center gap-2 cursor-pointer font-medium text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={selectedDocs.includes(doc.key)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedDocs([...selectedDocs, doc.key]);
+                        } else {
+                          setSelectedDocs(selectedDocs.filter(k => k !== doc.key));
+                        }
+                      }}
+                      className="rounded text-amber-600 focus:ring-amber-500 w-4 h-4"
+                    />
+                    <span>{doc.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        ),
+      };
     }
     return null;
   };
@@ -429,11 +544,27 @@ const PendingB2BApprovals = () => {
                 </div>
               </div>
 
+              {selectedUserForDetails.verificationStatus === "Resubmission Required" && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                  <div className="flex items-center gap-2 text-amber-800 font-bold text-xs uppercase tracking-wider mb-1">
+                    <FiRefreshCw className="animate-spin text-xs" style={{ animationDuration: '4s' }} /> Document Re-upload Requested
+                  </div>
+                  <p className="text-xs text-amber-900 font-medium">{selectedUserForDetails.documentResubmitNotes || 'Re-upload requested by administrator.'}</p>
+                  {selectedUserForDetails.documentResubmitRequestedAt && (
+                    <p className="text-[10px] text-amber-700 mt-1">Requested at: {new Date(selectedUserForDetails.documentResubmitRequestedAt).toLocaleString()}</p>
+                  )}
+                </div>
+              )}
+
               <div className="flex justify-between items-center pt-4 border-t border-gray-100">
                 <div>
                   <span className="text-xs text-gray-500 font-medium mr-2">Status:</span>
-                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
-                    Pending Approval
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                    selectedUserForDetails.verificationStatus === "Resubmission Required"
+                      ? "bg-amber-100 text-amber-800"
+                      : "bg-yellow-100 text-yellow-700"
+                  }`}>
+                    {selectedUserForDetails.verificationStatus === "Resubmission Required" ? "Re-upload Requested" : "Pending Approval"}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -450,6 +581,22 @@ const PendingB2BApprovals = () => {
                     className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-xl font-semibold text-sm transition-all"
                   >
                     Reject
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setActionModal({
+                        isOpen: true,
+                        type: "resubmit",
+                        userId: selectedUserForDetails.id || selectedUserForDetails._id,
+                        companyName: selectedUserForDetails.companyName,
+                      });
+                      setResubmitReason(selectedUserForDetails.documentResubmitNotes || "");
+                      setSelectedDocs(selectedUserForDetails.resubmitRequestedDocs?.length ? selectedUserForDetails.resubmitRequestedDocs : ["acceptanceExecutionDocument"]);
+                      setSelectedUserForDetails(null);
+                    }} 
+                    className="px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-xl font-semibold text-sm transition-all flex items-center gap-1.5"
+                  >
+                    <FiRefreshCw className="text-xs" /> Request Re-upload
                   </button>
                   <button 
                     onClick={() => {

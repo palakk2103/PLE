@@ -10,6 +10,7 @@ import {
   FiAlertCircle,
   FiEye,
   FiRefreshCw,
+  FiCopy,
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import Badge from "../../../../shared/components/Badge";
@@ -71,6 +72,12 @@ const AdminVendorWithdrawals = () => {
   useEffect(() => {
     fetchWithdrawals(1);
   }, [fetchWithdrawals]);
+
+  const copyToClipboard = (text, label) => {
+    if (!text || text === "—") return;
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} copied to clipboard!`);
+  };
 
   const handleOpenDetail = async (item) => {
     setSelectedWithdrawal(item);
@@ -411,22 +418,58 @@ const AdminVendorWithdrawals = () => {
                       </strong>
                     </div>
                     <div className="col-span-2">
-                      <span className="text-gray-400 block">Account Number (Authorized Admin View):</span>
-                      <span className="font-mono font-bold text-sm text-purple-700 dark:text-purple-300 bg-purple-100/50 dark:bg-purple-900/30 px-2 py-0.5 rounded">
-                        {withdrawalDetail?.vendorBankDetails?.accountNumber || selectedWithdrawal?.bankDetailsSnapshot?.maskedAccountNumber || "—"}
-                      </span>
+                      <span className="text-gray-400 block mb-0.5">Account Number (Authorized Admin View):</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-sm text-purple-700 dark:text-purple-300 bg-purple-100/50 dark:bg-purple-900/30 px-2 py-0.5 rounded select-all">
+                          {withdrawalDetail?.vendorBankDetails?.accountNumber || selectedWithdrawal?.bankDetailsSnapshot?.accountNumber || selectedWithdrawal?.bankDetailsSnapshot?.maskedAccountNumber || "—"}
+                        </span>
+                        {(withdrawalDetail?.vendorBankDetails?.accountNumber || selectedWithdrawal?.bankDetailsSnapshot?.accountNumber) && (
+                          <button
+                            type="button"
+                            onClick={() => copyToClipboard(withdrawalDetail?.vendorBankDetails?.accountNumber || selectedWithdrawal?.bankDetailsSnapshot?.accountNumber, "Account Number")}
+                            title="Copy Account Number"
+                            className="p-1 text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                          >
+                            <FiCopy className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                     <div>
-                      <span className="text-gray-400 block">IFSC Code:</span>
-                      <span className="font-mono font-bold">
-                        {withdrawalDetail?.vendorBankDetails?.ifscCode || selectedWithdrawal?.bankDetailsSnapshot?.ifscCode || "—"}
-                      </span>
+                      <span className="text-gray-400 block mb-0.5">IFSC Code:</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono font-bold select-all">
+                          {withdrawalDetail?.vendorBankDetails?.ifscCode || selectedWithdrawal?.bankDetailsSnapshot?.ifscCode || "—"}
+                        </span>
+                        {(withdrawalDetail?.vendorBankDetails?.ifscCode || selectedWithdrawal?.bankDetailsSnapshot?.ifscCode) && (
+                          <button
+                            type="button"
+                            onClick={() => copyToClipboard(withdrawalDetail?.vendorBankDetails?.ifscCode || selectedWithdrawal?.bankDetailsSnapshot?.ifscCode, "IFSC Code")}
+                            title="Copy IFSC Code"
+                            className="p-1 text-gray-400 hover:text-purple-600 transition-colors"
+                          >
+                            <FiCopy className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                     <div>
-                      <span className="text-gray-400 block">UPI ID:</span>
-                      <span className="font-mono">
-                        {withdrawalDetail?.vendorBankDetails?.upiId || selectedWithdrawal?.bankDetailsSnapshot?.upiId || "—"}
-                      </span>
+                      <span className="text-gray-400 block mb-0.5">UPI ID:</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono select-all">
+                          {withdrawalDetail?.vendorBankDetails?.upiId || selectedWithdrawal?.bankDetailsSnapshot?.upiId || "—"}
+                        </span>
+                        {(withdrawalDetail?.vendorBankDetails?.upiId || selectedWithdrawal?.bankDetailsSnapshot?.upiId) && (
+                          <button
+                            type="button"
+                            onClick={() => copyToClipboard(withdrawalDetail?.vendorBankDetails?.upiId || selectedWithdrawal?.bankDetailsSnapshot?.upiId, "UPI ID")}
+                            title="Copy UPI ID"
+                            className="p-1 text-gray-400 hover:text-purple-600 transition-colors"
+                          >
+                            <FiCopy className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

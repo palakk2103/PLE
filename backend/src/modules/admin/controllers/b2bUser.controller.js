@@ -19,9 +19,10 @@ export const getAllB2BUsers = asyncHandler(async (req, res) => {
     const filter = {};
 
     if (status && status !== 'all') {
-        if (status === 'pending') filter.verificationStatus = 'Pending Verification';
+        if (status === 'pending') filter.verificationStatus = { $in: ['Pending Verification', 'Resubmission Required'] };
         else if (status === 'approved') filter.verificationStatus = 'Approved';
         else if (status === 'rejected') filter.verificationStatus = 'Rejected';
+        else if (status === 'resubmission_required') filter.verificationStatus = 'Resubmission Required';
     }
 
     const trimmedSearch = String(search || '').trim();
@@ -99,10 +100,15 @@ export const updateB2BUserStatus = asyncHandler(async (req, res) => {
         return res.status(200).json(new ApiResponse(200, company, `Company status updated to ${nextStatus}.`));
     }
     
+    // Check if status is resubmission_required
+    if (['resubmission_required', 'request_resubmit', 'resubmit'].includes(normalized)) {
+        return requestDocumentResubmission(req, res);
+    }
+    
     let dbStatus;
     if (normalized === 'approved') dbStatus = 'Approved';
     else if (normalized === 'rejected') dbStatus = 'Rejected';
-    else throw new ApiError(400, `Status must be one of: approved, rejected, active, inactive`);
+    else throw new ApiError(400, `Status must be one of: approved, rejected, resubmission_required, active, inactive`);
 
     // Fetch current company first to check if already rejected
     const currentCompany = await B2BCompany.findById(req.params.id);
@@ -161,6 +167,91 @@ export const updateB2BUserStatus = asyncHandler(async (req, res) => {
     }
 
     res.status(200).json(new ApiResponse(200, company, `B2B User ${status} successfully.`));
+});
+
+// POST /api/admin/b2b-users/:id/request-resubmit
+export const requestDocumentResubmission = asyncHandler(async (req, res) => {
+    const { reason, requestedDocs = [] } = req.body;
+    if (!reason || !reason.trim()) {
+        throw new ApiError(400, 'Please provide a reason or note specifying why documents need to be re-uploaded.');
+    }
+
+    const currentCompany = await B2BCompany.findById(req.params.id);
+    if (!currentCompany) throw new ApiError(404, 'B2B Company not found.');
+
+    if (currentCompany.verificationStatus === 'Rejected') {
+        throw new ApiError(400, 'Cannot request re-upload for a permanently rejected B2B User.');
+    }
+
+    const company = await B2BCompany.findByIdAndUpdate(
+        req.params.id,
+        {
+            verificationStatus: 'Resubmission Required',
+            documentResubmitNotes: reason.trim(),
+            documentResubmitRequestedAt: new Date(),
+            resubmitRequestedDocs: Array.isArray(requestedDocs) ? requestedDocs : []
+        },
+        { new: true }
+    );
+
+    const admin = await User.findOne({ companyId: company._id, role: 'b2bAdmin' });
+    const targetEmail = admin ? admin.email : company.businessEmail;
+    const targetName = admin ? admin.name : company.companyName;
+
+    // Build document list for email
+    const docLabels = {
+        acceptanceExecutionDocument: 'Signed Acceptance & Execution Agreement',
+        gstCertificate: 'GST Registration Certificate',
+        companyRegistrationProof: 'Company Incorporation / Registration Proof'
+    };
+
+    const docItemsHtml = company.resubmitRequestedDocs && company.resubmitRequestedDocs.length > 0
+        ? `<ul>${company.resubmitRequestedDocs.map(k => `<li><strong>${docLabels[k] || k}</strong></li>`).join('')}</ul>`
+        : '<p>Please review and re-upload your business registration documents.</p>';
+
+    const loginUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/login`;
+
+    const emailSubject = 'Action Required: Please Re-upload Documents for B2B Registration';
+    const emailMessage = `
+        <h2>Action Required: Document Re-upload</h2>
+        <p>Dear ${targetName},</p>
+        <p>Thank you for registering <strong>${company.companyName}</strong> on our B2B platform.</p>
+        <p>During our compliance verification review, our administration team noted that some documents need to be re-uploaded before your account can be approved.</p>
+        
+        <div style="background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 12px 16px; margin: 16px 0; border-radius: 6px;">
+            <p style="margin: 0; color: #92400e; font-weight: bold;">Admin Review Notes:</p>
+            <p style="margin: 6px 0 0; color: #78350f;">${reason.trim()}</p>
+        </div>
+
+        <p><strong>Documents to Re-upload:</strong></p>
+        ${docItemsHtml}
+
+        <p><strong>Next Steps:</strong></p>
+        <p>Please log in to your account with your registered admin email (${targetEmail}) and password. You will be prompted to re-upload the requested documents in the Legal Documents section.</p>
+        
+        <div style="margin: 20px 0;">
+            <a href="${loginUrl}" style="background-color: #2563eb; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+                Log In & Re-upload Documents
+            </a>
+        </div>
+        
+        <p>Once re-submitted, our team will review and complete your verification promptly.</p>
+        <br/>
+        <p>Best regards,<br/>The B2B Platform Team</p>
+    `;
+
+    try {
+        await sendEmail({
+            to: targetEmail,
+            subject: emailSubject,
+            text: emailMessage.replace(/<[^>]+>/g, ''),
+            html: emailMessage,
+        });
+    } catch (err) {
+        console.warn(`B2B resubmission email sending failed: ${err.message}`);
+    }
+
+    res.status(200).json(new ApiResponse(200, company, 'Document re-upload requested successfully.'));
 });
 
 // DELETE /api/admin/b2b-users/:id

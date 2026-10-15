@@ -258,6 +258,161 @@ const autoSeedB2B = async () => {
   }
 };
 
+const autoSeedChatThreads = async () => {
+  try {
+    const { VendorChatThread } = await import('../models/VendorChatThread.model.js');
+    const { VendorChatMessage } = await import('../models/VendorChatMessage.model.js');
+    const { Vendor } = await import('../models/Vendor.model.js');
+    const User = (await import('../models/User.model.js')).default;
+
+    const count = await VendorChatThread.countDocuments();
+    if (count > 0) return;
+
+    const vendor = await Vendor.findOne({ email: 'vendor@vendor.com' });
+    if (!vendor) return;
+
+    // 1. Retail Customer
+    let customer = await User.findOne({ email: 'customer@example.com' });
+    if (!customer) {
+      customer = await User.create({
+        name: 'Rahul Verma',
+        email: 'customer@example.com',
+        phone: '9876543201',
+        password: 'password123',
+        role: 'customer',
+        isVerified: true,
+        isActive: true,
+      });
+    }
+
+    // 2. B2B Users
+    const b2bAdmin = await User.findOne({ email: 'sarkarraj0766@gmail.com' });
+    const novaUser = await User.findOne({ email: 'admin@novahealth.in' });
+
+    // Seed B2B Thread 1 (Apex General Enterprises)
+    if (b2bAdmin) {
+      const b2bThread = await VendorChatThread.create({
+        vendorId: vendor._id,
+        customerUserId: b2bAdmin._id,
+        customerName: 'Apex General Enterprises',
+        customerEmail: b2bAdmin.email,
+        customerPhone: b2bAdmin.phone || '9876543210',
+        lastMessage: 'Can you share the wholesale quotation for 500 units of cotton shirts?',
+        lastActivity: new Date(),
+        unreadCount: 1,
+        status: 'active',
+      });
+
+      await VendorChatMessage.create([
+        {
+          threadId: b2bThread._id,
+          senderType: 'customer',
+          senderId: b2bAdmin._id,
+          message: 'Hello Fashion Hub team, we are looking for a bulk supply of 500 premium shirts for our corporate requirement.',
+          createdAt: new Date(Date.now() - 3600000),
+        },
+        {
+          threadId: b2bThread._id,
+          senderType: 'vendor',
+          senderId: vendor._id,
+          message: 'Hello Apex team! Yes, we can supply this. Our wholesale rate for 500+ units is ₹380 per unit with 7 days delivery.',
+          createdAt: new Date(Date.now() - 1800000),
+        },
+        {
+          threadId: b2bThread._id,
+          senderType: 'customer',
+          senderId: b2bAdmin._id,
+          message: 'Can you share the wholesale quotation for 500 units of cotton shirts?',
+          createdAt: new Date(),
+        },
+      ]);
+    }
+
+    // Seed B2B Thread 2 (Nova Healthcare Pvt Ltd)
+    if (novaUser) {
+      const novaThread = await VendorChatThread.create({
+        vendorId: vendor._id,
+        customerUserId: novaUser._id,
+        customerName: 'Nova Healthcare Pvt Ltd',
+        customerEmail: novaUser.email,
+        customerPhone: novaUser.phone || '9822011223',
+        lastMessage: 'Please provide GST tax invoice terms for bulk surgical masks & scrubs.',
+        lastActivity: new Date(Date.now() - 7200000),
+        unreadCount: 0,
+        status: 'active',
+      });
+
+      await VendorChatMessage.create([
+        {
+          threadId: novaThread._id,
+          senderType: 'customer',
+          senderId: novaUser._id,
+          message: 'Hi, we need to order monthly bulk supplies of hospital linen and uniforms.',
+          createdAt: new Date(Date.now() - 10800000),
+        },
+        {
+          threadId: novaThread._id,
+          senderType: 'vendor',
+          senderId: vendor._id,
+          message: 'We provide specialized medical fabrics. What are your specific specifications?',
+          createdAt: new Date(Date.now() - 9000000),
+        },
+        {
+          threadId: novaThread._id,
+          senderType: 'customer',
+          senderId: novaUser._id,
+          message: 'Please provide GST tax invoice terms for bulk surgical masks & scrubs.',
+          createdAt: new Date(Date.now() - 7200000),
+        },
+      ]);
+    }
+
+    // Seed Retail Customer Thread 1
+    if (customer) {
+      const custThread = await VendorChatThread.create({
+        vendorId: vendor._id,
+        customerUserId: customer._id,
+        customerName: customer.name,
+        customerEmail: customer.email,
+        customerPhone: customer.phone,
+        orderDisplayId: 'ORD-98231',
+        lastMessage: 'When will my order ORD-98231 be dispatched?',
+        lastActivity: new Date(Date.now() - 2500000),
+        unreadCount: 2,
+        status: 'active',
+      });
+
+      await VendorChatMessage.create([
+        {
+          threadId: custThread._id,
+          senderType: 'customer',
+          senderId: customer._id,
+          message: 'Hi, I placed order #ORD-98231 yesterday. Can I change the delivery address to Mumbai?',
+          createdAt: new Date(Date.now() - 3600000),
+        },
+        {
+          threadId: custThread._id,
+          senderType: 'vendor',
+          senderId: vendor._id,
+          message: 'Hello Rahul, let me verify if the package is already packed by warehouse.',
+          createdAt: new Date(Date.now() - 3000000),
+        },
+        {
+          threadId: custThread._id,
+          senderType: 'customer',
+          senderId: customer._id,
+          message: 'When will my order ORD-98231 be dispatched?',
+          createdAt: new Date(Date.now() - 2500000),
+        },
+      ]);
+    }
+
+    console.log('✅ DATABASE AUTO-SEED SUCCESS: Initial Customer and B2B chat threads created with message history.');
+  } catch (err) {
+    console.error('⚠️ DATABASE AUTO-SEED FAILED for Chat Threads:', err.message);
+  }
+};
+
 
 const autoMigrateCategories = async () => {
   try {
@@ -334,6 +489,7 @@ const connectDB = async () => {
     await autoSeedDeliveryBoy();
     await autoSeedVendor();
     await autoSeedB2B();
+    await autoSeedChatThreads();
     await autoMigrateCategories();
     await autoMigrateProducts();
   } catch (error) {
@@ -382,6 +538,7 @@ to switch back to your persistent remote cluster.
       await autoSeedDeliveryBoy();
       await autoSeedVendor();
       await autoSeedB2B();
+      await autoSeedChatThreads();
       await autoMigrateCategories();
       await autoMigrateProducts();
     } catch (localError) {
@@ -410,6 +567,7 @@ to switch back to your persistent remote cluster.
         await autoSeedDeliveryBoy();
         await autoSeedVendor();
         await autoSeedB2B();
+        await autoSeedChatThreads();
         await autoMigrateCategories();
         await autoMigrateProducts();
       } catch (fallbackError) {

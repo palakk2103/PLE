@@ -215,7 +215,12 @@ export const loginB2BUser = asyncHandler(async (req, res) => {
 
     const b2bCompany = b2bAdmin.companyId;
 
-    if (b2bCompany.verificationStatus !== 'Approved') {
+    if (b2bCompany.verificationStatus === 'Resubmission Required') {
+        if (isEmployee) {
+            throw new ApiError(403, 'Account login restricted. Company registration documents require re-upload by the Company Admin.');
+        }
+        // Allow b2bAdmin to log in so they can re-upload requested documents
+    } else if (b2bCompany.verificationStatus !== 'Approved') {
         throw new ApiError(403, `Account login denied. Company status is: ${b2bCompany.verificationStatus}.`);
     }
 

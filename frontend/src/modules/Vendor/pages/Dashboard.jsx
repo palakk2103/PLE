@@ -8,15 +8,23 @@ import {
   FiTrendingUp,
   FiArrowRight,
   FiBarChart2,
+  FiCreditCard,
+  FiAlertCircle,
 } from "react-icons/fi";
 import { useVendorAuthStore } from "../store/vendorAuthStore";
 import { useVendorProductStore } from "../store/vendorProductStore";
-import { getVendorOrders, getVendorEarnings, getVendorAnalyticsOverview } from "../services/vendorService";
+import {
+  getVendorOrders,
+  getVendorEarnings,
+  getVendorAnalyticsOverview,
+  getVendorFinanceBankDetails,
+} from "../services/vendorService";
 import { formatPrice } from "../../../shared/utils/helpers";
 import RevenueLineChart from "../../Admin/components/Analytics/RevenueLineChart";
 import SalesBarChart from "../../Admin/components/Analytics/SalesBarChart";
 import OrderStatusPieChart from "../../Admin/components/Analytics/OrderStatusPieChart";
 import TimePeriodFilter from "../../Admin/components/Analytics/TimePeriodFilter";
+import BankDetailsModal from "../components/finance/BankDetailsModal";
 
 const VendorDashboard = () => {
   const navigate = useNavigate();
@@ -39,8 +47,60 @@ const VendorDashboard = () => {
   const [analyticsData, setAnalyticsData] = useState([]);
   const [statusData, setStatusData] = useState([]);
   const [isAnalyticsLoading, setIsAnalyticsLoading] = useState(false);
+  const [hasBankConfigured, setHasBankConfigured] = useState(null);
+  const [isBankModalOpen, setIsBankModalOpen] = useState(false);
 
   const vendorId = vendor?.id || vendor?._id;
+
+  const loadDashboardData = async () => {
+    setIsLoading(true);
+    try {
+      // Fetch orders, earnings, and bank configuration in parallel
+      const [ordersRes, earningsRes, pendingRes, processingRes, bankRes] = await Promise.all([
+        getVendorOrders({ page: 1, limit: 5 }),
+        getVendorEarnings(),
+        getVendorOrders({ page: 1, limit: 1, status: "pending" }),
+        getVendorOrders({ page: 1, limit: 1, status: "processing" }),
+        getVendorFinanceBankDetails().catch(() => null),
+      ]);
+
+      const ordersData = ordersRes?.data ?? ordersRes;
+      const earningsData = earningsRes?.data ?? earningsRes;
+      const pendingData = pendingRes?.data ?? pendingRes;
+      const processingData = processingRes?.data ?? processingRes;
+
+      const orders = ordersData?.orders ?? [];
+      const summary = earningsData?.summary ?? {};
+      const pending =
+        Number(pendingData?.total || 0) + Number(processingData?.total || 0);
+
+      setStats((prev) => ({
+        ...prev,
+        totalOrders: ordersData?.total ?? orders.length,
+        pendingOrders: pending,
+        totalEarnings: summary.totalEarnings ?? 0,
+        pendingEarnings: summary.pendingEarnings ?? 0,
+      }));
+
+      setRecentOrders(orders);
+
+      if (bankRes) {
+        const bankData = bankRes?.data ?? bankRes;
+        setHasBankConfigured(Boolean(bankData?.hasConfiguredBank));
+      } else {
+        const authBank = vendor?.bankDetails;
+        const hasAuthBank = Boolean((authBank?.accountNumber && authBank?.ifscCode) || authBank?.upiId || vendor?.upiId);
+        setHasBankConfigured(hasAuthBank);
+      }
+    } catch {
+      const authBank = vendor?.bankDetails;
+      const hasAuthBank = Boolean((authBank?.accountNumber && authBank?.ifscCode) || authBank?.upiId || vendor?.upiId);
+      setHasBankConfigured(hasAuthBank);
+    } finally {
+      setIsLoading(false);
+      setHasBankConfigured((prev) => (prev === null ? false : prev));
+    }
+  };
 
   useEffect(() => {
     if (!vendorId) return;
@@ -49,43 +109,6 @@ const VendorDashboard = () => {
     if (products.length === 0) {
       fetchProducts();
     }
-
-    const loadDashboardData = async () => {
-      setIsLoading(true);
-      try {
-        // Fetch orders and earnings in parallel
-        const [ordersRes, earningsRes, pendingRes, processingRes] = await Promise.all([
-          getVendorOrders({ page: 1, limit: 5 }),
-          getVendorEarnings(),
-          getVendorOrders({ page: 1, limit: 1, status: "pending" }),
-          getVendorOrders({ page: 1, limit: 1, status: "processing" }),
-        ]);
-
-        const ordersData = ordersRes?.data ?? ordersRes;
-        const earningsData = earningsRes?.data ?? earningsRes;
-        const pendingData = pendingRes?.data ?? pendingRes;
-        const processingData = processingRes?.data ?? processingRes;
-
-        const orders = ordersData?.orders ?? [];
-        const summary = earningsData?.summary ?? {};
-        const pending =
-          Number(pendingData?.total || 0) + Number(processingData?.total || 0);
-
-        setStats((prev) => ({
-          ...prev,
-          totalOrders: ordersData?.total ?? orders.length,
-          pendingOrders: pending,
-          totalEarnings: summary.totalEarnings ?? 0,
-          pendingEarnings: summary.pendingEarnings ?? 0,
-        }));
-
-        setRecentOrders(orders);
-      } catch {
-        // errors handled by api.js toast
-      } finally {
-        setIsLoading(false);
-      }
-    };
 
     loadDashboardData();
   }, [vendorId, fetchProducts, products.length]);
@@ -158,9 +181,10 @@ const VendorDashboard = () => {
         bgColor: "bg-purple-50 dark:bg-purple-950/40 dark:border dark:border-purple-800/40",
         textColor: "text-purple-700 dark:text-purple-300",
         link: "/vendor/earnings",
+        badge: hasBankConfigured === false ? "Bank Missing" : null,
       },
     ];
-  }, [stats]);
+  }, [stats, hasBankConfigured]);
 
   const topProducts = useMemo(() => products.slice(0, 5), [products]);
 
@@ -236,6 +260,54 @@ const VendorDashboard = () => {
         </div>
       )}
 
+      {/* Payout Bank Details Missing Warning Banner */}
+      {hasBankConfigured === false && (
+        <motion.div
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative overflow-hidden rounded-2xl border-2 border-amber-400 dark:border-amber-500/60 bg-gradient-to-r from-amber-50 via-amber-100/40 to-orange-50 dark:from-amber-950/50 dark:via-amber-900/30 dark:to-black/40 p-4 sm:p-5 shadow-lg shadow-amber-500/10"
+        >
+          {/* Subtle pulse accent glow */}
+          <div className="absolute top-0 right-0 -mt-6 -mr-6 w-32 h-32 bg-amber-400/20 dark:bg-amber-400/10 rounded-full blur-2xl pointer-events-none" />
+
+          <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="p-3 bg-amber-500 text-white rounded-xl flex-shrink-0 mt-0.5 shadow-md shadow-amber-500/30">
+                <FiCreditCard className="w-5 h-5 sm:w-6 sm:h-6" />
+              </div>
+              <div className="space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="font-extrabold text-amber-950 dark:text-amber-100 text-sm sm:text-base tracking-tight flex items-center gap-2">
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-600"></span>
+                    </span>
+                    Payout Bank Details Missing — Action Required
+                  </h3>
+                  <span className="px-2.5 py-0.5 text-[10px] font-black bg-amber-200 dark:bg-amber-900/80 text-amber-900 dark:text-amber-200 rounded-full uppercase tracking-wider border border-amber-300 dark:border-amber-700">
+                    Important
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-amber-900/90 dark:text-amber-200/90 leading-relaxed max-w-3xl">
+                  Aapne abhi tak apna <strong>Bank Account Number</strong> ya <strong>UPI ID</strong> add nahi kiya hai. Jab tak bank details add nahi hogi, aap apni total earnings ka payout withdraw nahi kar payenge. Payout delay se bachne ke liye abhi bank details add karein.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 flex-shrink-0 self-start md:self-center">
+              <button
+                onClick={() => setIsBankModalOpen(true)}
+                className="w-full sm:w-auto px-5 py-2.5 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-amber-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <FiCreditCard className="w-4 h-4" />
+                <span>Add Bank Details</span>
+                <FiArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {statCards.map((stat, index) => (
@@ -250,7 +322,15 @@ const VendorDashboard = () => {
               <div className={`${stat.color} p-2.5 sm:p-3 rounded-lg flex-shrink-0`}>
                 <stat.icon className="text-white text-lg sm:text-xl" />
               </div>
-              <FiArrowRight className={`${stat.textColor} text-lg flex-shrink-0`} />
+              <div className="flex items-center gap-1.5">
+                {stat.badge && (
+                  <span className="text-[10px] font-black bg-gradient-to-r from-amber-500 to-rose-500 text-white px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm uppercase tracking-wider animate-pulse">
+                    <FiAlertCircle className="w-2.5 h-2.5" />
+                    {stat.badge}
+                  </span>
+                )}
+                <FiArrowRight className={`${stat.textColor} text-lg flex-shrink-0`} />
+              </div>
             </div>
             <h3 className={`${stat.textColor} text-xs sm:text-sm font-medium mb-1 truncate`}>
               {stat.label}
@@ -542,6 +622,16 @@ const VendorDashboard = () => {
           )}
         </div>
       </div>
+
+      {/* Bank Details Modal */}
+      <BankDetailsModal
+        isOpen={isBankModalOpen}
+        onClose={() => setIsBankModalOpen(false)}
+        onUpdated={() => {
+          setHasBankConfigured(true);
+          loadDashboardData();
+        }}
+      />
     </motion.div>
   );
 };

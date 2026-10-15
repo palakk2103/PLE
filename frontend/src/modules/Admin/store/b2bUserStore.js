@@ -3,6 +3,7 @@ import {
   getAllB2BUsers,
   getB2BUserById,
   updateB2BUserStatus as updateB2BUserStatusApi,
+  requestB2BDocumentResubmission,
   deleteB2BUser as deleteB2BUserApi,
 } from "../services/adminService";
 
@@ -80,9 +81,9 @@ export const useB2BUserStore = create((set, get) => ({
     }
   },
 
-  updateB2BUserStatus: async (id, status, reason = "") => {
+  updateB2BUserStatus: async (id, status, reason = "", requestedDocs = []) => {
     try {
-      const response = await updateB2BUserStatusApi(id, status, reason);
+      const response = await updateB2BUserStatusApi(id, status, reason, requestedDocs);
       const user = normalizeB2BUser(response?.data ?? response);
       if (!user) return false;
 
@@ -90,6 +91,20 @@ export const useB2BUserStore = create((set, get) => ({
       return true;
     } catch {
       console.warn("updateB2BUserStatus API failed");
+      return false;
+    }
+  },
+
+  requestDocumentResubmission: async (id, reason, requestedDocs = []) => {
+    try {
+      const response = await requestB2BDocumentResubmission(id, reason, requestedDocs);
+      const user = normalizeB2BUser(response?.data ?? response);
+      if (!user) return false;
+
+      await get().initialize();
+      return true;
+    } catch {
+      console.warn("requestDocumentResubmission API failed");
       return false;
     }
   },

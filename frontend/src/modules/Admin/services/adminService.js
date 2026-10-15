@@ -377,8 +377,13 @@ export const getB2BUserById = async (id) => {
   return res.data;
 };
 
-export const updateB2BUserStatus = async (id, status, reason) => {
-  const res = await api.patch(`/admin/b2b-users/${id}/status`, { status, reason });
+export const updateB2BUserStatus = async (id, status, reason, requestedDocs) => {
+  const res = await api.patch(`/admin/b2b-users/${id}/status`, { status, reason, requestedDocs });
+  return res.data;
+};
+
+export const requestB2BDocumentResubmission = async (id, reason, requestedDocs = []) => {
+  const res = await api.post(`/admin/b2b-users/${id}/request-resubmit`, { reason, requestedDocs });
   return res.data;
 };
 

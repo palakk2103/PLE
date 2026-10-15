@@ -79,6 +79,7 @@ const PushNotifications = lazy(() => import("../modules/Admin/pages/notification
 const CustomMessages = lazy(() => import("../modules/Admin/pages/notifications/CustomMessages"));
 const AllNotifications = lazy(() => import("../modules/Admin/pages/notifications/AllNotifications"));
 const LiveChat = lazy(() => import("../modules/Admin/pages/support/LiveChat"));
+const AdminChatHub = lazy(() => import("../modules/Admin/pages/chat/AdminChatHub"));
 const PLEShopChats = lazy(() => import("../modules/Admin/pages/support/PLEShopChats"));
 const TicketTypes = lazy(() => import("../modules/Admin/pages/support/TicketTypes"));
 const Tickets = lazy(() => import("../modules/Admin/pages/support/Tickets"));
@@ -204,6 +205,7 @@ export default function AdminRoutes() {
         <Route path="customers/addresses" element={<CustomerAddresses />} />
         <Route path="customers/transactions" element={<Transactions />} />
         <Route path="customers/:id" element={<CustomerDetailPage />} />
+        <Route path="customers/chats" element={<AdminChatHub category="customer" />} />
 
         <Route path="delivery" element={<DeliveryBoys />} />
         <Route path="delivery/delivery-boys" element={<DeliveryBoys />} />
@@ -220,6 +222,7 @@ export default function AdminRoutes() {
         <Route path="vendors/managed-shops/:id" element={<ManagedShopDetails />} />
         <Route path="vendors/product-approvals" element={<AdminProductApprovals />} />
         <Route path="vendors/b2b-requests" element={<B2BSellerRequests />} />
+        <Route path="vendors/chats" element={<AdminChatHub category="vendor" />} />
 
         <Route path="b2b-users" element={<B2BUsersDashboard />} />
         <Route path="b2b-users/manage" element={<ManageB2BUsers />} />
@@ -233,6 +236,7 @@ export default function AdminRoutes() {
         <Route path="b2b/b2b-settings" element={<B2BSettings />} />
         <Route path="b2b/companies" element={<CompanyManagement />} />
         <Route path="b2b/agreement-template" element={<AgreementTemplateManagement />} />
+        <Route path="b2b/chats" element={<AdminChatHub category="b2b" />} />
 
         <Route path="b2b-enquiries" element={<AdminB2BEnquiries />} />
         <Route path="b2b-enquiries/all" element={<AdminB2BEnquiries />} />
@@ -266,6 +270,8 @@ export default function AdminRoutes() {
         <Route path="support" element={<Tickets />} />
         <Route path="support/live-chat" element={<LiveChat />} />
         <Route path="ple-shop-chats" element={<PLEShopChats />} />
+        <Route path="all-chats" element={<AdminChatHub category="all" />} />
+        <Route path="support/all-chats" element={<AdminChatHub category="all" />} />
         <Route path="managed-vendor-chats" element={<AdminManagedVendorChatHub />} />
         <Route path="support/ticket-types" element={<TicketTypes />} />
         <Route path="support/tickets" element={<Tickets />} />

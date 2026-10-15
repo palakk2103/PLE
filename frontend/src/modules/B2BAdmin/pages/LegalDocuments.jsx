@@ -20,10 +20,11 @@ import api from '../../../shared/utils/api';
 import toast from 'react-hot-toast';
 
 const LegalDocuments = () => {
-  const { companyProfile, fetchCompanyProfile, uploadCompanyLegalDocument, isLoading } = useB2BAdminStore();
+  const { companyProfile, fetchCompanyProfile, uploadCompanyLegalDocument, submitDocumentResubmission, isLoading } = useB2BAdminStore();
   const [activeTemplate, setActiveTemplate] = useState(null);
   const [uploadingDocType, setUploadingDocType] = useState(null);
   const [previewDoc, setPreviewDoc] = useState(null);
+  const [submittingResubmit, setSubmittingResubmit] = useState(false);
 
   useEffect(() => {
     fetchCompanyProfile();
@@ -39,6 +40,18 @@ const LegalDocuments = () => {
       })
       .catch(err => console.warn('Failed to load active platform template', err));
   }, []);
+
+  const handleSubmitResubmission = async () => {
+    setSubmittingResubmit(true);
+    try {
+      const success = await submitDocumentResubmission();
+      if (success) {
+        await fetchCompanyProfile();
+      }
+    } finally {
+      setSubmittingResubmit(false);
+    }
+  };
 
   const formatBytes = (bytes, decimals = 2) => {
     if (!bytes) return '0 Bytes';
@@ -61,7 +74,7 @@ const LegalDocuments = () => {
     setUploadingDocType(docType.key);
     try {
       await uploadCompanyLegalDocument(file, docType.key);
-      fetchCompanyProfile();
+      await fetchCompanyProfile();
     } finally {
       setUploadingDocType(null);
     }
@@ -104,6 +117,12 @@ const LegalDocuments = () => {
         return (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
             <FiCheckCircle className="text-emerald-500" /> Account Approved
+          </span>
+        );
+      case 'Resubmission Required':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full bg-amber-50 text-amber-800 border border-amber-300">
+            <FiRefreshCw className="text-amber-600 animate-spin" style={{ animationDuration: '4s' }} /> Action Required: Re-upload
           </span>
         );
       case 'Pending Verification':
@@ -163,6 +182,51 @@ const LegalDocuments = () => {
         </div>
       </div>
 
+      {/* Resubmission Required Alert Banner */}
+      {companyProfile?.verificationStatus === 'Resubmission Required' && (
+        <div className="bg-amber-50 border-2 border-amber-400 rounded-2xl p-5 sm:p-6 shadow-md">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="p-3 bg-amber-500/20 text-amber-700 rounded-xl shrink-0 mt-0.5 border border-amber-400/30">
+                <FiAlertCircle className="text-2xl text-amber-600" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-amber-900 text-base sm:text-lg flex items-center gap-2">
+                  Action Required: Document Re-upload Requested
+                </h3>
+                <div className="mt-1 bg-white/70 border border-amber-200 rounded-lg p-2.5 text-xs sm:text-sm text-amber-900 font-medium">
+                  <span className="font-bold text-amber-950 uppercase tracking-wider text-[10px] block mb-0.5">Admin Review Notes:</span>
+                  {companyProfile.documentResubmitNotes || 'Please review and re-upload the requested documents below.'}
+                </div>
+                {companyProfile.documentResubmitRequestedAt && (
+                  <p className="text-[11px] text-amber-700 font-medium mt-1.5">
+                    Requested on {new Date(companyProfile.documentResubmitRequestedAt).toLocaleDateString()} at {new Date(companyProfile.documentResubmitRequestedAt).toLocaleTimeString()}
+                  </p>
+                )}
+              </div>
+            </div>
+            <button
+              type="button"
+              disabled={submittingResubmit}
+              onClick={handleSubmitResubmission}
+              className="w-full sm:w-auto shrink-0 inline-flex items-center justify-center gap-2 px-5 py-3 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition-all disabled:opacity-50 cursor-pointer"
+            >
+              {submittingResubmit ? (
+                <>
+                  <span className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+                  <span>Submitting...</span>
+                </>
+              ) : (
+                <>
+                  <FiCheckCircle className="text-base" />
+                  <span>Submit for Verification</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Official Platform Agreement Template Download Section */}
       {activeTemplate && (
         <div className="bg-emerald-500/10 border border-emerald-500/25 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -197,11 +261,17 @@ const LegalDocuments = () => {
           const isUploading = uploadingDocType === docItem.key;
           const docData = docItem.doc;
           const hasUploaded = Boolean(docData?.url);
+          const isRequested = companyProfile?.verificationStatus === 'Resubmission Required' && (
+            !companyProfile?.resubmitRequestedDocs?.length ||
+            companyProfile?.resubmitRequestedDocs?.includes(docItem.key)
+          );
 
           return (
             <div
               key={docItem.key}
-              className="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-6 flex flex-col justify-between hover:shadow-md transition-all duration-200"
+              className={`bg-white rounded-2xl shadow-sm border p-6 flex flex-col justify-between hover:shadow-md transition-all duration-200 ${
+                isRequested ? 'ring-2 ring-amber-400 border-amber-400 bg-amber-50/10' : 'border-gray-200/80'
+              }`}
             >
               <div>
                 {/* Header */}
@@ -214,15 +284,22 @@ const LegalDocuments = () => {
                       </span>
                     )}
                   </h3>
-                  {hasUploaded ? (
-                    <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider flex items-center gap-1 shrink-0">
-                      <FiCheckCircle className="text-xs" /> Uploaded
-                    </span>
-                  ) : (
-                    <span className="text-[10px] bg-gray-100 text-gray-500 border border-gray-200 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider shrink-0">
-                      Pending Upload
-                    </span>
-                  )}
+                  <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+                    {isRequested && (
+                      <span className="text-[10px] bg-amber-100 text-amber-800 border border-amber-300 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider flex items-center gap-1">
+                        ⚠️ Re-upload Required
+                      </span>
+                    )}
+                    {hasUploaded ? (
+                      <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider flex items-center gap-1 shrink-0">
+                        <FiCheckCircle className="text-xs" /> Uploaded
+                      </span>
+                    ) : (
+                      <span className="text-[10px] bg-gray-100 text-gray-500 border border-gray-200 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider shrink-0">
+                        Pending Upload
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <p className="text-xs text-gray-500 mb-3 leading-relaxed">

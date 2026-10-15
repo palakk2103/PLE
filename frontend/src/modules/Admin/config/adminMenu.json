@@ -2,313 +2,513 @@
   {
     "title": "Dashboard",
     "route": "/admin/dashboard",
+    "icon": "Dashboard",
     "children": []
   },
   {
     "title": "Account Team",
     "route": "/admin/account-team",
-    "children": []
-  },
-  {
-    "title": "Activity / Audit Logs",
-    "route": "/admin/audit-logs",
-    "children": []
-  },
-  {
-    "title": "Orders",
-    "route": "/admin/orders",
+    "icon": "Account Team",
+    "superAdminOnly": true,
     "children": [
-      "All Orders",
-      "Order Tracking"
-    ]
-  },
-  {
-    "title": "Return Requests",
-    "route": "/admin/return-requests",
-    "children": []
-  },
-  {
-    "title": "Products",
-    "route": "/admin/products",
-    "children": [
-      "Manage Products",
-      "Tax & Pricing",
-      "Product Ratings"
-    ]
-  },
-  {
-    "title": "Categories",
-    "route": "/admin/categories",
-    "children": [
-      "Manage Categories",
-      "Category Order"
-    ]
-  },
-  {
-    "title": "Brands",
-    "route": "/admin/brands",
-    "children": [
-      "Manage Brands"
+      {
+        "title": "Team Members",
+        "route": "/admin/account-team"
+      },
+      {
+        "title": "Activity / Audit Logs",
+        "route": "/admin/audit-logs"
+      }
     ]
   },
   {
     "title": "Customers",
     "route": "/admin/customers",
+    "icon": "Customers",
     "children": [
-      "View Customers",
-      "Addresses",
-      "Transactions"
+      {
+        "title": "View Customers",
+        "route": "/admin/customers/view-customers"
+      },
+      {
+        "title": "Addresses",
+        "route": "/admin/customers/addresses"
+      },
+      {
+        "title": "Transactions",
+        "route": "/admin/customers/transactions"
+      },
+      {
+        "title": "Customer Chats",
+        "route": "/admin/customers/chats"
+      }
     ]
   },
   {
-    "title": "B2B Marketplace",
-    "route": "/admin/b2b",
+    "title": "Vendors / Sellers",
+    "route": "/admin/vendors",
+    "icon": "Marketplace Sellers",
     "children": [
-      "Business Users",
-      "Company Management",
-      "B2B Products",
-      "B2B Orders",
-      "B2B Settings",
-      "Agreement Templates"
+      {
+        "title": "All Sellers",
+        "route": "/admin/vendors/manage-vendors"
+      },
+      {
+        "title": "Seller Approvals",
+        "route": "/admin/vendors/pending-approvals"
+      },
+      {
+        "title": "Product Approvals",
+        "route": "/admin/vendors/product-approvals"
+      },
+      {
+        "title": "Commission Rates",
+        "route": "/admin/vendors/commission-rates"
+      },
+      {
+        "title": "Vendor Analytics",
+        "route": "/admin/vendors/vendor-analytics"
+      },
+      {
+        "title": "In-House Managed Shops",
+        "route": "/admin/vendors/managed-shops"
+      },
+      {
+        "title": "In-House Staff Chats",
+        "route": "/admin/managed-vendor-chats"
+      },
+      {
+        "title": "B2B Seller Requests",
+        "route": "/admin/vendors/b2b-requests"
+      },
+      {
+        "title": "Vendor Chats",
+        "route": "/admin/vendors/chats"
+      }
     ]
   },
   {
-    "title": "B2B Users",
-    "route": "/admin/b2b-users",
+    "title": "Products & Catalogue",
+    "route": "/admin/products",
+    "icon": "Products",
     "children": [
-      "Manage B2B Users",
-      "Pending Approvals",
-      "B2B Analytics"
+      {
+        "title": "Manage Products",
+        "route": "/admin/products/manage-products"
+      },
+      {
+        "title": "Tax & Pricing",
+        "route": "/admin/products/tax-pricing"
+      },
+      {
+        "title": "Product Ratings",
+        "route": "/admin/products/product-ratings"
+      },
+      {
+        "title": "Categories",
+        "route": "/admin/categories/manage-categories"
+      },
+      {
+        "title": "Category Display Order",
+        "route": "/admin/categories/category-order"
+      },
+      {
+        "title": "Brands",
+        "route": "/admin/brands/manage-brands"
+      },
+      {
+        "title": "Product Enquiries",
+        "route": "/admin/product-enquiries"
+      },
+      {
+        "title": "Product Requests",
+        "route": "/admin/product-requests"
+      }
     ]
   },
   {
-    "title": "RFQ Management",
-    "route": "/admin/b2b-enquiries",
+    "title": "Orders & Fulfilment",
+    "route": "/admin/orders",
+    "icon": "Orders",
     "children": [
-      "Pending RFQs",
-      "Under Review",
-      "Negotiations",
-      "Vendor RFQs",
-      "Purchase Orders"
-    ]
-  },
-  {
-    "title": "Refurbished Mkt",
-    "route": "/admin/refurbished",
-    "children": [
-      "QC Dashboard",
-      "Product Approvals",
-      "Fraud & Moderation",
-      "Complaints & Returns",
-      "Category Management"
+      {
+        "title": "All Orders",
+        "route": "/admin/orders/all-orders"
+      },
+      {
+        "title": "Order Tracking",
+        "route": "/admin/orders/order-tracking"
+      },
+      {
+        "title": "Return Requests",
+        "route": "/admin/return-requests"
+      }
     ]
   },
   {
     "title": "Delivery Management",
     "route": "/admin/delivery",
+    "icon": "Delivery Management",
     "children": [
-      "Delivery Boys",
-      "Cash Collection",
-      "Assign Delivery",
-      "Logistics Control Center"
+      {
+        "title": "Delivery Boys",
+        "route": "/admin/delivery/delivery-boys"
+      },
+      {
+        "title": "Cash Collection",
+        "route": "/admin/delivery/cash-collection"
+      },
+      {
+        "title": "Assign Delivery",
+        "route": "/admin/delivery/assign-delivery"
+      },
+      {
+        "title": "Logistics Control Center",
+        "route": "/admin/delivery-control"
+      }
     ]
   },
   {
-    "title": "In-House Shops & Staff",
-    "route": "/admin/vendors/managed-shops",
-    "children": []
-  },
-  {
-    "title": "In-House Staff Chats",
-    "route": "/admin/managed-vendor-chats",
-    "children": []
-  },
-  {
-    "title": "Marketplace Sellers",
-    "route": "/admin/vendors",
+    "title": "B2B Marketplace",
+    "route": "/admin/b2b",
+    "icon": "B2B Marketplace",
     "children": [
-      "All Sellers",
-      "Seller Approvals",
-      "B2B Seller Requests",
-      "Commission Rates",
-      "Vendor Analytics",
-      "Product Approvals"
+      {
+        "title": "B2B Overview",
+        "route": "/admin/b2b"
+      },
+      {
+        "title": "Business Users",
+        "route": "/admin/b2b-users/manage"
+      },
+      {
+        "title": "User Approvals",
+        "route": "/admin/b2b-users/pending"
+      },
+      {
+        "title": "B2B Analytics",
+        "route": "/admin/b2b-users/analytics"
+      },
+      {
+        "title": "Company Management",
+        "route": "/admin/b2b/companies"
+      },
+      {
+        "title": "B2B Products",
+        "route": "/admin/b2b/b2b-products"
+      },
+      {
+        "title": "B2B Orders",
+        "route": "/admin/b2b/b2b-orders"
+      },
+      {
+        "title": "Pending RFQs",
+        "route": "/admin/b2b-enquiries/all?status=Submitted"
+      },
+      {
+        "title": "RFQs Under Review",
+        "route": "/admin/b2b-enquiries/all?status=Under Review"
+      },
+      {
+        "title": "RFQ Negotiations",
+        "route": "/admin/b2b-enquiries/all?status=Vendor Negotiation"
+      },
+      {
+        "title": "Vendor RFQs",
+        "route": "/admin/b2b-enquiries/all?status=Sent To Vendors"
+      },
+      {
+        "title": "Purchase Orders",
+        "route": "/admin/b2b-enquiries/all?status=Purchase Order Generated"
+      },
+      {
+        "title": "Agreement Templates",
+        "route": "/admin/b2b/agreement-template"
+      },
+      {
+        "title": "B2B Settings",
+        "route": "/admin/b2b/b2b-settings"
+      },
+      {
+        "title": "B2B Chats",
+        "route": "/admin/b2b/chats"
+      }
     ]
   },
   {
-    "title": "Offers & Sliders",
-    "route": "/admin/offers",
+    "title": "Refurbished Mkt",
+    "route": "/admin/refurbished",
+    "icon": "Refurbished Mkt",
     "children": [
-      "Home Sliders",
-      "Festival Offers"
+      {
+        "title": "QC Dashboard",
+        "route": "/admin/refurbished/dashboard"
+      },
+      {
+        "title": "Product Approvals",
+        "route": "/admin/refurbished/approvals"
+      },
+      {
+        "title": "Fraud & Moderation",
+        "route": "/admin/refurbished/moderation"
+      },
+      {
+        "title": "Complaints & Returns",
+        "route": "/admin/refurbished/complaints"
+      },
+      {
+        "title": "Category Management",
+        "route": "/admin/refurbished/categories"
+      }
     ]
   },
   {
-    "title": "Offers Management",
+    "title": "Marketing & Offers",
     "route": "/admin/offers-management",
+    "icon": "Offers Management",
     "children": [
-      "Dashboard",
-      "Offers List",
-      "Create Offer"
+      {
+        "title": "Offers Dashboard",
+        "route": "/admin/offers-management/dashboard"
+      },
+      {
+        "title": "Offers List",
+        "route": "/admin/offers-management/list"
+      },
+      {
+        "title": "Create Offer",
+        "route": "/admin/offers-management/create"
+      },
+      {
+        "title": "Home Sliders",
+        "route": "/admin/offers/home-sliders"
+      },
+      {
+        "title": "Festival Offers",
+        "route": "/admin/offers/festival-offers"
+      },
+      {
+        "title": "Banners",
+        "route": "/admin/banners"
+      },
+      {
+        "title": "Promo Codes",
+        "route": "/admin/promocodes"
+      }
     ]
   },
   {
-    "title": "Banners",
-    "route": "/admin/banners",
-    "children": []
-  },
-  {
-    "title": "Promo Codes",
-    "route": "/admin/promocodes",
-    "children": []
-  },
-  {
-    "title": "Notifications",
-    "route": "/admin/notifications",
+    "title": "Finance & Wallet",
+    "route": "/admin/finance",
+    "icon": "Analytics & Finance",
     "children": [
-      "Push Notifications",
-      "Custom Messages"
+      {
+        "title": "Finance Overview",
+        "route": "/admin/finance/overview"
+      },
+      {
+        "title": "Wallet Management",
+        "route": "/admin/wallet-management"
+      },
+      {
+        "title": "Vendor Withdrawals",
+        "route": "/admin/finance/vendor-withdrawals"
+      },
+      {
+        "title": "Settlements",
+        "route": "/admin/finance/settlements"
+      },
+      {
+        "title": "Transactions",
+        "route": "/admin/finance/transactions"
+      },
+      {
+        "title": "Revenue Overview",
+        "route": "/admin/finance/revenue-overview"
+      },
+      {
+        "title": "Profit & Loss",
+        "route": "/admin/finance/profit-loss"
+      },
+      {
+        "title": "Order Trends",
+        "route": "/admin/finance/order-trends"
+      },
+      {
+        "title": "Payment Breakdown",
+        "route": "/admin/finance/payment-breakdown"
+      },
+      {
+        "title": "Tax Reports",
+        "route": "/admin/finance/tax-reports"
+      },
+      {
+        "title": "Refund Reports",
+        "route": "/admin/finance/refund-reports"
+      }
+    ]
+  },
+  {
+    "title": "Loyalty Program",
+    "route": "/admin/loyalty",
+    "icon": "Loyalty Program",
+    "children": [
+      {
+        "title": "Dashboard",
+        "route": "/admin/loyalty/dashboard"
+      },
+      {
+        "title": "Loyalty Rules",
+        "route": "/admin/loyalty/rules"
+      },
+      {
+        "title": "User Points",
+        "route": "/admin/loyalty/users"
+      }
     ]
   },
   {
     "title": "Support Desk",
     "route": "/admin/support",
+    "icon": "Support Desk",
     "children": [
-      "Live Chat",
-      "PLE Shop Chats",
-      "Managed Vendor Chats",
-      "Ticket Types",
-      "Tickets"
+      {
+        "title": "Tickets",
+        "route": "/admin/support/tickets"
+      },
+      {
+        "title": "Ticket Types",
+        "route": "/admin/support/ticket-types"
+      },
+      {
+        "title": "Live Chat",
+        "route": "/admin/support/live-chat"
+      },
+      {
+        "title": "All Chats",
+        "route": "/admin/all-chats"
+      },
+      {
+        "title": "PLE Shop Chats",
+        "route": "/admin/ple-shop-chats"
+      },
+      {
+        "title": "Managed Vendor Chats",
+        "route": "/admin/managed-vendor-chats"
+      },
+      {
+        "title": "Chat Moderation",
+        "route": "/admin/chat-moderation"
+      }
     ]
   },
   {
-    "title": "Reports",
+    "title": "Reports & Analytics",
     "route": "/admin/reports",
+    "icon": "Reports",
     "children": [
-      "Sales Report",
-      "Inventory Report"
+      {
+        "title": "Sales Report",
+        "route": "/admin/reports/sales-report"
+      },
+      {
+        "title": "Inventory Report",
+        "route": "/admin/reports/inventory-report"
+      },
+      {
+        "title": "Analytics Overview",
+        "route": "/admin/analytics"
+      }
     ]
   },
   {
-    "title": "Analytics & Finance",
-    "route": "/admin/finance",
+    "title": "Notifications",
+    "route": "/admin/notifications",
+    "icon": "Notifications",
     "children": [
-      "Finance Overview",
-      "Vendor Withdrawals",
-      "Settlements",
-      "Transactions",
-      "Revenue Overview",
-      "Profit & Loss",
-      "Order Trends",
-      "Payment Breakdown",
-      "Tax Reports",
-      "Refund Reports"
+      {
+        "title": "All Notifications",
+        "route": "/admin/notifications"
+      },
+      {
+        "title": "Push Notifications",
+        "route": "/admin/notifications/push-notifications"
+      },
+      {
+        "title": "Custom Messages",
+        "route": "/admin/notifications/custom-messages"
+      }
     ]
   },
   {
-    "title": "Settings",
-    "route": "/admin/settings",
-    "children": [
-      "General",
-      "Payment & Shipping",
-      "Orders & Customers",
-      "Products & Inventory",
-      "Content & Features",
-      "Notifications & SEO"
-    ]
-  },
-  {
-    "title": "Policies",
-    "route": "/admin/policies",
-    "children": [
-      "Privacy Policy",
-      "Refund Policy",
-      "Terms & Conditions"
-    ]
-  },
-  {
-    "title": "Firebase",
-    "route": "/admin/firebase",
-    "children": [
-      "Push Config",
-      "Authentication"
-    ]
-  },
-  {
-    "title": "Product Enquiries",
-    "route": "/admin/product-enquiries",
-    "children": []
-  },
-  {
-    "title": "Product Requests",
-    "route": "/admin/product-requests",
-    "children": []
-  },
-  {
-    "title": "Loyalty Program",
-    "route": "/admin/loyalty",
-    "children": [
-      "Dashboard",
-      "Loyalty Rules",
-      "User Points"
-    ]
-  },
-  {
-    "title": "Wallet Management",
-    "route": "/admin/wallet-management",
-    "children": []
-  },
-  {
-    "title": "Landing Page",
+    "title": "CMS & Web Pages",
     "route": "/admin/landing-page",
+    "icon": "Landing Page",
     "children": [
-      "Dashboard",
-      "Hero Section",
-      "Portfolio Highlights",
-      "Explore Catalogue",
-      "Product Categories",
-      "Services / Categories",
-      "Features",
-      "Comparison Table",
-      "Stats Counter",
-      "Testimonials",
-      "Product Showcase",
-      "Deals & Rewards",
-      "CPO Section",
-      "GPO Section",
-      "Smart Deals",
-      "Loyalty Rewards",
-      "Zero Maintenance",
-      "FAQ Section",
-      "Gallery",
-      "Contact & Social",
-      "Footer",
-      "SEO Settings",
-      "Blogs",
-      "Ad Landing Pages"
+      {
+        "title": "Landing Page CMS",
+        "route": "/admin/landing-page"
+      },
+      {
+        "title": "About Page CMS",
+        "route": "/admin/about-page"
+      },
+      {
+        "title": "Portfolio Page CMS",
+        "route": "/admin/portfolio-page"
+      }
     ]
   },
   {
-    "title": "About Page",
-    "route": "/admin/about-page",
+    "title": "Settings & Policies",
+    "route": "/admin/settings",
+    "icon": "Settings",
+    "superAdminOnly": true,
     "children": [
-      "Dashboard",
-      "Hero Section",
-      "About Company",
-      "What We Do",
-      "Vision & Mission",
-      "Our Edge"
-    ]
-  },
-  {
-    "title": "Portfolio Page",
-    "route": "/admin/portfolio-page",
-    "children": [
-      "Dashboard",
-      "Hero Section",
-      "Metrics Section",
-      "Call to Action",
-      "Portfolio Projects"
+      {
+        "title": "General",
+        "route": "/admin/settings/general"
+      },
+      {
+        "title": "Payment & Shipping",
+        "route": "/admin/settings/payment-shipping"
+      },
+      {
+        "title": "Orders & Customers",
+        "route": "/admin/settings/orders-customers"
+      },
+      {
+        "title": "Products & Inventory",
+        "route": "/admin/settings/products-inventory"
+      },
+      {
+        "title": "Content & Features",
+        "route": "/admin/settings/content-features"
+      },
+      {
+        "title": "Notifications & SEO",
+        "route": "/admin/settings/notifications-seo"
+      },
+      {
+        "title": "Privacy Policy",
+        "route": "/admin/policies/privacy-policy"
+      },
+      {
+        "title": "Refund Policy",
+        "route": "/admin/policies/refund-policy"
+      },
+      {
+        "title": "Terms & Conditions",
+        "route": "/admin/policies/terms-conditions"
+      },
+      {
+        "title": "Firebase Push Config",
+        "route": "/admin/firebase/push-config"
+      },
+      {
+        "title": "Firebase Auth",
+        "route": "/admin/firebase/authentication"
+      }
     ]
   }
 ]

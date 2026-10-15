@@ -545,16 +545,19 @@ export const updateBankDetails = asyncHandler(async (req, res) => {
     if (req.user.role === 'managed_vendor') {
         throw new ApiError(403, 'Managed vendor accounts cannot update bank details directly. Please contact Administrator.');
     }
-    const { accountName, accountNumber, bankName, ifscCode } = req.body;
-    if (!accountName && !accountNumber && !bankName && !ifscCode) {
+    const { accountName, accountNumber, bankName, ifscCode, upiId } = req.body;
+    if (!accountName && !accountNumber && !bankName && !ifscCode && !upiId) {
         throw new ApiError(400, 'At least one bank detail field is required.');
     }
 
     const updates = {};
-    if (accountName) updates['bankDetails.accountName'] = accountName;
-    if (accountNumber) updates['bankDetails.accountNumber'] = accountNumber;
-    if (bankName) updates['bankDetails.bankName'] = bankName;
-    if (ifscCode) updates['bankDetails.ifscCode'] = ifscCode;
+    if (accountName !== undefined) updates['bankDetails.accountName'] = String(accountName).trim();
+    if (accountNumber !== undefined && String(accountNumber).trim()) {
+        updates['bankDetails.accountNumber'] = String(accountNumber).trim();
+    }
+    if (bankName !== undefined) updates['bankDetails.bankName'] = String(bankName).trim();
+    if (ifscCode !== undefined) updates['bankDetails.ifscCode'] = String(ifscCode).trim().toUpperCase();
+    if (upiId !== undefined) updates['bankDetails.upiId'] = String(upiId).trim();
 
     const vendor = await Vendor.findByIdAndUpdate(
         req.user.id,

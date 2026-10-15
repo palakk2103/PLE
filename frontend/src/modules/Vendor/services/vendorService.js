@@ -264,6 +264,29 @@ export const toggleMuteVendorChat = (id) =>
     api.post(`/vendor/chat/threads/${id}/mute`);
 
 /**
+ * Get active transaction proposal for a thread
+ * @param {string} threadId
+ */
+export const getVendorProposal = (threadId) =>
+    api.get(`/vendor/chat/threads/${threadId}/proposal`);
+
+/**
+ * Create or propose agreed transaction amount for a thread
+ * @param {string} threadId
+ * @param {object} data
+ */
+export const createVendorProposal = (threadId, data) =>
+    api.post(`/vendor/chat/threads/${threadId}/proposal`, data);
+
+/**
+ * Cancel an active transaction proposal
+ * @param {string} threadId
+ * @param {string} proposalId
+ */
+export const cancelVendorProposal = (threadId, proposalId) =>
+    api.patch(`/vendor/chat/threads/${threadId}/proposal/${proposalId}/cancel`);
+
+/**
  * Get vendor documents
  */
 export const getVendorDocuments = () =>

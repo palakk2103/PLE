@@ -62,6 +62,13 @@ const vendorChatThreadSchema = new mongoose.Schema(
         blockReason: { type: String, default: null },
         customerMuted: { type: Boolean, default: false },
         vendorMuted: { type: Boolean, default: false },
+        // Active transaction proposal in this chat thread
+        activeProposalId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'ChatTransactionProposal',
+            default: null,
+            index: true,
+        },
     },
     {
         timestamps: true,

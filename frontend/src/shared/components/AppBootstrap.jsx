@@ -9,7 +9,6 @@ import { useB2bStore } from "../store/b2bStore";
 import socketService from "../utils/socket";
 import toast from "react-hot-toast";
 import { useSettingsStore } from "../store/settingsStore";
-import { useDynamicTheme } from "../hooks/useDynamicTheme";
 import { 
   initializePushNotifications, 
   registerFCMToken, 
@@ -54,7 +53,6 @@ const normalizeBrand = (raw) => ({
 });
 
 const AppBootstrap = () => {
-  useDynamicTheme();
   const user = useAuthStore((state) => state.user);
   const mainAuthIsAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const b2bAuthIsAuthenticated = useB2BAdminStore((state) => state.isAuthenticated);

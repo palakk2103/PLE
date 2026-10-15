@@ -152,6 +152,9 @@ router.post('/chat/vendor/threads/:id/messages', ...customerAuth, chatLimiter, c
 router.patch('/chat/vendor/threads/:id/read', ...customerAuth, customerChatController.markCustomerChatRead);
 router.post('/chat/vendor/threads/:id/report', ...customerAuth, customerChatController.reportCustomerChatMessage);
 router.post('/chat/vendor/threads/:id/block', ...customerAuth, customerChatController.toggleBlockCustomerChat);
+router.get('/chat/vendor/threads/:id/proposal', ...customerAuth, customerChatController.getCustomerProposal);
+router.post('/chat/vendor/threads/:id/proposal/:proposalId/respond', ...customerAuth, customerChatController.respondCustomerProposal);
+router.post('/chat/vendor/threads/:id/proposal/:proposalId/checkout', ...customerAuth, customerChatController.checkoutCustomerProposal);
 // Support Ticket routes (protected)
 import * as userSupportController from '../controllers/userSupport.controller.js';
 router.get('/support/tickets', ...customerAuth, userSupportController.getMyTickets);

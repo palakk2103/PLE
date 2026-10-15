@@ -14,7 +14,8 @@ import {
     updateAdminProfile,
     verifyAdminProfileOTP,
     resendAdminProfileOTP,
-    uploadLegalDocument
+    uploadLegalDocument,
+    submitDocumentResubmission
 } from '../controllers/profile.controller.js';
 import * as rfqController from '../controllers/rfq.controller.js';
 import * as notificationController from '../../user/controllers/notification.controller.js';
@@ -36,6 +37,7 @@ router.get('/dashboard', getDashboardOverview);
 router.get('/company', getCompanyProfile);
 router.put('/company', requireAdmin, updateCompanyProfile);
 router.put('/company/legal-document', requireAdmin, uploadDocumentSingle('file'), uploadLegalDocument);
+router.post('/company/submit-resubmission', requireAdmin, submitDocumentResubmission);
 
 // Admin Profile (Admin only)
 router.get('/profile', requireAdmin, getAdminProfile);

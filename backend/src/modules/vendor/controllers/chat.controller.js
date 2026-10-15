@@ -8,9 +8,10 @@ import VendorChatMessage from '../../../models/VendorChatMessage.model.js';
 import Notification from '../../../models/Notification.model.js';
 import Vendor from '../../../models/Vendor.model.js';
 import { getIO } from '../../../config/socket.js';
-import { moderateMessage, checkMultiMessageEvasion, MODERATION_ACTION } from '../../../services/chatModeration.service.js';
+import { moderateMessage, checkMultiMessageEvasion, validateMonetaryOffer, MODERATION_ACTION } from '../../../services/chatModeration.service.js';
 import ChatViolation from '../../../models/ChatViolation.model.js';
 import ChatReport from '../../../models/ChatReport.model.js';
+import ChatTransactionProposal from '../../../models/ChatTransactionProposal.model.js';
 import { decryptMessage } from '../../../utils/chatEncryption.util.js';
 
 const buildThreadSeedFromOrder = (order) => {
@@ -229,8 +230,8 @@ export const sendVendorChatMessage = asyncHandler(async (req, res) => {
     const recentMsgs = await VendorChatMessage.find({
         threadId: thread._id,
         senderId: req.user.id,
-        createdAt: { $gte: new Date(Date.now() - 90000) }
-    }).sort({ createdAt: -1 }).limit(3);
+        createdAt: { $gte: new Date(Date.now() - 120000) }
+    }).sort({ createdAt: 1 }).limit(10);
 
     const evasionResult = checkMultiMessageEvasion(message, recentMsgs.map(m => m.message));
     if (evasionResult.action === MODERATION_ACTION.BLOCK) {
@@ -468,5 +469,232 @@ export const initiateProductRequestChat = asyncHandler(async (req, res) => {
     }
 
     res.status(200).json(new ApiResponse(200, thread, 'Product request chat thread ready.'));
+});
+
+// @desc    Vendor creates or updates an official transaction proposal
+// @route   POST /api/vendor/chat/threads/:id/proposal
+export const createVendorProposal = asyncHandler(async (req, res) => {
+    const thread = await VendorChatThread.findOne({
+        _id: req.params.id,
+        vendorId: req.user.id,
+    });
+    if (!thread) throw new ApiError(404, 'Chat thread not found.');
+
+    if (thread.isBlocked) {
+        throw new ApiError(403, 'Communication in this chat is currently blocked.');
+    }
+
+    if (['resolved', 'closed'].includes(thread.status)) {
+        throw new ApiError(400, 'Cannot create proposal in a closed or resolved conversation.');
+    }
+
+    const {
+        productId,
+        productName,
+        productImage,
+        productVariant,
+        quantity = 1,
+        unitPrice,
+        discount = 0,
+        tax = 0,
+        deliveryCharge = 0,
+        notes = '',
+    } = req.body;
+
+    const trimmedProductName = String(productName || '').trim();
+    if (!trimmedProductName) {
+        throw new ApiError(400, 'Product name is required.');
+    }
+
+    // Security check on proposal text fields to avoid sneaking contact/payment details
+    const nameMod = moderateMessage(trimmedProductName);
+    if (nameMod.action === MODERATION_ACTION.BLOCK) {
+        throw new ApiError(422, 'Product name contains prohibited contact or payment information.');
+    }
+    if (notes) {
+        const notesMod = moderateMessage(String(notes));
+        if (notesMod.action === MODERATION_ACTION.BLOCK) {
+            throw new ApiError(422, 'Notes contain prohibited contact or payment information.');
+        }
+    }
+
+    const parsedQty = Math.max(1, parseInt(quantity, 10) || 1);
+    const parsedUnitPrice = Number(unitPrice);
+    const parsedDiscount = Math.max(0, Number(discount) || 0);
+    const parsedTax = Math.max(0, Number(tax) || 0);
+    const parsedDelivery = Math.max(0, Number(deliveryCharge) || 0);
+
+    const priceValidation = validateMonetaryOffer(parsedUnitPrice);
+    if (!priceValidation.isValid) {
+        throw new ApiError(400, priceValidation.reason || 'Invalid unit price.');
+    }
+
+    const agreedAmount = Math.round(parsedQty * parsedUnitPrice * 100) / 100;
+    const finalAmount = Math.round((agreedAmount - parsedDiscount + parsedTax + parsedDelivery) * 100) / 100;
+
+    if (finalAmount <= 0) {
+        throw new ApiError(400, 'Final payable amount must be greater than zero.');
+    }
+
+    const finalVal = validateMonetaryOffer(finalAmount);
+    if (!finalVal.isValid) {
+        throw new ApiError(400, finalVal.reason || 'Invalid final amount.');
+    }
+
+    // Check if there is an active proposal in this thread to supersede
+    const existingActive = await ChatTransactionProposal.findOne({
+        threadId: thread._id,
+        status: { $in: ['pending_customer_confirmation', 'draft'] },
+    }).sort({ createdAt: -1 });
+
+    const newVersion = existingActive ? (existingActive.version || 1) + 1 : 1;
+
+    if (existingActive) {
+        existingActive.status = 'superseded';
+        existingActive.history.push({
+            action: 'SUPERSEDED',
+            actionBy: req.user.id,
+            actionByRole: 'vendor',
+            timestamp: new Date(),
+            note: `Superseded by version ${newVersion}`,
+        });
+        await existingActive.save();
+    }
+
+    const refCode = `PROP-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+
+    const newProposal = await ChatTransactionProposal.create({
+        proposalReference: refCode,
+        threadId: thread._id,
+        vendorId: req.user.id,
+        customerUserId: thread.customerUserId,
+        productId: productId || null,
+        productName: trimmedProductName,
+        productImage: productImage || '',
+        productVariant: String(productVariant || '').trim(),
+        quantity: parsedQty,
+        unitPrice: parsedUnitPrice,
+        agreedAmount,
+        discount: parsedDiscount,
+        tax: parsedTax,
+        deliveryCharge: parsedDelivery,
+        finalAmount,
+        status: 'pending_customer_confirmation',
+        version: newVersion,
+        notes: String(notes || '').trim(),
+        history: [
+            {
+                action: 'PROPOSED',
+                actionBy: req.user.id,
+                actionByRole: 'vendor',
+                timestamp: new Date(),
+                note: `Proposed agreed amount of ₹${finalAmount}`,
+            },
+        ],
+    });
+
+    thread.activeProposalId = newProposal._id;
+    thread.lastActivity = new Date();
+    thread.lastMessage = `[Proposal] Agreed Amount: ₹${finalAmount} for ${trimmedProductName}`;
+    await thread.save();
+
+    // Create system message in chat
+    const systemMsg = await VendorChatMessage.create({
+        threadId: thread._id,
+        senderType: 'system',
+        senderId: null,
+        message: `[Official Proposal] Seller proposed agreed price of ₹${finalAmount} for "${trimmedProductName}" (Qty: ${parsedQty}). Awaiting buyer confirmation.`,
+    });
+
+    try {
+        const io = getIO();
+        if (io) {
+            io.to(`chat_${thread._id}`).emit('new_message', serializeMessage(systemMsg));
+            io.to(`chat_${thread._id}`).emit('transaction_proposal_updated', newProposal);
+            if (thread.customerUserId) {
+                const vendorObj = await Vendor.findById(req.user.id).select('storeName name');
+                io.to(`user_${thread.customerUserId}`).emit('customer_chat_notification', {
+                    threadId: thread._id,
+                    vendorName: vendorObj?.storeName || vendorObj?.name || 'Store',
+                    message: `New transaction proposal for "${trimmedProductName}" (₹${finalAmount})`,
+                });
+            }
+        }
+    } catch (sErr) {
+        console.warn('Socket broadcast error:', sErr.message);
+    }
+
+    res.status(201).json(new ApiResponse(201, newProposal, 'Transaction proposal created.'));
+});
+
+// @desc    Get active proposal for vendor thread
+// @route   GET /api/vendor/chat/threads/:id/proposal
+export const getVendorProposal = asyncHandler(async (req, res) => {
+    const thread = await VendorChatThread.findOne({
+        _id: req.params.id,
+        vendorId: req.user.id,
+    });
+    if (!thread) throw new ApiError(404, 'Chat thread not found.');
+
+    const proposal = await ChatTransactionProposal.findOne({
+        threadId: thread._id,
+        status: { $in: ['pending_customer_confirmation', 'accepted', 'rejected'] },
+    }).sort({ createdAt: -1 });
+
+    res.status(200).json(new ApiResponse(200, proposal, 'Transaction proposal fetched.'));
+});
+
+// @desc    Vendor cancels an active proposal
+// @route   PATCH /api/vendor/chat/threads/:id/proposal/:proposalId/cancel
+export const cancelVendorProposal = asyncHandler(async (req, res) => {
+    const thread = await VendorChatThread.findOne({
+        _id: req.params.id,
+        vendorId: req.user.id,
+    });
+    if (!thread) throw new ApiError(404, 'Chat thread not found.');
+
+    const proposal = await ChatTransactionProposal.findOne({
+        _id: req.params.proposalId,
+        threadId: thread._id,
+        vendorId: req.user.id,
+    });
+    if (!proposal) throw new ApiError(404, 'Proposal not found.');
+
+    if (proposal.status !== 'pending_customer_confirmation') {
+        throw new ApiError(400, `Cannot cancel proposal with status: ${proposal.status}.`);
+    }
+
+    proposal.status = 'cancelled';
+    proposal.history.push({
+        action: 'CANCELLED',
+        actionBy: req.user.id,
+        actionByRole: 'vendor',
+        timestamp: new Date(),
+        note: 'Cancelled by seller',
+    });
+    await proposal.save();
+
+    const systemMsg = await VendorChatMessage.create({
+        threadId: thread._id,
+        senderType: 'system',
+        senderId: null,
+        message: `[Proposal Cancelled] Seller cancelled proposal for "${proposal.productName}".`,
+    });
+
+    thread.lastActivity = new Date();
+    thread.lastMessage = `[Proposal Cancelled] for ${proposal.productName}`;
+    await thread.save();
+
+    try {
+        const io = getIO();
+        if (io) {
+            io.to(`chat_${thread._id}`).emit('new_message', serializeMessage(systemMsg));
+            io.to(`chat_${thread._id}`).emit('transaction_proposal_updated', proposal);
+        }
+    } catch (sErr) {
+        console.warn('Socket broadcast error:', sErr.message);
+    }
+
+    res.status(200).json(new ApiResponse(200, proposal, 'Proposal cancelled.'));
 });
 

@@ -29,7 +29,12 @@ import {
   reportVendorChat,
   toggleBlockVendorChat,
   toggleMuteVendorChat,
+  getVendorProposal,
+  createVendorProposal,
+  cancelVendorProposal,
 } from "../services/vendorService";
+import TransactionBox from "../../../shared/components/TransactionBox";
+import socketService from "../../../shared/utils/socket";
 
 const Chat = () => {
   const { vendor } = useVendorAuthStore();
@@ -48,6 +53,10 @@ const Chat = () => {
   const [reportReason, setReportReason] = useState("OFF_PLATFORM_SOLICITATION");
   const [reportDetails, setReportDetails] = useState("");
   const [submittingAction, setSubmittingAction] = useState(false);
+
+  // Proposal state
+  const [proposal, setProposal] = useState(null);
+  const [showMobileTransaction, setShowMobileTransaction] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -123,11 +132,79 @@ const Chat = () => {
     };
 
     fetchMessages();
+
+    // Fetch active transaction proposal for selected thread
+    getVendorProposal(selectedChat._id)
+      .then((pRes) => {
+        const pData = pRes?.data?.data ?? pRes?.data ?? null;
+        setProposal(pData);
+      })
+      .catch(() => setProposal(null));
+  }, [selectedChat?._id]);
+
+  // Connect to Socket.io and listen for new messages & proposal updates
+  useEffect(() => {
+    if (!selectedChat?._id) return;
+    const socket = socketService.getSocket();
+    if (!socket) return;
+
+    socket.emit("join_chat_room", selectedChat._id);
+
+    const handleNewMessage = (msg) => {
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === msg.id || m._id === msg.id)) return prev;
+        return [...prev, msg];
+      });
+    };
+
+    const handleProposalUpdated = (p) => {
+      setProposal(p);
+      toast("Transaction proposal updated!", { icon: "🏷️" });
+    };
+
+    socket.on("new_message", handleNewMessage);
+    socket.on("transaction_proposal_updated", handleProposalUpdated);
+
+    return () => {
+      socket.emit("leave_chat_room", selectedChat._id);
+      socket.off("new_message", handleNewMessage);
+      socket.off("transaction_proposal_updated", handleProposalUpdated);
+    };
   }, [selectedChat?._id]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  const handleCreateProposal = async (data) => {
+    if (!selectedChat?._id) return;
+    try {
+      setSubmittingAction(true);
+      const res = await createVendorProposal(selectedChat._id, data);
+      const created = res?.data?.data || res?.data;
+      setProposal(created);
+      toast.success("Transaction proposal sent to buyer!");
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to create proposal.");
+    } finally {
+      setSubmittingAction(false);
+    }
+  };
+
+  const handleCancelProposal = async (proposalId) => {
+    if (!selectedChat?._id) return;
+    try {
+      setSubmittingAction(true);
+      const res = await cancelVendorProposal(selectedChat._id, proposalId);
+      const cancelled = res?.data?.data || res?.data;
+      setProposal(cancelled);
+      toast.success("Proposal cancelled.");
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to cancel proposal.");
+    } finally {
+      setSubmittingAction(false);
+    }
+  };
 
   const handleSelectChat = async (chat) => {
     setSelectedChat(chat);
@@ -432,50 +509,66 @@ const Chat = () => {
 
         {/* Chat Conversation Panel */}
         {selectedChat ? (
-          <div className="lg:col-span-2 bg-white dark:bg-[#1A1A1A] rounded-xl shadow-sm border border-gray-200 dark:border-white/5 flex flex-col min-w-0">
-            <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-white/5 bg-primary-50 dark:bg-primary-950/30">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                  <button
-                    onClick={() => setSelectedChat(null)}
-                    className="p-1.5 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/10 rounded-lg lg:hidden"
-                    title="Back to chats"
-                  >
-                    <FiArrowLeft className="text-lg" />
-                  </button>
-                  <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary-100 dark:bg-primary-900/50 rounded-full flex items-center justify-center flex-shrink-0">
-                    <FiUser className="text-primary-600" />
+          <div className="lg:col-span-2 bg-white dark:bg-[#1A1A1A] rounded-xl shadow-sm border border-gray-200 dark:border-white/5 flex flex-col xl:flex-row min-w-0 overflow-hidden">
+            {/* Main Chat Column */}
+            <div className="flex-1 flex flex-col min-w-0">
+              <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-white/5 bg-primary-50 dark:bg-primary-950/30">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                    <button
+                      onClick={() => setSelectedChat(null)}
+                      className="p-1.5 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/10 rounded-lg lg:hidden"
+                      title="Back to chats"
+                    >
+                      <FiArrowLeft className="text-lg" />
+                    </button>
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary-100 dark:bg-primary-900/50 rounded-full flex items-center justify-center flex-shrink-0">
+                      <FiUser className="text-primary-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-xs sm:text-sm text-gray-800 dark:text-white truncate">
+                        {selectedChat.customerName}
+                      </h3>
+                      <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
+                        {selectedChat.productRequestId ? (
+                          <span className="text-indigo-600 font-semibold">📦 Product Request: {selectedChat.productRequestId}</span>
+                        ) : selectedChat.orderDisplayId ? (
+                          `Order: ${selectedChat.orderDisplayId}`
+                        ) : (
+                          "Direct Customer Inquiry"
+                        )}
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <h3 className="font-semibold text-xs sm:text-sm text-gray-800 dark:text-white truncate">
-                      {selectedChat.customerName}
-                    </h3>
-                    <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
-                      {selectedChat.productRequestId ? (
-                        <span className="text-indigo-600 font-semibold">📦 Product Request: {selectedChat.productRequestId}</span>
-                      ) : selectedChat.orderDisplayId ? (
-                        `Order: ${selectedChat.orderDisplayId}`
-                      ) : (
-                        "Direct Customer Inquiry"
-                      )}
-                    </p>
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <Badge
-                    variant={selectedChat.status === "active" ? "success" : "info"}
-                    className="text-xs"
-                  >
-                    {selectedChat.status === "active" ? "Active" : "Resolved"}
-                  </Badge>
-                  {selectedChat.vendorMuted && <FiBellOff className="text-gray-400 text-xs" title="Muted" />}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <Badge
+                      variant={selectedChat.status === "active" ? "success" : "info"}
+                      className="text-xs"
+                    >
+                      {selectedChat.status === "active" ? "Active" : "Resolved"}
+                    </Badge>
+                    {selectedChat.vendorMuted && <FiBellOff className="text-gray-400 text-xs" title="Muted" />}
 
-                  {/* Action Dropdown Menu */}
-                  <div className="relative" ref={menuRef}>
+                    {/* Deal Button (Mobile/Tablet) */}
                     <button
                       type="button"
-                      onClick={() => setShowMenu((prev) => !prev)}
+                      onClick={() => setShowMobileTransaction(true)}
+                      className="xl:hidden relative flex items-center gap-1 px-2.5 py-1 bg-[#14161F] text-zinc-100 rounded-lg text-xs font-bold border border-zinc-700 shadow-sm active:scale-95 transition-transform"
+                      title="View Transaction Box"
+                    >
+                      <FiShield className="text-amber-400 text-xs" />
+                      <span>Deal</span>
+                      {proposal?.status === "pending_customer_confirmation" && (
+                        <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping absolute -top-0.5 -right-0.5" />
+                      )}
+                    </button>
+
+                    {/* Action Dropdown Menu */}
+                    <div className="relative" ref={menuRef}>
+                      <button
+                        type="button"
+                        onClick={() => setShowMenu((prev) => !prev)}
                       className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                       title="Chat options"
                     >
@@ -644,7 +737,20 @@ const Chat = () => {
               )}
             </div>
           </div>
-        ) : (
+
+          {/* Desktop Right Column: Transaction Box */}
+          <div className="hidden xl:flex xl:w-80 h-full flex-col flex-shrink-0 border-t xl:border-t-0 xl:border-l border-gray-200 dark:border-white/5 bg-[#14161F]">
+            <TransactionBox
+              proposal={proposal}
+              isVendor={true}
+              onPropose={handleCreateProposal}
+              onCancel={handleCancelProposal}
+              isSubmitting={submittingAction}
+              className="h-full rounded-none border-0"
+            />
+          </div>
+        </div>
+      ) : (
           <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 flex items-center justify-center p-12">
             <div className="text-center">
               <FiMessageCircle className="mx-auto text-4xl text-gray-400 mb-4" />
@@ -726,6 +832,31 @@ const Chat = () => {
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile Transaction Drawer / Bottom Sheet */}
+      <AnimatePresence>
+        {showMobileTransaction && (
+          <div className="fixed inset-0 z-50 bg-black/75 xl:hidden flex flex-col justify-end">
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="w-full max-h-[85vh] h-[85vh] flex flex-col rounded-t-3xl overflow-hidden bg-[#14161F] shadow-2xl"
+            >
+              <TransactionBox
+                proposal={proposal}
+                isVendor={true}
+                onPropose={handleCreateProposal}
+                onCancel={handleCancelProposal}
+                isSubmitting={submittingAction}
+                onCloseMobile={() => setShowMobileTransaction(false)}
+                className="h-full rounded-none border-0"
+              />
             </motion.div>
           </div>
         )}

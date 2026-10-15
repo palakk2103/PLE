@@ -13,8 +13,9 @@ import {
   FiAlertCircle,
   FiLock,
   FiFilter,
+  FiX,
 } from "react-icons/fi";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Badge from "../../../shared/components/Badge";
 import ExportButton from "../../Admin/components/ExportButton";
 import AnimatedSelect from "../../Admin/components/AnimatedSelect";
@@ -65,6 +66,7 @@ const Earnings = ({ defaultTab }) => {
   // Modals
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [isBankModalOpen, setIsBankModalOpen] = useState(false);
+  const [showBankAlertModal, setShowBankAlertModal] = useState(false);
 
   useEffect(() => {
     setActiveTab(getActiveTabFromUrl());
@@ -159,6 +161,14 @@ const Earnings = ({ defaultTab }) => {
   const bankMasked = walletData?.bankDetailsMasked || {};
   const hasBank = walletData?.bankDetailsConfigured;
 
+  const handleOpenWithdraw = () => {
+    if (!hasBank) {
+      setShowBankAlertModal(true);
+      return;
+    }
+    setIsWithdrawModalOpen(true);
+  };
+
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
       {/* Top Header */}
@@ -189,7 +199,7 @@ const Earnings = ({ defaultTab }) => {
             <span>Bank Details</span>
           </button>
           <button
-            onClick={() => setIsWithdrawModalOpen(true)}
+            onClick={handleOpenWithdraw}
             className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-xl shadow-lg shadow-purple-600/20 transition-all cursor-pointer"
           >
             <FiArrowUpRight className="w-4 h-4" />
@@ -384,9 +394,8 @@ const Earnings = ({ defaultTab }) => {
                         {hasBank ? "Edit Bank Details" : "Setup Bank Details"}
                       </button>
                       <button
-                        onClick={() => setIsWithdrawModalOpen(true)}
-                        disabled={!hasBank || (wallet.available ?? 0) < (settings.minWithdrawalAmount ?? 500)}
-                        className="px-4 py-2 text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors whitespace-nowrap"
+                        onClick={handleOpenWithdraw}
+                        className="px-4 py-2 text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-xl transition-colors whitespace-nowrap cursor-pointer shadow-md shadow-purple-600/20"
                       >
                         Withdraw Now
                       </button>
@@ -421,7 +430,7 @@ const Earnings = ({ defaultTab }) => {
                         className="min-w-[130px]"
                       />
                       <button
-                        onClick={() => setIsWithdrawModalOpen(true)}
+                        onClick={handleOpenWithdraw}
                         className="px-3.5 py-2 text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-xl cursor-pointer"
                       >
                         + New Request
@@ -857,6 +866,65 @@ const Earnings = ({ defaultTab }) => {
         onClose={() => setIsBankModalOpen(false)}
         onUpdated={handleRefresh}
       />
+
+      {/* Bank Details Required Popup */}
+      <AnimatePresence>
+        {showBankAlertModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative w-full max-w-md bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-2xl border border-gray-100 dark:border-white/10 overflow-hidden"
+            >
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10 bg-amber-50/60 dark:bg-amber-950/20">
+                <h3 className="text-sm font-bold text-amber-900 dark:text-amber-200 flex items-center gap-2">
+                  <FiAlertCircle className="text-amber-600 text-lg" />
+                  <span>Bank Details Required</span>
+                </h3>
+                <button
+                  onClick={() => setShowBankAlertModal(false)}
+                  className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg cursor-pointer"
+                >
+                  <FiX className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="p-4 bg-amber-50 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-800/40 text-xs text-amber-900 dark:text-amber-200 space-y-2">
+                  <p className="font-bold text-sm text-amber-950 dark:text-amber-100">
+                    Aap abhi withdrawal request nahi bhej sakte!
+                  </p>
+                  <p className="text-amber-800/80 dark:text-amber-300/80 leading-relaxed">
+                    Kyunki aapne abhi tak apna <strong>Bank Account Number</strong> ya <strong>UPI ID</strong> save nahi kiya hai. Admin ko payout transfer karne ke liye aapki bank details zaroori hain.
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-end gap-2.5 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowBankAlertModal(false)}
+                    className="px-4 py-2.5 text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowBankAlertModal(false);
+                      setIsBankModalOpen(true);
+                    }}
+                    className="px-4 py-2.5 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-lg shadow-amber-600/20 transition-all flex items-center gap-2 cursor-pointer"
+                  >
+                    <FiCreditCard className="w-4 h-4" />
+                    <span>Add Bank Details Now</span>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

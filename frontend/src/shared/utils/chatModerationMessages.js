@@ -76,5 +76,10 @@ export function preflightCheckMessage(text) {
         return 'Sharing or asking for OTPs and passwords is strictly prohibited.';
     }
 
+    // UPI handles
+    if (/[a-z0-9._-]+\s*(?:@|\bat\b|\(at\)|\[at\])\s*(?:ybl|paytm|okaxis|oksbi|okhdfcbank|okicici|upi|ibl|axl)/i.test(lower)) {
+        return 'UPI IDs and external payment handles cannot be shared in chat.';
+    }
+
     return null;
 }

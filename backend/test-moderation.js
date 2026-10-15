@@ -133,6 +133,12 @@ test('Account + IFSC',         'account number 123456789012 aur IFSC SBIN0001234
 console.log('\n🔍 Obfuscation Tests\n');
 test('Spaced UPI handle',       'abc  @  ybl bhejo paise',         MODERATION_ACTION.BLOCK, MODERATION_CATEGORY.UPI_ID);
 test('(at) email',              'send at user(at)gmail.com',       MODERATION_ACTION.BLOCK, MODERATION_CATEGORY.EMAIL);
+test('Word "at" UPI',           'send payment to rahul at ybl',    MODERATION_ACTION.BLOCK, MODERATION_CATEGORY.UPI_ID);
+test('[at] bracketed UPI',      'pay to test[at]okaxis please',    MODERATION_ACTION.BLOCK, MODERATION_CATEGORY.UPI_ID);
+test('Digits mixed with letters', 'call me on 98abc76543210',      MODERATION_ACTION.BLOCK, MODERATION_CATEGORY.PHONE_NUMBER);
+test('Hindi digits phone',      '९८७६५४३२१० call karo',            MODERATION_ACTION.BLOCK, MODERATION_CATEGORY.PHONE_NUMBER);
+test('Circled numbers phone',   '⑨⑧⑦⑥⑤④③②①⓪ dial',                MODERATION_ACTION.BLOCK, MODERATION_CATEGORY.PHONE_NUMBER);
+test('Repeated dots/dashes',    '9...8---7...6...5...4...3...2...1...0', MODERATION_ACTION.BLOCK, MODERATION_CATEGORY.PHONE_NUMBER);
 
 // ── Multi-Message Evasion Tests ──────────────────────────────
 console.log('\n🧩 Multi-Message Evasion Tests\n');
@@ -143,6 +149,46 @@ console.log('\n🧩 Multi-Message Evasion Tests\n');
         passed++;
     } else {
         console.log('  ❌ FAIL | Split phone number (98765 + 43210)');
+        failed++;
+    }
+}
+{
+    const res3 = checkMultiMessageEvasion('3210', ['987', '654']);
+    if (res3.action === MODERATION_ACTION.BLOCK && res3.category === MODERATION_CATEGORY.PHONE_NUMBER) {
+        console.log('  ✅ PASS | Split phone across 3 messages (987 + 654 + 3210)');
+        passed++;
+    } else {
+        console.log('  ❌ FAIL | Split phone across 3 messages (987 + 654 + 3210)');
+        failed++;
+    }
+}
+{
+    const res5 = checkMultiMessageEvasion('10', ['98', '76', '54', '32']);
+    if (res5.action === MODERATION_ACTION.BLOCK && res5.category === MODERATION_CATEGORY.PHONE_NUMBER) {
+        console.log('  ✅ PASS | Split phone across 5 messages (98 + 76 + 54 + 32 + 10)');
+        passed++;
+    } else {
+        console.log('  ❌ FAIL | Split phone across 5 messages (98 + 76 + 54 + 32 + 10)');
+        failed++;
+    }
+}
+{
+    const res10 = checkMultiMessageEvasion('0', ['9', '8', '7', '6', '5', '4', '3', '2', '1']);
+    if (res10.action === MODERATION_ACTION.BLOCK && res10.category === MODERATION_CATEGORY.PHONE_NUMBER) {
+        console.log('  ✅ PASS | Single-digit stream (9, 8, 7, 6, 5, 4, 3, 2, 1, 0)');
+        passed++;
+    } else {
+        console.log('  ❌ FAIL | Single-digit stream (9, 8, 7, 6, 5, 4, 3, 2, 1, 0)');
+        failed++;
+    }
+}
+{
+    const resUPI = checkMultiMessageEvasion('@ybl', ['send to rahul']);
+    if (resUPI.action === MODERATION_ACTION.BLOCK && resUPI.category === MODERATION_CATEGORY.UPI_ID) {
+        console.log('  ✅ PASS | Split UPI ID across messages (rahul + @ybl)');
+        passed++;
+    } else {
+        console.log('  ✅ FAIL | Split UPI ID across messages (rahul + @ybl)');
         failed++;
     }
 }

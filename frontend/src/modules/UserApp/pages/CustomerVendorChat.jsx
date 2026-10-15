@@ -19,6 +19,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import MobileLayout from "../components/Layout/MobileLayout";
 import PageTransition from "../../../shared/components/PageTransition";
+import TransactionBox from "../../../shared/components/TransactionBox";
 import api from "../../../shared/utils/api";
 import socketService from "../../../shared/utils/socket";
 import toast from "react-hot-toast";
@@ -40,6 +41,10 @@ const CustomerVendorChat = () => {
   const [reportReason, setReportReason] = useState("OFF_PLATFORM_SOLICITATION");
   const [reportDetails, setReportDetails] = useState("");
   const [submittingAction, setSubmittingAction] = useState(false);
+
+  // Proposal state
+  const [proposal, setProposal] = useState(null);
+  const [showMobileTransaction, setShowMobileTransaction] = useState(false);
 
   const chatEndRef = useRef(null);
   const menuRef = useRef(null);
@@ -83,6 +88,16 @@ const CustomerVendorChat = () => {
         if (active) {
           setMessages(messagesData);
         }
+
+        // Fetch transaction proposal
+        try {
+          const propRes = await api.get(`/user/chat/vendor/threads/${threadId}/proposal`);
+          if (active) {
+            setProposal(propRes?.data?.data || null);
+          }
+        } catch {
+          // No proposal yet or fetch error
+        }
       } catch (err) {
         console.error("Failed to load chat data:", err);
         toast.error("Failed to load conversation history.");
@@ -114,11 +129,23 @@ const CustomerVendorChat = () => {
       });
     };
 
+    const handleProposalUpdated = (p) => {
+      setProposal(p);
+      if (p?.status === "pending_customer_confirmation") {
+        toast("New price proposal received from seller!", {
+          icon: "🏷️",
+          duration: 4000,
+        });
+      }
+    };
+
     socket.on("new_message", handleNewMessage);
+    socket.on("transaction_proposal_updated", handleProposalUpdated);
 
     return () => {
       socket.emit("leave_chat_room", threadId);
       socket.off("new_message", handleNewMessage);
+      socket.off("transaction_proposal_updated", handleProposalUpdated);
     };
   }, [threadId]);
 
@@ -126,6 +153,53 @@ const CustomerVendorChat = () => {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  const handleAcceptProposal = async (proposalId) => {
+    try {
+      setSubmittingAction(true);
+      const res = await api.post(`/user/chat/vendor/threads/${threadId}/proposal/${proposalId}/respond`, {
+        action: "ACCEPT",
+      });
+      const updated = res?.data?.data;
+      setProposal(updated);
+      toast.success("Proposal accepted! You can proceed to official checkout.");
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to accept proposal.");
+    } finally {
+      setSubmittingAction(false);
+    }
+  };
+
+  const handleDeclineProposal = async (reason) => {
+    if (!proposal?._id) return;
+    try {
+      setSubmittingAction(true);
+      const res = await api.post(`/user/chat/vendor/threads/${threadId}/proposal/${proposal._id}/respond`, {
+        action: "REJECT",
+        rejectionReason: reason,
+      });
+      const updated = res?.data?.data;
+      setProposal(updated);
+      toast.success("Proposal declined.");
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to decline proposal.");
+    } finally {
+      setSubmittingAction(false);
+    }
+  };
+
+  const handleProceedCheckout = async (proposalObj) => {
+    try {
+      setSubmittingAction(true);
+      const res = await api.post(`/user/chat/vendor/threads/${threadId}/proposal/${proposalObj._id}/checkout`);
+      const checkoutPayload = res?.data?.data;
+      navigate("/checkout", { state: { proposalCheckout: checkoutPayload } });
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to prepare official checkout.");
+    } finally {
+      setSubmittingAction(false);
+    }
+  };
 
   const handleSend = async (e) => {
     e.preventDefault();
@@ -242,68 +316,85 @@ const CustomerVendorChat = () => {
     <PageTransition>
       <MobileLayout showBottomNav={false} showCartBar={false} noPadding={true}>
         <div className="fixed inset-0 top-0 bottom-0 left-0 right-0 bg-gray-100 flex justify-center items-start p-0 sm:px-4 z-50 overflow-hidden h-[100dvh]">
-          <div className="w-full max-w-2xl h-full h-[100dvh] flex flex-col bg-gray-50 sm:shadow-xl border-0 sm:border-x border-gray-200 overflow-hidden relative">
-            {/* Header */}
-            <div className="px-4 py-3 bg-white border-b border-gray-200 flex items-center justify-between gap-3 flex-shrink-0 sticky top-0 z-20 shadow-xs">
-              <div className="flex items-center gap-2 min-w-0">
-                <button
-                  onClick={() => {
-                    if (window.history.state && window.history.state.idx > 0) {
-                      navigate(-1);
-                    } else {
-                      navigate("/profile");
-                    }
-                  }}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
-                >
-                  <FiArrowLeft className="text-xl text-gray-700" />
-                </button>
-
-                {/* Vendor Details */}
+          <div className="w-full max-w-5xl h-full h-[100dvh] flex flex-row bg-gray-50 sm:shadow-xl border-0 sm:border-x border-gray-200 overflow-hidden relative">
+            {/* Left: Main Chat Conversation Area */}
+            <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative border-r border-gray-200">
+              {/* Header */}
+              <div className="px-4 py-3 bg-white border-b border-gray-200 flex items-center justify-between gap-3 flex-shrink-0 sticky top-0 z-20 shadow-xs">
                 <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden border border-gray-200 flex-shrink-0">
-                    {vendorInfo.storeLogo ? (
-                      <img
-                        src={vendorInfo.storeLogo}
-                        alt={vendorInfo.storeName || vendorInfo.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-primary-100 text-primary-600 font-bold text-sm">
-                        <FiUser />
-                      </div>
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1">
-                      <h1 className="text-sm font-bold text-gray-800 truncate">
-                        {vendorInfo.storeName || vendorInfo.name || "Store"}
-                      </h1>
-                      {vendorInfo.isVerified && <FiCheckCircle className="text-blue-500 text-xs flex-shrink-0" />}
-                      {isMuted && <FiBellOff className="text-gray-400 text-xs flex-shrink-0" title="Muted" />}
+                  <button
+                    onClick={() => {
+                      if (window.history.state && window.history.state.idx > 0) {
+                        navigate(-1);
+                      } else {
+                        navigate("/profile");
+                      }
+                    }}
+                    className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
+                  >
+                    <FiArrowLeft className="text-xl text-gray-700" />
+                  </button>
+
+                  {/* Vendor Details */}
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden border border-gray-200 flex-shrink-0">
+                      {vendorInfo.storeLogo ? (
+                        <img
+                          src={vendorInfo.storeLogo}
+                          alt={vendorInfo.storeName || vendorInfo.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-primary-100 text-primary-600 font-bold text-sm">
+                          <FiUser />
+                        </div>
+                      )}
                     </div>
-                    {vendorInfo.rating ? (
-                      <div className="flex items-center gap-0.5 text-xs text-gray-500">
-                        <FiStar className="text-yellow-400 fill-yellow-400 text-[10px]" />
-                        <span>{vendorInfo.rating} Store Rating</span>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1">
+                        <h1 className="text-sm font-bold text-gray-800 truncate">
+                          {vendorInfo.storeName || vendorInfo.name || "Store"}
+                        </h1>
+                        {vendorInfo.isVerified && <FiCheckCircle className="text-blue-500 text-xs flex-shrink-0" />}
+                        {isMuted && <FiBellOff className="text-gray-400 text-xs flex-shrink-0" title="Muted" />}
                       </div>
-                    ) : (
-                      <p className="text-[10px] text-gray-400 font-semibold uppercase">Official Seller Store</p>
-                    )}
+                      {vendorInfo.rating ? (
+                        <div className="flex items-center gap-0.5 text-xs text-gray-500">
+                          <FiStar className="text-yellow-400 fill-yellow-400 text-[10px]" />
+                          <span>{vendorInfo.rating} Store Rating</span>
+                        </div>
+                      ) : (
+                        <p className="text-[10px] text-gray-400 font-semibold uppercase">Official Seller Store</p>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Action Menu Button */}
-              <div className="relative" ref={menuRef}>
-                <button
-                  type="button"
-                  onClick={() => setShowMenu((prev) => !prev)}
-                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors"
-                  aria-label="Chat options"
-                >
-                  <FiMoreVertical className="text-lg" />
-                </button>
+                <div className="flex items-center gap-2">
+                  {/* Deal Details Button (Mobile/Tablet) */}
+                  <button
+                    type="button"
+                    onClick={() => setShowMobileTransaction(true)}
+                    className="md:hidden relative flex items-center gap-1.5 px-2.5 py-1.5 bg-[#14161F] text-zinc-100 rounded-xl text-xs font-bold border border-zinc-700 shadow-sm active:scale-95 transition-transform"
+                    title="View Transaction Box"
+                  >
+                    <FiShield className="text-amber-400 text-xs" />
+                    <span>Deal</span>
+                    {proposal?.status === "pending_customer_confirmation" && (
+                      <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping absolute -top-0.5 -right-0.5" />
+                    )}
+                  </button>
+
+                  {/* Action Menu Button */}
+                  <div className="relative" ref={menuRef}>
+                    <button
+                      type="button"
+                      onClick={() => setShowMenu((prev) => !prev)}
+                      className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors"
+                      aria-label="Chat options"
+                    >
+                      <FiMoreVertical className="text-lg" />
+                    </button>
 
                 {showMenu && (
                   <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg py-1 z-30 text-xs text-gray-700">
@@ -340,8 +431,9 @@ const CustomerVendorChat = () => {
                 )}
               </div>
             </div>
+          </div>
 
-            {/* Blocked or Closed Notice Banner */}
+          {/* Blocked or Closed Notice Banner */}
             {isBlocked ? (
               <div className="p-3 bg-red-50 border-b border-red-200 text-xs text-red-800 flex items-center justify-between px-4">
                 <div className="flex items-center gap-1.5 font-medium">
@@ -544,8 +636,48 @@ const CustomerVendorChat = () => {
                 </div>
               )}
             </AnimatePresence>
+            </div>
+
+            {/* Right Column: Desktop Transaction Box */}
+            <div className="hidden md:flex md:w-80 lg:w-96 h-full flex-col flex-shrink-0 bg-[#14161F]">
+              <TransactionBox
+                proposal={proposal}
+                isVendor={false}
+                onAccept={handleAcceptProposal}
+                onDecline={handleDeclineProposal}
+                onCheckout={handleProceedCheckout}
+                isSubmitting={submittingAction}
+                className="h-full rounded-none border-0"
+              />
+            </div>
           </div>
         </div>
+
+        {/* Mobile Transaction Drawer / Bottom Sheet */}
+        <AnimatePresence>
+          {showMobileTransaction && (
+            <div className="fixed inset-0 z-50 bg-black/75 md:hidden flex flex-col justify-end">
+              <motion.div
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                className="w-full max-h-[85vh] h-[85vh] flex flex-col rounded-t-3xl overflow-hidden bg-[#14161F] shadow-2xl"
+              >
+                <TransactionBox
+                  proposal={proposal}
+                  isVendor={false}
+                  onAccept={handleAcceptProposal}
+                  onDecline={handleDeclineProposal}
+                  onCheckout={handleProceedCheckout}
+                  isSubmitting={submittingAction}
+                  onCloseMobile={() => setShowMobileTransaction(false)}
+                  className="h-full rounded-none border-0"
+                />
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </MobileLayout>
     </PageTransition>
   );

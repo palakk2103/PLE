@@ -180,6 +180,24 @@ export const useB2BAdminStore = create(
     }
   },
 
+  submitDocumentResubmission: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await api.submitCompanyDocumentResubmission();
+      const payload = response.data?.data || response.data || response;
+      set({ companyProfile: payload });
+      toast.success('Documents re-submitted for admin verification successfully!');
+      return true;
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to submit documents for verification';
+      set({ error: msg });
+      toast.error(msg);
+      return false;
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
   fetchAdminProfile: async () => {
     set({ isLoading: true, error: null });
     try {

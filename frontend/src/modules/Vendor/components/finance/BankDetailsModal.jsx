@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiX, FiCreditCard, FiLock, FiCheck } from "react-icons/fi";
+import { FiX, FiCreditCard, FiLock, FiCheck, FiEye, FiEyeOff } from "react-icons/fi";
 import { updateVendorFinanceBankDetails, getVendorFinanceBankDetails } from "../../services/vendorService";
 import toast from "react-hot-toast";
 
@@ -16,6 +16,8 @@ const BankDetailsModal = ({ isOpen, onClose, onUpdated }) => {
   const [maskedAccount, setMaskedAccount] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showAccountNumber, setShowAccountNumber] = useState(false);
+  const [showConfirmAccountNumber, setShowConfirmAccountNumber] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -47,8 +49,23 @@ const BankDetailsModal = ({ isOpen, onClose, onUpdated }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (formData.accountNumber && formData.accountNumber !== formData.confirmAccountNumber) {
+    const hasNewAccount = Boolean(formData.accountNumber?.trim());
+    const hasIfsc = Boolean(formData.ifscCode?.trim());
+    const hasUpi = Boolean(formData.upiId?.trim());
+    const hasExistingAccount = Boolean(maskedAccount);
+
+    if (!hasNewAccount && !hasExistingAccount && !hasUpi) {
+      toast.error("Please enter either Bank Account Details or a UPI ID.");
+      return;
+    }
+
+    if (hasNewAccount && formData.accountNumber !== formData.confirmAccountNumber) {
       toast.error("Account numbers do not match.");
+      return;
+    }
+
+    if (hasNewAccount && !hasIfsc) {
+      toast.error("Please enter the 11-character IFSC Code for your bank account.");
       return;
     }
 
@@ -60,13 +77,13 @@ const BankDetailsModal = ({ isOpen, onClose, onUpdated }) => {
     setIsSubmitting(true);
     try {
       const payload = {
-        accountName: formData.accountName,
-        bankName: formData.bankName,
-        ifscCode: formData.ifscCode.toUpperCase(),
-        upiId: formData.upiId,
+        accountName: formData.accountName?.trim() || "",
+        bankName: formData.bankName?.trim() || "",
+        ifscCode: formData.ifscCode?.trim()?.toUpperCase() || "",
+        upiId: formData.upiId?.trim() || "",
       };
       if (formData.accountNumber) {
-        payload.accountNumber = formData.accountNumber;
+        payload.accountNumber = formData.accountNumber.trim();
       }
 
       await updateVendorFinanceBankDetails(payload);
@@ -166,25 +183,47 @@ const BankDetailsModal = ({ isOpen, onClose, onUpdated }) => {
                     <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
                       Bank Account Number
                     </label>
-                    <input
-                      type="password"
-                      value={formData.accountNumber}
-                      onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
-                      placeholder={maskedAccount ? "Leave blank to keep existing" : "Account number"}
-                      className="w-full px-3.5 py-2.5 bg-white dark:bg-black/20 border border-gray-300 dark:border-white/10 rounded-xl text-xs font-mono text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-600/30 focus:border-purple-600"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showAccountNumber ? "text" : "password"}
+                        value={formData.accountNumber}
+                        onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
+                        placeholder={maskedAccount ? "Leave blank to keep existing" : "Account number"}
+                        className="w-full pl-3.5 pr-10 py-2.5 bg-white dark:bg-black/20 border border-gray-300 dark:border-white/10 rounded-xl text-xs font-mono text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-600/30 focus:border-purple-600"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowAccountNumber(!showAccountNumber)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors p-1 cursor-pointer"
+                        tabIndex={-1}
+                        aria-label={showAccountNumber ? "Hide account number" : "Show account number"}
+                      >
+                        {showAccountNumber ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
+                      </button>
+                    </div>
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
                       Confirm Account Number
                     </label>
-                    <input
-                      type="text"
-                      value={formData.confirmAccountNumber}
-                      onChange={(e) => setFormData({ ...formData, confirmAccountNumber: e.target.value })}
-                      placeholder="Re-enter account number"
-                      className="w-full px-3.5 py-2.5 bg-white dark:bg-black/20 border border-gray-300 dark:border-white/10 rounded-xl text-xs font-mono text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-600/30 focus:border-purple-600"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showConfirmAccountNumber ? "text" : "password"}
+                        value={formData.confirmAccountNumber}
+                        onChange={(e) => setFormData({ ...formData, confirmAccountNumber: e.target.value })}
+                        placeholder="Re-enter account number"
+                        className="w-full pl-3.5 pr-10 py-2.5 bg-white dark:bg-black/20 border border-gray-300 dark:border-white/10 rounded-xl text-xs font-mono text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-600/30 focus:border-purple-600"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmAccountNumber(!showConfirmAccountNumber)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors p-1 cursor-pointer"
+                        tabIndex={-1}
+                        aria-label={showConfirmAccountNumber ? "Hide confirm account number" : "Show confirm account number"}
+                      >
+                        {showConfirmAccountNumber ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
+                      </button>
+                    </div>
                   </div>
                 </div>
 

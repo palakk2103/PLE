@@ -123,6 +123,9 @@ router.patch('/chat/threads/:id/status', ...strictVendorAuth, chatController.upd
 router.post('/chat/threads/:id/report', ...strictVendorAuth, chatController.reportVendorChatMessage);
 router.post('/chat/threads/:id/block', ...strictVendorAuth, chatController.toggleBlockVendorChat);
 router.post('/chat/threads/:id/mute', ...strictVendorAuth, chatController.toggleMuteVendorChat);
+router.get('/chat/threads/:id/proposal', ...strictVendorAuth, chatController.getVendorProposal);
+router.post('/chat/threads/:id/proposal', ...strictVendorAuth, chatController.createVendorProposal);
+router.patch('/chat/threads/:id/proposal/:proposalId/cancel', ...strictVendorAuth, chatController.cancelVendorProposal);
 
 // Documents
 router.get('/documents', ...strictVendorAuth, documentController.getVendorDocuments);

@@ -20,9 +20,12 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
     const dateFilter = getDateFilter(startDate, endDate);
     
     const activeOrderFilter = { isDeleted: { $ne: true }, ...dateFilter };
+    const customerRoleFilter = { $or: [{ role: 'customer' }, { role: { $exists: false } }, { role: null }] };
+
     const [
         totalOrders,
         totalUsers,
+        periodUsers,
         totalVendors,
         totalProducts,
         revenueAgg,
@@ -37,24 +40,26 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
         rejectedSellers
     ] = await Promise.all([
         Order.countDocuments(activeOrderFilter),
-        User.countDocuments({ role: 'customer', ...dateFilter }),
-        Vendor.countDocuments({ status: 'approved', ...dateFilter }),
-        Product.countDocuments({ isActive: true, ...dateFilter }),
+        User.countDocuments(customerRoleFilter),
+        User.countDocuments({ ...customerRoleFilter, ...dateFilter }),
+        Vendor.countDocuments({ status: 'approved' }),
+        Product.countDocuments({ isActive: true }),
         Order.aggregate([{ $match: { ...activeOrderFilter, status: { $ne: 'cancelled' } } }, { $group: { _id: null, total: { $sum: '$total' } } }]),
         Order.countDocuments({ ...activeOrderFilter, status: 'pending' }),
-        Vendor.countDocuments({ ...dateFilter }),
-        Vendor.countDocuments({ gstRegistered: true, ...dateFilter }),
-        Vendor.countDocuments({ gstRegistered: false, ...dateFilter }),
-        Vendor.countDocuments({ businessType: 'MSME', ...dateFilter }),
-        Vendor.countDocuments({ businessType: 'Home Business', ...dateFilter }),
-        Vendor.countDocuments({ verificationStatus: 'Pending', ...dateFilter }),
-        Vendor.countDocuments({ verificationStatus: 'Approved', ...dateFilter }),
-        Vendor.countDocuments({ verificationStatus: 'Rejected', ...dateFilter }),
+        Vendor.countDocuments(),
+        Vendor.countDocuments({ gstRegistered: true }),
+        Vendor.countDocuments({ gstRegistered: false }),
+        Vendor.countDocuments({ businessType: 'MSME' }),
+        Vendor.countDocuments({ businessType: 'Home Business' }),
+        Vendor.countDocuments({ verificationStatus: 'Pending' }),
+        Vendor.countDocuments({ verificationStatus: 'Approved' }),
+        Vendor.countDocuments({ verificationStatus: 'Rejected' }),
     ]);
 
     res.status(200).json(new ApiResponse(200, {
         totalOrders,
         totalUsers,
+        periodUsers,
         totalVendors,
         totalProducts,
         totalRevenue: revenueAgg[0]?.total || 0,
@@ -83,8 +88,8 @@ export const getB2bOverviewStats = asyncHandler(async (req, res) => {
     };
     
     const [b2bUsersCount, b2bProductsCount, b2bOrdersCount, b2bRevenueAgg] = await Promise.all([
-        User.countDocuments({ role: { $in: ['b2bAdmin', 'b2bEmployee', 'b2badmin', 'b2bemployee'] }, ...dateFilter }),
-        Product.countDocuments({ isActive: true, 'b2bPricing.bulkPricing': { $exists: true, $not: { $size: 0 } }, ...dateFilter }),
+        User.countDocuments({ role: { $in: ['b2bAdmin', 'b2bEmployee', 'b2badmin', 'b2bemployee'] } }),
+        Product.countDocuments({ isActive: true, 'b2bPricing.bulkPricing': { $exists: true, $not: { $size: 0 } } }),
         Order.countDocuments(activeOrderFilter),
         Order.aggregate([
             { $match: activeOrderFilter },

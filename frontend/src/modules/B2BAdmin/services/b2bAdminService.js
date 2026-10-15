@@ -29,6 +29,8 @@ export const uploadCompanyLegalDocument = (file, docType = 'acceptanceExecutionD
   });
 };
 
+export const submitCompanyDocumentResubmission = () => api.post('/b2b-user/admin/company/submit-resubmission');
+
 export const getAdminProfile = () => api.get('/b2b-user/admin/profile');
 export const updateAdminProfile = (data) => api.put('/b2b-user/admin/profile', data);
 

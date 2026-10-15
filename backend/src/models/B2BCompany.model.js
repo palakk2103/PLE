@@ -53,8 +53,21 @@ const b2bCompanySchema = new mongoose.Schema(
         },
         verificationStatus: { 
             type: String, 
-            enum: ['Pending Verification', 'Approved', 'Rejected', 'Suspended'], 
+            enum: ['Pending Verification', 'Approved', 'Rejected', 'Suspended', 'Resubmission Required'], 
             default: 'Pending Verification' 
+        },
+        documentResubmitNotes: {
+            type: String,
+            default: ''
+        },
+        documentResubmitRequestedAt: {
+            type: Date
+        },
+        resubmitRequestedDocs: [{
+            type: String
+        }],
+        resubmittedAt: {
+            type: Date
         },
         status: { 
             type: String, 

@@ -10,6 +10,7 @@ import { getIO } from '../../../config/socket.js';
 import { moderateMessage, checkMultiMessageEvasion, MODERATION_ACTION } from '../../../services/chatModeration.service.js';
 import ChatViolation from '../../../models/ChatViolation.model.js';
 import ChatReport from '../../../models/ChatReport.model.js';
+import ChatTransactionProposal from '../../../models/ChatTransactionProposal.model.js';
 import { decryptMessage } from '../../../utils/chatEncryption.util.js';
 
 const serializeMessage = (messageDoc) => ({
@@ -161,8 +162,8 @@ export const sendCustomerChatMessage = asyncHandler(async (req, res) => {
     const recentMsgs = await VendorChatMessage.find({
         threadId: thread._id,
         senderId: req.user.id,
-        createdAt: { $gte: new Date(Date.now() - 90000) }
-    }).sort({ createdAt: -1 }).limit(3);
+        createdAt: { $gte: new Date(Date.now() - 120000) }
+    }).sort({ createdAt: 1 }).limit(10);
 
     const evasionResult = checkMultiMessageEvasion(message, recentMsgs.map(m => m.message));
     if (evasionResult.action === MODERATION_ACTION.BLOCK) {
@@ -291,4 +292,171 @@ export const toggleMuteCustomerChat = asyncHandler(async (req, res) => {
     await thread.save();
 
     res.status(200).json(new ApiResponse(200, { customerMuted: thread.customerMuted }, thread.customerMuted ? 'Chat muted.' : 'Chat unmuted.'));
+});
+
+// @desc    Get active proposal for customer thread
+// @route   GET /api/user/chat/vendor/threads/:id/proposal
+export const getCustomerProposal = asyncHandler(async (req, res) => {
+    const thread = await VendorChatThread.findOne({
+        _id: req.params.id,
+        customerUserId: req.user.id,
+    });
+    if (!thread) throw new ApiError(404, 'Chat thread not found.');
+
+    const proposal = await ChatTransactionProposal.findOne({
+        threadId: thread._id,
+        status: { $in: ['pending_customer_confirmation', 'accepted', 'rejected'] }
+    }).sort({ createdAt: -1 });
+
+    res.status(200).json(new ApiResponse(200, proposal, 'Transaction proposal fetched.'));
+});
+
+// @desc    Customer accepts or rejects transaction proposal
+// @route   POST /api/user/chat/vendor/threads/:id/proposal/:proposalId/respond
+export const respondCustomerProposal = asyncHandler(async (req, res) => {
+    const { action, rejectionReason } = req.body;
+    if (!['ACCEPT', 'REJECT'].includes(action)) {
+        throw new ApiError(400, 'Invalid response action. Must be ACCEPT or REJECT.');
+    }
+
+    const thread = await VendorChatThread.findOne({
+        _id: req.params.id,
+        customerUserId: req.user.id,
+    });
+    if (!thread) throw new ApiError(404, 'Chat thread not found.');
+
+    if (thread.isBlocked) {
+        throw new ApiError(403, 'Communication is blocked.');
+    }
+
+    const proposal = await ChatTransactionProposal.findOne({
+        _id: req.params.proposalId,
+        threadId: thread._id,
+        customerUserId: req.user.id,
+    });
+    if (!proposal) throw new ApiError(404, 'Proposal not found.');
+
+    if (proposal.status !== 'pending_customer_confirmation') {
+        throw new ApiError(400, `Proposal cannot be responded to in status: ${proposal.status}.`);
+    }
+
+    if (action === 'ACCEPT') {
+        proposal.status = 'accepted';
+        proposal.history.push({
+            action: 'ACCEPTED',
+            actionBy: req.user.id,
+            actionByRole: 'customer',
+            timestamp: new Date(),
+            note: 'Customer agreed to proposed amount.',
+        });
+        await proposal.save();
+
+        // Create system chat message
+        const systemMsg = await VendorChatMessage.create({
+            threadId: thread._id,
+            senderType: 'system',
+            senderId: null,
+            message: `[Proposal Confirmed] Buyer agreed to amount of ₹${proposal.finalAmount} for "${proposal.productName}" (Qty: ${proposal.quantity}). Please proceed to official checkout.`,
+        });
+
+        thread.lastActivity = new Date();
+        thread.lastMessage = `[Proposal Confirmed] Agreed to ₹${proposal.finalAmount}`;
+        await thread.save();
+
+        try {
+            const io = getIO();
+            if (io) {
+                io.to(`chat_${thread._id}`).emit('new_message', serializeMessage(systemMsg));
+                io.to(`chat_${thread._id}`).emit('transaction_proposal_updated', proposal);
+                io.to(`user_${thread.vendorId}`).emit('vendor_chat_notification', {
+                    threadId: thread._id,
+                    customerName: req.user.name || 'Customer',
+                    message: `Customer accepted proposal for "${proposal.productName}" (₹${proposal.finalAmount})`,
+                });
+            }
+        } catch (sErr) {
+            console.warn('Socket broadcast error:', sErr.message);
+        }
+
+        return res.status(200).json(new ApiResponse(200, proposal, 'Proposal accepted successfully.'));
+    } else {
+        proposal.status = 'rejected';
+        proposal.rejectionReason = rejectionReason || 'Declined by customer';
+        proposal.history.push({
+            action: 'REJECTED',
+            actionBy: req.user.id,
+            actionByRole: 'customer',
+            timestamp: new Date(),
+            note: proposal.rejectionReason,
+        });
+        await proposal.save();
+
+        const systemMsg = await VendorChatMessage.create({
+            threadId: thread._id,
+            senderType: 'system',
+            senderId: null,
+            message: `[Proposal Declined] Buyer declined proposal for "${proposal.productName}": "${proposal.rejectionReason}".`,
+        });
+
+        thread.lastActivity = new Date();
+        thread.lastMessage = `[Proposal Declined] ${proposal.rejectionReason}`;
+        await thread.save();
+
+        try {
+            const io = getIO();
+            if (io) {
+                io.to(`chat_${thread._id}`).emit('new_message', serializeMessage(systemMsg));
+                io.to(`chat_${thread._id}`).emit('transaction_proposal_updated', proposal);
+                io.to(`user_${thread.vendorId}`).emit('vendor_chat_notification', {
+                    threadId: thread._id,
+                    customerName: req.user.name || 'Customer',
+                    message: `Customer declined proposal: ${proposal.rejectionReason}`,
+                });
+            }
+        } catch (sErr) {
+            console.warn('Socket broadcast error:', sErr.message);
+        }
+
+        return res.status(200).json(new ApiResponse(200, proposal, 'Proposal declined.'));
+    }
+});
+
+// @desc    Prepare official checkout item from accepted proposal
+// @route   POST /api/user/chat/vendor/threads/:id/proposal/:proposalId/checkout
+export const checkoutCustomerProposal = asyncHandler(async (req, res) => {
+    const thread = await VendorChatThread.findOne({
+        _id: req.params.id,
+        customerUserId: req.user.id,
+    });
+    if (!thread) throw new ApiError(404, 'Chat thread not found.');
+
+    const proposal = await ChatTransactionProposal.findOne({
+        _id: req.params.proposalId,
+        threadId: thread._id,
+        customerUserId: req.user.id,
+    });
+    if (!proposal) throw new ApiError(404, 'Proposal not found.');
+
+    if (proposal.status !== 'accepted') {
+        throw new ApiError(400, 'Only accepted proposals can be converted to checkout.');
+    }
+
+    // Generate authoritative checkout item payload
+    const checkoutPayload = {
+        proposalId: proposal._id,
+        proposalReference: proposal.proposalReference,
+        vendorId: proposal.vendorId,
+        productId: proposal.productId || null,
+        name: proposal.productName,
+        variant: proposal.productVariant || null,
+        price: proposal.unitPrice,
+        quantity: proposal.quantity,
+        subtotal: proposal.agreedAmount,
+        discount: proposal.discount,
+        tax: proposal.tax,
+        shipping: proposal.deliveryCharge,
+        total: proposal.finalAmount,
+    };
+
+    res.status(200).json(new ApiResponse(200, checkoutPayload, 'Checkout payload generated.'));
 });

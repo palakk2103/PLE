@@ -264,3 +264,27 @@ export const uploadLegalDocument = asyncHandler(async (req, res) => {
     }
 });
 
+/**
+ * @desc    Submit re-uploaded documents for admin verification
+ * @route   POST /api/b2b-user/admin/company/submit-resubmission
+ * @access  Private (B2B Admin)
+ */
+export const submitDocumentResubmission = asyncHandler(async (req, res) => {
+    const adminId = req.user.id || req.user._id;
+    const admin = await User.findById(adminId);
+    if (!admin) {
+        throw new ApiError(404, 'User not found.');
+    }
+
+    const company = await B2BCompany.findById(admin.companyId);
+    if (!company) {
+        throw new ApiError(404, 'Company not found.');
+    }
+
+    company.verificationStatus = 'Pending Verification';
+    company.resubmittedAt = new Date();
+    await company.save();
+
+    res.status(200).json(new ApiResponse(200, company, 'Documents re-submitted for admin verification successfully.'));
+});
+

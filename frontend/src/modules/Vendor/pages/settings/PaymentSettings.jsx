@@ -84,6 +84,7 @@ const PaymentSettings = () => {
         accountNumber: formData.bankDetails.accountNumber,
         ifscCode: formData.bankDetails.ifscCode,
         bankName: formData.bankDetails.bankName,
+        upiId: formData.upiId,
       });
       toast.success('Payment settings saved successfully');
     } catch {
