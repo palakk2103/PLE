@@ -256,6 +256,7 @@ router.get('/wallet/settings', ...adminAuth, walletController.getWalletSettings)
 router.put('/wallet/settings', ...adminAuth, walletController.updateWalletSettings);
 
 // Settings (Logistics, etc) - Super Admin only
+router.post('/settings/email/test', ...superAdminAuth, settingsController.testEmailSettings);
 router.get('/settings/:key', ...superAdminAuth, settingsController.getSettings);
 router.put('/settings/:key', ...superAdminAuth, settingsController.updateSettings);
 

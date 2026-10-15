@@ -70,6 +70,7 @@ const ReturnDetail = lazy(() => import("../modules/UserApp/pages/ReturnDetail"))
 
 // Sub-routes modules
 import AdminRoutes from "./AdminRoutes";
+import { ADMIN_BASE_ROUTE } from "../modules/Admin/config/adminRoutesConfig";
 import VendorRoutes from "./VendorRoutes";
 import DeliveryRoutes from "./DeliveryRoutes";
 import B2BRoutes from "./B2BRoutes";
@@ -146,7 +147,10 @@ export default function PortalRoutes() {
       />
 
       {/* Delegated Route Domains */}
-      <Route path="/admin/*" element={<AdminRoutes />} />
+      <Route path={`${ADMIN_BASE_ROUTE}/*`} element={<AdminRoutes />} />
+      {/* Decommissioned /admin routes safely redirect to public portal root */}
+      <Route path="/admin/*" element={<Navigate to="/" replace />} />
+      <Route path="/admin" element={<Navigate to="/" replace />} />
       <Route path="/vendor/*" element={<VendorRoutes />} />
       <Route path="/delivery/*" element={<DeliveryRoutes />} />
       <Route path="/b2b-dashboard/*" element={<B2BRoutes />} />

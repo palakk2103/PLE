@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { formatDateTime } from '../../utils/adminHelpers';
 import { useNavigate } from 'react-router-dom';
 import { useNotificationStore } from '../../store/notificationStore';
+import { getAdminPath } from '../../config/adminRoutesConfig';
 
 const NotificationWindow = ({ isOpen, onClose, position = 'right' }) => {
   const navigate = useNavigate();
@@ -52,7 +53,7 @@ const NotificationWindow = ({ isOpen, onClose, position = 'right' }) => {
     markAsRead(notification._id);
     const orderId = notification.orderId || notification.data?.orderId;
     if (orderId) {
-      navigate('/admin/orders');
+      navigate(getAdminPath('orders'));
       onClose();
     }
   };
@@ -197,7 +198,7 @@ const NotificationWindow = ({ isOpen, onClose, position = 'right' }) => {
               <div className="sticky bottom-0 bg-white dark:bg-[#1A1A1A] border-t border-gray-200 dark:border-white/10 p-3">
                 <button
                   onClick={() => {
-                    navigate('/admin/notifications');
+                    navigate(getAdminPath('notifications'));
                     onClose();
                   }}
                   className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 hover:bg-primary-50 dark:hover:bg-primary-950/30 rounded-lg transition-colors"

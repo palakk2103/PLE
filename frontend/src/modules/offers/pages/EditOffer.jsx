@@ -5,14 +5,15 @@ import { OFFER_TYPES, DISCOUNT_TYPES, OFFER_STATUS } from "../constants/offerTyp
 import { categories as mockCategories } from "../../../data/categories";
 import { products as mockProducts } from "../../../data/products";
 import { FiArrowLeft, FiTag, FiEye, FiCheck } from "react-icons/fi";
+import { ADMIN_BASE_ROUTE, getAdminPath } from "../../Admin/config/adminRoutesConfig";
 import toast from "react-hot-toast";
 
 export const EditOffer = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
-  const isAdmin = location.pathname.startsWith("/admin");
-  const baseRoute = isAdmin ? "/admin/offers-management" : "/vendor/my-offers";
+  const isAdmin = location.pathname.startsWith(ADMIN_BASE_ROUTE) || location.pathname.startsWith("/admin");
+  const baseRoute = isAdmin ? getAdminPath("offers-management") : "/vendor/my-offers";
 
   const { offers, updateOffer } = useOffers();
 

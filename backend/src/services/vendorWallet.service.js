@@ -10,6 +10,7 @@ import ReturnRequest from '../models/ReturnRequest.model.js';
 import { createNotification } from './notification.service.js';
 import { logActivity } from './auditLog.service.js';
 import ApiError from '../utils/ApiError.js';
+import { sendVendorSettlementNotification } from './vendorNotification.service.js';
 
 const SETTINGS_KEY = 'vendor_payout_settings';
 const DEFAULT_PAYOUT_SETTINGS = {
@@ -807,6 +808,14 @@ export const recordManualPayout = async (withdrawalDocId, adminId, payoutData) =
             type: 'finance',
             data: { withdrawalId: withdrawal.withdrawalId, utr: cleanUtr, amount: finalPaidAmount },
         });
+
+        // Vendor Notification Item 124: Settlement Payout Completed
+        sendVendorSettlementNotification({
+            vendorId,
+            settlement,
+            status: 'completed',
+            amount: finalPaidAmount,
+        }).catch(err => console.error('[VendorWallet] Settlement email error:', err.message));
     } catch (err) {
         console.error('[VendorWallet] Notification error:', err.message);
     }

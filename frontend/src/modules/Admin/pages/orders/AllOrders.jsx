@@ -548,15 +548,15 @@ const AllOrders = () => {
 
   // Handler functions for order actions
   const handleOrderDetails = (orderId) => {
-    navigate(`/admin/orders/${orderId}`);
+    navigate(`/ple-ops-desk/orders/${orderId}`);
   };
 
   const handleGenerateInvoice = (order) => {
-    navigate(`/admin/orders/${order.id}/invoice`);
+    navigate(`/ple-ops-desk/orders/${order.id}/invoice`);
   };
 
   const handleOrderTracking = (orderId) => {
-    navigate(`/admin/orders/order-tracking?orderId=${orderId}`);
+    navigate(`/ple-ops-desk/orders/order-tracking?orderId=${orderId}`);
   };
 
   const handleDeleteOrder = (orderId) => {

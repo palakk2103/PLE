@@ -11,6 +11,7 @@ import {
   reorderCategories as reorderCategoriesApi,
 } from '../../modules/Admin/services/adminService';
 import toast from 'react-hot-toast';
+import { ADMIN_BASE_ROUTE } from '../../modules/Admin/config/adminRoutesConfig';
 
 export const useCategoryStore = create(
   persist(
@@ -24,7 +25,7 @@ export const useCategoryStore = create(
         try {
           const isAdminArea =
             typeof window !== 'undefined' &&
-            window.location.pathname.startsWith('/admin');
+            (window.location.pathname.startsWith(ADMIN_BASE_ROUTE) || window.location.pathname.startsWith('/admin'));
           const response = isAdminArea
             ? await getAllCategories()
             : await getPublicCategories();

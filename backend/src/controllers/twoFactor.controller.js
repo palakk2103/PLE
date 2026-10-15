@@ -4,6 +4,7 @@ import ApiError from '../utils/ApiError.js';
 import { getModelByRole, send2FAOtp, verify2FAOtp } from '../services/twoFactor.service.js';
 import { generateTokens } from '../utils/generateToken.js';
 import { persistRefreshSession } from '../services/refreshToken.service.js';
+import { sendSecurityAlert } from '../services/adminNotification.service.js';
 import jwt from 'jsonwebtoken';
 
 /**
@@ -67,6 +68,14 @@ export const verifyEnable2FA = asyncHandler(async (req, res) => {
     user.twoFactorEnabled = true;
     await user.save({ validateBeforeSave: false });
 
+    // Checklist Item 176: 2FA enabled
+    sendSecurityAlert({
+        user,
+        eventType: '2fa_enabled',
+        ipAddress: req.ip || req.connection?.remoteAddress,
+        userAgent: req.headers['user-agent'] || 'Unknown'
+    }).catch(err => console.error('[SecurityAlert] 2FA enabled email error:', err.message));
+
     return res.status(200).json(
         new ApiResponse(200, { twoFactorEnabled: true }, 'Two-factor authentication has been successfully enabled.')
     );
@@ -94,6 +103,14 @@ export const disable2FA = asyncHandler(async (req, res) => {
 
     user.twoFactorEnabled = false;
     await user.save({ validateBeforeSave: false });
+
+    // Checklist Item 177: 2FA disabled
+    sendSecurityAlert({
+        user,
+        eventType: '2fa_disabled',
+        ipAddress: req.ip || req.connection?.remoteAddress,
+        userAgent: req.headers['user-agent'] || 'Unknown'
+    }).catch(err => console.error('[SecurityAlert] 2FA disabled email error:', err.message));
 
     return res.status(200).json(
         new ApiResponse(200, { twoFactorEnabled: false }, 'Two-factor authentication has been disabled.')

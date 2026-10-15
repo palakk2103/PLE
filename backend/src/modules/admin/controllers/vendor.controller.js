@@ -6,6 +6,11 @@ import Commission from '../../../models/Commission.model.js';
 import VendorDocument from '../../../models/VendorDocument.model.js';
 import { sendEmail } from '../../../services/email.service.js';
 import { createNotification } from '../../../services/notification.service.js';
+import {
+    sendVendorApplicationStatusEmail,
+    sendVendorKycStatusEmail,
+} from '../../../services/vendorNotification.service.js';
+import { sendAdminVendorAlert } from '../../../services/adminNotification.service.js';
 
 const escapeRegex = (value = '') => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -130,15 +135,17 @@ export const updateVendorStatus = asyncHandler(async (req, res) => {
         },
     });
 
-    try {
-        await sendEmail({
-            to: vendor.email,
-            subject: `Vendor Account ${status[0].toUpperCase()}${status.slice(1)}`,
-            text: vendorMessage,
-            html: `<p>${vendorMessage}</p>`,
-        });
-    } catch (err) {
-        console.warn(`Vendor status email failed for ${vendor.email}: ${err.message}`);
+    // Vendor Notification Items 68-72: Vendor account status update
+    sendVendorApplicationStatusEmail({ vendor, status, reason })
+        .catch((err) => console.warn(`Vendor status email failed for ${vendor.email}: ${err.message}`));
+
+    // Admin Notification Item 142: Vendor suspended / compliance escalation
+    if (status === 'suspended') {
+        sendAdminVendorAlert({
+            vendor,
+            alertType: 'suspension_recommended',
+            reason: reason || 'Vendor suspended by administrator'
+        }).catch((err) => console.warn(`[AdminNotification] Vendor suspended alert failed: ${err.message}`));
     }
 
     res.status(200).json(new ApiResponse(200, toApiVendor(vendor), `Vendor ${status} successfully.`));
@@ -302,6 +309,17 @@ export const flagVendor = asyncHandler(async (req, res) => {
         console.warn(`Vendor flag email failed for ${vendor.email}: ${err.message}`);
     }
 
+    // Admin Notification Item 141: Vendor Compliance Issue Alert
+    sendAdminVendorAlert({
+        vendor,
+        alertType: 'compliance_issue',
+        reason: flagReason,
+        details: [
+            { label: 'Current Strike Count', value: `${vendor.strikeCount}` },
+            { label: 'Action Taken', value: 'Restricted from Product Requests' },
+        ]
+    }).catch(err => console.warn(`[AdminNotification] Vendor compliance alert failed: ${err.message}`));
+
     res.status(200).json(new ApiResponse(200, toApiVendor(vendor), 'Vendor flagged successfully.'));
 });
 
@@ -402,16 +420,13 @@ export const updateDocumentStatus = asyncHandler(async (req, res) => {
             data: { docId: document._id, status },
         });
 
-        try {
-            await sendEmail({
-                to: vendor.email,
-                subject: `Document ${status.charAt(0).toUpperCase() + status.slice(1)}`,
-                text: message,
-                html: `<p>${message}</p>`,
-            });
-        } catch (err) {
-            console.warn(`Vendor document status email failed for ${vendor.email}: ${err.message}`);
-        }
+        // Vendor Notification Items 64-67: KYC Document Status
+        sendVendorKycStatusEmail({
+            vendor,
+            documentName: document.name,
+            status,
+            reason: req.body.reason || req.body.remark,
+        }).catch((err) => console.warn(`Vendor document status email failed for ${vendor.email}: ${err.message}`));
     }
 
     res.status(200).json(new ApiResponse(200, document, `Document status updated to ${status}.`));
@@ -439,16 +454,9 @@ export const verifyVendorBusiness = asyncHandler(async (req, res) => {
         data: { verificationStatus: 'Approved', status: 'approved' },
     });
 
-    try {
-        await sendEmail({
-            to: vendor.email,
-            subject: 'Business Verification Approved',
-            text: message,
-            html: `<p>${message}</p>`,
-        });
-    } catch (err) {
-        console.warn(`Vendor verification email failed: ${err.message}`);
-    }
+    // Vendor Notification Item 68: Vendor Approved
+    sendVendorApplicationStatusEmail({ vendor, status: 'approved' })
+        .catch((err) => console.warn(`Vendor verification email failed: ${err.message}`));
 
     res.status(200).json(new ApiResponse(200, toApiVendor(vendor), 'Business verification approved.'));
 });
@@ -478,16 +486,9 @@ export const rejectVendorBusiness = asyncHandler(async (req, res) => {
         data: { verificationStatus: 'Rejected', status: 'rejected', remark },
     });
 
-    try {
-        await sendEmail({
-            to: vendor.email,
-            subject: 'Business Verification Rejected',
-            text: message,
-            html: `<p>${message}</p>`,
-        });
-    } catch (err) {
-        console.warn(`Vendor verification rejection email failed: ${err.message}`);
-    }
+    // Vendor Notification Item 69: Vendor Rejected
+    sendVendorApplicationStatusEmail({ vendor, status: 'rejected', reason: remark })
+        .catch((err) => console.warn(`Vendor rejection email failed for ${vendor.email}: ${err.message}`));
 
     res.status(200).json(new ApiResponse(200, toApiVendor(vendor), 'Business verification rejected.'));
 });

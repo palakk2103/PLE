@@ -184,7 +184,7 @@ const CommissionRates = () => {
           columns={columns}
           pagination={true}
           itemsPerPage={10}
-          onRowClick={(row) => navigate(`/admin/vendors/${row.id}`)}
+          onRowClick={(row) => navigate(`/ple-ops-desk/vendors/${row.id}`)}
         />
       </div>
 

@@ -4,6 +4,8 @@ import User from '../models/User.model.js';
 import Order from '../models/Order.model.js';
 import ReturnRequest from '../models/ReturnRequest.model.js';
 import { createNotification } from './notification.service.js';
+import { sendRefundStatusNotification } from './customerNotification.service.js';
+import { sendAdminFinanceAlert } from './adminNotification.service.js';
 import ApiError from '../utils/ApiError.js';
 
 /**
@@ -204,6 +206,37 @@ export const processOrderCancellationRefund = async (order, options = {}) => {
                 },
             }).catch((err) => console.error('[RefundService] Notification error:', err.message));
         }
+
+        // Send customer email receipt
+        sendRefundStatusNotification({
+            order,
+            refundAmount: (refundResults.walletRefunded + refundResults.gatewayRefunded),
+            destination: refundResults.walletRefunded > 0 ? 'PLE Wallet' : 'Original Payment Mode',
+            status: 'processed',
+            transactionId: refundResults.gatewayRefundId || 'WALLET_REFUND',
+            rrn: refundResults.gatewayRrn,
+        }).catch(err => console.warn(`[CancellationRefundEmail] Failed: ${err.message}`));
+
+        // Admin Notification Item 152: Large refund alert (>= ₹20,000)
+        const totalRefundVal = refundResults.walletRefunded + refundResults.gatewayRefunded;
+        if (totalRefundVal >= 20000) {
+            sendAdminFinanceAlert({
+                alertType: 'large_refund',
+                amount: totalRefundVal,
+                transactionId: refundResults.gatewayRefundId || order.orderId,
+                reason: `Customer cancellation refund exceeded threshold: ${reason}`,
+            }).catch(err => console.warn(`[AdminFinanceAlert] Large refund alert failed: ${err.message}`));
+        }
+    }
+
+    // Admin Notification Item 149: Refund failure alert
+    if (!refundResults.success && refundResults.errors.length > 0) {
+        sendAdminFinanceAlert({
+            alertType: 'refund_failure',
+            amount: orderTotal,
+            transactionId: order.orderId,
+            reason: refundResults.errors.join('; '),
+        }).catch(err => console.warn(`[AdminFinanceAlert] Refund failure alert failed: ${err.message}`));
     }
 
     return refundResults;
@@ -373,6 +406,16 @@ export const processReturnRequestRefund = async (returnRequest, options = {}) =>
             },
         }).catch((err) => console.error('[RefundService] Notification error:', err.message));
     }
+
+    sendRefundStatusNotification({
+        order,
+        returnRequest,
+        refundAmount: amount,
+        destination: result.destination,
+        status: 'processed',
+        transactionId: result.gatewayRefundId || result.walletTransactionId,
+        rrn: result.gatewayRrn,
+    }).catch(err => console.warn(`[ReturnRefundEmail] Failed: ${err.message}`));
 
     return result;
 };

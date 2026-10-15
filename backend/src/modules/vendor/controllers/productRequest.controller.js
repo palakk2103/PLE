@@ -4,6 +4,10 @@ import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
 import ProductRequest from '../../../models/ProductRequest.model.js';
 import Notification from '../../../models/Notification.model.js';
+import {
+    sendVendorQuoteSubmittedEmail,
+    sendSourceNowQuoteAvailableEmail
+} from '../../../services/sourcingNotification.service.js';
 
 // @desc    Get product requests visible to the vendor
 // @route   GET /api/vendor/product-requests
@@ -520,14 +524,19 @@ export const submitQuotation = asyncHandler(async (req, res) => {
         message: `Vendor submitted a quotation for "${request.productName}" — ₹${totalPrice} total.`,
         data: { relatedId: request._id.toString(), onModel: 'ProductRequest', requestId: request.requestId }
     });
-    await Notification.create({
-        recipientId: request.userId,
-        recipientType: 'user',
-        type: 'system',
-        title: 'Quotation Received — Action Required',
-        message: `You have received a quotation for your request "${request.productName}" — ₹${totalPrice} total. Please review and respond.`,
-        data: { relatedId: request._id.toString(), onModel: 'ProductRequest' }
-    });
+    // Notify Vendor (Item 208)
+    sendVendorQuoteSubmittedEmail({
+        vendor: sellerId,
+        request,
+        quotation: quotationData
+    }).catch(err => console.warn(`[VendorQuoteSubmittedEmail] Failed: ${err.message}`));
+
+    // Notify Customer (Item 200)
+    sendSourceNowQuoteAvailableEmail({
+        customer: request.userId,
+        request,
+        quote: quotationData
+    }).catch(err => console.warn(`[SourceNowQuoteAvailableEmail] Failed: ${err.message}`));
 
     res.status(200).json(
         new ApiResponse(200, request, 'Quotation submitted successfully')

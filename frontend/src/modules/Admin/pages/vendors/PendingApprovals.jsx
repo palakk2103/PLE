@@ -103,7 +103,7 @@ const PendingApprovals = () => {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              navigate(`/admin/vendors/${row.id}`);
+              navigate(`/ple-ops-desk/vendors/${row.id}`);
             }}
             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
             title="View Details">
@@ -252,7 +252,7 @@ const PendingApprovals = () => {
             columns={columns}
             pagination={true}
             itemsPerPage={10}
-            onRowClick={(row) => navigate(`/admin/vendors/${row.id}`)}
+            onRowClick={(row) => navigate(`/ple-ops-desk/vendors/${row.id}`)}
           />
         ) : (
           <div className="text-center py-12">

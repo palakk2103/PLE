@@ -2,6 +2,13 @@ import Settings from '../models/Settings.model.js';
 import User from '../models/User.model.js';
 import LoyaltyTransaction from '../models/LoyaltyTransaction.model.js';
 import ApiError from '../utils/ApiError.js';
+import {
+    sendLoyaltyPointsEarnedEmail,
+    sendLoyaltyPointsRedeemedEmail,
+    sendLoyaltyPointsAdjustmentEmail,
+    sendLoyaltyPointsRefundRestoredEmail,
+    sendLoyaltyMilestoneEmail
+} from './loyaltyMarketingNotification.service.js';
 
 export const getLoyaltyConfig = async () => {
     const setting = await Settings.findOne({ key: 'loyalty' });
@@ -97,6 +104,26 @@ export const earnPoints = async (userId, orderId, amount, session = null) => {
         balanceAfterTransaction: user.loyaltyPointsBalance
     }], { session });
 
+    // Non-blocking Loyalty Earn Notification (Items 230 & 233)
+    sendLoyaltyPointsEarnedEmail({
+        user,
+        pointsEarned: pointsToEarn,
+        totalBalance: user.loyaltyPointsBalance,
+        orderId,
+        orderAmount: amount
+    }).catch(err => console.error('[LoyaltyNotification] Earn email error:', err.message));
+
+    // Check for milestone threshold (Item 240)
+    if (user.lifetimeEarned >= 1000 && (user.lifetimeEarned - pointsToEarn) < 1000) {
+        sendLoyaltyMilestoneEmail({
+            user,
+            milestoneName: 'Gold Member',
+            pointsThreshold: 1000,
+            bonusPoints: 200,
+            totalBalance: user.loyaltyPointsBalance
+        }).catch(err => console.error('[LoyaltyNotification] Milestone email error:', err.message));
+    }
+
     return pointsToEarn;
 };
 
@@ -136,6 +163,15 @@ export const redeemPoints = async (userId, orderId, pointsToRedeem, session = nu
         orderType: isB2B ? 'B2B' : 'B2C',
         balanceAfterTransaction: user.loyaltyPointsBalance
     }], { session });
+
+    // Non-blocking Loyalty Redeem Notification (Item 234)
+    sendLoyaltyPointsRedeemedEmail({
+        user,
+        pointsRedeemed: pointsToRedeem,
+        discountAmount,
+        totalBalance: user.loyaltyPointsBalance,
+        orderId
+    }).catch(err => console.error('[LoyaltyNotification] Redeem email error:', err.message));
 
     return discountAmount;
 };
@@ -204,6 +240,15 @@ export const restoreRedeemedPoints = async (userId, orderId, session = null) => 
         orderType: isB2B ? 'B2B' : 'B2C',
         balanceAfterTransaction: user.loyaltyPointsBalance
     }], { session });
+
+    // Non-blocking Loyalty Restore Notification (Items 236 & 237)
+    sendLoyaltyPointsRefundRestoredEmail({
+        user,
+        pointsRestored: pointsToRestore,
+        triggerType: 'cancellation',
+        orderId,
+        totalBalance: user.loyaltyPointsBalance
+    }).catch(err => console.error('[LoyaltyNotification] Restore email error:', err.message));
 };
 
 export const adminCreditPoints = async (userId, points, adminId, reason, session = null) => {
@@ -230,6 +275,15 @@ export const adminCreditPoints = async (userId, points, adminId, reason, session
         balanceAfterTransaction: user.loyaltyPointsBalance
     }], { session });
 
+    // Non-blocking Loyalty Adjustment Credit Notification (Item 235)
+    sendLoyaltyPointsAdjustmentEmail({
+        user,
+        pointsAdjusted: points,
+        adjustmentType: 'credit',
+        reason,
+        totalBalance: user.loyaltyPointsBalance
+    }).catch(err => console.error('[LoyaltyNotification] Admin credit email error:', err.message));
+
     return user.loyaltyPointsBalance;
 };
 
@@ -255,6 +309,15 @@ export const adminDebitPoints = async (userId, points, adminId, reason, session 
         orderType: isB2B ? 'B2B' : 'B2C',
         balanceAfterTransaction: user.loyaltyPointsBalance
     }], { session });
+
+    // Non-blocking Loyalty Adjustment Debit Notification (Item 235)
+    sendLoyaltyPointsAdjustmentEmail({
+        user,
+        pointsAdjusted: points,
+        adjustmentType: 'debit',
+        reason,
+        totalBalance: user.loyaltyPointsBalance
+    }).catch(err => console.error('[LoyaltyNotification] Admin debit email error:', err.message));
 
     return user.loyaltyPointsBalance;
 }

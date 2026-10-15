@@ -202,7 +202,7 @@ const ManagedShops = () => {
               {/* Actions Footer */}
               <div className="border-t border-gray-100 p-4 bg-gray-50/50 flex justify-between items-center gap-2">
                 <button
-                  onClick={() => navigate(`/admin/vendors/managed-shops/${shop._id}`)}
+                  onClick={() => navigate(`/ple-ops-desk/vendors/managed-shops/${shop._id}`)}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white rounded-lg text-xs font-semibold hover:bg-gray-800 transition-colors"
                 >
                   <FiEye /> View Details

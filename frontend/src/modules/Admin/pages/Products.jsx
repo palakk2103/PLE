@@ -12,7 +12,7 @@ const Products = () => {
 
   const menuItems = [
     {
-      path: "/admin/products/manage-products",
+      path: "/ple-ops-desk/products/manage-products",
       label: "Manage Products",
       icon: FiPackage,
       gradient: "from-blue-500 via-blue-600 to-blue-700",
@@ -22,7 +22,7 @@ const Products = () => {
       description: "View and manage all products",
     },
     {
-      path: "/admin/products/tax-pricing",
+      path: "/ple-ops-desk/products/tax-pricing",
       label: "Tax & Pricing",
       icon: FiDollarSign,
       gradient: "from-orange-500 via-orange-600 to-orange-700",
@@ -32,7 +32,7 @@ const Products = () => {
       description: "Manage tax and pricing rules",
     },
     {
-      path: "/admin/products/product-ratings",
+      path: "/ple-ops-desk/products/product-ratings",
       label: "Product Ratings",
       icon: FiStar,
       gradient: "from-amber-500 via-amber-600 to-amber-700",
@@ -42,7 +42,7 @@ const Products = () => {
       description: "View and manage ratings",
     },
     {
-      path: "/admin/b2b/b2b-products",
+      path: "/ple-ops-desk/b2b/b2b-products",
       label: "B2B Products",
       icon: FiBriefcase,
       gradient: "from-teal-500 via-teal-600 to-teal-700",

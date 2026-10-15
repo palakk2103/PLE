@@ -9,6 +9,7 @@ import { sendNotificationToUser } from '../../../utils/pushNotificationHelper.js
 import { getIO } from '../../../config/socket.js';
 import { generateInvoiceForOrder, sendOrderInvoiceEmail } from '../../../services/invoice.service.js';
 import { handleOrderStatusTransition } from '../../../services/orderStatus.service.js';
+import { sendAdminFinanceAlert } from '../../../services/adminNotification.service.js';
 
 // Verify Razorpay payment signature
 export const verifyPayment = asyncHandler(async (req, res) => {
@@ -35,6 +36,15 @@ export const verifyPayment = asyncHandler(async (req, res) => {
             order.paymentDetails.status = 'failed';
         }
         await order.save();
+
+        // Admin Notification Item 147: Payment gateway failure
+        sendAdminFinanceAlert({
+            alertType: 'pg_failure',
+            amount: order.total,
+            transactionId: razorpay_payment_id,
+            reason: 'Payment signature mismatch / verification failed.'
+        }).catch(err => console.error('[FinanceAlert] PG failure alert error:', err.message));
+
         throw new ApiError(400, 'Payment signature verification failed.');
     }
 

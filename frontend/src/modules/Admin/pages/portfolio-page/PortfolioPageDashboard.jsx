@@ -3,6 +3,7 @@ import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiLayout, FiBarChart2, FiCrosshair, FiFolder, FiChevronRight } from 'react-icons/fi';
 import { usePortfolioPageStore } from '../../store/portfolioPageStore';
+import { getAdminPath, ADMIN_DASHBOARD_ROUTE } from '../../config/adminRoutesConfig';
 
 // Import Editors
 import HeroEditor from './components/HeroEditor';
@@ -25,7 +26,7 @@ export default function PortfolioPageDashboard() {
     { id: 'projects', title: 'Portfolio Projects', icon: FiFolder, path: 'projects', color: 'text-purple-500', bg: 'bg-purple-50' }
   ];
 
-  if (loading && location.pathname === '/admin/portfolio-page') {
+  if (loading && location.pathname === getAdminPath('portfolio-page')) {
     return <div className="p-8 flex justify-center items-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>;
   }
 
@@ -33,9 +34,9 @@ export default function PortfolioPageDashboard() {
     <div className="max-w-7xl mx-auto">
       {/* Breadcrumb Navigation */}
       <div className="mb-8 flex items-center text-sm text-gray-500">
-        <Link to="/admin" className="hover:text-primary">Dashboard</Link>
+        <Link to={ADMIN_DASHBOARD_ROUTE} className="hover:text-primary">Dashboard</Link>
         <FiChevronRight className="mx-2" />
-        <Link to="/admin/portfolio-page" className={`hover:text-primary ${location.pathname === '/admin/portfolio-page' ? 'text-gray-900 font-semibold' : ''}`}>
+        <Link to={getAdminPath('portfolio-page')} className={`hover:text-primary ${location.pathname === getAdminPath('portfolio-page') ? 'text-gray-900 font-semibold' : ''}`}>
           Portfolio Page
         </Link>
       </div>

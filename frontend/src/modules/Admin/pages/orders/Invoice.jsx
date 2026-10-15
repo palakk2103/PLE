@@ -8,6 +8,7 @@ import { getOrderById } from "../../services/adminService";
 import api from "../../../../shared/utils/api";
 import toast from "react-hot-toast";
 import logoImage from "../../../../assets/PLELOGOBLACK.jpg";
+import { getAdminPath } from "../../config/adminRoutesConfig";
 
 const Invoice = () => {
   const navigate = useNavigate();
@@ -80,7 +81,7 @@ const Invoice = () => {
       } catch (error) {
         toast.error("Order or invoice not found");
         console.error("Order fetch error:", error);
-        navigate("/admin/orders/all-orders");
+        navigate(getAdminPath("orders/all-orders"));
       } finally {
         setIsLoading(false);
       }

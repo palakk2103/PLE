@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import api from '../utils/api';
 import * as adminService from '../../modules/Admin/services/adminService';
+import { ADMIN_BASE_ROUTE } from '../../modules/Admin/config/adminRoutesConfig';
 import toast from 'react-hot-toast';
 
 const STORAGE_KEY = 'ple-support-tickets';
@@ -113,7 +114,7 @@ const saveStoredTickets = (tickets) => {
 
 const isAdminContext = () => {
   if (typeof window === 'undefined') return false;
-  return window.location.pathname.startsWith('/admin');
+  return window.location.pathname.startsWith(ADMIN_BASE_ROUTE) || window.location.pathname.startsWith('/admin');
 };
 
 export const useSupportStore = create((set, get) => ({

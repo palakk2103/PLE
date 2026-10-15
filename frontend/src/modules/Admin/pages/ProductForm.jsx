@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import ProductFormModal from "../components/ProductFormModal";
+import { getAdminPath } from "../config/adminRoutesConfig";
 
 const ProductForm = () => {
   const navigate = useNavigate();
@@ -9,8 +10,8 @@ const ProductForm = () => {
     <ProductFormModal
       isOpen={true}
       productId={id || "new"}
-      onClose={() => navigate("/admin/products/manage-products")}
-      onSuccess={() => navigate("/admin/products/manage-products")}
+      onClose={() => navigate(getAdminPath("products/manage-products"))}
+      onSuccess={() => navigate(getAdminPath("products/manage-products"))}
     />
   );
 };

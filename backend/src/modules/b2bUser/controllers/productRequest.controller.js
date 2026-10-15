@@ -8,6 +8,11 @@ import Vendor from '../../../models/Vendor.model.js';
 import ManagedShop from '../../../models/ManagedShop.model.js';
 import ManagedVendorUser from '../../../models/ManagedVendorUser.model.js';
 import { moderateMessage, MODERATION_ACTION } from '../../../services/chatModeration.service.js';
+import { sendProductRequestReceivedEmail } from '../../../services/customerNotification.service.js';
+import {
+    sendSourceNowSubmittedEmail,
+    sendVendorNewSourcingRequestEmail
+} from '../../../services/sourcingNotification.service.js';
 
 // Custom helper since we need REQ- format
 const generateRequestId = () => {
@@ -122,6 +127,18 @@ export const createProductRequest = asyncHandler(async (req, res) => {
         targetEntityId: isShopSpecific ? finalTargetId : undefined,
     });
 
+    // Notify Customer by Email (Items 196 & 197)
+    sendProductRequestReceivedEmail({
+        customerEmail: req.user.email,
+        customerName: req.user.name,
+        productRequest: request,
+    }).catch(err => console.warn(`[ProductRequestEmail] Failed: ${err.message}`));
+
+    sendSourceNowSubmittedEmail({
+        customer: req.user,
+        request
+    }).catch(err => console.warn(`[SourceNowSubmittedEmail] Failed: ${err.message}`));
+
     // Notify Super Admin
     await Notification.create({
         recipientType: 'admin',
@@ -148,6 +165,12 @@ export const createProductRequest = asyncHandler(async (req, res) => {
                     onModel: 'ProductRequest'
                 }
             });
+
+            // Dispatch Vendor New Sourcing Request Email (Item 205)
+            sendVendorNewSourcingRequestEmail({
+                vendor: targetEntityId,
+                request
+            }).catch(err => console.warn(`[VendorSourcingRequestEmail] Failed: ${err.message}`));
         } else if (targetEntityType === 'ManagedShop') {
             const managedUsers = await ManagedVendorUser.find({ shopId: targetEntityId });
             for (const mUser of managedUsers) {

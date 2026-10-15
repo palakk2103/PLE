@@ -11,7 +11,7 @@ const B2BUsersDashboard = () => {
 
   const menuItems = [
     {
-      path: "/admin/b2b-users/manage",
+      path: "/ple-ops-desk/b2b-users/manage",
       label: "Manage B2B Users",
       icon: FiUsers,
       gradient: "from-blue-500 via-blue-600 to-blue-700",
@@ -21,7 +21,7 @@ const B2BUsersDashboard = () => {
       description: "View and manage all B2B users",
     },
     {
-      path: "/admin/b2b-users/pending",
+      path: "/ple-ops-desk/b2b-users/pending",
       label: "Pending Approvals",
       icon: FiClock,
       gradient: "from-yellow-500 via-yellow-600 to-yellow-700",
@@ -31,7 +31,7 @@ const B2BUsersDashboard = () => {
       description: "Review pending B2B user registrations",
     },
     {
-      path: "/admin/b2b-users/analytics",
+      path: "/ple-ops-desk/b2b-users/analytics",
       label: "B2B Analytics",
       icon: FiBarChart2,
       gradient: "from-purple-500 via-purple-600 to-purple-700",

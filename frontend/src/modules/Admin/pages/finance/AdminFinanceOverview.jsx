@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { getAdminPath } from "../../config/adminRoutesConfig";
 import {
   FiDollarSign,
   FiClock,
@@ -194,13 +195,13 @@ const AdminFinanceOverview = () => {
 
           <div className="space-y-2">
             <Link
-              to="/admin/finance/vendor-withdrawals"
+              to={getAdminPath('finance/vendor-withdrawals')}
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-xl shadow-md shadow-purple-600/20 transition-all"
             >
               Review & Process Withdrawals
             </Link>
             <Link
-              to="/admin/finance/settlements"
+              to={getAdminPath('finance/settlements')}
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors"
             >
               View Settlement Records

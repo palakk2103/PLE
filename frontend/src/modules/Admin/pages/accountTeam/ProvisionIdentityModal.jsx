@@ -18,6 +18,7 @@ import {
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { getNextIdentityId, provisionAccountTeamMember } from '../../services/adminService';
+import { ADMIN_LOGIN_ROUTE } from '../../config/adminRoutesConfig';
 
 const IDENTITY_CLASSES = [
   { id: 'employee', label: 'Employee', prefix: 'PLE-EMP-', desc: 'Full-time / regular team personnel' },
@@ -180,7 +181,7 @@ Corporate Email: ${createdSummary.email}
 Department: ${createdSummary.department} (${createdSummary.designation})
 Initial Domain Password: ${createdSummary.initialPassword}
 Personal Secret Code: ${createdSummary.personalSecret}
-Login URL: ${window.location.origin}/admin/login`;
+Login URL: ${window.location.origin}${ADMIN_LOGIN_ROUTE}`;
 
     navigator.clipboard.writeText(text);
     setCopied(true);

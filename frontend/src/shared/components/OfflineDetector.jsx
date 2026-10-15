@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useThemeStore } from '../store/themeStore';
 import { WifiOff } from 'lucide-react';
+import { ADMIN_BASE_ROUTE } from '../../modules/Admin/config/adminRoutesConfig';
 
 const OfflineDetector = ({ children }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -19,7 +20,8 @@ const OfflineDetector = ({ children }) => {
     };
   }, []);
 
-  const isUserAppPath = !window.location.pathname.startsWith('/admin') && 
+  const isUserAppPath = !window.location.pathname.startsWith(ADMIN_BASE_ROUTE) &&
+                         !window.location.pathname.startsWith('/admin') && 
                          !window.location.pathname.startsWith('/vendor') && 
                          !window.location.pathname.startsWith('/delivery');
 

@@ -12,6 +12,13 @@ import { generateOrderId } from '../../../utils/generateOrderId.js';
 import { generateTrackingNumber } from '../../../utils/generateTrackingNumber.js';
 import { createNotification } from '../../../services/notification.service.js';
 import { generateInvoiceForOrder, sendOrderInvoiceEmail } from '../../../services/invoice.service.js';
+import { sendRfqSubmittedCustomerEmail } from '../../../services/customerNotification.service.js';
+import {
+    sendRfqSubmittedEmail,
+    sendRfqReceivedEmail,
+    sendRfqAcceptedEmail,
+    sendRfqRejectedEmail
+} from '../../../services/sourcingNotification.service.js';
 import mongoose from 'mongoose';
 
 import {
@@ -97,6 +104,34 @@ export const createRFQ = asyncHandler(async (req, res) => {
                 id: String(rfq._id)
             }
         });
+    }
+
+    // Customer Notification Item 16: RFQ Submitted confirmation
+    // Customer Notification Item 16: RFQ Submitted confirmation
+    if (req.user?.email) {
+        sendRfqSubmittedCustomerEmail({
+            customerEmail: req.user.email,
+            customerName: req.user.name,
+            rfq: {
+                rfqId: rfq.rfqId,
+                _id: rfq._id,
+                title: productName,
+                productName,
+                quantity,
+                quoteDeadline: expectedDeliveryDate
+            }
+        }).catch(err => console.error('[CustomerNotification] RFQ submit email error:', err.message));
+
+        // Phase 5 RFQ Notifications (Items 213 & 214)
+        sendRfqSubmittedEmail({
+            customer: req.user,
+            rfq
+        }).catch(err => console.error('[SourcingNotification] RFQ submitted email error:', err.message));
+
+        sendRfqReceivedEmail({
+            customer: req.user,
+            rfq
+        }).catch(err => console.error('[SourcingNotification] RFQ received email error:', err.message));
     }
 
     res.status(201).json(new ApiResponse(201, rfq, 'RFQ submitted successfully.'));
@@ -317,6 +352,19 @@ export const buyerAcceptQuote = asyncHandler(async (req, res) => {
         }
     });
 
+    // Phase 5 RFQ Accepted Notification (Item 218)
+    sendRfqAcceptedEmail({
+        customer: req.user,
+        vendor: rfq.sellerId,
+        rfq,
+        quotation: {
+            vendorName: rfq.sellerId?.storeName || rfq.sellerId?.name,
+            totalPrice: total,
+            unitPrice: negotiatedPrice,
+            deliveryTime: 'Standard'
+        }
+    }).catch(err => console.error('[SourcingNotification] RFQ accepted email error:', err.message));
+
     // Generate invoice and send customer invoice email idempotently
     try {
         const inv = await generateInvoiceForOrder(order[0]._id);
@@ -363,6 +411,14 @@ export const buyerRejectQuote = asyncHandler(async (req, res) => {
             id: String(rfq._id)
         }
     });
+
+    // Phase 5 RFQ Rejected Notification (Item 219)
+    sendRfqRejectedEmail({
+        customer: req.user,
+        vendor: rfq.sellerId,
+        rfq,
+        reason: req.body.notes || 'Buyer rejected the quote.'
+    }).catch(err => console.error('[SourcingNotification] RFQ rejected email error:', err.message));
 
     res.status(200).json(new ApiResponse(200, rfq, 'RFQ rejected successfully.'));
 });

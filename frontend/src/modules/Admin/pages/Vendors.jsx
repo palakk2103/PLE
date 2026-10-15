@@ -15,7 +15,7 @@ const Vendors = () => {
 
   const menuItems = [
     {
-      path: "/admin/vendors/manage-vendors",
+      path: "/ple-ops-desk/vendors/manage-vendors",
       label: "Manage Vendors",
       icon: FiUsers,
       gradient: "from-blue-500 via-blue-600 to-blue-700",
@@ -25,7 +25,7 @@ const Vendors = () => {
       description: "View and manage all vendors",
     },
     {
-      path: "/admin/vendors/pending-approvals",
+      path: "/ple-ops-desk/vendors/pending-approvals",
       label: "Pending Approvals",
       icon: FiClock,
       gradient: "from-yellow-500 via-yellow-600 to-yellow-700",
@@ -35,7 +35,7 @@ const Vendors = () => {
       description: "Review pending vendor registrations",
     },
     {
-      path: "/admin/vendors/commission-rates",
+      path: "/ple-ops-desk/vendors/commission-rates",
       label: "Commission Rates",
       icon: FiDollarSign,
       gradient: "from-green-500 via-green-600 to-green-700",
@@ -45,7 +45,7 @@ const Vendors = () => {
       description: "Manage vendor commission rates",
     },
     {
-      path: "/admin/vendors/vendor-analytics",
+      path: "/ple-ops-desk/vendors/vendor-analytics",
       label: "Vendor Analytics",
       icon: FiBarChart2,
       gradient: "from-purple-500 via-purple-600 to-purple-700",
@@ -55,7 +55,7 @@ const Vendors = () => {
       description: "View vendor performance analytics",
     },
     {
-      path: "/admin/vendors/managed-shops",
+      path: "/ple-ops-desk/vendors/managed-shops",
       label: "Managed Shops",
       icon: FiShoppingBag,
       gradient: "from-amber-500 via-amber-600 to-amber-700",
@@ -65,7 +65,7 @@ const Vendors = () => {
       description: "Manage admin-owned outlets & shops",
     },
     {
-      path: "/admin/vendors/product-approvals",
+      path: "/ple-ops-desk/vendors/product-approvals",
       label: "Product Approvals",
       icon: FiCheckCircle,
       gradient: "from-rose-500 via-rose-600 to-rose-700",

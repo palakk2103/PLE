@@ -14,7 +14,7 @@ const RefurbishedMarketplace = () => {
 
   const menuItems = [
     {
-      path: "/admin/refurbished/dashboard",
+      path: "/ple-ops-desk/refurbished/dashboard",
       label: "QC & Analytics Dashboard",
       icon: FiTrendingUp,
       gradient: "from-amber-600 via-amber-700 to-amber-800",
@@ -25,7 +25,7 @@ const RefurbishedMarketplace = () => {
       badge: "Live Metrics",
     },
     {
-      path: "/admin/refurbished/approvals",
+      path: "/ple-ops-desk/refurbished/approvals",
       label: "Product Approvals",
       icon: FiCheckCircle,
       gradient: "from-orange-500 via-orange-600 to-orange-700",
@@ -36,7 +36,7 @@ const RefurbishedMarketplace = () => {
       badge: "8 Pending",
     },
     {
-      path: "/admin/refurbished/moderation",
+      path: "/ple-ops-desk/refurbished/moderation",
       label: "Fraud & Listing Audit",
       icon: FiAlertTriangle,
       gradient: "from-red-500 via-red-600 to-red-700",
@@ -47,7 +47,7 @@ const RefurbishedMarketplace = () => {
       badge: "2 Alerts",
     },
     {
-      path: "/admin/refurbished/complaints",
+      path: "/ple-ops-desk/refurbished/complaints",
       label: "Complaints & Returns",
       icon: FiRotateCcw,
       gradient: "from-emerald-500 via-emerald-600 to-emerald-700",
@@ -58,7 +58,7 @@ const RefurbishedMarketplace = () => {
       badge: "Active Log",
     },
     {
-      path: "/admin/refurbished/categories",
+      path: "/ple-ops-desk/refurbished/categories",
       label: "Refurbished Categories",
       icon: FiGrid,
       gradient: "from-amber-700 via-amber-800 to-amber-900",

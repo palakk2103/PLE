@@ -259,7 +259,7 @@ const CustomerDetail = ({ customer, onClose, onUpdate, startEditing = false }) =
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <button
               onClick={() => {
-                navigate(`/admin/customers/${customer.id}?tab=orders`);
+                navigate(`/ple-ops-desk/customers/${customer.id}?tab=orders`);
                 onClose();
               }}
               className="flex items-center justify-center gap-2 px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-semibold text-sm"
@@ -269,7 +269,7 @@ const CustomerDetail = ({ customer, onClose, onUpdate, startEditing = false }) =
             </button>
             <button
               onClick={() => {
-                navigate(`/admin/customers/${customer.id}?tab=transactions`);
+                navigate(`/ple-ops-desk/customers/${customer.id}?tab=transactions`);
                 onClose();
               }}
               className="flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold text-sm"
@@ -279,7 +279,7 @@ const CustomerDetail = ({ customer, onClose, onUpdate, startEditing = false }) =
             </button>
             <button
               onClick={() => {
-                navigate(`/admin/customers/${customer.id}?tab=addresses`);
+                navigate(`/ple-ops-desk/customers/${customer.id}?tab=addresses`);
                 onClose();
               }}
               className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm"

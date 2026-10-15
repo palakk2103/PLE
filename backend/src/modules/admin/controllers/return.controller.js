@@ -4,6 +4,10 @@ import Product from '../../../models/Product.model.js';
 import User from '../../../models/User.model.js';
 import * as walletService from '../../../services/wallet.service.js';
 import { createNotification } from '../../../services/notification.service.js';
+import {
+    sendReturnRequestDecisionNotification,
+    sendReturnMilestoneNotification,
+} from '../../../services/customerNotification.service.js';
 import { ApiError } from '../../../utils/ApiError.js';
 import { ApiResponse } from '../../../utils/ApiResponse.js';
 import { asyncHandler } from '../../../utils/asyncHandler.js';
@@ -321,6 +325,25 @@ export const updateReturnRequestStatus = asyncHandler(async (req, res) => {
 
     if (notificationTasks.length > 0) {
         await Promise.allSettled(notificationTasks);
+    }
+
+    // Customer email dispatch for Return Decisions and Milestones
+    if (status) {
+        if (status === 'approved' || status === 'rejected') {
+            sendReturnRequestDecisionNotification({
+                returnRequest: request,
+                order: request.orderId,
+                decision: status,
+                notes: nextAdminNote,
+            }).catch(err => console.warn(`[ReturnDecisionEmail] Failed: ${err.message}`));
+        } else if (status === 'completed') {
+            sendReturnMilestoneNotification({
+                returnRequest: request,
+                order: request.orderId,
+                milestone: 'inspection_completed',
+                notes: nextAdminNote,
+            }).catch(err => console.warn(`[ReturnMilestoneEmail] Failed: ${err.message}`));
+        }
     }
 
     try {

@@ -77,7 +77,7 @@ const CPOEditor = () => {
     }
     updateCpoSection(formData);
     toast.success('CPO section updated successfully!');
-    navigate('/admin/landing-page');
+    navigate('/ple-ops-desk/landing-page');
   };
 
   return (
@@ -89,7 +89,7 @@ const CPOEditor = () => {
       <div className="flex items-center justify-between border-b border-gray-100 pb-5">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => navigate('/admin/landing-page')}
+            onClick={() => navigate('/ple-ops-desk/landing-page')}
             className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition"
           >
             <FiArrowLeft size={18} />

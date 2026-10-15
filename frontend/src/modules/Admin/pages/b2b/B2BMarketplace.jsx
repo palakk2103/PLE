@@ -12,7 +12,7 @@ const B2BMarketplace = () => {
 
   const menuItems = [
     {
-      path: "/admin/b2b/business-users",
+      path: "/ple-ops-desk/b2b/business-users",
       label: "Business Users",
       icon: FiUsers,
       gradient: "from-blue-500 via-blue-600 to-blue-700",
@@ -23,7 +23,7 @@ const B2BMarketplace = () => {
       badge: "12 Verified",
     },
     {
-      path: "/admin/b2b/b2b-products",
+      path: "/ple-ops-desk/b2b/b2b-products",
       label: "B2B Products",
       icon: FiPackage,
       gradient: "from-teal-500 via-teal-600 to-teal-700",
@@ -34,7 +34,7 @@ const B2BMarketplace = () => {
       badge: "34 Products",
     },
     {
-      path: "/admin/b2b/b2b-orders",
+      path: "/ple-ops-desk/b2b/b2b-orders",
       label: "B2B Orders",
       icon: FiShoppingBag,
       gradient: "from-amber-500 via-amber-600 to-amber-700",
@@ -45,7 +45,7 @@ const B2BMarketplace = () => {
       badge: "8 Orders",
     },
     {
-      path: "/admin/b2b/b2b-settings",
+      path: "/ple-ops-desk/b2b/b2b-settings",
       label: "B2B Settings",
       icon: FiSettings,
       gradient: "from-purple-500 via-purple-600 to-purple-700",

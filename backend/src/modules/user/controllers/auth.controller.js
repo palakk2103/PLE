@@ -9,6 +9,13 @@ import { sendEmail } from '../../../services/email.service.js';
 import { getOtpEmailTemplate } from '../../../utils/emailTemplates.js';
 import { initiateProfileUpdateOTP, verifyProfileUpdateOTP, resendProfileUpdateOTP } from '../../../services/profileOtp.service.js';
 import {
+    sendCustomerWelcomeEmail,
+    sendEmailChangedNotification,
+    sendPhoneChangedNotification,
+    sendPasswordChangedNotification,
+    sendNewDeviceLoginAlert,
+} from '../../../services/customerNotification.service.js';
+import {
     uploadLocalFileToCloudinaryAndCleanup,
     deleteFromCloudinary,
     cleanupLocalFiles,
@@ -73,6 +80,11 @@ export const verifyOTP = asyncHandler(async (req, res) => {
     user.otpExpiry = undefined;
     await user.save();
 
+    // Trigger welcome notification for newly verified customer
+    sendCustomerWelcomeEmail({ user }).catch(err =>
+        console.warn(`[User Verification] Failed to send welcome email: ${err.message}`)
+    );
+
     const { accessToken, refreshToken } = generateTokens({ id: user._id, role: 'customer', email: user.email });
     await persistRefreshSession(user, refreshToken);
     res.status(200).json(new ApiResponse(200, {
@@ -132,6 +144,19 @@ export const login = asyncHandler(async (req, res) => {
             email: user.email
         }, 'Two-factor authentication required.'));
     }
+
+    const currentDevice = req.headers['user-agent'] || 'Unknown Device';
+    const currentIp = req.ip || req.connection?.remoteAddress || 'Unknown IP';
+    if (user.lastLoginDevice && user.lastLoginDevice !== currentDevice) {
+        sendNewDeviceLoginAlert({
+            user,
+            ip: currentIp,
+            userAgent: currentDevice,
+        }).catch(err => console.warn(`[Login Alert] Failed to send new device alert: ${err.message}`));
+    }
+    user.lastLoginDevice = currentDevice;
+    user.lastLoginIp = currentIp;
+    await user.save({ validateBeforeSave: false }).catch(() => {});
 
     const { accessToken, refreshToken } = generateTokens({ id: user._id, role: user.role || 'customer', email: user.email });
     await persistRefreshSession(user, refreshToken);
@@ -295,6 +320,10 @@ export const resetPassword = asyncHandler(async (req, res) => {
     user.refreshTokenExpiresAt = undefined;
     await user.save();
 
+    sendPasswordChangedNotification({ user }).catch(err =>
+        console.warn(`[ResetPassword] Failed to send notification: ${err.message}`)
+    );
+
     return res.status(200).json(new ApiResponse(200, null, 'Password reset successful. Please login.'));
 });
 
@@ -335,6 +364,9 @@ export const verifyProfileOTP = asyncHandler(async (req, res) => {
     }
 
     const pendingData = await verifyProfileUpdateOTP(pendingUpdateId, otp);
+    const existingUser = await User.findById(req.user.id);
+    const previousEmail = existingUser?.email;
+    const previousPhone = existingUser?.phone;
 
     const user = await User.findByIdAndUpdate(
         req.user.id,
@@ -342,6 +374,18 @@ export const verifyProfileOTP = asyncHandler(async (req, res) => {
         { new: true, runValidators: true }
     );
     if (!user) throw new ApiError(404, 'User not found.');
+
+    // Security alerts for email or phone change
+    if (pendingData.email && pendingData.email !== previousEmail) {
+        sendEmailChangedNotification({ user, oldEmail: previousEmail, newEmail: pendingData.email }).catch(err =>
+            console.warn(`[ProfileUpdate] Failed to send email changed alert: ${err.message}`)
+        );
+    }
+    if (pendingData.phone && pendingData.phone !== previousPhone) {
+        sendPhoneChangedNotification({ user, oldPhone: previousPhone, newPhone: pendingData.phone }).catch(err =>
+            console.warn(`[ProfileUpdate] Failed to send phone changed alert: ${err.message}`)
+        );
+    }
 
     res.status(200).json(new ApiResponse(200, user, 'Profile updated successfully.'));
 });
@@ -385,6 +429,10 @@ export const changePassword = asyncHandler(async (req, res) => {
     user.refreshTokenHash = undefined;
     user.refreshTokenExpiresAt = undefined;
     await user.save();
+
+    sendPasswordChangedNotification({ user }).catch(err =>
+        console.warn(`[ChangePassword] Failed to send notification: ${err.message}`)
+    );
 
     res.status(200).json(new ApiResponse(200, null, 'Password changed successfully.'));
 });

@@ -140,7 +140,7 @@ const AdminRFQSpamMonitor = () => {
       sortable: true,
       render: (value, row) => (
         <span
-          onClick={() => navigate(`/admin/b2b-enquiries/${row.rfqId}`)}
+          onClick={() => navigate(`/ple-ops-desk/b2b-enquiries/${row.rfqId}`)}
           className="font-bold text-primary-600 font-mono select-all hover:underline cursor-pointer flex items-center gap-1 text-xs"
         >
           {value}

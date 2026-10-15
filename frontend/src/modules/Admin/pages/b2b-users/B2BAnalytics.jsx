@@ -216,7 +216,7 @@ const B2BAnalytics = () => {
           </button>
 
           <button
-            onClick={() => navigate("/admin/b2b-users/pending")}
+            onClick={() => navigate("/ple-ops-desk/b2b-users/pending")}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-amber-500 hover:bg-amber-600 text-white shadow-md shadow-amber-500/20 transition-all active:scale-95"
           >
             <FiClock className="w-4 h-4" />
@@ -224,7 +224,7 @@ const B2BAnalytics = () => {
           </button>
 
           <button
-            onClick={() => navigate("/admin/b2b-users/manage")}
+            onClick={() => navigate("/ple-ops-desk/b2b-users/manage")}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-600/20 transition-all active:scale-95"
           >
             <FiUsers className="w-4 h-4" />
@@ -282,7 +282,7 @@ const B2BAnalytics = () => {
           <div className="mt-4 flex items-center justify-between text-xs text-amber-100 pt-3 border-t border-white/15">
             <span>Action Required</span>
             <button
-              onClick={() => navigate("/admin/b2b-users/pending")}
+              onClick={() => navigate("/ple-ops-desk/b2b-users/pending")}
               className="underline font-semibold hover:text-white"
             >
               Review Now &rarr;
@@ -571,7 +571,7 @@ const B2BAnalytics = () => {
 
           <div className="pt-4 border-t border-gray-100">
             <button
-              onClick={() => navigate("/admin/b2b-users/manage")}
+              onClick={() => navigate("/ple-ops-desk/b2b-users/manage")}
               className="w-full py-2.5 px-4 bg-gray-900 hover:bg-black text-white text-xs sm:text-sm font-semibold rounded-xl transition-all shadow-sm active:scale-98 flex items-center justify-center gap-2"
             >
               <span>Explore All B2B Corporate Accounts</span>
@@ -593,7 +593,7 @@ const B2BAnalytics = () => {
             </p>
           </div>
           <button
-            onClick={() => navigate("/admin/b2b-users/manage")}
+            onClick={() => navigate("/ple-ops-desk/b2b-users/manage")}
             className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1"
           >
             <span>View Complete Directory</span>
@@ -670,7 +670,7 @@ const B2BAnalytics = () => {
 
                       <td className="py-4 px-4 text-right">
                         <button
-                          onClick={() => navigate("/admin/b2b-users/manage")}
+                          onClick={() => navigate("/ple-ops-desk/b2b-users/manage")}
                           className="p-2 rounded-xl text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
                           title="View in Manage B2B Users"
                         >

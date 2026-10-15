@@ -38,7 +38,7 @@ const CustomerDetailPage = () => {
         setCustomer(data);
       } else if (!isLoading) {
         toast.error('Customer not found');
-        navigate('/admin/customers');
+        navigate('/ple-ops-desk/customers');
       }
     };
     loadCustomer();
@@ -196,7 +196,7 @@ const CustomerDetailPage = () => {
       sortable: false,
       render: (_, row) => (
         <button
-          onClick={() => navigate(`/admin/orders/${row.orderId || row._id}`)}
+          onClick={() => navigate(`/ple-ops-desk/orders/${row.orderId || row._id}`)}
           className="px-3 py-1.5 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
         >
           View
@@ -218,7 +218,7 @@ const CustomerDetailPage = () => {
       sortable: true,
       render: (value) => (
         <button
-          onClick={() => navigate(`/admin/orders/${value}`)}
+          onClick={() => navigate(`/ple-ops-desk/orders/${value}`)}
           className="text-primary-600 hover:underline font-semibold"
         >
           {value}
@@ -343,7 +343,7 @@ const CustomerDetailPage = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => navigate('/admin/customers')}
+            onClick={() => navigate('/ple-ops-desk/customers')}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
             <FiArrowLeft className="text-xl text-gray-600" />
@@ -358,7 +358,7 @@ const CustomerDetailPage = () => {
             {customer.status}
           </Badge>
           <button
-            onClick={() => navigate(`/admin/customers/view-customers?edit=${customer.id}`)}
+            onClick={() => navigate(`/ple-ops-desk/customers/view-customers?edit=${customer.id}`)}
             className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-semibold text-sm flex items-center gap-2"
           >
             <FiEdit />
@@ -421,7 +421,7 @@ const CustomerDetailPage = () => {
             <button
               onClick={() => {
                 setActiveTab('overview');
-                navigate(`/admin/customers/${id}?tab=overview`);
+                navigate(`/ple-ops-desk/customers/${id}?tab=overview`);
               }}
               className={`px-6 py-4 font-semibold text-sm border-b-2 transition-colors whitespace-nowrap ${activeTab === 'overview'
                 ? 'border-primary-600 text-primary-600'
@@ -433,7 +433,7 @@ const CustomerDetailPage = () => {
             <button
               onClick={() => {
                 setActiveTab('orders');
-                navigate(`/admin/customers/${id}?tab=orders`);
+                navigate(`/ple-ops-desk/customers/${id}?tab=orders`);
               }}
               className={`px-6 py-4 font-semibold text-sm border-b-2 transition-colors whitespace-nowrap ${activeTab === 'orders'
                 ? 'border-primary-600 text-primary-600'
@@ -445,7 +445,7 @@ const CustomerDetailPage = () => {
             <button
               onClick={() => {
                 setActiveTab('transactions');
-                navigate(`/admin/customers/${id}?tab=transactions`);
+                navigate(`/ple-ops-desk/customers/${id}?tab=transactions`);
               }}
               className={`px-6 py-4 font-semibold text-sm border-b-2 transition-colors whitespace-nowrap ${activeTab === 'transactions'
                 ? 'border-primary-600 text-primary-600'
@@ -457,7 +457,7 @@ const CustomerDetailPage = () => {
             <button
               onClick={() => {
                 setActiveTab('addresses');
-                navigate(`/admin/customers/${id}?tab=addresses`);
+                navigate(`/ple-ops-desk/customers/${id}?tab=addresses`);
               }}
               className={`px-6 py-4 font-semibold text-sm border-b-2 transition-colors whitespace-nowrap ${activeTab === 'addresses'
                 ? 'border-primary-600 text-primary-600'
@@ -516,7 +516,7 @@ const CustomerDetailPage = () => {
                       <div
                         key={order.orderId || order._id}
                         className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-                        onClick={() => navigate(`/admin/orders/${order.orderId || order._id}`)}
+                        onClick={() => navigate(`/ple-ops-desk/orders/${order.orderId || order._id}`)}
                       >
                         <div>
                           <p className="font-semibold text-gray-800">{order.orderId || order._id}</p>

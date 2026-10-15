@@ -97,7 +97,7 @@ const ReturnRequests = () => {
       label: 'Order ID',
       sortable: true,
       render: (value) => (
-        <span className="text-blue-600 hover:text-blue-800 cursor-pointer" onClick={() => navigate(`/admin/orders/${value}`)}>
+        <span className="text-blue-600 hover:text-blue-800 cursor-pointer" onClick={() => navigate(`/ple-ops-desk/orders/${value}`)}>
           {value}
         </span>
       ),
@@ -167,7 +167,7 @@ const ReturnRequests = () => {
       render: (_, row) => (
         <div className="flex items-center gap-2">
           <button
-            onClick={() => navigate(`/admin/return-requests/${row.id}`)}
+            onClick={() => navigate(`/ple-ops-desk/return-requests/${row.id}`)}
             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
             title="View Details"
           >
@@ -353,7 +353,7 @@ const ReturnRequests = () => {
           columns={columns}
           pagination={true}
           itemsPerPage={10}
-          onRowClick={(row) => navigate(`/admin/return-requests/${row.id}`)}
+          onRowClick={(row) => navigate(`/ple-ops-desk/return-requests/${row.id}`)}
         />
       )}
     </motion.div>

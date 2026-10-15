@@ -314,5 +314,22 @@ export const handleOrderStatusTransition = async (order, nextStatus, options = {
         }
     }
 
+    // Admin & Logistics Exceptions (Items 135, 136, 160, 161, 162)
+    if (['delayed', 'shipment_delayed'].includes(normalizedNextStatus)) {
+        import('./adminNotification.service.js').then(({ sendAdminOrderAlert, sendAdminLogisticsAlert }) => {
+            sendAdminOrderAlert({ order, alertType: 'shipment_delayed', reason: note }).catch(() => {});
+            sendAdminLogisticsAlert({ order, alertType: 'shipment_delayed', reason: note }).catch(() => {});
+        }).catch(() => {});
+    } else if (['rto_initiated', 'rto'].includes(normalizedNextStatus)) {
+        import('./adminNotification.service.js').then(({ sendAdminOrderAlert, sendAdminLogisticsAlert }) => {
+            sendAdminOrderAlert({ order, alertType: 'rto_alert', reason: note }).catch(() => {});
+            sendAdminLogisticsAlert({ order, alertType: 'rto_initiated', reason: note }).catch(() => {});
+        }).catch(() => {});
+    } else if (['delivery_failed', 'failed_delivery'].includes(normalizedNextStatus)) {
+        import('./adminNotification.service.js').then(({ sendAdminLogisticsAlert }) => {
+            sendAdminLogisticsAlert({ order, alertType: 'delivery_failed', reason: note }).catch(() => {});
+        }).catch(() => {});
+    }
+
     return order;
 };

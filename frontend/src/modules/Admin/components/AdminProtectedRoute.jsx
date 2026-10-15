@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAdminAuthStore } from '../store/adminStore';
+import { ADMIN_LOGIN_ROUTE, ADMIN_DASHBOARD_ROUTE, getAdminPath } from '../config/adminRoutesConfig';
 
 const decodeJwtPayload = (token) => {
   try {
@@ -25,7 +26,7 @@ const AdminProtectedRoute = ({ children }) => {
   const isExpired = tokenExpiryMs ? Date.now() >= tokenExpiryMs : false;
 
   if (!isAuthenticated && !accessToken && !activeRefreshToken) {
-    return <Navigate to="/admin/login" state={{ from: location }} replace />;
+    return <Navigate to={ADMIN_LOGIN_ROUTE} state={{ from: location }} replace />;
   }
 
   // If accessToken is expired but a refreshToken exists, silently refresh in the background
@@ -33,27 +34,27 @@ const AdminProtectedRoute = ({ children }) => {
     useAdminAuthStore.getState().refreshSession().catch(() => {});
   } else if (isExpired && !activeRefreshToken) {
     useAdminAuthStore.getState().logout();
-    return <Navigate to="/admin/login" state={{ from: location }} replace />;
+    return <Navigate to={ADMIN_LOGIN_ROUTE} state={{ from: location }} replace />;
   }
 
   const isSuperAdminOnlyPath = (path) => {
     return (
-      path.startsWith('/admin/account-team') ||
-      path.startsWith('/admin/audit-logs') ||
-      path.startsWith('/admin/settings') ||
-      path.startsWith('/admin/firebase') ||
-      path.startsWith('/admin/policies')
+      path.startsWith(getAdminPath('account-team')) ||
+      path.startsWith(getAdminPath('audit-logs')) ||
+      path.startsWith(getAdminPath('settings')) ||
+      path.startsWith(getAdminPath('firebase')) ||
+      path.startsWith(getAdminPath('policies'))
     );
   };
 
   if (role && role !== 'admin' && role !== 'superadmin' && role !== 'account_team') {
     useAdminAuthStore.getState().logout();
-    return <Navigate to="/admin/login" state={{ from: location }} replace />;
+    return <Navigate to={ADMIN_LOGIN_ROUTE} state={{ from: location }} replace />;
   }
 
   // Account Team users cannot access Super Admin-only management/audit routes
   if (role === 'account_team' && isSuperAdminOnlyPath(location.pathname)) {
-    return <Navigate to="/admin/dashboard" replace />;
+    return <Navigate to={ADMIN_DASHBOARD_ROUTE} replace />;
   }
 
   return children;
