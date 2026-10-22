@@ -33,6 +33,7 @@ import {
   FiAlertTriangle,
   FiCheckCircle,
   FiXCircle,
+  FiLayers,
 } from "react-icons/fi";
 import api from "../../../shared/utils/api";
 
@@ -500,6 +501,14 @@ const MobileProfile = () => {
           color: "text-[#7B0A0A]",
           bg: "bg-[#7B0A0A]/10",
           link: "/b2b-dashboard/rfqs",
+        },
+        {
+          id: "product-requests",
+          label: "Product Requests",
+          icon: FiLayers,
+          color: "text-[#7B0A0A]",
+          bg: "bg-[#7B0A0A]/10",
+          link: "/b2b-dashboard/product-requests",
         },
         {
           id: "b2b-orders",
