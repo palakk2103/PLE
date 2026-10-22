@@ -111,13 +111,29 @@ const ProductRequestHistory = () => {
           </div>
         </div>
 
-        <button
-          onClick={() => navigate(getCreatePath())}
-          className="flex items-center gap-2 px-4 py-2.5 bg-indigo-650 hover:bg-indigo-750 text-white font-extrabold rounded-xl text-xs shadow-md transition-all shrink-0"
-        >
-          <FiPlus className="text-lg" />
-          <span>New Request</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              const b2bToken = sessionStorage.getItem('b2bAdminToken') || localStorage.getItem('b2bAdminToken');
+              if (isB2B || b2bToken) {
+                navigate('/b2b-dashboard/rfqs');
+              } else {
+                navigate('/rfqs');
+              }
+            }}
+            className="flex items-center gap-1.5 px-3.5 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-extrabold rounded-xl text-xs transition-all shrink-0 shadow-xs"
+            title="Switch to Request for Quotations (RFQ)"
+          >
+            <span>Switch to RFQs →</span>
+          </button>
+          <button
+            onClick={() => navigate(getCreatePath())}
+            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-650 hover:bg-indigo-750 text-white font-extrabold rounded-xl text-xs shadow-md transition-all shrink-0"
+          >
+            <FiPlus className="text-lg" />
+            <span>New Request</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter Tabs */}

@@ -183,19 +183,21 @@ const B2BEnquiryDetail = () => {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
-          {(enquiry.status === "new" || enquiry.status === "responded") && (
+          {(enquiry.status === "new" || enquiry.status === "responded" || enquiry.status === "quoted") && (
             <>
-              <button
-                onClick={() => handleStatusChange("rejected")}
-                className="px-4 py-2 bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5"
-              >
-                <FiXCircle /> Reject
-              </button>
+              {enquiry.status !== "quoted" && (
+                <button
+                  onClick={() => handleStatusChange("rejected")}
+                  className="px-4 py-2 bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5"
+                >
+                  <FiXCircle /> Reject
+                </button>
+              )}
               <Link
                 to={`/vendor/b2b-enquiries/${enquiry.id}/create-quote`}
                 className="px-4 py-2 bg-amber-800 text-white hover:bg-amber-900 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 shadow-sm"
               >
-                <FiPlus /> Create Quote
+                <FiPlus /> {enquiry.quotes?.length > 0 ? "Revise / Update Quote" : "Create Quote"}
               </Link>
             </>
           )}
