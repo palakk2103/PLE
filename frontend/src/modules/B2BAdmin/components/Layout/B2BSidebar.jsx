@@ -26,6 +26,7 @@ const B2BSidebar = ({ isOpen, setIsOpen, isMobile }) => {
     { name: 'Employees', path: '/b2b-dashboard/employees', icon: FiUsers },
     { name: 'RFQs', path: '/b2b-dashboard/rfqs', icon: FiFileText },
     { name: 'Quotations', path: '/b2b-dashboard/quotations', icon: FiTrendingUp },
+    { name: 'Product Requests', path: '/b2b-dashboard/product-requests', icon: FiBriefcase },
     { name: 'RFQ Discussions', path: '/b2b-dashboard/discussions', icon: FiMessageCircle },
     { name: 'Shop Chats', path: '/b2b-dashboard/shop-chats', icon: FiMessageSquare },
     { name: 'Purchase Orders', path: '/b2b-dashboard/purchase-orders', icon: FiDollarSign },
@@ -33,13 +34,12 @@ const B2BSidebar = ({ isOpen, setIsOpen, isMobile }) => {
     { name: 'Company Profile', path: '/b2b-dashboard/company-profile', icon: FiBriefcase },
     { name: 'Legal Documents', path: '/b2b-dashboard/legal-documents', icon: FiFileText },
     { name: 'Admin Profile', path: '/b2b-dashboard/admin-profile', icon: FiUser },
-    { name: 'Request Products', path: '/b2b-dashboard/product-requests', icon: FiBriefcase },
     { name: 'Support Desk', path: '/b2b-dashboard/support', icon: FiHelpCircle },
     { name: 'Notifications', path: '/b2b-dashboard/notifications', icon: FiBell },
     { name: 'Settings', path: '/b2b-dashboard/settings', icon: FiSettings },
   ].filter(item => {
     if (isEmployee) {
-      return ['RFQs', 'Quotations', 'RFQ Discussions', 'Shop Chats', 'Request Products', 'Support Desk'].includes(item.name);
+      return ['RFQs', 'Quotations', 'Product Requests', 'RFQ Discussions', 'Shop Chats', 'Support Desk'].includes(item.name);
     }
     return true;
   });

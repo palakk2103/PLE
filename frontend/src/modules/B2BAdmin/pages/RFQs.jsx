@@ -249,6 +249,17 @@ const RFQs = () => {
     return map[status] || 'default';
   };
 
+  const navigateToDetail = (row) => {
+    const b2bToken = sessionStorage.getItem('b2bAdminToken') || localStorage.getItem('b2bAdminToken');
+    if (row.isDirect) {
+      navigate(`/b2b-dashboard/direct-rfqs/${row._id}`);
+    } else if (b2bToken || row.companyId) {
+      navigate(`/b2b-dashboard/rfqs/${row._id}`);
+    } else {
+      navigate(`/rfq/${row._id}`);
+    }
+  };
+
   const columns = [
     {
       key: 'rfqId',
@@ -344,7 +355,7 @@ const RFQs = () => {
       render: (_, row) => (
         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
           <button
-            onClick={() => navigate(row.isDirect ? `/b2b-dashboard/direct-rfqs/${row._id}` : `/b2b-dashboard/rfqs/${row._id}`)}
+            onClick={() => navigateToDetail(row)}
             className="p-1.5 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
             title="View RFQ"
           >
@@ -515,7 +526,7 @@ const RFQs = () => {
             columns={columns}
             pagination={true}
             itemsPerPage={10}
-            onRowClick={(row) => navigate(row.isDirect ? `/b2b-dashboard/direct-rfqs/${row._id}` : `/b2b-dashboard/rfqs/${row._id}`)}
+            onRowClick={(row) => navigateToDetail(row)}
           />
         ) : (
           <div className="text-center py-16 text-gray-450 border border-dashed border-gray-200 rounded-2xl">
