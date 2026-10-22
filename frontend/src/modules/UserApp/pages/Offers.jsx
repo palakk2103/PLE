@@ -12,6 +12,8 @@ import api from "../../../shared/utils/api";
 import { formatPrice } from "../../../shared/utils/helpers";
 import toast from "react-hot-toast";
 import { useCategoryStore } from "../../../shared/store/categoryStore";
+import { useAuthStore } from "../../../shared/store/authStore";
+import { useWalletStore } from "../../../shared/store/walletStore";
 
 const normalizeProduct = (raw) => {
   const vendorObj =
@@ -50,8 +52,20 @@ const getDiscountPercent = (product) => {
 const MobileOffers = () => {
   const navigate = useNavigate();
   const { categories: storeCategories, initialize: initializeCategories } = useCategoryStore();
+  const { isAuthenticated, user } = useAuthStore();
+  const { balance: walletBalance, fetchWallet } = useWalletStore();
   const [liveOffers, setLiveOffers] = useState([]);
   const [availableCoupons, setAvailableCoupons] = useState([]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchWallet().catch(() => null);
+    }
+  }, [isAuthenticated, fetchWallet]);
+
+  const userWalletBalance = user?.role === 'b2bEmployee' ? (user?.b2bWalletBalance || 0) : (walletBalance || 0);
+  const isWalletZero = isAuthenticated && userWalletBalance <= 0;
+
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState("grid");
   const [filters, setFilters] = useState({
@@ -420,7 +434,7 @@ const MobileOffers = () => {
             </div>
           </div>
 
-          {availableCoupons.length > 0 && (
+          {!isWalletZero && availableCoupons.length > 0 && (
             <div className="px-4 pt-4">
               <div className="bg-white border border-gray-200 rounded-xl p-3">
                 <h3 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">

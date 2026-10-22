@@ -4,6 +4,8 @@ import Order from '../../../models/Order.model.js';
 import User from '../../../models/User.model.js';
 import Vendor from '../../../models/Vendor.model.js';
 import Product from '../../../models/Product.model.js';
+import ManagedShop from '../../../models/ManagedShop.model.js';
+import Commission from '../../../models/Commission.model.js';
 
 // Helper to add date filter
 const getDateFilter = (startDate, endDate) => {
@@ -22,6 +24,9 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
     const activeOrderFilter = { isDeleted: { $ne: true }, ...dateFilter };
     const customerRoleFilter = { $or: [{ role: 'customer' }, { role: { $exists: false } }, { role: null }] };
 
+    const managedShops = await ManagedShop.find().distinct('_id');
+    const managedShopIdSet = new Set(managedShops.map((id) => String(id)));
+
     const [
         totalOrders,
         totalUsers,
@@ -37,7 +42,9 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
         homeBusinesses,
         pendingVerification,
         approvedSellers,
-        rejectedSellers
+        rejectedSellers,
+        vendorItemsAgg,
+        commissionsAgg
     ] = await Promise.all([
         Order.countDocuments(activeOrderFilter),
         User.countDocuments(customerRoleFilter),
@@ -54,7 +61,59 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
         Vendor.countDocuments({ verificationStatus: 'Pending' }),
         Vendor.countDocuments({ verificationStatus: 'Approved' }),
         Vendor.countDocuments({ verificationStatus: 'Rejected' }),
+        Order.aggregate([
+            { $match: { ...activeOrderFilter, status: { $ne: 'cancelled' } } },
+            { $unwind: { path: '$vendorItems', preserveNullAndEmptyArrays: false } },
+            { $match: { 'vendorItems.status': { $ne: 'cancelled' } } },
+            {
+                $project: {
+                    vendorId: '$vendorItems.vendorId',
+                    amount: {
+                        $add: [
+                            { $ifNull: ['$vendorItems.subtotal', 0] },
+                            { $ifNull: ['$vendorItems.tax', 0] },
+                            { $ifNull: ['$vendorItems.shipping', 0] }
+                        ]
+                    }
+                }
+            }
+        ]),
+        Commission.aggregate([
+            { $match: { ...dateFilter, status: { $ne: 'cancelled' } } },
+            {
+                $project: {
+                    vendorId: '$vendorId',
+                    commission: { $ifNull: ['$commission', 0] },
+                    vendorEarnings: { $ifNull: ['$vendorEarnings', 0] }
+                }
+            }
+        ])
     ]);
+
+    let inHouseRevenue = 0;
+    let vendorGrossRevenue = 0;
+    for (const item of vendorItemsAgg) {
+        const vid = String(item.vendorId || '');
+        const amt = Number(item.amount || 0);
+        if (managedShopIdSet.has(vid)) {
+            inHouseRevenue += amt;
+        } else {
+            vendorGrossRevenue += amt;
+        }
+    }
+
+    let adminCommission = 0;
+    let vendorNetEarnings = 0;
+    for (const comm of commissionsAgg) {
+        const vid = String(comm.vendorId || '');
+        if (!managedShopIdSet.has(vid)) {
+            adminCommission += Number(comm.commission || 0);
+            vendorNetEarnings += Number(comm.vendorEarnings || 0);
+        }
+    }
+
+    const totalRevenue = Number((revenueAgg[0]?.total || 0).toFixed(2));
+    const totalAdminRevenue = Number((inHouseRevenue + adminCommission).toFixed(2));
 
     res.status(200).json(new ApiResponse(200, {
         totalOrders,
@@ -62,7 +121,12 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
         periodUsers,
         totalVendors,
         totalProducts,
-        totalRevenue: revenueAgg[0]?.total || 0,
+        totalRevenue,
+        inHouseRevenue: Number(inHouseRevenue.toFixed(2)),
+        vendorGrossRevenue: Number(vendorGrossRevenue.toFixed(2)),
+        adminCommission: Number(adminCommission.toFixed(2)),
+        vendorNetEarnings: Number(vendorNetEarnings.toFixed(2)),
+        totalAdminRevenue,
         pendingOrders,
         totalSellers,
         gstSellers,

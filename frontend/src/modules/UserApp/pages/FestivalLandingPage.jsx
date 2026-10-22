@@ -11,16 +11,29 @@ import { useProductStore } from "../../../shared/store/productStore";
 import { useCategoryStore } from "../../../shared/store/categoryStore";
 import { formatPrice } from "../../../shared/utils/helpers";
 import toast from "react-hot-toast";
+import { useAuthStore } from "../../../shared/store/authStore";
+import { useWalletStore } from "../../../shared/store/walletStore";
 
 const FestivalLandingPage = () => {
   const navigate = useNavigate();
   const { campaigns, initialize: initCampaigns } = useCampaignStore();
   const { products, fetchProducts } = useProductStore();
   const { categories, initialize: initCategories } = useCategoryStore();
+  const { isAuthenticated, user } = useAuthStore();
+  const { balance: walletBalance, fetchWallet } = useWalletStore();
 
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [viewMode, setViewMode] = useState("grid");
   const [copiedCoupon, setCopiedCoupon] = useState(null);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchWallet().catch(() => null);
+    }
+  }, [isAuthenticated, fetchWallet]);
+
+  const userWalletBalance = user?.role === 'b2bEmployee' ? (user?.b2bWalletBalance || 0) : (walletBalance || 0);
+  const isWalletZero = isAuthenticated && userWalletBalance <= 0;
 
   useEffect(() => {
     initCampaigns();
@@ -177,7 +190,7 @@ const FestivalLandingPage = () => {
           </div>
 
           {/* Festival Coupons */}
-          {festivalCoupons.length > 0 && (
+          {!isWalletZero && festivalCoupons.length > 0 && (
             <div className="px-4 mt-6">
               <h3 className="text-base font-bold text-gray-800 dark:text-white mb-3 flex items-center gap-2">
                 <FiGift className="text-red-500 text-lg" />

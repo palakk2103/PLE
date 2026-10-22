@@ -14,22 +14,30 @@ import {
   FiCheck,
   FiEye,
   FiEyeOff,
-  FiAlertCircle
+  FiAlertCircle,
+  FiShield
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { getNextIdentityId, provisionAccountTeamMember } from '../../services/adminService';
 import { ADMIN_LOGIN_ROUTE } from '../../config/adminRoutesConfig';
 
-const IDENTITY_CLASSES = [
+const ACCOUNT_TEAM_CLASSES = [
   { id: 'employee', label: 'Employee', prefix: 'PLE-EMP-', desc: 'Full-time / regular team personnel' },
   { id: 'director', label: 'Director', prefix: 'PLE-DIR-', desc: 'Executive leadership & directors' },
   { id: 'consultant', label: 'Consultant', prefix: 'PLE-CON-', desc: 'External advisory & specialized staff' },
   { id: 'intern', label: 'Intern', prefix: 'PLE-INT-', desc: 'Trainees & seasonal interns' },
 ];
 
+const SUPER_ADMIN_CLASSES = [
+  { id: 'superadmin', label: 'Super Administrator', prefix: 'PLE-SA-', desc: 'Full elevated master privileges' },
+  { id: 'director', label: 'Managing Director', prefix: 'PLE-DIR-', desc: 'Board & executive governance' },
+];
+
 const CONTRACT_TYPES = ['Full-Time', 'Part-Time', 'Contract', 'Internship'];
 
 const COMMON_DEPARTMENTS = [
+  'PLE Executive Board',
+  'PLE Administration',
   'PLE Finance',
   'PLE Operations',
   'PLE Catalog & Products',
@@ -64,6 +72,7 @@ const ProvisionIdentityModal = ({ isOpen, onClose, onMemberCreated }) => {
   const [nextIdPreview, setNextIdPreview] = useState('PLE-EMP-...');
 
   const [formData, setFormData] = useState({
+    role: 'account_team',
     identityClass: 'employee',
     identityId: '',
     name: '',
@@ -82,7 +91,30 @@ const ProvisionIdentityModal = ({ isOpen, onClose, onMemberCreated }) => {
   const [createdSummary, setCreatedSummary] = useState(null);
   const [copied, setCopied] = useState(false);
 
-  // Fetch next suggested ID when identityClass changes or modal opens
+  // Switch role handler
+  const handleRoleChange = (newRole) => {
+    if (newRole === 'superadmin') {
+      setFormData((prev) => ({
+        ...prev,
+        role: 'superadmin',
+        identityClass: 'superadmin',
+        department: prev.department === 'PLE Finance' ? 'PLE Executive Board' : prev.department,
+        designation: prev.designation === 'Account Executive' ? 'Super Administrator' : prev.designation,
+        identityId: '',
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        role: 'account_team',
+        identityClass: 'employee',
+        department: prev.department === 'PLE Executive Board' ? 'PLE Finance' : prev.department,
+        designation: prev.designation === 'Super Administrator' ? 'Account Executive' : prev.designation,
+        identityId: '',
+      }));
+    }
+  };
+
+  // Fetch next suggested ID when identityClass or role changes or modal opens
   useEffect(() => {
     if (!isOpen) {
       setCreatedSummary(null);
@@ -92,7 +124,7 @@ const ProvisionIdentityModal = ({ isOpen, onClose, onMemberCreated }) => {
     const fetchNextId = async () => {
       setFetchingNextId(true);
       try {
-        const res = await getNextIdentityId(formData.identityClass);
+        const res = await getNextIdentityId(formData.identityClass, formData.role);
         const nextId = res?.data?.nextId || res?.nextId;
         if (nextId) {
           setNextIdPreview(nextId);
@@ -112,7 +144,7 @@ const ProvisionIdentityModal = ({ isOpen, onClose, onMemberCreated }) => {
     };
 
     fetchNextId();
-  }, [isOpen, formData.identityClass]);
+  }, [isOpen, formData.identityClass, formData.role]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -155,6 +187,7 @@ const ProvisionIdentityModal = ({ isOpen, onClose, onMemberCreated }) => {
       const member = res?.data || res;
       setCreatedSummary({
         identityId: member?.identityId || formData.identityId.trim().toUpperCase() || nextIdPreview,
+        role: formData.role,
         name: formData.name,
         email: formData.email,
         department: formData.department,
@@ -163,7 +196,7 @@ const ProvisionIdentityModal = ({ isOpen, onClose, onMemberCreated }) => {
         initialPassword: formData.initialPassword,
       });
 
-      toast.success(`Identity ${member?.identityId || formData.identityId} provisioned!`);
+      toast.success(`${formData.role === 'superadmin' ? 'Super Admin' : 'Identity'} ${member?.identityId || formData.identityId} provisioned!`);
       if (onMemberCreated) onMemberCreated(member);
     } catch (err) {
       toast.error(err?.response?.data?.message || err?.message || 'Failed to provision identity');
@@ -174,7 +207,9 @@ const ProvisionIdentityModal = ({ isOpen, onClose, onMemberCreated }) => {
 
   const handleCopyCredentials = () => {
     if (!createdSummary) return;
-    const text = `PLE ORGANIZATIONAL IDENTITY CREDENTIALS
+    const isSuper = createdSummary.role === 'superadmin';
+    const text = `PLE ${isSuper ? 'SUPER ADMINISTRATOR' : 'ORGANIZATIONAL IDENTITY'} CREDENTIALS
+Role: ${isSuper ? 'Super Administrator' : 'Account Team Member'}
 Identity ID: ${createdSummary.identityId}
 Name: ${createdSummary.name}
 Corporate Email: ${createdSummary.email}
@@ -207,10 +242,10 @@ Login URL: ${window.location.origin}${ADMIN_LOGIN_ROUTE}`;
             </div>
             <div>
               <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white tracking-tight">
-                Provision Organizational Identity
+                Provision Administrator / Team Identity
               </h2>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Issue personal identity & credentials for internal Account Team member
+                Issue personal identity & credentials for Super Admin or Account Team member
               </p>
             </div>
           </div>
@@ -232,10 +267,10 @@ Login URL: ${window.location.origin}${ADMIN_LOGIN_ROUTE}`;
               </div>
               <div className="flex-1">
                 <h3 className="text-sm font-bold text-emerald-700 dark:text-emerald-400">
-                  Organizational Identity Provisioned Successfully
+                  {createdSummary.role === 'superadmin' ? 'Super Administrator' : 'Organizational Identity'} Provisioned Successfully
                 </h3>
                 <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5">
-                  The team member has been granted access to the Admin Dashboard under individual audit tracking.
+                  The credentials have been activated with full login tracking and audit logging.
                 </p>
               </div>
             </div>
@@ -245,6 +280,12 @@ Login URL: ${window.location.origin}${ADMIN_LOGIN_ROUTE}`;
                 <span className="text-gray-500 dark:text-gray-400">Identity ID:</span>
                 <span className="font-bold text-base text-[#D71920]">
                   {createdSummary.identityId}
+                </span>
+              </div>
+              <div className="flex justify-between border-b border-gray-200 dark:border-white/5 pb-2">
+                <span className="text-gray-500 dark:text-gray-400">Assigned Role:</span>
+                <span className="font-bold text-[#D71920] uppercase">
+                  {createdSummary.role === 'superadmin' ? 'Super Administrator' : 'Account Team Member'}
                 </span>
               </div>
               <div className="flex justify-between border-b border-gray-200 dark:border-white/5 pb-2">
@@ -299,36 +340,82 @@ Login URL: ${window.location.origin}${ADMIN_LOGIN_ROUTE}`;
         ) : (
           // Form View
           <form onSubmit={handleSubmit} className="p-6 space-y-6 max-h-[80vh] overflow-y-auto scrollbar-admin">
-            {/* SECTION 1: ORGANIZATIONAL IDENTITY CLASS */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-bold text-[#D71920] uppercase tracking-wider">
-                  Section 1 · Organizational Identity Class
-                </label>
-                <span className="text-[11px] text-gray-500 dark:text-gray-400 font-mono">
-                  {fetchingNextId ? 'Generating...' : `Next ID: ${nextIdPreview}`}
-                </span>
+            {/* SECTION 1: ROLE SELECTION & IDENTITY CLASS */}
+            <div className="space-y-3">
+              <label className="text-xs font-bold text-[#D71920] uppercase tracking-wider block">
+                Section 1 · Administrator Role & Identity Class
+              </label>
+
+              {/* Role Switcher */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => handleRoleChange('account_team')}
+                  className={`p-3 rounded-xl border text-left transition-all flex items-start gap-2.5 cursor-pointer ${
+                    formData.role === 'account_team'
+                      ? 'border-[#D71920] bg-red-50 dark:bg-[#D71920]/15 text-[#D71920] dark:text-white shadow-xs font-semibold'
+                      : 'border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#121216] text-gray-700 dark:text-gray-400 hover:border-gray-300 dark:hover:border-white/20'
+                  }`}
+                >
+                  <FiUserCheck className="mt-0.5 text-base flex-shrink-0" />
+                  <div>
+                    <div className="font-semibold text-xs">Account Team Member</div>
+                    <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
+                      Standard operational access (Orders, Products, Vendors, Delivery)
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleRoleChange('superadmin')}
+                  className={`p-3 rounded-xl border text-left transition-all flex items-start gap-2.5 cursor-pointer ${
+                    formData.role === 'superadmin'
+                      ? 'border-[#D71920] bg-red-50 dark:bg-[#D71920]/15 text-[#D71920] dark:text-white shadow-xs font-semibold'
+                      : 'border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#121216] text-gray-700 dark:text-gray-400 hover:border-gray-300 dark:hover:border-white/20'
+                  }`}
+                >
+                  <FiShield className="mt-0.5 text-base flex-shrink-0" />
+                  <div>
+                    <div className="font-semibold text-xs">Super Administrator</div>
+                    <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
+                      Master privileges (Team provisioning, Audit logs, System settings)
+                    </div>
+                  </div>
+                </button>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                {IDENTITY_CLASSES.map((cls) => {
-                  const isSelected = formData.identityClass === cls.id;
-                  return (
-                    <button
-                      type="button"
-                      key={cls.id}
-                      onClick={() => setFormData((p) => ({ ...p, identityClass: cls.id }))}
-                      className={`p-3 rounded-xl border text-left transition-all ${
-                        isSelected
-                          ? 'border-[#D71920] bg-red-50 dark:bg-[#D71920]/15 text-[#D71920] dark:text-white shadow-xs font-semibold'
-                          : 'border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#121216] text-gray-700 dark:text-gray-400 hover:border-gray-300 dark:hover:border-white/20'
-                      }`}
-                    >
-                      <div className="font-semibold text-xs">{cls.label}</div>
-                      <div className="text-[10px] font-mono text-[#D71920] mt-0.5">{cls.prefix}</div>
-                    </button>
-                  );
-                })}
+              {/* Class Buttons */}
+              <div className="pt-2">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                    Identity Sub-Class & Prefix
+                  </span>
+                  <span className="text-[11px] text-gray-500 dark:text-gray-400 font-mono">
+                    {fetchingNextId ? 'Generating...' : `Next ID: ${nextIdPreview}`}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  {(formData.role === 'superadmin' ? SUPER_ADMIN_CLASSES : ACCOUNT_TEAM_CLASSES).map((cls) => {
+                    const isSelected = formData.identityClass === cls.id;
+                    return (
+                      <button
+                        type="button"
+                        key={cls.id}
+                        onClick={() => setFormData((p) => ({ ...p, identityClass: cls.id }))}
+                        className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                          isSelected
+                            ? 'border-[#D71920] bg-red-50 dark:bg-[#D71920]/15 text-[#D71920] dark:text-white shadow-xs font-semibold'
+                            : 'border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#121216] text-gray-700 dark:text-gray-400 hover:border-gray-300 dark:hover:border-white/20'
+                        }`}
+                      >
+                        <div className="font-semibold text-xs">{cls.label}</div>
+                        <div className="text-[10px] font-mono text-[#D71920] mt-0.5">{cls.prefix}</div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
@@ -472,7 +559,7 @@ Login URL: ${window.location.origin}${ADMIN_LOGIN_ROUTE}`;
                   <input
                     type="text"
                     disabled
-                    value="ACCOUNT_TEAM (Standard Admin Operational Access)"
+                    value={formData.role === 'superadmin' ? 'SUPERADMIN (Full Master Control & Privileges)' : 'ACCOUNT_TEAM (Standard Admin Operational Access)'}
                     className="w-full px-3 py-2 bg-gray-100 dark:bg-[#121216] border border-gray-200 dark:border-white/10 rounded-xl text-gray-500 dark:text-gray-400 text-xs cursor-not-allowed opacity-80"
                   />
                 </div>
@@ -595,14 +682,14 @@ Login URL: ${window.location.origin}${ADMIN_LOGIN_ROUTE}`;
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-2.5 bg-[#D71920] hover:bg-[#B51218] text-white rounded-xl text-xs sm:text-sm font-bold shadow-sm transition-all disabled:opacity-50 flex items-center gap-2 active:scale-95"
+                className="px-6 py-2.5 bg-[#D71920] hover:bg-[#B51218] text-white rounded-xl text-xs sm:text-sm font-bold shadow-sm transition-all disabled:opacity-50 flex items-center gap-2 active:scale-95 cursor-pointer"
               >
                 {loading ? (
-                  <span>Provisioning Identity...</span>
+                  <span>Provisioning {formData.role === 'superadmin' ? 'Super Administrator' : 'Identity'}...</span>
                 ) : (
                   <>
-                    <FiUserCheck size={16} />
-                    <span>Provision Organizational Identity</span>
+                    {formData.role === 'superadmin' ? <FiShield size={16} /> : <FiUserCheck size={16} />}
+                    <span>Provision {formData.role === 'superadmin' ? 'Super Administrator' : 'Organizational Identity'}</span>
                   </>
                 )}
               </button>

@@ -416,9 +416,9 @@ api.interceptors.response.use(
     const isGatewayError = status === 502 || status === 503 || status === 504;
     
     let rawMessage =
-      error.response?.data?.message ||
-      error.response?.data?.error ||
-      '';
+      (Array.isArray(error.response?.data?.errors) && error.response.data.errors.length > 0)
+        ? error.response.data.errors.map(e => e.message || e.msg || e).join(', ')
+        : (error.response?.data?.message || error.response?.data?.error || '');
 
     // If backend/nginx returned an HTML page (like 502 Bad Gateway HTML), don't show raw HTML
     if (typeof rawMessage === 'string' && rawMessage.includes('<html')) {
@@ -438,8 +438,31 @@ api.interceptors.response.use(
     const isRecentNetworkToast = isNetworkError && (now - (window._lastNetworkErrorToastTime || 0) < 10000);
     const shouldSkipToast = originalRequest?.skipErrorToast || originalRequest?.silent;
 
-    // Handle 403 role-mismatch errors specifically
+    // Handle 403 errors: account deleted/closed or role mismatch
     if (status === 403) {
+      const isAccountDeleted = typeof rawMessage === 'string' && (
+        rawMessage.toLowerCase().includes('account deletion request has been approved') ||
+        rawMessage.toLowerCase().includes('store deletion request has been approved') ||
+        rawMessage.toLowerCase().includes('permanently closed') ||
+        rawMessage.toLowerCase().includes('account has been deleted') ||
+        rawMessage.toLowerCase().includes('account is deactivated') ||
+        rawMessage.toLowerCase().includes('closed/deleted')
+      );
+
+      if (isAccountDeleted) {
+        if (pathScope === 'vendor' || scope === 'vendor') {
+          await clearScopeAuth('vendor');
+          toast.error(rawMessage || 'Your vendor account has been closed.');
+          redirectTo('/vendor/login');
+          return Promise.reject(error);
+        } else if (pathScope === 'user' || scope === 'user') {
+          await clearScopeAuth('user');
+          toast.error(rawMessage || 'Your account has been deleted.');
+          redirectTo('/'); // Root is PortalSelection
+          return Promise.reject(error);
+        }
+      }
+
       const isRoleMismatch = typeof rawMessage === 'string' && (
         rawMessage.toLowerCase().includes('required role') ||
         rawMessage.toLowerCase().includes('access denied')

@@ -34,11 +34,18 @@ export const authenticate = asyncHandler(async (req, res, next) => {
  * Optional auth — attaches req.user if token present, does not block if absent
  */
 export const optionalAuth = (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
+    const authHeader = req.header('Authorization') || req.header('authorization');
+    const bearerToken = authHeader?.startsWith('Bearer ')
+        ? authHeader.slice(7).trim()
+        : (authHeader?.trim() || null);
+    const token = bearerToken || req.cookies?.accessToken;
+
+    if (token && token !== 'null' && token !== 'undefined') {
         try {
-            const token = authHeader.split(' ')[1];
-            req.user = verifyAccessToken(token);
+            const decoded = verifyAccessToken(token);
+            if (decoded && decoded.type !== '2fa_pending') {
+                req.user = decoded;
+            }
         } catch {
             // ignore invalid token for optional auth
         }

@@ -20,16 +20,16 @@ import api from "../../../../shared/utils/api";
 const B2BCreateQuote = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { getEnquiryById, createQuote, settings } = useVendorB2BStore();
+  const { getEnquiryById, createQuote, settings, fetchEnquiries } = useVendorB2BStore();
 
   const [enquiry, setEnquiry] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Form states
   const [items, setItems] = useState([]);
-  const [validityDays, setValidityDays] = useState(settings.defaultQuoteValidity || 15);
-  const [paymentTerms, setPaymentTerms] = useState(settings.defaultPaymentTerms || "Net 30 days");
-  const [shippingTerms, setShippingTerms] = useState(settings.defaultShippingTerms || "FOB Origin");
+  const [validityDays, setValidityDays] = useState(settings?.defaultQuoteValidity || 15);
+  const [paymentTerms, setPaymentTerms] = useState(settings?.defaultPaymentTerms || "Net 30 days");
+  const [shippingTerms, setShippingTerms] = useState(settings?.defaultShippingTerms || "FOB Origin");
   const [warranty, setWarranty] = useState("12 Months Manufacturer Warranty");
   const [taxDetails, setTaxDetails] = useState("18% GST extra");
   const [attachments, setAttachments] = useState([]);
@@ -69,14 +69,18 @@ const B2BCreateQuote = () => {
 
   useEffect(() => {
     if (!id) return;
-    const fetchEnquiry = () => {
+    const fetchEnquiry = async () => {
       setLoading(true);
-      const data = getEnquiryById(id);
+      let data = getEnquiryById(id);
+      if (!data) {
+        await fetchEnquiries();
+        data = getEnquiryById(id);
+      }
       if (data) {
         setEnquiry(data);
         // Pre-populate items with enquiry products and target price
         setItems(
-          data.products.map((p) => ({
+          (data.products || []).map((p) => ({
             name: p.name,
             sku: p.sku || "",
             qty: p.qty,
@@ -91,7 +95,7 @@ const B2BCreateQuote = () => {
     };
 
     fetchEnquiry();
-  }, [id, getEnquiryById, settings]);
+  }, [id, getEnquiryById, fetchEnquiries]);
 
   const handlePriceChange = (index, value) => {
     const updated = [...items];

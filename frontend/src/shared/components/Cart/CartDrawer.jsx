@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useCartStore, useUIStore } from "../../store/useStore";
 import { useAuthStore } from "../../store/authStore";
 import { formatPrice } from "../../utils/helpers";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import SwipeableCartItem from "./SwipeableCartItem";
 import { useBusinessBuyer } from "../../../modules/UserApp/hooks/useBusinessBuyer";
 import { B2BCartSummary } from "../../../modules/UserApp/components/B2B/B2BCartSummary";
@@ -21,9 +21,10 @@ import { useCategoryStore } from "../../store/categoryStore";
 import LucideIcon from "../LucideIcon";
 
 const CartDrawer = () => {
+  const navigate = useNavigate();
   const checkoutLink = "/checkout";
   const { isBusiness } = useBusinessBuyer();
-  const { isCartOpen, toggleCart } = useUIStore();
+  const { isCartOpen, toggleCart, closeCart } = useUIStore();
   const {
     items,
     getTotal,
@@ -47,6 +48,22 @@ const CartDrawer = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  // In desktop view, cart is a full page at /cart. Close drawer and navigate if opened.
+  useEffect(() => {
+    if (isCartOpen && !isMobile) {
+      if (typeof closeCart === "function") {
+        closeCart();
+      } else {
+        useUIStore.setState({ isCartOpen: false });
+      }
+      navigate("/cart");
+    }
+  }, [isCartOpen, isMobile, closeCart, navigate]);
+
+  if (!isMobile) {
+    return null;
+  }
 
   const rootCategories = useMemo(() => {
     return getRootCategories().filter(cat => cat.isActive !== false).slice(0, 4);
@@ -75,6 +92,19 @@ const CartDrawer = () => {
       document.body.style.overflowY = "";
     };
   }, [isCartOpen]);
+
+  const estimatedGst = useMemo(() => {
+    let totalTax = 0;
+    (items || []).forEach((item) => {
+      const qty = Math.max(1, Number(item.quantity || 1));
+      const price = Math.max(0, Number(item.price || 0));
+      const rate = Number(item.gstRate ?? item.resolvedGstRate ?? item.taxRate ?? 18);
+      totalTax += (price * qty * rate) / 100;
+    });
+    return parseFloat(totalTax.toFixed(2));
+  }, [items]);
+  const estimatedShipping = isBusiness ? 1500 : 50;
+  const drawerFinalTotal = total + estimatedShipping + estimatedGst;
 
   return (
     <AnimatePresence>
@@ -252,12 +282,30 @@ const CartDrawer = () => {
             {items.length > 0 && (
               <div className="border-t border-gray-200 p-3 sm:p-6 bg-gray-50">
                 <B2BCartSummary cartItems={items} subtotal={total} />
-                <div className="flex items-center justify-between mb-2 sm:mb-4">
-                  <span className="text-sm sm:text-lg font-semibold text-gray-800">
+                <div className="space-y-1.5 mb-3 text-xs text-gray-600">
+                  <div className="flex justify-between">
+                    <span>Subtotal:</span>
+                    <span className="font-semibold text-gray-800">{formatPrice(total)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Estimated Delivery:</span>
+                    <span className="font-semibold text-gray-800">
+                      {formatPrice(estimatedShipping)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Estimated GST:</span>
+                    <span className="font-semibold text-gray-800">
+                      {formatPrice(estimatedGst)}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between mb-2 sm:mb-4 pt-2 border-t border-gray-200">
+                  <span className="text-sm sm:text-base font-bold text-gray-800">
                     Total:
                   </span>
                   <span className="text-lg sm:text-2xl font-bold text-primary-600">
-                    {formatPrice(total)}
+                    {formatPrice(drawerFinalTotal)}
                   </span>
                 </div>
                 <div className="flex flex-col gap-1.5 sm:gap-2">

@@ -43,6 +43,8 @@ const ManagedShopDetails = () => {
   const [reviewChannel, setReviewChannel] = useState("B2C");
   const [reviewB2bPrice, setReviewB2bPrice] = useState(0);
   const [reviewB2bMinQty, setReviewB2bMinQty] = useState(1);
+  const [reviewGstMode, setReviewGstMode] = useState("category");
+  const [reviewGstRate, setReviewGstRate] = useState(18);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
@@ -60,6 +62,8 @@ const ManagedShopDetails = () => {
         salesChannel: reviewChannel,
         b2bWholesalePrice: reviewB2bPrice,
         b2bMinOrderQty: reviewB2bMinQty,
+        gstMode: reviewGstMode,
+        gstRate: reviewGstMode === 'custom' ? Number(reviewGstRate) : (reviewProduct?.categoryId?.gstRate ?? 18),
       });
       toast.success(`Product ${status === "approved" ? "approved" : "rejected"} successfully`);
       setReviewProduct(null);
@@ -519,6 +523,8 @@ const ManagedShopDetails = () => {
                                 setReviewChannel(product.salesChannel || "B2C");
                                 setReviewB2bPrice(product.b2bWholesalePrice !== undefined && product.b2bWholesalePrice !== null ? product.b2bWholesalePrice : product.price || 0);
                                 setReviewB2bMinQty(product.b2bMinOrderQty || 1);
+                                setReviewGstMode(product.gstMode || "category");
+                                setReviewGstRate(product.gstRate !== undefined ? Number(product.gstRate) : (product.categoryId?.gstRate ?? 18));
                               }}
                               className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-semibold shadow-sm transition-all"
                               title="Review Product"
@@ -809,6 +815,80 @@ const ManagedShopDetails = () => {
                         className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs focus:outline-none"
                         placeholder="e.g. 10"
                       />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* GST Rate Assignment for Managed Product */}
+              <div className="bg-emerald-50/60 border border-emerald-200/80 p-3.5 rounded-2xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold text-gray-900">
+                    Product GST Configuration
+                  </label>
+                  <span className="text-[10px] text-emerald-800 font-semibold uppercase bg-emerald-100 px-2 py-0.5 rounded-md">
+                    Admin Tax Control
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setReviewGstMode("category")}
+                    className={`p-2.5 rounded-xl text-left border transition-all ${
+                      reviewGstMode === "category"
+                        ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                        : "bg-white text-gray-700 border-gray-200 hover:bg-emerald-50/50"
+                    }`}
+                  >
+                    <div className="text-xs font-bold">Category Default</div>
+                    <div className={`text-[10px] ${reviewGstMode === "category" ? "text-emerald-100" : "text-gray-400"}`}>
+                      Uses {reviewProduct.categoryId?.gstRate ?? 18}% standard rate
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setReviewGstMode("custom")}
+                    className={`p-2.5 rounded-xl text-left border transition-all ${
+                      reviewGstMode === "custom"
+                        ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                        : "bg-white text-gray-700 border-gray-200 hover:bg-emerald-50/50"
+                    }`}
+                  >
+                    <div className="text-xs font-bold">Custom GST Rate</div>
+                    <div className={`text-[10px] ${reviewGstMode === "custom" ? "text-emerald-100" : "text-gray-400"}`}>
+                      Select manual percentage
+                    </div>
+                  </button>
+                </div>
+
+                {reviewGstMode === "custom" && (
+                  <div className="pt-2 border-t border-emerald-200/60 flex flex-wrap items-center gap-2">
+                    {[0, 5, 12, 18, 28].map((rate) => (
+                      <button
+                        key={rate}
+                        type="button"
+                        onClick={() => setReviewGstRate(rate)}
+                        className={`px-3 py-1 rounded-lg text-xs font-bold border transition-colors ${
+                          Number(reviewGstRate) === rate
+                            ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                            : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                        }`}
+                      >
+                        {rate}%
+                      </button>
+                    ))}
+                    <div className="flex items-center gap-1 bg-white px-2 py-0.5 rounded-lg border border-gray-300">
+                      <span className="text-[10px] font-bold text-gray-500">Custom:</span>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        value={reviewGstRate}
+                        onChange={(e) => setReviewGstRate(Number(e.target.value))}
+                        className="w-12 text-xs font-bold text-gray-900 border-0 focus:outline-none"
+                      />
+                      <span className="text-xs text-gray-700 font-bold">%</span>
                     </div>
                   </div>
                 )}

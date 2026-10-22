@@ -20,6 +20,10 @@ import { getPortfolioPage } from '../modules/admin/controllers/cms.controller.js
 import ManagedShop from '../models/ManagedShop.model.js';
 import ManagedVendorUser from '../models/ManagedVendorUser.model.js';
 import Admin from '../models/Admin.model.js';
+import Wallet from '../models/Wallet.model.js';
+import User from '../models/User.model.js';
+import { optionalAuth } from '../middlewares/authenticate.js';
+import { resolveProductGST } from '../utils/gstUtils.js';
 
 const router = Router();
 
@@ -190,6 +194,8 @@ const listProducts = asyncHandler(async (req, res) => {
     const skip = (page - 1) * limit;
     const filter = {
         isActive: true,
+        isSourceProduct: { $ne: true },
+        publicationStatus: { $nin: ['draft', 'unpublished', 'archived'] },
         approvalStatus: { $ne: 'pending' },
         brandApprovalStatus: { $ne: 'pending' },
         categoryApprovalStatus: { $ne: 'pending' },
@@ -272,10 +278,27 @@ const listProducts = asyncHandler(async (req, res) => {
 
     const sortMap = { newest: { createdAt: -1 }, oldest: { createdAt: 1 }, 'price-asc': { price: 1 }, 'price-desc': { price: -1 }, popular: { reviewCount: -1 }, rating: { rating: -1, createdAt: -1 } };
 
-    const products = await Product.find(filter).populate('categoryId', 'name').populate('brandId', 'name').populate('vendorId', 'storeName').sort(sortMap[sort] || { rating: -1, createdAt: -1 }).skip(skip).limit(Number(limit));
+    const products = await Product.find(filter)
+        .select('-negotiatedSupplyPrice -requestedSupplyPrice -agreementId -sourceProductId -auditLog')
+        .populate('categoryId', 'name gstRate parentId')
+        .populate('brandId', 'name')
+        .populate('vendorId', 'storeName categoryGstRates defaultGstRate')
+        .sort(sortMap[sort] || { rating: -1, createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit));
     const total = await Product.countDocuments(filter);
 
-    res.status(200).json(new ApiResponse(200, { products, total, page: Number(page), pages: Math.ceil(total / limit) }, 'Products fetched.'));
+    const resolvedProducts = products.map((prod) => {
+        const prodObj = prod.toObject ? prod.toObject() : prod;
+        const effectiveGst = resolveProductGST(prod, prod.categoryId, prod.vendorId);
+        return {
+            ...prodObj,
+            gstRate: effectiveGst,
+            taxRate: effectiveGst,
+        };
+    });
+
+    res.status(200).json(new ApiResponse(200, { products: resolvedProducts, total, page: Number(page), pages: Math.ceil(total / limit) }, 'Products fetched.'));
 });
 
 router.get('/', listProducts);
@@ -283,14 +306,21 @@ router.get('/products', listProducts);
 
 // GET /api/flash-sale & /api/products/flash-sale
 const getFlashSale = asyncHandler(async (req, res) => {
-    const filter = { isActive: true, flashSale: true };
+    const filter = {
+        isActive: true,
+        flashSale: true,
+        isSourceProduct: { $ne: true },
+        publicationStatus: { $nin: ['draft', 'unpublished', 'archived'] },
+    };
     const channelQuery = req.query.channel;
     if (channelQuery === 'b2c') {
         filter.salesChannel = { $in: ['B2C', 'BOTH'] };
     } else if (channelQuery === 'b2b') {
         filter.salesChannel = { $in: ['B2B', 'BOTH'] };
     }
-    const products = await Product.find(filter).limit(20);
+    const products = await Product.find(filter)
+        .select('-negotiatedSupplyPrice -requestedSupplyPrice -agreementId -sourceProductId -auditLog')
+        .limit(20);
     res.status(200).json(new ApiResponse(200, products, 'Flash sale products.'));
 });
 
@@ -314,6 +344,8 @@ const getNewArrivals = asyncHandler(async (req, res) => {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const filter = {
         isActive: true,
+        isSourceProduct: { $ne: true },
+        publicationStatus: { $nin: ['draft', 'unpublished', 'archived'] },
         $or: [
             { isNewArrival: true },
             { createdAt: { $gte: thirtyDaysAgo } }
@@ -389,14 +421,21 @@ const getNewArrivals = asyncHandler(async (req, res) => {
 
 // GET /api/popular & /api/products/popular
 const getPopular = asyncHandler(async (req, res) => {
-    const filter = { isActive: true };
+    const filter = {
+        isActive: true,
+        isSourceProduct: { $ne: true },
+        publicationStatus: { $nin: ['draft', 'unpublished', 'archived'] },
+    };
     const channelQuery = req.query.channel;
     if (channelQuery === 'b2c') {
         filter.salesChannel = { $in: ['B2C', 'BOTH'] };
     } else if (channelQuery === 'b2b') {
         filter.salesChannel = { $in: ['B2B', 'BOTH'] };
     }
-    const products = await Product.find(filter).sort({ reviewCount: -1, rating: -1 }).limit(10);
+    const products = await Product.find(filter)
+        .select('-negotiatedSupplyPrice -requestedSupplyPrice -agreementId -sourceProductId -auditLog')
+        .sort({ reviewCount: -1, rating: -1 })
+        .limit(10);
     res.status(200).json(new ApiResponse(200, products, 'Popular products.'));
 });
 
@@ -411,10 +450,20 @@ router.get('/products/popular', getPopular);
 
 // GET /api/products/similar/:id
 router.get('/similar/:id', asyncHandler(async (req, res) => {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findOne({
+        _id: req.params.id,
+        isSourceProduct: { $ne: true },
+        publicationStatus: { $nin: ['draft', 'unpublished', 'archived'] },
+    });
     if (!product) throw new ApiError(404, 'Product not found.');
     
-    const filter = { isActive: true, _id: { $ne: product._id }, categoryId: product.categoryId };
+    const filter = {
+        isActive: true,
+        isSourceProduct: { $ne: true },
+        publicationStatus: { $nin: ['draft', 'unpublished', 'archived'] },
+        _id: { $ne: product._id },
+        categoryId: product.categoryId,
+    };
     const channelQuery = req.query.channel;
     if (channelQuery === 'b2c') {
         filter.salesChannel = { $in: ['B2C', 'BOTH'] };
@@ -422,14 +471,33 @@ router.get('/similar/:id', asyncHandler(async (req, res) => {
         filter.salesChannel = { $in: ['B2B', 'BOTH'] };
     }
 
-    const similar = await Product.find(filter).limit(6);
+    const similar = await Product.find(filter)
+        .select('-negotiatedSupplyPrice -requestedSupplyPrice -agreementId -sourceProductId -auditLog')
+        .limit(6);
     res.status(200).json(new ApiResponse(200, similar, 'Similar products.'));
 }));
 
 const getProductDetail = asyncHandler(async (req, res) => {
-    const product = await Product.findById(req.params.id).populate('categoryId', 'name').populate('brandId', 'name').populate('vendorId', 'storeName storeLogo rating');
+    const product = await Product.findOne({
+        _id: req.params.id,
+        isSourceProduct: { $ne: true },
+        publicationStatus: { $nin: ['draft', 'unpublished', 'archived'] },
+        isActive: true,
+    })
+        .select('-negotiatedSupplyPrice -requestedSupplyPrice -agreementId -sourceProductId -auditLog')
+        .populate('categoryId', 'name gstRate parentId')
+        .populate('brandId', 'name')
+        .populate('vendorId', 'storeName storeLogo rating categoryGstRates defaultGstRate');
     if (!product) throw new ApiError(404, 'Product not found.');
-    res.status(200).json(new ApiResponse(200, product, 'Product detail.'));
+    
+    const prodObj = product.toObject ? product.toObject() : product;
+    const effectiveGst = resolveProductGST(product, product.categoryId, product.vendorId);
+
+    res.status(200).json(new ApiResponse(200, {
+        ...prodObj,
+        gstRate: effectiveGst,
+        taxRate: effectiveGst,
+    }, 'Product detail.'));
 });
 
 // GET /api/products/:id
@@ -652,7 +720,28 @@ router.post('/coupons/validate', asyncHandler(async (req, res) => {
 }));
 
 // GET /api/coupons/available
-router.get('/coupons/available', asyncHandler(async (req, res) => {
+router.get('/coupons/available', optionalAuth, asyncHandler(async (req, res) => {
+    // If a customer is logged in, check their wallet balance
+    if (req.user?.id) {
+        let balance = 0;
+        const wallet = await Wallet.findOne({ userId: req.user.id });
+        if (wallet) {
+            balance = Number(wallet.balance || 0);
+        }
+
+        if (req.user.role === 'b2bEmployee') {
+            const userDoc = await User.findById(req.user.id).select('b2bWalletBalance');
+            if (userDoc && typeof userDoc.b2bWalletBalance === 'number') {
+                balance = userDoc.b2bWalletBalance;
+            }
+        }
+
+        // If customer's wallet has 0 rupees (or less), do not show any coupons
+        if (balance <= 0) {
+            return res.status(200).json(new ApiResponse(200, [], 'Available coupons fetched.'));
+        }
+    }
+
     const now = new Date();
     const coupons = await Coupon.find({
         isActive: true,
@@ -674,11 +763,19 @@ router.post('/shipping/estimate', asyncHandler(async (req, res) => {
     const items = Array.isArray(req.body?.items) ? req.body.items : [];
     const shippingAddress = req.body?.shippingAddress || {};
     const shippingOption = String(req.body?.shippingOption || 'standard');
+    const paymentMethod = String(req.body?.paymentMethod || 'prepaid');
     const couponType = req.body?.couponType || null;
 
     if (!items.length) {
         return res.status(200).json(
-            new ApiResponse(200, { shipping: 0, byVendor: {} }, 'Shipping estimate calculated.')
+            new ApiResponse(200, {
+                shipping: 0,
+                byVendor: {},
+                isCodAvailable: true,
+                isServiceable: true,
+                courierInfo: {},
+                paymentMethod
+            }, 'Shipping estimate calculated.')
         );
     }
 
@@ -687,13 +784,20 @@ router.post('/shipping/estimate', asyncHandler(async (req, res) => {
         .filter((id) => /^[a-fA-F0-9]{24}$/.test(id));
     if (!productIds.length) {
         return res.status(200).json(
-            new ApiResponse(200, { shipping: 0, byVendor: {} }, 'Shipping estimate calculated.')
+            new ApiResponse(200, {
+                shipping: 0,
+                byVendor: {},
+                isCodAvailable: true,
+                isServiceable: true,
+                courierInfo: {},
+                paymentMethod
+            }, 'Shipping estimate calculated.')
         );
     }
 
     const products = await Product.find({ _id: { $in: productIds }, isActive: true })
-        .populate('vendorId', 'shippingEnabled defaultShippingRate freeShippingThreshold')
-        .populate('shopId', 'name logo')
+        .populate('vendorId', 'shippingEnabled defaultShippingRate freeShippingThreshold pincode address')
+        .populate('shopId', 'name logo warehouse address')
         .select('_id vendorId shopId price variants.prices')
         .lean();
 
@@ -717,23 +821,37 @@ router.post('/shipping/estimate', asyncHandler(async (req, res) => {
             vendorMap[vendorId] = {
                 vendorId,
                 subtotal: 0,
-                shippingEnabled: isManagedShop ? true : (product.vendorId.shippingEnabled !== false),
-                defaultShippingRate: isManagedShop ? 0 : (product.vendorId.defaultShippingRate || 0),
-                freeShippingThreshold: isManagedShop ? 0 : (product.vendorId.freeShippingThreshold || 0),
+                shippingEnabled: isManagedShop ? true : (product.vendorId?.shippingEnabled !== false),
+                defaultShippingRate: isManagedShop ? 0 : (product.vendorId?.defaultShippingRate || 0),
+                freeShippingThreshold: isManagedShop ? 0 : (product.vendorId?.freeShippingThreshold || 0),
+                items: [],
             };
         }
         vendorMap[vendorId].subtotal += subtotal;
+        vendorMap[vendorId].items.push({
+            productId: String(product._id),
+            quantity,
+            price
+        });
     });
 
-    const { totalShipping, shippingByVendor } = await calculateVendorShippingForGroups({
+    const { totalShipping, shippingByVendor, isCodAvailable, isServiceable, courierInfo } = await calculateVendorShippingForGroups({
         vendorGroups: Object.values(vendorMap),
         shippingAddress,
         shippingOption,
+        paymentMethod,
         couponType,
     });
 
     res.status(200).json(
-        new ApiResponse(200, { shipping: totalShipping, byVendor: shippingByVendor }, 'Shipping estimate calculated.')
+        new ApiResponse(200, {
+            shipping: totalShipping,
+            byVendor: shippingByVendor,
+            isCodAvailable,
+            isServiceable,
+            courierInfo,
+            paymentMethod: ['cod', 'cash'].includes(paymentMethod.toLowerCase()) ? 'cod' : 'prepaid'
+        }, 'Shipping estimate calculated.')
     );
 }));
 

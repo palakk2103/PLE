@@ -95,6 +95,23 @@ const b2bCompanySchema = new mongoose.Schema(
             size: { type: Number },
             uploadedAt: { type: Date }
         },
+        cancelledCheque: {
+            url: { type: String },
+            fileName: { type: String },
+            mimeType: { type: String },
+            size: { type: Number },
+            uploadedAt: { type: Date }
+        },
+        bankDetails: {
+            accountHolderName: { type: String, default: '', trim: true },
+            bankName: { type: String, default: '', trim: true },
+            accountNumber: { type: String, default: '', trim: true },
+            ifscCode: { type: String, default: '', trim: true, uppercase: true },
+            accountType: { type: String, enum: ['Current', 'Savings', 'Other', ''], default: 'Current' },
+            branchName: { type: String, default: '', trim: true },
+            upiId: { type: String, default: '', trim: true },
+            isVerified: { type: Boolean, default: false }
+        },
         settings: {
             type: mongoose.Schema.Types.Mixed,
             default: {}

@@ -284,7 +284,9 @@ const MobileProductDetail = () => {
   const toggleCart = useUIStore((state) => state.toggleCart);
 
   const handleGoToCart = () => {
-    if (typeof openCart === "function") {
+    if (typeof window !== "undefined" && window.innerWidth >= 768) {
+      navigate("/cart");
+    } else if (typeof openCart === "function") {
       openCart();
     } else if (typeof toggleCart === "function") {
       toggleCart();
@@ -606,6 +608,9 @@ const MobileProductDetail = () => {
       stockQuantity: effectiveStock,
       vendorId: product.vendorId,
       vendorName: vendor?.storeName || vendor?.name || product.vendorName,
+      gstRate: product.gstRate !== undefined ? Number(product.gstRate) : (product.taxRate !== undefined ? Number(product.taxRate) : 18),
+      taxRate: product.gstRate !== undefined ? Number(product.gstRate) : (product.taxRate !== undefined ? Number(product.taxRate) : 18),
+      taxIncluded: Boolean(product.taxIncluded),
     });
     if (!addedToCart) return;
     triggerCartAnimation();
@@ -744,8 +749,8 @@ const MobileProductDetail = () => {
       <PageTransition>
       <MobileLayout showHeader={false} showBottomNav={false} showCartBar={true}>
         <div className="w-full pb-24 lg:pb-12 max-w-7xl mx-auto">
-          {/* Top Bar: Back & Cart */}
-          <div className="px-4 pt-2 lg:pt-8 lg:px-8 mb-2 flex items-center justify-between">
+          {/* Top Bar: Back */}
+          <div className="px-4 pt-2 lg:pt-8 lg:px-8 mb-2 flex items-center">
             <button
               onClick={handleBack}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors group"
@@ -754,19 +759,6 @@ const MobileProductDetail = () => {
                 <FiArrowLeft className="text-xl" />
               </div>
               <span className="font-medium">Back</span>
-            </button>
-
-            <button
-              onClick={handleGoToCart}
-              className="relative p-2.5 rounded-full text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-1.5"
-              title="View Cart"
-            >
-              <FiShoppingBag className="text-xl text-gray-800" />
-              {items?.length > 0 && (
-                <span className="bg-[#AE020B] text-white text-[11px] font-bold rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center shadow-sm">
-                  {items.reduce((sum, item) => sum + (item.quantity || 1), 0)}
-                </span>
-              )}
             </button>
           </div>
 
@@ -1343,7 +1335,7 @@ const MobileProductDetail = () => {
                       <>
                         <button
                           onClick={handleEnquiryClick}
-                          className="flex-1 py-4 bg-[#7B0A0A]/5 text-[#7B0A0A] hover:bg-[#7B0A0A]/10 border-2 border-[#7B0A0A]/20 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 text-sm"
+                          className="flex-1 py-4 bg-[#7B0A0A]/5 text-[#7B0A0A] hover:bg-[#7B0A0A]/10 border-2 border-[#7B0A0A]/20 dark:bg-red-950/40 dark:text-red-300 dark:border-red-500/40 dark:hover:bg-red-900/40 dark:hover:border-red-400 dark:hover:text-red-200 dark:shadow-[0_0_15px_rgba(239,68,68,0.1)] rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 text-sm"
                         >
                           <FiFileText className="text-lg shrink-0" />
                           <span className="truncate">Enquire Now</span>
@@ -1568,7 +1560,7 @@ const MobileProductDetail = () => {
             <>
               <button
                 onClick={handleEnquiryClick}
-                className="h-12 w-12 shrink-0 bg-[#7B0A0A]/5 text-[#7B0A0A] border border-[#7B0A0A]/20 rounded-xl font-semibold flex items-center justify-center transition-all duration-300 active:scale-95"
+                className="h-12 w-12 shrink-0 bg-[#7B0A0A]/5 text-[#7B0A0A] border border-[#7B0A0A]/20 dark:bg-red-950/40 dark:text-red-300 dark:border-red-500/40 dark:hover:bg-red-900/40 dark:hover:border-red-400 dark:hover:text-red-200 rounded-xl font-semibold flex items-center justify-center transition-all duration-300 active:scale-95"
                 title="Enquire Now"
               >
                 <FiFileText className="text-xl" />

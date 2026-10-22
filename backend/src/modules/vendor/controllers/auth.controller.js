@@ -345,6 +345,7 @@ export const login = asyncHandler(async (req, res) => {
         }
     } else {
         if (!vendor.isVerified) throw new ApiError(403, 'Please verify your email first.');
+        if (vendor.status === 'deleted' || vendor.isDeleted) throw new ApiError(403, 'Your vendor account has been closed/deleted.');
         if (vendor.status === 'pending') throw new ApiError(403, 'Your account is pending admin approval.');
         if (vendor.status === 'suspended') throw new ApiError(403, `Your account has been suspended. Reason: ${vendor.suspensionReason || 'Contact support.'}`);
         if (vendor.status === 'rejected') throw new ApiError(403, 'Your vendor application was rejected.');

@@ -73,10 +73,12 @@ export const auditAdminMutation = (req, res, next) => {
             const targetId = req.params?.id || req.params?.customerId || req.params?.orderId || req.body?.id || null;
 
             const actorName = req.user.name || req.user.email || 'Admin User';
-            const actorRole = req.user.role === 'superadmin' ? 'Super Admin' : (req.user.identityId || 'Account Team');
+            const isSuper = req.user.role === 'superadmin' || req.user.role === 'admin';
+            const roleDisplay = isSuper ? 'Super Admin' : 'Account Team';
+            const identityDisplay = req.user.identityId || (isSuper ? 'PLE-SA-000001' : 'N/A');
 
             const status = res.statusCode < 400 ? 'SUCCESS' : 'FAILURE';
-            const description = `${actorName} (${actorRole}) performed ${method} operation on ${matchedModule}${targetId ? ` (ID: ${targetId})` : ''} via ${path}`;
+            const description = `${actorName} (${roleDisplay} [${identityDisplay}]) performed ${method} operation on ${matchedModule}${targetId ? ` (ID: ${targetId})` : ''} via ${path}`;
 
             await logActivity({
                 actor: req.user,

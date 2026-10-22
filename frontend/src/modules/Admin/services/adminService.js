@@ -420,8 +420,8 @@ export const updateAgreementTemplateStatus = (id, status) => api.patch(`/admin/b
 export const deleteAgreementTemplateGeneric = (id) => api.delete(`/admin/b2b-users/agreement-templates/${id}`);
 
 // ─── Account Team Management ───────────────────────────────────────────────────
-export const getNextIdentityId = (identityClass = 'employee') =>
-    api.get('/admin/account-team/next-id', { params: { class: identityClass } });
+export const getNextIdentityId = (identityClass = 'employee', role = 'account_team') =>
+    api.get('/admin/account-team/next-id', { params: { class: identityClass, role } });
 
 export const provisionAccountTeamMember = (data) =>
     api.post('/admin/account-team/provision', data);

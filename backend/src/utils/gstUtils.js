@@ -2,10 +2,12 @@
  * Centralized GST resolution logic according to Seller-Controlled GST System rules.
  * Hierarchy:
  * 1. Product Custom GST (if product.gstMode === 'custom' and product.gstRate is specified)
- * 2. Category Default GST (if category/populated categoryId has gstRate)
- * 3. Product legacy taxRate / default fallback (18%)
+ * 2. Vendor Custom Category GST (if vendor has configured categoryGstRates for product.categoryId)
+ * 3. Vendor Store Default GST (if vendor has defaultGstRate)
+ * 4. Category Default GST (if category/populated categoryId has gstRate)
+ * 5. Product legacy taxRate / default fallback (18%)
  */
-export const resolveProductGST = (product, category = null) => {
+export const resolveProductGST = (product, category = null, vendor = null) => {
     if (!product) return 18;
 
     const mode = String(product.gstMode || '').toLowerCase();
@@ -18,7 +20,30 @@ export const resolveProductGST = (product, category = null) => {
         }
     }
 
-    // 2. If Category is provided or populated on product
+    // 2. If Vendor has a custom Category GST rate for this category or parent category
+    const targetCatId = String(
+        category?._id || category?.id || product.categoryId?._id || product.categoryId || ''
+    );
+    const parentCatId = String(
+        category?.parentId?._id || category?.parentId || product.categoryId?.parentId?._id || product.categoryId?.parentId || ''
+    );
+    const ven = vendor || (product.vendorId && typeof product.vendorId === 'object' ? product.vendorId : null);
+    if (ven && Array.isArray(ven.categoryGstRates)) {
+        const vendorCatRule = ven.categoryGstRates.find((r) => {
+            const rCat = String(r.categoryId?._id || r.categoryId);
+            return (targetCatId && rCat === targetCatId) || (parentCatId && rCat === parentCatId);
+        });
+        if (vendorCatRule && Number.isFinite(Number(vendorCatRule.gstRate))) {
+            return Number(vendorCatRule.gstRate);
+        }
+    }
+
+    // 3. If vendor has a default global GST rate configured
+    if (ven && Number.isFinite(Number(ven.defaultGstRate))) {
+        return Number(ven.defaultGstRate);
+    }
+
+    // 4. If Category is provided or populated on product
     const cat = category || (product.categoryId && typeof product.categoryId === 'object' ? product.categoryId : null);
     if (cat) {
         const catGst = Number(cat.gstRate);
@@ -27,13 +52,13 @@ export const resolveProductGST = (product, category = null) => {
         }
     }
 
-    // 3. Fallback to product.gstRate or product.taxRate if numeric
+    // 5. Fallback to product.gstRate or product.taxRate if numeric
     const prodGst = Number(product.gstRate ?? product.taxRate);
     if (Number.isFinite(prodGst) && prodGst >= 0 && prodGst <= 100) {
         return prodGst;
     }
 
-    // 4. Platform default fallback
+    // 6. Platform default fallback
     return 18;
 };
 

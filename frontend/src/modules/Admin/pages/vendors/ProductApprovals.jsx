@@ -11,10 +11,14 @@ import {
   FiEdit3,
   FiLayers,
   FiInfo,
+  FiDollarSign,
+  FiLock,
 } from "react-icons/fi";
 import Badge from "../../../../shared/components/Badge";
 import toast from "react-hot-toast";
 import api from "../../../../shared/utils/api";
+import AdminNegotiationModal from "../../components/AdminNegotiationModal";
+import AdminCustomerListingModal from "../../components/AdminCustomerListingModal";
 
 const ProductApprovals = () => {
   const [products, setProducts] = useState([]);
@@ -33,6 +37,8 @@ const ProductApprovals = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectForm, setShowRejectForm] = useState(false);
+  const [negotiationModalProduct, setNegotiationModalProduct] = useState(null);
+  const [listingModalConfig, setListingModalConfig] = useState(null);
 
   // Form edit state inside modal
   const [editForm, setEditForm] = useState({
@@ -315,15 +321,31 @@ const ProductApprovals = () => {
 
               {/* Footer Actions */}
               <div className="border-t border-gray-100 p-4 bg-gray-50/50 flex justify-between items-center gap-2">
-                <span className="text-sm font-black text-[#C07A3D]">
-                  ₹{product.price?.toLocaleString("en-IN")}
-                </span>
-                <button
-                  onClick={() => handleOpenReview(product)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 hover:bg-[#C07A3D] text-white rounded-lg text-xs font-semibold shadow-sm transition-all"
-                >
-                  <FiEye /> Review & Edit
-                </button>
+                <div>
+                  <span className="text-[10px] text-gray-500 uppercase font-medium block">
+                    {product.shopId ? "Supply Price" : "Vendor Price"}
+                  </span>
+                  <span className="text-sm font-black text-[#C07A3D]">
+                    ₹{product.price?.toLocaleString("en-IN")}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {product.shopId && (
+                    <button
+                      onClick={() => setNegotiationModalProduct(product)}
+                      className="flex items-center gap-1 px-2.5 py-1.5 bg-[#C07A3D]/10 hover:bg-[#C07A3D]/20 text-[#C07A3D] rounded-lg text-xs font-bold transition-all"
+                      title="Negotiate Commercial Supply Terms"
+                    >
+                      <FiDollarSign /> Terms
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleOpenReview(product)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 hover:bg-[#C07A3D] text-white rounded-lg text-xs font-semibold shadow-sm transition-all"
+                  >
+                    <FiEye /> Review
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -576,24 +598,61 @@ const ProductApprovals = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="p-4 border-t border-gray-100 bg-gray-50 flex gap-3">
+              <div className="p-4 border-t border-gray-100 bg-gray-50 flex gap-2">
                 <button
                   onClick={() => setShowRejectForm(true)}
-                  className="flex-1 py-3 bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5"
+                  className="px-4 py-3 bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5"
                 >
-                  <FiXCircle /> Reject Submission
+                  <FiXCircle /> Reject
                 </button>
-                <button
-                  onClick={() => handleApprove(selectedProduct._id)}
-                  className="flex-1 py-3 bg-[#C07A3D] hover:bg-[#A8642C] text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5"
-                >
-                  <FiCheckCircle /> Approve & Publish
-                </button>
+                {selectedProduct.shopId ? (
+                  <button
+                    onClick={() => {
+                      const prod = selectedProduct;
+                      setSelectedProduct(null);
+                      setNegotiationModalProduct(prod);
+                    }}
+                    className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5"
+                  >
+                    <FiDollarSign /> Commercial Terms & Negotiation
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleApprove(selectedProduct._id)}
+                    className="flex-1 py-3 bg-[#C07A3D] hover:bg-[#A8642C] text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5"
+                  >
+                    <FiCheckCircle /> Approve & Publish
+                  </button>
+                )}
               </div>
             </motion.div>
           </>
         )}
       </AnimatePresence>
+
+      <AdminNegotiationModal
+        isOpen={!!negotiationModalProduct}
+        onClose={() => setNegotiationModalProduct(null)}
+        productId={negotiationModalProduct?._id}
+        productName={negotiationModalProduct?.name}
+        onOpenListingModal={(srcProd, neg, existingList) => {
+          setListingModalConfig({
+            sourceProduct: srcProd,
+            negotiation: neg,
+            existingListing: existingList,
+          });
+        }}
+        onNegotiationUpdated={fetchProducts}
+      />
+
+      <AdminCustomerListingModal
+        isOpen={!!listingModalConfig}
+        onClose={() => setListingModalConfig(null)}
+        sourceProduct={listingModalConfig?.sourceProduct}
+        negotiation={listingModalConfig?.negotiation}
+        existingListing={listingModalConfig?.existingListing}
+        onListingUpdated={fetchProducts}
+      />
     </motion.div>
   );
 };

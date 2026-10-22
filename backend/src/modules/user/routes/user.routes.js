@@ -7,6 +7,7 @@ import * as orderController from '../controllers/order.controller.js';
 import * as notificationController from '../controllers/notification.controller.js';
 import * as walletController from '../controllers/wallet.controller.js';
 import * as paymentController from '../controllers/payment.controller.js';
+import * as accountDeletionController from '../controllers/accountDeletion.controller.js';
 import { authenticate } from '../../../middlewares/authenticate.js';
 import { authorize, enforceAccountStatus } from '../../../middlewares/authorize.js';
 import { authLimiter, otpLimiter, chatLimiter } from '../../../middlewares/rateLimiter.js';
@@ -61,6 +62,11 @@ router.post('/auth/profile/verify-otp', ...customerAuth, authController.verifyPr
 router.post('/auth/profile/resend-otp', ...customerAuth, authController.resendProfileOTP);
 router.post('/auth/profile/avatar', ...customerAuth, uploadSingle('avatar'), authController.uploadProfileAvatar);
 router.post('/auth/change-password', ...customerAuth, validate(changePasswordSchema), authController.changePassword);
+
+// Account Deletion Request routes (protected)
+router.get('/account-deletion-request/status', ...customerAuth, accountDeletionController.getCustomerDeletionStatus);
+router.post('/account-deletion-request', ...customerAuth, accountDeletionController.submitCustomerDeletionRequest);
+router.post('/account-deletion-request/cancel', ...customerAuth, accountDeletionController.cancelCustomerDeletionRequest);
 
 // Address routes (protected)
 router.get('/addresses', ...customerAuth, addressController.getAddresses);

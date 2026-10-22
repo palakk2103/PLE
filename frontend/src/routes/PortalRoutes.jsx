@@ -40,8 +40,10 @@ const MobileOrders = lazy(() => import("../modules/UserApp/pages/Orders"));
 const MobileOrderDetail = lazy(() => import("../modules/UserApp/pages/OrderDetail"));
 const LoyaltyHistory = lazy(() => import("../modules/UserApp/pages/LoyaltyHistory"));
 const MobileRFQDetail = lazy(() => import("../modules/UserApp/pages/RFQDetail"));
+const B2BRFQs = lazy(() => import("../modules/B2BAdmin/pages/RFQs"));
 const MobileAddresses = lazy(() => import("../modules/UserApp/pages/Addresses"));
 const MobileWishlist = lazy(() => import("../modules/UserApp/pages/Wishlist"));
+const MobileCart = lazy(() => import("../modules/UserApp/pages/Cart"));
 const MobileOffers = lazy(() => import("../modules/UserApp/pages/Offers"));
 const FestivalLandingPage = lazy(() => import("../modules/UserApp/pages/FestivalLandingPage"));
 const MobileDailyDeals = lazy(() => import("../modules/UserApp/pages/DailyDeals"));
@@ -224,7 +226,7 @@ export default function PortalRoutes() {
         path="/cart"
         element={
           <RouteWrapper>
-            <CartRouteHandler />
+            <MobileCart />
           </RouteWrapper>
         }
       />
@@ -379,6 +381,20 @@ export default function PortalRoutes() {
           <RouteWrapper>
             <ProtectedRoute>
               <MobileRFQDetail />
+            </ProtectedRoute>
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/rfqs"
+        element={
+          <RouteWrapper>
+            <ProtectedRoute>
+              <MobileLayout>
+                <div className="max-w-7xl mx-auto px-4 py-6">
+                  <B2BRFQs />
+                </div>
+              </MobileLayout>
             </ProtectedRoute>
           </RouteWrapper>
         }

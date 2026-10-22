@@ -11,7 +11,7 @@ const adminSchema = new mongoose.Schema(
         isActive: { type: Boolean, default: true },
         // Organizational Identity fields
         identityId: { type: String, unique: true, sparse: true, trim: true, uppercase: true },
-        identityClass: { type: String, enum: ['employee', 'director', 'consultant', 'intern'], default: 'employee' },
+        identityClass: { type: String, enum: ['employee', 'director', 'consultant', 'intern', 'superadmin'], default: 'employee' },
         personalSecretHash: { type: String, select: false },
         phone: { type: String, trim: true },
         department: { type: String, trim: true },

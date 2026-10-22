@@ -66,6 +66,26 @@ const AuditLogs = () => {
     }
   };
 
+  const formatSafeDate = (val) => {
+    if (!val) return '—';
+    try {
+      const d = new Date(val);
+      return isNaN(d.getTime()) ? '—' : d.toLocaleDateString();
+    } catch {
+      return '—';
+    }
+  };
+
+  const formatSafeTime = (val) => {
+    if (!val) return '—';
+    try {
+      const d = new Date(val);
+      return isNaN(d.getTime()) ? '—' : d.toLocaleTimeString();
+    } catch {
+      return '—';
+    }
+  };
+
   const fetchLogs = async () => {
     setLoading(true);
     try {
@@ -81,8 +101,11 @@ const AuditLogs = () => {
         endDate: endDate || undefined
       });
       const data = res?.data || res;
-      setLogs(data?.logs || []);
-      setTotal(data?.total || 0);
+      const list = Array.isArray(data?.logs)
+        ? data.logs
+        : (Array.isArray(data?.data?.logs) ? data.data.logs : (Array.isArray(data) ? data : []));
+      setLogs(list);
+      setTotal(typeof data?.total === 'number' ? data.total : (typeof data?.data?.total === 'number' ? data.data.total : list.length));
       setTotalPages(data?.totalPages || 1);
     } catch (err) {
       toast.error('Failed to retrieve audit logs');
@@ -287,16 +310,17 @@ const AuditLogs = () => {
                 </tr>
               ) : (
                 logs.map((log) => {
+                  if (!log) return null;
                   const moduleColor = MODULE_COLORS[log.module] || 'bg-gray-100 dark:bg-gray-500/15 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-500/30';
                   return (
-                    <tr key={log._id} className="hover:bg-gray-50/80 dark:hover:bg-white/[0.02] transition-colors">
+                    <tr key={log._id || log.id} className="hover:bg-gray-50/80 dark:hover:bg-white/[0.02] transition-colors">
                       {/* Timestamp */}
                       <td className="py-3 px-4 font-mono text-[11px] whitespace-nowrap">
                         <div className="text-gray-900 dark:text-white font-medium">
-                          {new Date(log.createdAt).toLocaleDateString()}
+                          {formatSafeDate(log.createdAt)}
                         </div>
                         <div className="text-gray-500 dark:text-gray-400 text-[10px]">
-                          {new Date(log.createdAt).toLocaleTimeString()}
+                          {formatSafeTime(log.createdAt)}
                         </div>
                       </td>
 
@@ -437,7 +461,7 @@ const AuditLogs = () => {
                 <div className="grid grid-cols-2 gap-3 bg-gray-50 dark:bg-[#121216] p-4 rounded-xl border border-gray-200 dark:border-white/5 font-mono">
                   <div>
                     <span className="text-gray-500 dark:text-gray-400 block">Timestamp:</span>
-                    <span className="text-gray-900 dark:text-white font-medium">{new Date(selectedLog.createdAt).toLocaleString()}</span>
+                    <span className="text-gray-900 dark:text-white font-medium">{formatSafeDate(selectedLog.createdAt)} {formatSafeTime(selectedLog.createdAt)}</span>
                   </div>
                   <div>
                     <span className="text-gray-500 dark:text-gray-400 block">Status:</span>

@@ -140,20 +140,20 @@ const MobileCategories = () => {
     }
   }, [rootCategories, selectedCategoryId]);
 
-  // Reset selected subcategory when category changes
+  // Reset selected subcategory to null (All) when category changes so all category products show
   useEffect(() => {
-    if (subcategories.length > 0) {
-      setSelectedSubcategory(subcategories[0].id);
-    } else {
-      setSelectedSubcategory(null);
-    }
-  }, [selectedCategoryId, subcategories]);
+    setSelectedSubcategory(null);
+  }, [selectedCategoryId]);
 
   useEffect(() => {
     let cancelled = false;
 
     const fetchCategoryProducts = async () => {
-      const targetCategoryId = normalizeId(selectedSubcategory || selectedCategoryId);
+      const targetCategoryId = normalizeId(
+        selectedSubcategory && selectedSubcategory !== "all"
+          ? selectedSubcategory
+          : selectedCategoryId
+      );
       if (!targetCategoryId) {
         if (!cancelled) {
           setCategoryProductsFeed([]);
@@ -636,6 +636,18 @@ const MobileCategories = () => {
                         WebkitOverflowScrolling: "touch",
                       }}>
                       <div className="flex gap-1.5">
+                        <motion.button
+                          onClick={() => setSelectedSubcategory(null)}
+                          whileTap={{ scale: 0.97 }}
+                          className={`flex-shrink-0 px-3 py-1 rounded-lg text-xs font-semibold transition-all duration-200 whitespace-nowrap border ${
+                            !selectedSubcategory || selectedSubcategory === "all"
+                              ? "bg-white text-[#7B0A0A] border-red-300 shadow-sm font-bold ring-1 ring-red-200"
+                              : "bg-gray-50 text-gray-600 border-gray-200 active:bg-gray-100 hover:bg-gray-100"
+                          }`}
+                          style={{ willChange: "transform" }}
+                        >
+                          All Women
+                        </motion.button>
                         {subcategories.map((subcategory) => {
                           const isActive =
                             normalizeId(selectedSubcategory) ===
@@ -648,7 +660,7 @@ const MobileCategories = () => {
                               }
                               whileTap={{ scale: 0.97 }}
                               className={`flex-shrink-0 px-2.5 py-1 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap border ${isActive
-                                ? "bg-white text-[#7B0A0A] border-red-200 shadow-sm"
+                                ? "bg-white text-[#7B0A0A] border-red-200 shadow-sm font-bold"
                                 : "bg-gray-50 text-gray-600 border-gray-200 active:bg-gray-100"
                                 }`}
                               style={{ willChange: "transform" }}>

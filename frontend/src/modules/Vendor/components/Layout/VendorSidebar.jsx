@@ -38,6 +38,7 @@ const iconMap = {
   "B2B Enquiries": FiInbox,
   "Direct RFQs": FiFileText,
   "Product Enquiries": FiMessageSquare,
+  "Source Now": FiInbox,
   "Product Requests": FiInbox,
   "Return Requests": FiRefreshCw,
   "Product Reviews": FiStar,

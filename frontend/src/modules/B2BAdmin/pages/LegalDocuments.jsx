@@ -103,10 +103,10 @@ const LegalDocuments = () => {
     },
     {
       key: 'companyRegistrationProof',
-      name: 'Company Incorporation / Registration Proof',
-      description: `Shop & Establishment, Certificate of Incorporation (COI), or Partnership Deed for ${companyProfile?.companyType || 'Company'}.`,
+      name: companyProfile?.companyType ? `${companyProfile.companyType} Registration Proof` : 'Company Incorporation / Registration Proof',
+      description: `Official registration document for ${companyProfile?.companyType || 'Company'} (e.g. Certificate of Incorporation, Partnership Deed, LLP Agreement, or Shop Act / Udyam).`,
       doc: companyProfile?.companyRegistrationProof,
-      required: false,
+      required: true,
       tag: companyProfile?.companyType || 'Corporate Document'
     }
   ];

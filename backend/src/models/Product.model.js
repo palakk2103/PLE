@@ -141,6 +141,25 @@ const productSchema = new mongoose.Schema(
             timestamp: { type: Date, default: Date.now },
             reason: { type: String }
         }],
+
+        // Managed Vendor & Admin Commercial Separation Fields
+        listingType: {
+            type: String,
+            enum: ['vendor_direct', 'managed_source', 'admin_managed_listing'],
+            default: 'vendor_direct',
+            index: true
+        },
+        isSourceProduct: { type: Boolean, default: false, index: true },
+        sourceProductId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', index: true },
+        agreementId: { type: mongoose.Schema.Types.ObjectId, ref: 'ProductNegotiation', index: true },
+        requestedSupplyPrice: { type: Number, min: 0 },
+        negotiatedSupplyPrice: { type: Number, min: 0 },
+        publicationStatus: {
+            type: String,
+            enum: ['draft', 'pending_approval', 'published', 'unpublished', 'archived'],
+            default: 'published',
+            index: true
+        },
     },
     { timestamps: true }
 );

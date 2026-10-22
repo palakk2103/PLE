@@ -40,16 +40,22 @@ export const enforceAccountStatus = async (req, res, next) => {
         const role = String(req.user.role).toLowerCase();
 
         if (role === 'customer' || role === 'b2badmin' || role === 'b2bemployee') {
-            const user = await User.findById(req.user.id).select('isActive isVerified').lean();
+            const user = await User.findById(req.user.id).select('isActive isVerified isDeleted deletionStatus').lean();
             if (!user) return next(new ApiError(401, 'Account not found.'));
+            if (user.isDeleted || user.deletionStatus === 'APPROVED') {
+                return next(new ApiError(403, 'Your account deletion request has been approved. This account is permanently closed.'));
+            }
             if (!user.isActive) return next(new ApiError(403, 'Account is deactivated. Contact support.'));
             if (role === 'customer' && !user.isVerified) return next(new ApiError(403, 'Please verify your email first.'));
             return next();
         }
 
         if (role === 'vendor') {
-            const vendor = await Vendor.findById(req.user.id).select('status isVerified').lean();
+            const vendor = await Vendor.findById(req.user.id).select('status isVerified isDeleted deletionStatus').lean();
             if (!vendor) return next(new ApiError(401, 'Account not found.'));
+            if (vendor.isDeleted || vendor.status === 'deleted' || vendor.deletionStatus === 'APPROVED') {
+                return next(new ApiError(403, 'Your store deletion request has been approved. This vendor account is permanently closed.'));
+            }
             if (!vendor.isVerified) return next(new ApiError(403, 'Please verify your email first.'));
             if (vendor.status !== 'approved') {
                 return next(new ApiError(403, `Vendor account is ${vendor.status}.`));

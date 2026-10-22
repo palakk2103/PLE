@@ -119,7 +119,17 @@ const mapRfqToEnquiry = (rfq) => {
 export const useVendorB2BStore = create((set, get) => ({
   // State - start with empty, will be populated from real API
   enquiries: [],
-  settings: null,
+  settings: {
+    defaultQuoteValidity: 15,
+    defaultPaymentTerms: "Net 30 days",
+    defaultShippingTerms: "FOB Origin",
+    minimumOrderValue: 50000,
+    autoResponse: false,
+    autoResponseMessage: "",
+    notifyOnNewEnquiry: true,
+    notifyOnQuoteResponse: true,
+    notifyOnEnquiryExpiring: true,
+  },
   analytics: null,
   isLoading: false,
 

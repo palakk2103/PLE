@@ -25,6 +25,8 @@ import * as productRequestController from '../controllers/productRequest.control
 import * as productEnquiryController from '../controllers/productEnquiry.controller.js';
 import * as accountTeamController from '../controllers/accountTeam.controller.js';
 import * as auditLogController from '../controllers/auditLog.controller.js';
+import * as productNegotiationController from '../controllers/productNegotiation.controller.js';
+import * as accountDeletionController from '../controllers/accountDeletion.controller.js';
 import { authenticate } from '../../../middlewares/authenticate.js';
 import { authorize, enforceAccountStatus } from '../../../middlewares/authorize.js';
 import { authLimiter } from '../../../middlewares/rateLimiter.js';
@@ -84,6 +86,14 @@ router.put('/products/tax-pricing-rules', ...adminAuth, validate(taxPricingRules
 router.put('/products/:id', ...adminAuth, validate(updateProductSchema), catalogController.updateProduct);
 router.delete('/products/:id', ...adminAuth, catalogController.deleteProduct);
 router.patch('/products/:id/review', ...adminAuth, catalogController.reviewProduct);
+
+// Managed Vendor Negotiation & Customer Listing Routes
+router.get('/products/:productId/negotiation', ...adminAuth, productNegotiationController.getAdminNegotiation);
+router.post('/products/:productId/negotiation/offer', ...adminAuth, productNegotiationController.submitAdminOffer);
+router.post('/products/:productId/negotiation/accept', ...adminAuth, productNegotiationController.acceptVendorOffer);
+router.post('/products/:productId/negotiation/reject', ...adminAuth, productNegotiationController.rejectAdminNegotiation);
+router.post('/products/:productId/customer-listing', ...adminAuth, productNegotiationController.createAdminCustomerListing);
+router.put('/customer-listings/:listingId', ...adminAuth, productNegotiationController.updateAdminCustomerListing);
 
 // ─── Categories ───────────────────────────────────────────────────────────────
 router.get('/categories', ...adminAuth, catalogController.getAllCategories);
@@ -406,6 +416,11 @@ router.put('/notifications/read-all', ...adminAuth, notificationController.markA
 router.put('/notifications/:id/read', ...adminAuth, notificationController.markAsRead);
 router.post('/notifications/broadcast', ...adminAuth, notificationController.sendBroadcastNotification);
 router.get('/notifications/broadcast-history', ...adminAuth, notificationController.getBroadcastHistory);
+
+// ─── Account Deletion Requests ───────────────────────────────────────────────
+router.get('/account-deletion-requests', ...adminAuth, accountDeletionController.getAllDeletionRequests);
+router.post('/account-deletion-requests/:id/approve', ...adminAuth, accountDeletionController.approveDeletionRequest);
+router.post('/account-deletion-requests/:id/reject', ...adminAuth, accountDeletionController.rejectDeletionRequest);
 
 export default router;
 

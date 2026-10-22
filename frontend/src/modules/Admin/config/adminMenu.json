@@ -41,6 +41,10 @@
       {
         "title": "Customer Chats",
         "route": "/ple-ops-desk/customers/chats"
+      },
+      {
+        "title": "Deletion Requests",
+        "route": "/ple-ops-desk/account-deletion-requests"
       }
     ]
   },
@@ -84,6 +88,10 @@
       {
         "title": "Vendor Chats",
         "route": "/ple-ops-desk/vendors/chats"
+      },
+      {
+        "title": "Deletion Requests",
+        "route": "/ple-ops-desk/account-deletion-requests"
       }
     ]
   },
@@ -121,7 +129,7 @@
         "route": "/ple-ops-desk/product-enquiries"
       },
       {
-        "title": "Product Requests",
+        "title": "Source Now",
         "route": "/ple-ops-desk/product-requests"
       }
     ]

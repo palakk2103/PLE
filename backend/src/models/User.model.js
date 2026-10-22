@@ -56,7 +56,17 @@ const userSchema = new mongoose.Schema(
 
         // Chat restriction fields
         chatMutedUntil: { type: Date, default: null },
-        chatRestrictionReason: { type: String, default: null }
+        chatRestrictionReason: { type: String, default: null },
+
+        // Account deletion fields
+        isDeleted: { type: Boolean, default: false, index: true },
+        deletedAt: { type: Date, default: null },
+        deletionStatus: {
+            type: String,
+            enum: ['NONE', 'PENDING', 'APPROVED', 'REJECTED'],
+            default: 'NONE',
+            index: true
+        }
     },
     { timestamps: true }
 );

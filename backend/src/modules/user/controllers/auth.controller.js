@@ -126,7 +126,7 @@ export const login = asyncHandler(async (req, res) => {
         }
         throw new ApiError(401, 'Invalid email or password.');
     }
-    if (!user.isActive) throw new ApiError(403, 'Your account has been deactivated.');
+    if (user.isDeleted || !user.isActive) throw new ApiError(403, 'Your account has been deleted or deactivated.');
     if (!user.isVerified) {
         await sendOTP(user, 'email_verification');
         throw new ApiError(403, 'Email not verified. A new OTP has been sent to your email.');

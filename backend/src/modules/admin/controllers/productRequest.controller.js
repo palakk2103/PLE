@@ -166,6 +166,18 @@ export const updateProductRequestStatus = asyncHandler(async (req, res) => {
         throw new ApiError(404, 'Product request not found');
     }
 
+    const isWindowActive = Boolean(
+        (request.windowStatus && request.windowStatus !== 'NONE' && request.windowStatus !== 'CLOSED' && request.windowStatus !== 'EXPIRED') ||
+        request.status === 'Vendor Window Open' ||
+        request.status === 'Vendor Accepted' ||
+        request.status === 'Vendor Fulfillment' ||
+        request.acceptedVendorId
+    );
+
+    if (isWindowActive) {
+        throw new ApiError(400, 'Cannot modify or edit request status while vendor window is active. Request is in view-only mode.');
+    }
+
     const previousStatus = request.status;
     request.status = status;
     
@@ -211,6 +223,18 @@ export const deleteProductRequest = asyncHandler(async (req, res) => {
 
     if (!request) {
         throw new ApiError(404, 'Product request not found');
+    }
+
+    const isWindowActive = Boolean(
+        (request.windowStatus && request.windowStatus !== 'NONE' && request.windowStatus !== 'CLOSED' && request.windowStatus !== 'EXPIRED') ||
+        request.status === 'Vendor Window Open' ||
+        request.status === 'Vendor Accepted' ||
+        request.status === 'Vendor Fulfillment' ||
+        request.acceptedVendorId
+    );
+
+    if (isWindowActive) {
+        throw new ApiError(400, 'Cannot delete product request while vendor window is active.');
     }
 
     // Add to audit log before delete (or we can just delete)
@@ -311,6 +335,18 @@ export const assignSourcing = asyncHandler(async (req, res) => {
     const request = await ProductRequest.findOne({ requestId: req.params.id });
     if (!request) {
         throw new ApiError(404, 'Product request not found');
+    }
+
+    const isWindowActive = Boolean(
+        (request.windowStatus && request.windowStatus !== 'NONE' && request.windowStatus !== 'CLOSED' && request.windowStatus !== 'EXPIRED') ||
+        request.status === 'Vendor Window Open' ||
+        request.status === 'Vendor Accepted' ||
+        request.status === 'Vendor Fulfillment' ||
+        request.acceptedVendorId
+    );
+
+    if (isWindowActive) {
+        throw new ApiError(400, 'Cannot reassign sourcing strategy while vendor window is active. Request is in view-only mode.');
     }
 
     request.fulfillmentType = fulfillmentType || 'NONE';

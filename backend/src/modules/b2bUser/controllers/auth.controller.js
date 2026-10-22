@@ -19,7 +19,18 @@ export const registerB2BUser = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'Company and Admin data must be provided.');
     }
 
-    const { companyName, gstNumber, businessEmail, businessPhone, businessAddress, businessType, website, secretKey, acceptanceExecutionDocument } = companyData;
+    const { 
+        companyName, 
+        gstNumber, 
+        businessEmail, 
+        businessPhone, 
+        businessAddress, 
+        businessType, 
+        website, 
+        secretKey, 
+        acceptanceExecutionDocument,
+        companyRegistrationProof
+    } = companyData;
     const { adminName, adminEmail, adminPhone, password } = adminData;
 
     if (!companyName || !gstNumber || !businessEmail || !businessPhone || !businessAddress || !businessType) {
@@ -63,7 +74,8 @@ export const registerB2BUser = asyncHandler(async (req, res) => {
         website,
         ownerSecretKey: secretKey,
         verificationStatus,
-        acceptanceExecutionDocument
+        acceptanceExecutionDocument,
+        ...(companyRegistrationProof ? { companyRegistrationProof } : {})
     });
 
 
@@ -286,4 +298,23 @@ export const uploadB2BAgreement = asyncHandler(async (req, res) => {
         }, 'Agreement uploaded successfully.')
     );
 });
+
+// POST /api/b2b-user/auth/upload-document
+export const uploadB2BRegistrationDocument = asyncHandler(async (req, res) => {
+    if (!req.file) {
+        throw new ApiError(400, 'No file uploaded.');
+    }
+    const folder = 'b2b/registration_proofs';
+    const result = await uploadLocalFileToCloudinaryAndCleanupWithType(req.file.path, folder, 'auto');
+    res.status(200).json(
+        new ApiResponse(200, {
+            url: result.url,
+            fileName: req.file.originalname,
+            mimeType: req.file.mimetype,
+            size: req.file.size,
+            uploadedAt: new Date()
+        }, 'Company document uploaded successfully.')
+    );
+});
+
 

@@ -139,6 +139,9 @@ const ProductCard = memo(({ product, hideRating = false, isFlashSale = false, sh
       stockQuantity: product.stockQuantity,
       vendorId: product.vendorId,
       vendorName: product.vendorName,
+      gstRate: product.gstRate !== undefined ? Number(product.gstRate) : (product.taxRate ? Number(product.taxRate) : undefined),
+      taxRate: product.gstRate !== undefined ? Number(product.gstRate) : (product.taxRate ? Number(product.taxRate) : undefined),
+      taxIncluded: Boolean(product.taxIncluded),
     });
     if (!addedToCart) return;
     triggerCartAnimation();

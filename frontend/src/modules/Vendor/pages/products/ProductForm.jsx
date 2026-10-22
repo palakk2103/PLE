@@ -37,6 +37,7 @@ const ProductForm = () => {
   const { brands, initialize: initBrands } = useBrandStore();
 
   const [b2bSettings, setB2bSettings] = useState(null);
+  const [vendorGstData, setVendorGstData] = useState(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -133,6 +134,12 @@ const ProductForm = () => {
         setB2bSettings(s);
       }
     }).catch(err => console.error('Failed to load b2b settings', err));
+    api.get('/vendor/gst-settings').then(res => {
+      const payload = res?.data?.data || res?.data || res;
+      if (payload) {
+        setVendorGstData(payload);
+      }
+    }).catch(err => console.error('Failed to load vendor gst settings', err));
   }, [initCategories, initBrands]);
 
   useEffect(() => {
@@ -143,20 +150,21 @@ const ProductForm = () => {
     }
 
     if (isEdit) {
-      // First try local cache, then fetch from API by id
+      // Show cached product immediately for fast rendering, but always fetch fresh from API
       const cached = getById(id);
       if (cached) {
         populateForm(cached, categories);
-      } else {
-        fetchProductById(id).then((product) => {
-          if (!product) {
-            toast.error("Product not found");
-            navigate("/vendor/products/manage-products");
-            return;
-          }
-          populateForm(product, categories);
-        });
       }
+      fetchProductById(id).then((product) => {
+        if (!product && !cached) {
+          toast.error("Product not found");
+          navigate("/vendor/products/manage-products");
+          return;
+        }
+        if (product) {
+          populateForm(product, categories);
+        }
+      });
     }
   }, [isEdit, id, vendorId, navigate, categories, getById, fetchProductById]);
 
@@ -538,6 +546,17 @@ const ProductForm = () => {
     }
   };
 
+  const selectedCatId = formData.subcategoryId || formData.categoryId;
+  const vendorCatRule = (vendorGstData?.categoryGstRates || []).find(
+    (r) => String(r.categoryId) === String(selectedCatId)
+  );
+  const matchedCategory = (categories || []).find(
+    (c) => String(c.id || c._id) === String(selectedCatId)
+  );
+  const vendorCategoryRate = vendorCatRule ? vendorCatRule.gstRate : null;
+  const platformCategoryRate = matchedCategory?.gstRate ?? 18;
+  const effectiveCategoryRate = vendorCategoryRate !== null && vendorCategoryRate !== undefined ? vendorCategoryRate : platformCategoryRate;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -663,6 +682,9 @@ const ProductForm = () => {
         }))
         .filter((faq) => faq.question && faq.answer),
       variants: buildVariantPayload(formData.variants || {}),
+      gstMode: formData.gstMode || "category",
+      gstRate: formData.gstMode === "custom" && formData.gstRate !== undefined ? Number(formData.gstRate) : effectiveCategoryRate,
+      taxRate: formData.gstMode === "custom" && formData.gstRate !== undefined ? Number(formData.gstRate) : effectiveCategoryRate,
       b2bEnabled: isB2b,
       salesChannel: isManagedVendor ? 'B2C' : formData.salesChannel,
       b2bWholesalePrice: isManagedVendor ? null : parsedB2bWholesalePrice,
@@ -992,9 +1014,15 @@ const ProductForm = () => {
                     className="mt-0.5 text-primary-600 focus:ring-primary-500"
                   />
                   <div>
-                    <span className="text-sm font-bold block">Use Category GST</span>
+                    <span className="text-sm font-bold block">
+                      {vendorCategoryRate !== null && vendorCategoryRate !== undefined
+                        ? `Use My Category GST (${vendorCategoryRate}%)`
+                        : `Use Category GST (${platformCategoryRate}%)`}
+                    </span>
                     <span className="text-xs text-gray-500 block">
-                      Inherits default GST rate configured for the selected product category.
+                      {vendorCategoryRate !== null && vendorCategoryRate !== undefined
+                        ? `Inherits your store's saved rate for ${matchedCategory?.name || 'this category'}.`
+                        : `Inherits platform default GST rate configured for ${matchedCategory?.name || 'this category'}.`}
                     </span>
                   </div>
                 </label>
@@ -1025,10 +1053,10 @@ const ProductForm = () => {
             </div>
 
             {formData.gstMode === "category" ? (
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-between">
+              <div className="p-3 bg-emerald-50/60 rounded-lg border border-emerald-200 flex items-center justify-between">
                 <span className="text-xs text-gray-600">Active Effective GST:</span>
-                <span className="text-sm font-bold text-primary-700">
-                  Using Category GST: {categories.find((c) => String(c.id || c._id) === String(formData.categoryId))?.gstRate ?? 18}%
+                <span className="text-sm font-bold text-emerald-800">
+                  {effectiveCategoryRate}% {vendorCategoryRate !== null && vendorCategoryRate !== undefined ? '(Store Category Rule)' : '(Platform Category Default)'}
                 </span>
               </div>
             ) : (

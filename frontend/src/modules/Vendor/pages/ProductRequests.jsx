@@ -333,7 +333,7 @@ const VendorProductRequests = () => {
     <div className="space-y-6 max-w-6xl mx-auto p-4 lg:p-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl lg:text-3xl font-black text-gray-800 mb-2">Buyer Product Requests</h1>
+        <h1 className="text-2xl lg:text-3xl font-black text-gray-800 mb-2">Source Now</h1>
         <p className="text-sm text-gray-500">Respond to custom product requests from buyers on the marketplace</p>
       </div>
 
@@ -465,7 +465,7 @@ const VendorProductRequests = () => {
       {filteredRequests.length === 0 ? (
         <div className="bg-white rounded-2xl p-12 text-center border border-gray-100">
           <FiInbox className="mx-auto text-5xl text-gray-300 mb-3" />
-          <p className="text-gray-500 font-bold">No product requests found</p>
+          <p className="text-gray-500 font-bold">No Source Now requests found</p>
           <p className="text-xs text-gray-450 mt-1">Check back later for new requests</p>
         </div>
       ) : (
@@ -862,23 +862,9 @@ const VendorProductRequests = () => {
               {viewingDetailsReq.userId && (
                 <div className="space-y-2 bg-gray-50 p-4 rounded-2xl border border-gray-150">
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Buyer Information</label>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-                    <div className="flex items-center gap-2">
-                      <FiUser className="text-gray-400 shrink-0" />
-                      <span>Name: <strong className="text-gray-800">{viewingDetailsReq.userId.name || "Buyer"}</strong></span>
-                    </div>
-                    {viewingDetailsReq.userId.email && (
-                      <div className="flex items-center gap-2">
-                        <FiMail className="text-gray-400 shrink-0" />
-                        <span>Email: <strong className="text-gray-800">{viewingDetailsReq.userId.email}</strong></span>
-                      </div>
-                    )}
-                    {viewingDetailsReq.userId.phone && (
-                      <div className="flex items-center gap-2">
-                        <FiPhone className="text-gray-400 shrink-0" />
-                        <span>Phone: <strong className="text-gray-800">{viewingDetailsReq.userId.phone}</strong></span>
-                      </div>
-                    )}
+                  <div className="flex items-center gap-2 text-xs">
+                    <FiUser className="text-gray-400 shrink-0" />
+                    <span>Name: <strong className="text-gray-800">{viewingDetailsReq.userId.name || "Buyer"}</strong></span>
                   </div>
                 </div>
               )}

@@ -25,7 +25,7 @@ import socketService from "../../../../shared/utils/socket";
 const B2BEnquiryDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { enquiries, getEnquiryById, updateEnquiryStatus, sendNegotiationMessage } = useVendorB2BStore();
+  const { enquiries, getEnquiryById, updateEnquiryStatus, sendNegotiationMessage, fetchEnquiries } = useVendorB2BStore();
 
   const [enquiry, setEnquiry] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -34,9 +34,13 @@ const B2BEnquiryDetail = () => {
 
   useEffect(() => {
     if (!id) return;
-    const fetchEnquiry = () => {
+    const fetchEnquiry = async () => {
       setLoading(true);
-      const data = getEnquiryById(id);
+      let data = getEnquiryById(id);
+      if (!data) {
+        await fetchEnquiries();
+        data = getEnquiryById(id);
+      }
       setEnquiry(data);
       setLoading(false);
 

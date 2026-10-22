@@ -38,6 +38,8 @@ const GstSettings = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [categoryGstRate, setCategoryGstRate] = useState(18);
   const [categoryGstMode, setCategoryGstMode] = useState("custom");
+  const [categorySearchQuery, setCategorySearchQuery] = useState("");
+  const [categoryFilterTab, setCategoryFilterTab] = useState("all"); // 'all' | 'withProducts' | 'withRules'
 
   // Product tab state
   const [searchQuery, setSearchQuery] = useState("");
@@ -52,16 +54,25 @@ const GstSettings = () => {
       const isSuccess = res?.success || res?.data?.success || (res && !res.error);
       const payload = res?.data?.data || res?.data || res;
       if (isSuccess && payload) {
+        const catList = Array.isArray(payload.categoryBreakdown) ? payload.categoryBreakdown : [];
         setData({
           totalProducts: payload.totalProducts || 0,
           customGstCount: payload.customGstCount || 0,
           categoryGstCount: payload.categoryGstCount || 0,
-          categoryBreakdown: Array.isArray(payload.categoryBreakdown) ? payload.categoryBreakdown : [],
+          categoryBreakdown: catList,
           products: Array.isArray(payload.products) ? payload.products : [],
         });
-        if (payload.categoryBreakdown?.length > 0 && !selectedCategory) {
-          setSelectedCategory(payload.categoryBreakdown[0]);
-          setCategoryGstRate(payload.categoryBreakdown[0].categoryGstRate || 18);
+        if (catList.length > 0) {
+          if (selectedCategory) {
+            const fresh = catList.find((c) => String(c.categoryId) === String(selectedCategory.categoryId));
+            if (fresh) setSelectedCategory(fresh);
+          } else {
+            const first = catList[0];
+            setSelectedCategory(first);
+            const hasVendorRate = first.vendorCategoryGstRate !== null && first.vendorCategoryGstRate !== undefined;
+            setCategoryGstMode(hasVendorRate ? "custom" : "category");
+            setCategoryGstRate(hasVendorRate ? first.vendorCategoryGstRate : (first.categoryGstRate || 18));
+          }
         }
       }
     } catch (err) {
@@ -125,11 +136,16 @@ const GstSettings = () => {
   // Handle Inline Product GST Save
   const handleSaveProductGst = async (productId) => {
     try {
+      const rateNum = Number(editForm.gstRate);
+      if (editForm.gstMode === "custom" && (isNaN(rateNum) || rateNum < 0 || rateNum > 100)) {
+        toast.error("Please enter a valid GST percentage (0 - 100%)");
+        return;
+      }
       setSaving(true);
       const res = await api.patch("/vendor/gst-settings/product", {
         productId,
         gstMode: editForm.gstMode,
-        gstRate: Number(editForm.gstRate),
+        gstRate: rateNum,
       });
       if (res?.success || res?.data?.success) {
         toast.success("Product GST updated");
@@ -259,49 +275,64 @@ const GstSettings = () => {
                 </p>
               </div>
 
-              <div className="p-4 bg-emerald-50/60 rounded-xl border border-emerald-100 space-y-3">
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
-                  Select Global GST Rate (%)
-                </label>
-
-                <div className="flex flex-wrap items-center gap-3">
-                  {GST_RATES.map((rate) => (
-                    <button
-                      key={rate}
-                      type="button"
-                      onClick={() => setGlobalGstRate(rate)}
-                      className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all border ${
-                        Number(globalGstRate) === rate
-                          ? "bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-600/20 scale-105"
-                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-                      }`}
-                    >
-                      {rate}% GST
-                    </button>
-                  ))}
-
-                  <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-gray-300 focus-within:ring-2 focus-within:ring-emerald-500">
-                    <span className="text-xs font-bold text-gray-500">Custom Rate:</span>
-                    <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="0.1"
-                      value={globalGstRate}
-                      onChange={(e) => {
-                        const val = Math.max(0, Math.min(100, Number(e.target.value) || 0));
-                        setGlobalGstRate(val);
-                      }}
-                      placeholder="e.g. 18"
-                      className="w-16 px-2 py-1 text-sm font-bold text-gray-900 border border-gray-200 rounded-lg focus:outline-none bg-gray-50"
-                    />
-                    <span className="text-xs font-bold text-gray-700">%</span>
+              <div className="p-5 bg-emerald-50/60 rounded-2xl border border-emerald-100 space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                    Quick Preset Rates
+                  </label>
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    {GST_RATES.map((rate) => (
+                      <button
+                        key={rate}
+                        type="button"
+                        onClick={() => setGlobalGstRate(rate)}
+                        className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all border cursor-pointer ${
+                          Number(globalGstRate) === rate
+                            ? "bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-600/20 scale-105"
+                            : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                        }`}
+                      >
+                        {rate}% GST
+                      </button>
+                    ))}
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 mt-2 text-xs text-gray-600">
-                  <FiInfo className="text-emerald-600 flex-shrink-0" />
-                  <span>Selected Rate: <strong className="text-emerald-700">{globalGstRate}% GST</strong></span>
+                <div className="pt-3 border-t border-emerald-200/60">
+                  <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-1.5">
+                    Or Type / Enter Custom GST Rate Manually (%)
+                  </label>
+                  <p className="text-[11px] text-gray-500 mb-2">
+                    Aap yahan direct type karke koi bhi custom rate (e.g. 12, 18, 7.5, etc.) likh sakte hain:
+                  </p>
+                  <div className="flex items-center gap-3 max-w-sm">
+                    <div className="relative flex-1">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        value={globalGstRate === "" ? "" : globalGstRate}
+                        onChange={(e) => {
+                          const val = e.target.value === "" ? "" : Math.max(0, Math.min(100, Number(e.target.value)));
+                          setGlobalGstRate(val);
+                        }}
+                        placeholder="e.g. 18 or 12"
+                        className="w-full px-4 py-2.5 bg-white border-2 border-emerald-300 focus:border-emerald-500 rounded-xl text-base font-extrabold text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 shadow-sm"
+                      />
+                      <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm font-black text-gray-400 pointer-events-none">% GST</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-white/80 rounded-xl border border-emerald-200/80 flex items-start gap-2.5 text-xs text-emerald-900">
+                  <FiInfo className="text-emerald-600 w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-bold">Active Selected Rate: {globalGstRate}% GST</span>
+                    <p className="text-gray-600 text-[11px] mt-0.5">
+                      Neeche green button click karne par yeh <strong>{globalGstRate}% GST</strong> aapke store ke sabhi <strong>{data.totalProducts} active products</strong> par ek sath apply ho jayega.
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -309,20 +340,20 @@ const GstSettings = () => {
                 <button
                   type="button"
                   onClick={() => handleApplyGlobalGst(true)}
-                  disabled={saving}
-                  className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm transition-all shadow-md shadow-emerald-600/20 disabled:opacity-50"
+                  disabled={saving || globalGstRate === ""}
+                  className="flex-1 flex items-center justify-center gap-2 px-5 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm transition-all shadow-md shadow-emerald-600/20 disabled:opacity-50 cursor-pointer"
                 >
-                  <FiCheckCircle />
-                  {saving ? "Applying..." : `Apply ${globalGstRate}% GST to All Products (${data.totalProducts})`}
+                  <FiCheckCircle className="w-4 h-4" />
+                  {saving ? "Applying to All Products..." : `Apply ${globalGstRate}% GST to All Products (${data.totalProducts})`}
                 </button>
 
                 <button
                   type="button"
                   onClick={() => handleApplyGlobalGst(false)}
                   disabled={saving}
-                  className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold text-sm transition-all border border-gray-300 disabled:opacity-50"
+                  className="flex-1 flex items-center justify-center gap-2 px-5 py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold text-sm transition-all border border-gray-300 disabled:opacity-50 cursor-pointer"
                 >
-                  <FiRefreshCw />
+                  <FiRefreshCw className="w-4 h-4" />
                   Reset All Products to Category Default GST
                 </button>
               </div>
@@ -339,40 +370,164 @@ const GstSettings = () => {
               className="grid grid-cols-1 lg:grid-cols-12 gap-6"
             >
               {/* Category List */}
-              <div className="lg:col-span-5 bg-white rounded-2xl p-5 border border-gray-200 shadow-sm space-y-3">
-                <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-2">
-                  Your Product Categories ({data.categoryBreakdown?.length || 0})
-                </h3>
+              <div className="lg:col-span-5 bg-white rounded-2xl p-5 border border-gray-200 shadow-sm space-y-3 flex flex-col">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider">
+                    All Categories ({data.categoryBreakdown?.length || 0})
+                  </h3>
+                  <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                    {data.categoryBreakdown?.filter(c => c.vendorCategoryGstRate !== null && c.vendorCategoryGstRate !== undefined).length} Custom Configured
+                  </span>
+                </div>
 
-                <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
-                  {data.categoryBreakdown?.map((cat) => {
-                    const isSelected = selectedCategory?.categoryId === cat.categoryId;
-                    return (
-                      <div
-                        key={cat.categoryId || "uncategorized"}
+                {/* Search Bar */}
+                <div className="relative">
+                  <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    type="text"
+                    value={categorySearchQuery}
+                    onChange={(e) => setCategorySearchQuery(e.target.value)}
+                    placeholder="Search any category (e.g. Women, Electronics)..."
+                    className="w-full pl-9 pr-8 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 focus:bg-white transition-all"
+                  />
+                  {categorySearchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setCategorySearchQuery("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs font-bold"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                {/* Filter Chips */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px]">
+                  <button
+                    type="button"
+                    onClick={() => setCategoryFilterTab("all")}
+                    className={`px-2.5 py-1 rounded-lg font-bold whitespace-nowrap transition-all border ${
+                      categoryFilterTab === "all"
+                        ? "bg-emerald-600 text-white border-emerald-600"
+                        : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
+                    }`}
+                  >
+                    All ({data.categoryBreakdown?.length || 0})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCategoryFilterTab("withProducts")}
+                    className={`px-2.5 py-1 rounded-lg font-bold whitespace-nowrap transition-all border ${
+                      categoryFilterTab === "withProducts"
+                        ? "bg-emerald-600 text-white border-emerald-600"
+                        : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
+                    }`}
+                  >
+                    In My Store ({data.categoryBreakdown?.filter(c => (c.totalProducts || 0) > 0).length || 0})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCategoryFilterTab("withRules")}
+                    className={`px-2.5 py-1 rounded-lg font-bold whitespace-nowrap transition-all border ${
+                      categoryFilterTab === "withRules"
+                        ? "bg-emerald-600 text-white border-emerald-600"
+                        : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
+                    }`}
+                  >
+                    My Rates ({data.categoryBreakdown?.filter(c => c.vendorCategoryGstRate !== null && c.vendorCategoryGstRate !== undefined).length || 0})
+                  </button>
+                </div>
+
+                {/* Category List */}
+                <div className="space-y-2 max-h-[460px] overflow-y-auto pr-1 flex-1">
+                  {data.categoryBreakdown
+                    ?.filter((cat) => {
+                      const matchesSearch = String(cat.categoryName || "")
+                        .toLowerCase()
+                        .includes(categorySearchQuery.toLowerCase());
+                      if (!matchesSearch) return false;
+                      if (categoryFilterTab === "withProducts") return (cat.totalProducts || 0) > 0;
+                      if (categoryFilterTab === "withRules")
+                        return cat.vendorCategoryGstRate !== null && cat.vendorCategoryGstRate !== undefined;
+                      return true;
+                    })
+                    .map((cat) => {
+                      const isSelected = selectedCategory?.categoryId === cat.categoryId;
+                      const hasVendorRate =
+                        cat.vendorCategoryGstRate !== null && cat.vendorCategoryGstRate !== undefined;
+
+                      return (
+                        <div
+                          key={cat.categoryId || "uncategorized"}
+                          onClick={() => {
+                            setSelectedCategory(cat);
+                            if (hasVendorRate) {
+                              setCategoryGstMode("custom");
+                              setCategoryGstRate(cat.vendorCategoryGstRate);
+                            } else {
+                              setCategoryGstMode("category");
+                              setCategoryGstRate(cat.categoryGstRate || 18);
+                            }
+                          }}
+                          className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                            isSelected
+                              ? "bg-emerald-50 border-emerald-500 shadow-sm"
+                              : "bg-white border-gray-200 hover:bg-gray-50"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-sm text-gray-800">{cat.categoryName}</span>
+                            {hasVendorRate ? (
+                              <span className="text-[11px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full flex items-center gap-1 border border-emerald-200">
+                                My Store: {cat.vendorCategoryGstRate}%
+                              </span>
+                            ) : (
+                              <span className="text-[11px] font-bold px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-full">
+                                System: {cat.categoryGstRate}%
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
+                            <span>
+                              {cat.totalProducts > 0 ? (
+                                <strong className="text-gray-700">{cat.totalProducts} Products in Store</strong>
+                              ) : (
+                                <span className="text-gray-400 italic">0 Products (Ready to configure)</span>
+                              )}
+                            </span>
+                            <span>
+                              Effective: <strong className="text-gray-800">{cat.effectiveGstRate ?? cat.categoryGstRate}% GST</strong>
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                  {data.categoryBreakdown?.filter((cat) => {
+                    const matchesSearch = String(cat.categoryName || "")
+                      .toLowerCase()
+                      .includes(categorySearchQuery.toLowerCase());
+                    if (!matchesSearch) return false;
+                    if (categoryFilterTab === "withProducts") return (cat.totalProducts || 0) > 0;
+                    if (categoryFilterTab === "withRules")
+                      return cat.vendorCategoryGstRate !== null && cat.vendorCategoryGstRate !== undefined;
+                    return true;
+                  }).length === 0 && (
+                    <div className="text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200 p-4">
+                      <FiGrid className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                      <p className="text-xs font-semibold text-gray-500">No categories found matching your filter</p>
+                      <button
+                        type="button"
                         onClick={() => {
-                          setSelectedCategory(cat);
-                          setCategoryGstRate(cat.categoryGstRate || 18);
+                          setCategorySearchQuery("");
+                          setCategoryFilterTab("all");
                         }}
-                        className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
-                          isSelected
-                            ? "bg-emerald-50 border-emerald-500 shadow-sm"
-                            : "bg-white border-gray-200 hover:bg-gray-50"
-                        }`}
+                        className="mt-2 text-xs text-emerald-600 font-bold underline"
                       >
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-sm text-gray-800">{cat.categoryName}</span>
-                          <span className="text-xs font-bold px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-full">
-                            Category Rate: {cat.categoryGstRate}%
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
-                          <span>Total Items: {cat.totalProducts}</span>
-                          <span>Custom Overrides: {cat.customGstCount}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
+                        Reset Search / Filters
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -382,41 +537,70 @@ const GstSettings = () => {
                   <>
                     <div>
                       <span className="text-xs font-semibold text-emerald-600 uppercase tracking-wider">
-                        Configuring Category
+                        Configure Store Rate for Category
                       </span>
                       <h3 className="text-xl font-bold text-gray-900">{selectedCategory.categoryName}</h3>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        System Category Default GST: <strong>{selectedCategory.categoryGstRate}%</strong>
-                      </p>
+                      <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 mt-1">
+                        <span>Platform Default: <strong>{selectedCategory.categoryGstRate}%</strong></span>
+                        {selectedCategory.vendorCategoryGstRate !== null && selectedCategory.vendorCategoryGstRate !== undefined ? (
+                          <span className="text-emerald-700 font-bold">Your Saved Rate: {selectedCategory.vendorCategoryGstRate}%</span>
+                        ) : (
+                          <span className="text-gray-400">No store override saved yet</span>
+                        )}
+                        <span>Active Products: <strong>{selectedCategory.totalProducts || 0}</strong></span>
+                      </div>
                     </div>
+
+                    {/* Explanatory Info Box */}
+                    {selectedCategory.totalProducts > 0 ? (
+                      <div className="p-3 bg-blue-50/80 rounded-xl border border-blue-200 text-xs text-blue-900 flex items-start gap-2">
+                        <FiInfo className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
+                        <div>
+                          <strong>{selectedCategory.totalProducts} active products in store:</strong> Saving this rate will update all existing products in <em>{selectedCategory.categoryName}</em>, as well as apply automatically to future products added to this category.
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-3 bg-emerald-50/80 rounded-xl border border-emerald-200 text-xs text-emerald-900 flex items-start gap-2">
+                        <FiCheckCircle className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
+                        <div>
+                          <strong>Pre-Configure for Future Products:</strong> You currently have 0 products in <em>{selectedCategory.categoryName}</em>. Saving your rate here will ensure that whenever you add new products in this category, this rate will be applied automatically!
+                        </div>
+                      </div>
+                    )}
 
                     <div className="space-y-4 pt-3 border-t border-gray-100">
                       <div>
                         <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
-                          Select Mode for this Category's Products:
+                          Choose GST Option for {selectedCategory.categoryName}:
                         </label>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <button
                             type="button"
                             onClick={() => setCategoryGstMode("custom")}
                             className={`p-3 rounded-xl font-bold text-xs border text-left transition-all ${
                               categoryGstMode === "custom"
-                                ? "bg-emerald-50 border-emerald-600 text-emerald-800"
+                                ? "bg-emerald-50 border-emerald-600 text-emerald-800 shadow-sm"
                                 : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
                             }`}
                           >
-                            Set Custom Rate for Category
+                            <span className="block font-bold">Set My Store's Category Rate</span>
+                            <span className="text-[11px] font-normal text-gray-500 mt-0.5 block">
+                              Apply custom GST percentage for this category across my store
+                            </span>
                           </button>
                           <button
                             type="button"
                             onClick={() => setCategoryGstMode("category")}
                             className={`p-3 rounded-xl font-bold text-xs border text-left transition-all ${
                               categoryGstMode === "category"
-                                ? "bg-emerald-50 border-emerald-600 text-emerald-800"
+                                ? "bg-emerald-50 border-emerald-600 text-emerald-800 shadow-sm"
                                 : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
                             }`}
                           >
-                            Use System Category Default ({selectedCategory.categoryGstRate}%)
+                            <span className="block font-bold">Use Platform Category Default</span>
+                            <span className="text-[11px] font-normal text-gray-500 mt-0.5 block">
+                              Inherit platform standard rate ({selectedCategory.categoryGstRate}%)
+                            </span>
                           </button>
                         </div>
                       </div>
@@ -424,7 +608,7 @@ const GstSettings = () => {
                       {categoryGstMode === "custom" && (
                         <div>
                           <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
-                            Select Custom GST Percentage:
+                            Select or Type Custom GST Rate for {selectedCategory.categoryName}:
                           </label>
                           <div className="flex flex-wrap items-center gap-2">
                             {GST_RATES.map((rate) => (
@@ -441,8 +625,8 @@ const GstSettings = () => {
                                 {rate}%
                               </button>
                             ))}
-                            <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-gray-300 focus-within:ring-2 focus-within:ring-emerald-500">
-                              <span className="text-xs font-bold text-gray-500">Custom:</span>
+                            <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg border border-gray-300 focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-emerald-500">
+                              <span className="text-xs font-bold text-gray-500">Type Rate:</span>
                               <input
                                 type="number"
                                 min="0"
@@ -450,13 +634,13 @@ const GstSettings = () => {
                                 step="0.1"
                                 value={categoryGstRate}
                                 onChange={(e) => {
-                                  const val = Math.max(0, Math.min(100, Number(e.target.value) || 0));
+                                  const val = e.target.value === "" ? "" : Math.max(0, Math.min(100, Number(e.target.value)));
                                   setCategoryGstRate(val);
                                 }}
                                 placeholder="18"
-                                className="w-14 px-1.5 py-0.5 text-xs font-bold text-gray-900 border border-gray-200 rounded focus:outline-none bg-gray-50"
+                                className="w-16 px-1.5 py-0.5 text-xs font-bold text-gray-900 border border-gray-200 rounded focus:outline-none bg-gray-50"
                               />
-                              <span className="text-xs font-bold text-gray-700">%</span>
+                              <span className="text-xs font-bold text-gray-700">% GST</span>
                             </div>
                           </div>
                         </div>
@@ -466,12 +650,14 @@ const GstSettings = () => {
                         type="button"
                         onClick={handleApplyCategoryGst}
                         disabled={saving}
-                        className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm transition-all shadow-md shadow-emerald-600/20 disabled:opacity-50 mt-4"
+                        className="w-full flex items-center justify-center gap-2 px-5 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm transition-all shadow-md shadow-emerald-600/20 disabled:opacity-50 mt-4 cursor-pointer"
                       >
                         <FiSave />
                         {saving
                           ? "Saving..."
-                          : `Apply Settings to Category Items (${selectedCategory.totalProducts} products)`}
+                          : categoryGstMode === "custom"
+                          ? `Save ${categoryGstRate}% as My Store Rate for ${selectedCategory.categoryName}${selectedCategory.totalProducts > 0 ? ` (${selectedCategory.totalProducts} Products)` : ''}`
+                          : `Reset ${selectedCategory.categoryName} to Platform Default (${selectedCategory.categoryGstRate}%)`}
                       </button>
                     </div>
                   </>
@@ -593,19 +779,40 @@ const GstSettings = () => {
                             <td className="py-3 px-4 font-bold text-xs text-gray-900">
                               {isEditing ? (
                                 editForm.gstMode === "custom" ? (
-                                  <select
-                                    value={editForm.gstRate}
-                                    onChange={(e) =>
-                                      setEditForm((prev) => ({ ...prev, gstRate: Number(e.target.value) }))
-                                    }
-                                    className="px-2 py-1 text-xs border border-gray-300 rounded-lg focus:outline-none font-bold"
-                                  >
-                                    {GST_RATES.map((r) => (
-                                      <option key={r} value={r}>
-                                        {r}% GST
-                                      </option>
-                                    ))}
-                                  </select>
+                                  <div className="flex items-center gap-1.5">
+                                    <div className="relative flex items-center">
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        step="any"
+                                        value={editForm.gstRate ?? ""}
+                                        onChange={(e) =>
+                                          setEditForm((prev) => ({ ...prev, gstRate: e.target.value }))
+                                        }
+                                        placeholder="Rate"
+                                        className="w-16 px-2 py-1 pr-5 text-xs font-bold border border-emerald-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-emerald-50/50 text-emerald-950"
+                                      />
+                                      <span className="absolute right-1.5 text-[10px] font-bold text-emerald-700 pointer-events-none">%</span>
+                                    </div>
+                                    <select
+                                      value={GST_RATES.includes(Number(editForm.gstRate)) ? Number(editForm.gstRate) : ""}
+                                      onChange={(e) => {
+                                        if (e.target.value !== "") {
+                                          setEditForm((prev) => ({ ...prev, gstRate: Number(e.target.value) }));
+                                        }
+                                      }}
+                                      className="px-1.5 py-1 text-xs border border-gray-300 rounded-lg focus:outline-none bg-gray-50 text-gray-700 font-semibold cursor-pointer"
+                                      title="Presets"
+                                    >
+                                      <option value="" disabled>Presets ▾</option>
+                                      {GST_RATES.map((r) => (
+                                        <option key={r} value={r}>
+                                          {r}% GST
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
                                 ) : (
                                   <span className="text-gray-400 text-xs italic">
                                     Uses {p.categoryDefaultRate}%

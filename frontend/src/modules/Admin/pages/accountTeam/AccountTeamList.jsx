@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   FiUsers,
@@ -24,7 +24,43 @@ import ProvisionIdentityModal from './ProvisionIdentityModal';
 import ResetCredentialsModal from './ResetCredentialsModal';
 import ConfirmModal from '../../components/ConfirmModal';
 
-const AccountTeamList = () => {
+class AccountTeamErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error('AccountTeam Error caught locally:', error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-8 bg-white dark:bg-[#16161A] border border-red-200 dark:border-red-900/30 rounded-2xl text-center space-y-4 my-6">
+          <div className="w-14 h-14 bg-red-100 dark:bg-red-900/30 text-red-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
+            !
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Failed to load Account Team page</h2>
+          <p className="text-sm text-red-600 font-mono max-w-xl mx-auto break-words bg-red-50 dark:bg-red-950/40 p-3 rounded-xl border border-red-200 dark:border-red-900/40">
+            {this.state.error?.toString() || 'An unexpected rendering error occurred.'}
+          </p>
+          <button
+            type="button"
+            onClick={() => this.setState({ hasError: false, error: null })}
+            className="px-5 py-2.5 bg-[#D71920] hover:bg-[#B51218] text-white rounded-xl text-sm font-semibold transition-colors shadow-sm cursor-pointer"
+          >
+            Try Again
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+const AccountTeamListContent = () => {
   const [members, setMembers] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -33,6 +69,7 @@ const AccountTeamList = () => {
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedRole, setSelectedRole] = useState('all');
   const [selectedClass, setSelectedClass] = useState('all');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
@@ -50,6 +87,33 @@ const AccountTeamList = () => {
     contractType: ''
   });
 
+  const getSafeString = (val, fallback = '') => {
+    if (typeof val === 'string') return val.trim();
+    if (typeof val === 'number') return String(val);
+    if (val && typeof val === 'object') {
+      if (typeof val.name === 'string') return val.name.trim();
+      if (typeof val.first === 'string') return `${val.first} ${val.last || ''}`.trim();
+      if (typeof val.label === 'string') return val.label.trim();
+      if (typeof val.title === 'string') return val.title.trim();
+    }
+    return fallback;
+  };
+
+  const formatDateTime = (val) => {
+    if (!val) return null;
+    try {
+      const d = new Date(val);
+      if (isNaN(d.getTime())) return null;
+      return `${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}, ${d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
+    } catch {
+      try {
+        return new Date(val).toISOString();
+      } catch {
+        return null;
+      }
+    }
+  };
+
   const fetchMembers = async () => {
     setLoading(true);
     try {
@@ -57,15 +121,21 @@ const AccountTeamList = () => {
         page,
         limit,
         q: searchQuery || undefined,
+        role: selectedRole !== 'all' ? selectedRole : undefined,
         identityClass: selectedClass !== 'all' ? selectedClass : undefined,
         department: selectedDepartment !== 'all' ? selectedDepartment : undefined,
         status: selectedStatus !== 'all' ? selectedStatus : undefined
       });
       const data = res?.data || res;
-      setMembers(data?.members || []);
-      setTotal(data?.total || 0);
+      const list = Array.isArray(data?.members)
+        ? data.members
+        : (Array.isArray(data?.data?.members)
+          ? data.data.members
+          : (Array.isArray(data) ? data : []));
+      setMembers(list);
+      setTotal(typeof data?.total === 'number' ? data.total : (typeof data?.data?.total === 'number' ? data.data.total : list.length));
     } catch (err) {
-      toast.error('Failed to load account team members');
+      toast.error('Failed to load personnel list');
     } finally {
       setLoading(false);
     }
@@ -73,7 +143,7 @@ const AccountTeamList = () => {
 
   useEffect(() => {
     fetchMembers();
-  }, [page, selectedClass, selectedDepartment, selectedStatus]);
+  }, [page, selectedRole, selectedClass, selectedDepartment, selectedStatus]);
 
   // Debounced search
   useEffect(() => {
@@ -84,23 +154,27 @@ const AccountTeamList = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  const safeMembers = useMemo(() => (Array.isArray(members) ? members.filter(Boolean) : []), [members]);
+
   // Dynamic department list from existing members
   const departments = useMemo(() => {
     const set = new Set();
-    members.forEach((m) => {
-      if (m.department) set.add(m.department);
+    safeMembers.forEach((m) => {
+      const dept = getSafeString(m?.department);
+      if (dept) set.add(dept);
     });
     return Array.from(set);
-  }, [members]);
+  }, [safeMembers]);
 
-  const activeCount = useMemo(() => members.filter((m) => m.status === 'active').length, [members]);
-  const inactiveCount = useMemo(() => members.filter((m) => m.status === 'inactive').length, [members]);
+  const activeCount = useMemo(() => safeMembers.filter((m) => m?.status === 'active' || Boolean(m?.isActive)).length, [safeMembers]);
+  const superAdminCount = useMemo(() => safeMembers.filter((m) => String(m?.role || '').toLowerCase() === 'superadmin' || String(m?.role || '').toLowerCase() === 'admin').length, [safeMembers]);
+  const accountTeamCount = useMemo(() => safeMembers.filter((m) => String(m?.role || '').toLowerCase() === 'account_team').length, [safeMembers]);
 
   const handleToggleStatus = async () => {
     if (!statusConfirmMember) return;
     const nextStatus = statusConfirmMember.status === 'active' ? 'inactive' : 'active';
     try {
-      await toggleAccountTeamMemberStatus(statusConfirmMember._id, nextStatus);
+      await toggleAccountTeamMemberStatus(statusConfirmMember._id || statusConfirmMember.id, nextStatus);
       toast.success(`Account marked as ${nextStatus}`);
       setStatusConfirmMember(null);
       fetchMembers();
@@ -110,13 +184,14 @@ const AccountTeamList = () => {
   };
 
   const handleOpenEdit = (m) => {
+    if (!m) return;
     setEditMember(m);
     setEditForm({
-      name: m.name || '',
-      phone: m.phone || '',
-      department: m.department || '',
-      designation: m.designation || '',
-      contractType: m.contractType || 'Full-Time'
+      name: getSafeString(m.name),
+      phone: getSafeString(m.phone),
+      department: getSafeString(m.department),
+      designation: getSafeString(m.designation),
+      contractType: getSafeString(m.contractType, 'Full-Time')
     });
   };
 
@@ -124,7 +199,7 @@ const AccountTeamList = () => {
     e.preventDefault();
     if (!editMember) return;
     try {
-      await updateAccountTeamMember(editMember._id, editForm);
+      await updateAccountTeamMember(editMember._id || editMember.id, editForm);
       toast.success('Member details updated');
       setEditMember(null);
       fetchMembers();
@@ -143,10 +218,10 @@ const AccountTeamList = () => {
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
-              Account Team Management
+              Personnel & Administrator Management
             </h1>
             <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-              Manage organizational identities, personal credentials, and internal roles
+              Manage Super Admins, Account Team identities, personal credentials, and login/logout session tracking
             </p>
           </div>
         </div>
@@ -154,30 +229,36 @@ const AccountTeamList = () => {
         <button
           type="button"
           onClick={() => setIsProvisionOpen(true)}
-          className="px-4 py-2.5 bg-[#D71920] hover:bg-[#B51218] text-white font-bold rounded-xl text-xs sm:text-sm shadow-sm transition-all flex items-center justify-center gap-2 active:scale-95"
+          className="px-4 py-2.5 bg-[#D71920] hover:bg-[#B51218] text-white font-bold rounded-xl text-xs sm:text-sm shadow-sm transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
         >
           <FiPlus size={16} />
-          <span>Provision Organizational Identity</span>
+          <span>Provision Administrator / Identity</span>
         </button>
       </div>
 
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <div className="p-4 bg-white dark:bg-[#16161A] border border-gray-200 dark:border-white/10 rounded-2xl shadow-xs transition-colors">
-          <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Total Team Members</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Total Accounts</span>
           <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{total}</p>
+        </div>
+        <div className="p-4 bg-white dark:bg-[#16161A] border border-gray-200 dark:border-white/10 rounded-2xl shadow-xs transition-colors">
+          <span className="text-xs text-amber-500 font-medium flex items-center gap-1">
+            <FiShield size={12} />
+            <span>Super Administrators</span>
+          </span>
+          <p className="text-2xl font-bold text-amber-500 mt-1">{superAdminCount}</p>
+        </div>
+        <div className="p-4 bg-white dark:bg-[#16161A] border border-gray-200 dark:border-white/10 rounded-2xl shadow-xs transition-colors">
+          <span className="text-xs text-blue-500 font-medium flex items-center gap-1">
+            <FiUserCheck size={12} />
+            <span>Account Team Members</span>
+          </span>
+          <p className="text-2xl font-bold text-blue-500 mt-1">{accountTeamCount}</p>
         </div>
         <div className="p-4 bg-white dark:bg-[#16161A] border border-gray-200 dark:border-white/10 rounded-2xl shadow-xs transition-colors">
           <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Active Personnel</span>
           <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{activeCount}</p>
-        </div>
-        <div className="p-4 bg-white dark:bg-[#16161A] border border-gray-200 dark:border-white/10 rounded-2xl shadow-xs transition-colors">
-          <span className="text-xs text-red-600 dark:text-red-400 font-medium">Deactivated / Suspended</span>
-          <p className="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">{inactiveCount}</p>
-        </div>
-        <div className="p-4 bg-white dark:bg-[#16161A] border border-gray-200 dark:border-white/10 rounded-2xl shadow-xs transition-colors">
-          <span className="text-xs text-[#D71920] font-medium">Internal Departments</span>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{departments.length || 1}</p>
         </div>
       </div>
 
@@ -197,6 +278,17 @@ const AccountTeamList = () => {
 
         {/* Dropdowns */}
         <div className="flex items-center gap-2 flex-wrap">
+          {/* Role Filter */}
+          <select
+            value={selectedRole}
+            onChange={(e) => { setSelectedRole(e.target.value); setPage(1); }}
+            className="px-3 py-2 bg-gray-50 dark:bg-[#121216] border border-gray-200 dark:border-white/10 rounded-xl text-xs text-gray-700 dark:text-gray-200 focus:outline-none focus:border-[#D71920] transition-colors"
+          >
+            <option value="all">All Roles</option>
+            <option value="superadmin">Super Administrators</option>
+            <option value="account_team">Account Team Members</option>
+          </select>
+
           {/* Identity Class */}
           <select
             value={selectedClass}
@@ -204,6 +296,7 @@ const AccountTeamList = () => {
             className="px-3 py-2 bg-gray-50 dark:bg-[#121216] border border-gray-200 dark:border-white/10 rounded-xl text-xs text-gray-700 dark:text-gray-200 focus:outline-none focus:border-[#D71920] transition-colors"
           >
             <option value="all">All Classes</option>
+            <option value="superadmin">Super Admin (PLE-SA-)</option>
             <option value="employee">Employees (PLE-EMP-)</option>
             <option value="director">Directors (PLE-DIR-)</option>
             <option value="consultant">Consultants (PLE-CON-)</option>
@@ -242,11 +335,11 @@ const AccountTeamList = () => {
             <thead className="bg-gray-50 dark:bg-[#121216] text-gray-600 dark:text-gray-400 uppercase font-bold text-[11px] tracking-wider border-b border-gray-200 dark:border-white/10">
               <tr>
                 <th className="py-3.5 px-4">Identity ID</th>
-                <th className="py-3.5 px-4">Team Member</th>
+                <th className="py-3.5 px-4">Personnel & Contact</th>
                 <th className="py-3.5 px-4">Department & Designation</th>
                 <th className="py-3.5 px-4">Role</th>
                 <th className="py-3.5 px-4">Status</th>
-                <th className="py-3.5 px-4">Last Activity</th>
+                <th className="py-3.5 px-4">Login / Logout Tracking</th>
                 <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
@@ -254,122 +347,172 @@ const AccountTeamList = () => {
               {loading ? (
                 <tr>
                   <td colSpan="7" className="py-12 text-center text-gray-500 dark:text-gray-400">
-                    Loading organizational identities...
+                    Loading personnel identities and credentials...
                   </td>
                 </tr>
-              ) : members.length === 0 ? (
+              ) : safeMembers.length === 0 ? (
                 <tr>
                   <td colSpan="7" className="py-12 text-center text-gray-500 dark:text-gray-400">
-                    No account team members found matching your search.
+                    No personnel records found matching your search.
                   </td>
                 </tr>
               ) : (
-                members.map((member) => (
-                  <tr key={member._id} className="hover:bg-gray-50/80 dark:hover:bg-white/[0.02] transition-colors">
-                    {/* Identity ID */}
-                    <td className="py-3 px-4 font-mono font-bold">
-                      {member.identityId ? (
-                        <span className="px-2.5 py-1 rounded bg-red-50 text-[#D71920] border border-red-200 dark:bg-[#D71920]/20 dark:text-[#F5E6DA] dark:border-[#D71920]/30 font-semibold">
-                          {member.identityId}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400 dark:text-gray-500 font-normal">SUPER_ADMIN</span>
-                      )}
-                    </td>
+                safeMembers.map((member, index) => {
+                  if (!member) return null;
+                  const isSuper = String(member.role || '').toLowerCase() === 'superadmin' || String(member.role || '').toLowerCase() === 'admin';
+                  const memberName = getSafeString(member.name, member.email || 'Personnel');
+                  const memberEmail = getSafeString(member.email, 'N/A');
+                  const memberPhone = getSafeString(member.phone);
+                  const memberDept = getSafeString(member.department, isSuper ? 'PLE Executive Board' : 'PLE Operations');
+                  const memberDesignation = getSafeString(member.designation, isSuper ? 'Super Administrator' : 'Staff Member');
+                  const memberContract = getSafeString(member.contractType, 'Full-Time');
+                  const memberIdentityId = getSafeString(member.identityId, isSuper ? 'PLE-SA-000001' : 'PLE-EMP-N/A');
+                  const isMemberActive = member.status === 'active' || Boolean(member.isActive);
 
-                    {/* Member Name & Email */}
-                    <td className="py-3 px-4">
-                      <div className="font-semibold text-gray-900 dark:text-white">{member.name}</div>
-                      <div className="text-[11px] text-gray-500 dark:text-gray-400">{member.email}</div>
-                    </td>
+                  const loginFormatted = formatDateTime(member.lastLoginAt);
+                  const logoutFormatted = formatDateTime(member.lastLogoutAt);
+                  const isCurrentlyInSession = Boolean(
+                    member.lastLoginAt && (
+                      !member.lastLogoutAt ||
+                      (new Date(member.lastLoginAt).getTime() > new Date(member.lastLogoutAt).getTime())
+                    )
+                  );
 
-                    {/* Department & Designation */}
-                    <td className="py-3 px-4">
-                      <div className="text-gray-800 dark:text-white font-medium">{member.department || 'PLE Administration'}</div>
-                      <div className="text-[11px] text-gray-500 dark:text-gray-400">
-                        {member.designation || 'Administrator'} · {member.contractType || 'Full-Time'}
-                      </div>
-                    </td>
+                  return (
+                    <tr key={String(member._id || member.id || member.identityId || index)} className="hover:bg-gray-50/80 dark:hover:bg-white/[0.02] transition-colors">
+                      {/* Identity ID */}
+                      <td className="py-3 px-4 font-mono font-bold">
+                        {isSuper ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-500 border border-amber-500/20 font-bold font-mono">
+                            <FiShield size={12} />
+                            <span>{memberIdentityId}</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#D71920]/10 text-[#D71920] border border-[#D71920]/20 font-bold font-mono">
+                            <FiUserCheck size={12} />
+                            <span>{memberIdentityId}</span>
+                          </span>
+                        )}
+                      </td>
 
-                    {/* Role */}
-                    <td className="py-3 px-4">
-                      {member.role === 'superadmin' || member.role === 'admin' ? (
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/30">
-                          Super Admin
-                        </span>
-                      ) : (
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30">
-                          Account Team
-                        </span>
-                      )}
-                    </td>
-
-                    {/* Status */}
-                    <td className="py-3 px-4">
-                      {member.status === 'active' || member.isActive ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                          Active
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-red-50 text-red-700 border border-red-200 dark:bg-red-500/20 dark:text-red-400 dark:border-red-500/30">
-                          <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                          Inactive
-                        </span>
-                      )}
-                    </td>
-
-                    {/* Last Activity */}
-                    <td className="py-3 px-4 text-[11px] text-gray-500 dark:text-gray-400">
-                      {member.lastLoginAt ? (
-                        <div>
-                          <div className="text-gray-800 dark:text-gray-300">{new Date(member.lastLoginAt).toLocaleDateString()}</div>
-                          <div className="text-[10px]">{new Date(member.lastLoginAt).toLocaleTimeString()}</div>
+                      {/* Member Name & Email */}
+                      <td className="py-3 px-4">
+                        <div className="font-semibold text-gray-900 dark:text-white flex items-center gap-1.5">
+                          <span>{memberName}</span>
+                          {isSuper && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20 font-semibold uppercase">
+                              Admin
+                            </span>
+                          )}
                         </div>
-                      ) : (
-                        'Never logged in'
-                      )}
-                    </td>
+                        <div className="text-[11px] text-gray-500 dark:text-gray-400">{memberEmail}</div>
+                        {memberPhone && (
+                          <div className="text-[10px] text-gray-400 dark:text-gray-500">{memberPhone}</div>
+                        )}
+                      </td>
 
-                    {/* Actions */}
-                    <td className="py-3 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => handleOpenEdit(member)}
-                          className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:hover:text-white dark:hover:bg-white/5 transition-colors"
-                          title="Edit Details"
-                        >
-                          <FiEdit2 size={14} />
-                        </button>
+                      {/* Department & Designation */}
+                      <td className="py-3 px-4">
+                        <div className="text-gray-800 dark:text-white font-medium">
+                          {memberDept}
+                        </div>
+                        <div className="text-[11px] text-gray-500 dark:text-gray-400">
+                          {memberDesignation} · {memberContract}
+                        </div>
+                      </td>
 
-                        <button
-                          type="button"
-                          onClick={() => setCredentialModalMember(member)}
-                          className="p-1.5 rounded-lg text-gray-500 hover:text-[#D71920] hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
-                          title="Reset Credentials"
-                        >
-                          <FiKey size={14} />
-                        </button>
+                      {/* Role */}
+                      <td className="py-3 px-4">
+                        {isSuper ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-bold uppercase bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/30">
+                            <FiShield size={10} />
+                            <span>Super Admin</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-bold uppercase bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30">
+                            <FiUserCheck size={10} />
+                            <span>Account Team</span>
+                          </span>
+                        )}
+                      </td>
 
-                        {member.role !== 'superadmin' && (
+                      {/* Status */}
+                      <td className="py-3 px-4">
+                        {isMemberActive ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            Active
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-red-50 text-red-700 border border-red-200 dark:bg-red-500/20 dark:text-red-400 dark:border-red-500/30">
+                            <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                            Inactive
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Login / Logout Session Tracking */}
+                      <td className="py-3 px-4 font-mono text-[11px]">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1.5 text-gray-800 dark:text-gray-200">
+                            <span className="text-emerald-600 dark:text-emerald-400 font-semibold text-[10px] uppercase">
+                              Login:
+                            </span>
+                            <span>
+                              {loginFormatted || 'Never'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 text-[10px]">
+                            <span className="text-rose-500 font-semibold uppercase">Logout:</span>
+                            <span>
+                              {isCurrentlyInSession ? (
+                                <span className="text-emerald-500 font-medium font-sans">● In-Session</span>
+                              ) : (
+                                logoutFormatted || 'N/A'
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Actions */}
+                      <td className="py-3 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEdit(member)}
+                            className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:hover:text-white dark:hover:bg-white/5 transition-colors cursor-pointer"
+                            title="Edit Details"
+                          >
+                            <FiEdit2 size={14} />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setCredentialModalMember(member)}
+                            className="p-1.5 rounded-lg text-gray-500 hover:text-[#D71920] hover:bg-gray-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                            title="Reset Credentials"
+                          >
+                            <FiKey size={14} />
+                          </button>
+
                           <button
                             type="button"
                             onClick={() => setStatusConfirmMember(member)}
-                            className={`p-1.5 rounded-lg transition-colors ${
-                              member.status === 'active'
+                            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                              isMemberActive
                                 ? 'text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-500/10'
                                 : 'text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:text-emerald-400 dark:hover:bg-emerald-500/10'
                             }`}
-                            title={member.status === 'active' ? 'Deactivate Member' : 'Activate Member'}
+                            title={isMemberActive ? 'Deactivate Personnel' : 'Activate Personnel'}
                           >
-                            {member.status === 'active' ? <FiUserX size={14} /> : <FiUserCheck size={14} />}
+                            {isMemberActive ? <FiUserX size={14} /> : <FiUserCheck size={14} />}
                           </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -377,19 +520,23 @@ const AccountTeamList = () => {
       </div>
 
       {/* Provision Identity Modal */}
-      <ProvisionIdentityModal
-        isOpen={isProvisionOpen}
-        onClose={() => setIsProvisionOpen(false)}
-        onMemberCreated={() => fetchMembers()}
-      />
+      {isProvisionOpen && (
+        <ProvisionIdentityModal
+          isOpen={isProvisionOpen}
+          onClose={() => setIsProvisionOpen(false)}
+          onMemberCreated={() => fetchMembers()}
+        />
+      )}
 
       {/* Reset Credentials Modal */}
-      <ResetCredentialsModal
-        isOpen={!!credentialModalMember}
-        member={credentialModalMember}
-        onClose={() => setCredentialModalMember(null)}
-        onSuccess={() => fetchMembers()}
-      />
+      {credentialModalMember && (
+        <ResetCredentialsModal
+          isOpen={!!credentialModalMember}
+          member={credentialModalMember}
+          onClose={() => setCredentialModalMember(null)}
+          onSuccess={() => fetchMembers()}
+        />
+      )}
 
       {/* Toggle Status Confirmation Modal */}
       {statusConfirmMember && (
@@ -400,13 +547,13 @@ const AccountTeamList = () => {
           title={statusConfirmMember.status === 'active' ? 'Deactivate Team Member' : 'Activate Team Member'}
           message={`Are you sure you want to ${
             statusConfirmMember.status === 'active' ? 'deactivate' : 'activate'
-          } ${statusConfirmMember.name} (${statusConfirmMember.identityId || statusConfirmMember.email})? ${
+          } ${getSafeString(statusConfirmMember.name, statusConfirmMember.email)} (${getSafeString(statusConfirmMember.identityId || statusConfirmMember.email)})? ${
             statusConfirmMember.status === 'active'
               ? 'They will immediately be blocked from logging into the Admin Dashboard.'
               : 'They will be allowed to log into the Admin Dashboard.'
           }`}
           confirmText={statusConfirmMember.status === 'active' ? 'Deactivate' : 'Activate'}
-          confirmVariant={statusConfirmMember.status === 'active' ? 'danger' : 'primary'}
+          type={statusConfirmMember.status === 'active' ? 'danger' : 'info'}
         />
       )}
 
@@ -487,6 +634,14 @@ const AccountTeamList = () => {
         </div>
       )}
     </div>
+  );
+};
+
+const AccountTeamList = () => {
+  return (
+    <AccountTeamErrorBoundary>
+      <AccountTeamListContent />
+    </AccountTeamErrorBoundary>
   );
 };
 

@@ -188,20 +188,124 @@ export class ShiprocketDeliveryProvider {
     }
 
     async getQuote(context) {
-        const { pickupPincode, deliveryPincode, weight = 0.5, cod = 0 } = context;
-        try {
-            const res = await shiprocketClient.request('GET', '/courier/serviceability/', null, {
-                pickup_postcode: pickupPincode,
-                delivery_postcode: deliveryPincode,
-                weight,
-                cod
-            });
+        const {
+            pickupPincode,
+            deliveryPincode,
+            weight = 0.5,
+            cod = 0,
+            declaredValue,
+            length = 10,
+            breadth = 10,
+            height = 10
+        } = context;
+
+        const isCodRequested = Boolean(Number(cod) === 1 || String(cod).toLowerCase() === 'cod');
+        const numericCod = isCodRequested ? 1 : 0;
+        const normalizedPickup = String(pickupPincode || '').trim();
+        const normalizedDelivery = String(deliveryPincode || '').trim();
+        const safeWeight = Math.max(0.05, Number(weight) || 0.5);
+
+        if (!normalizedPickup || !normalizedDelivery) {
             return {
                 providerName: this.name,
-                recommendedCourier: res.data?.recommended_courier_company_id,
-                availableCouriers: res.data?.available_courier_companies || [],
+                isServiceable: false,
+                isCodAvailable: false,
+                applicableRate: 0,
+                selectedCourier: null,
+                recommendedCourier: null,
+                availableCouriers: [],
+                reason: 'Missing pickup or delivery pincode'
+            };
+        }
+
+        // Quote cache key with 5-minute TTL
+        const cacheKey = `${normalizedPickup}:${normalizedDelivery}:${safeWeight.toFixed(2)}:${numericCod}:${Math.round(Number(declaredValue) || 0)}`;
+        if (!this._quoteCache) this._quoteCache = new Map();
+        const cached = this._quoteCache.get(cacheKey);
+        if (cached && cached.expiresAt > Date.now()) {
+            return cached.data;
+        }
+
+        try {
+            const queryParams = {
+                pickup_postcode: normalizedPickup,
+                delivery_postcode: normalizedDelivery,
+                weight: safeWeight,
+                cod: numericCod,
+                length,
+                breadth,
+                height
+            };
+            if (Number.isFinite(Number(declaredValue)) && Number(declaredValue) > 0) {
+                queryParams.declared_value = Number(declaredValue);
+            }
+
+            const res = await shiprocketClient.request('GET', '/courier/serviceability/', null, queryParams);
+            const data = res?.data || {};
+            const availableCouriers = Array.isArray(data.available_courier_companies) ? data.available_courier_companies : [];
+            const recommendedId = data.recommended_courier_company_id;
+
+            // Check if any courier offers COD on this route
+            const codAvailableAny = availableCouriers.some((c) => Number(c.cod) === 1 || Boolean(c.is_cod));
+
+            // Eligible couriers for the requested payment mode
+            let eligibleCouriers = availableCouriers;
+            if (isCodRequested) {
+                eligibleCouriers = availableCouriers.filter((c) => Number(c.cod) === 1 || Boolean(c.is_cod));
+            }
+
+            const isServiceable = eligibleCouriers.length > 0;
+            let selectedCourier = null;
+
+            if (isServiceable) {
+                // Priority 1: Recommended courier if eligible
+                const recommendedCourier = recommendedId
+                    ? eligibleCouriers.find((c) => (c.courier_company_id === recommendedId || c.id === recommendedId))
+                    : null;
+
+                if (recommendedCourier) {
+                    selectedCourier = recommendedCourier;
+                } else {
+                    // Priority 2: Courier with lowest rate
+                    selectedCourier = [...eligibleCouriers].sort((a, b) => {
+                        const rateA = Number(a.rate ?? (Number(a.freight_charge || 0) + (isCodRequested ? Number(a.cod_charges || 0) : 0)));
+                        const rateB = Number(b.rate ?? (Number(b.freight_charge || 0) + (isCodRequested ? Number(b.cod_charges || 0) : 0)));
+                        return rateA - rateB;
+                    })[0];
+                }
+            }
+
+            const applicableRate = selectedCourier
+                ? Number(selectedCourier.rate ?? (Number(selectedCourier.freight_charge || 0) + (isCodRequested ? Number(selectedCourier.cod_charges || 0) : 0)))
+                : 0;
+
+            const quoteResult = {
+                providerName: this.name,
+                isServiceable,
+                isCodAvailable: codAvailableAny,
+                applicableRate: parseFloat(Math.max(0, applicableRate).toFixed(2)),
+                selectedCourier: selectedCourier ? {
+                    courierCompanyId: selectedCourier.courier_company_id || selectedCourier.id,
+                    courierName: selectedCourier.courier_name,
+                    rate: parseFloat(Number(selectedCourier.rate || applicableRate).toFixed(2)),
+                    freightCharge: Number(selectedCourier.freight_charge || 0),
+                    codCharges: Number(selectedCourier.cod_charges || 0),
+                    etd: selectedCourier.etd || null,
+                    estimatedDays: selectedCourier.estimated_delivery_days || null,
+                    rating: selectedCourier.rating || null,
+                } : null,
+                recommendedCourier: recommendedId,
+                availableCouriers,
                 rawResponse: res
             };
+
+            // Save in cache for 5 minutes
+            this._quoteCache.set(cacheKey, {
+                data: quoteResult,
+                expiresAt: Date.now() + 5 * 60 * 1000
+            });
+
+            return quoteResult;
         } catch (err) {
             throw new ProviderError('QUOTE_FAILED', err.message, err);
         }

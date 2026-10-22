@@ -12,6 +12,8 @@ import {
   FiShoppingBag,
   FiTag,
   FiAward,
+  FiPhone,
+  FiEdit2,
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiLock } from "react-icons/fi";
@@ -47,7 +49,7 @@ const MobileCheckout = () => {
   const { items, getTotal, clearCart, getItemsByVendor } = useCartStore();
   const { user, isAuthenticated } = useAuthStore();
   const { dbCompanyProfile } = useB2BAdminStore();
-  const { addresses, getDefaultAddress, addAddress, fetchAddresses } = useAddressStore();
+  const { addresses, getDefaultAddress, addAddress, updateAddress, fetchAddresses } = useAddressStore();
   const { createOrder } = useOrderStore();
   
   const { availablePoints, rules: loyaltyConfig, fetchBalance, fetchConfig } = useLoyaltyStore();
@@ -59,6 +61,7 @@ const MobileCheckout = () => {
   const [useWallet, setUseWallet] = useState(false);
 
   const userWalletBalance = user?.role === 'b2bEmployee' ? (user?.b2bWalletBalance || 0) : (walletBalance || 0);
+  const isWalletZero = isAuthenticated && userWalletBalance <= 0;
   const employeeSpendingLimit = (user?.role === 'b2bEmployee' && Number(user?.b2bSpendingLimit) > 0)
     ? Number(user.b2bSpendingLimit)
     : null;
@@ -67,10 +70,10 @@ const MobileCheckout = () => {
     : userWalletBalance;
 
   useEffect(() => {
-    if (isAuthenticated && isBusiness) {
+    if (isAuthenticated) {
       fetchWallet().catch(() => null);
     }
-  }, [isAuthenticated, isBusiness, fetchWallet]);
+  }, [isAuthenticated, fetchWallet]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -88,6 +91,13 @@ const MobileCheckout = () => {
   const [step, setStep] = useState(1);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [showAddressForm, setShowAddressForm] = useState(false);
+  const [showAddressListModal, setShowAddressListModal] = useState(false);
+  const [editingAddress, setEditingAddress] = useState(null);
+
+  const activeSelectedAddress = useMemo(() => {
+    if (!addresses || addresses.length === 0) return null;
+    return addresses.find((a) => a.id === selectedAddressId) || getDefaultAddress() || addresses[0];
+  }, [addresses, selectedAddressId, getDefaultAddress]);
   const [couponCode, setCouponCode] = useState("");
   const [availableCoupons, setAvailableCoupons] = useState([]);
   const [b2bSettings, setB2bSettings] = useState(null);
@@ -97,6 +107,9 @@ const MobileCheckout = () => {
   const [shippingOption, setShippingOption] = useState(() => isBusiness ? "bulk" : "standard");
   const [estimatedShipping, setEstimatedShipping] = useState(null);
   const [isEstimatingShipping, setIsEstimatingShipping] = useState(false);
+  const [isCodAvailable, setIsCodAvailable] = useState(true);
+  const [isServiceable, setIsServiceable] = useState(true);
+  const [courierBreakdown, setCourierBreakdown] = useState(null);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [selectedUpiApp, setSelectedUpiApp] = useState("gpay"); // "gpay" | "phonepe" | "paytm"
@@ -135,7 +148,7 @@ const MobileCheckout = () => {
     const fetchCoupons = async () => {
       try {
         const response = await api.get("/coupons/available");
-        const payload = response?.data ?? response;
+        const payload = response?.data?.data ?? response?.data ?? response;
         if (!cancelled) {
           setAvailableCoupons(Array.isArray(payload) ? payload : []);
         }
@@ -186,28 +199,80 @@ const MobileCheckout = () => {
 
       setFormData((prev) => ({
         ...prev,
-        name: baseName,
-        email: baseEmail,
-        phone: basePhone,
-        address: baseAddress,
+        name: prev.name || baseName,
+        email: prev.email || baseEmail,
+        phone: prev.phone || basePhone,
+        address: prev.address || baseAddress,
+        country: prev.country || "India",
       }));
 
-      if (defaultAddress) {
-        setSelectedAddressId(defaultAddress.id);
+      const activeAddress = (selectedAddressId && addresses.find((a) => a.id === selectedAddressId))
+        || defaultAddress
+        || (addresses.length > 0 ? addresses[0] : null);
+
+      if (activeAddress) {
+        setSelectedAddressId(activeAddress.id);
         setFormData((prev) => ({
           ...prev,
-          name: defaultAddress.fullName || baseName,
-          email: baseEmail,
-          phone: defaultAddress.phone || basePhone,
-          address: defaultAddress.address || baseAddress,
-          city: defaultAddress.city || "",
-          zipCode: defaultAddress.zipCode || "",
-          state: defaultAddress.state || "",
-          country: defaultAddress.country || "",
+          name: activeAddress.fullName || activeAddress.name || baseName,
+          email: prev.email || baseEmail,
+          phone: activeAddress.phone || basePhone,
+          address: activeAddress.address || baseAddress,
+          city: activeAddress.city || "",
+          zipCode: activeAddress.zipCode || "",
+          state: activeAddress.state || "",
+          country: activeAddress.country || "India",
         }));
       }
     }
   }, [isAuthenticated, user, dbCompanyProfile, isBusiness, getDefaultAddress, addresses]);
+
+  const [liveGstRates, setLiveGstRates] = useState({});
+
+  useEffect(() => {
+    if (!items || items.length === 0) return;
+    let isCancelled = false;
+    const syncCartGst = async () => {
+      try {
+        const uniqueProductIds = [...new Set(items.map((i) => i.id).filter(Boolean))];
+        const rates = {};
+        await Promise.all(
+          uniqueProductIds.map(async (pid) => {
+            try {
+              const res = await api.get(`/products/${pid}`);
+              const p = res?.data || res;
+              if (p) {
+                const rate = p.gstRate !== undefined ? Number(p.gstRate) : (p.taxRate !== undefined ? Number(p.taxRate) : 18);
+                rates[String(pid)] = rate;
+              }
+            } catch {
+              // fallback
+            }
+          })
+        );
+        if (!isCancelled && Object.keys(rates).length > 0) {
+          setLiveGstRates(rates);
+          const currentItems = useCartStore.getState().items;
+          let changed = false;
+          const updatedItems = currentItems.map((itm) => {
+            const freshRate = rates[String(itm.id)];
+            if (freshRate !== undefined && itm.gstRate !== freshRate) {
+              changed = true;
+              return { ...itm, gstRate: freshRate, taxRate: freshRate };
+            }
+            return itm;
+          });
+          if (changed) {
+            useCartStore.setState({ items: updatedItems });
+          }
+        }
+      } catch (err) {
+        console.error("Failed to sync cart GST", err);
+      }
+    };
+    syncCartGst();
+    return () => { isCancelled = true; };
+  }, [items.length]);
 
   const calculateShippingFallback = () => {
     const total = getTotal();
@@ -226,26 +291,50 @@ const MobileCheckout = () => {
     return 50;
   };
 
-  const calculateItemisedGST = (tot, coupDisc) => {
+  const gstBreakdown = useMemo(() => {
     let totalTaxSum = 0;
+    const slabs = {};
+    const tot = getTotal();
+    const coupDisc = appliedCoupon ? appliedDiscount : 0;
     const discountRatio = tot > 0 ? Math.min(1, coupDisc / tot) : 0;
+
     (items || []).forEach((item) => {
       const itemQty = Math.max(1, Number(item.quantity || 1));
       const itemPrice = Math.max(0, Number(item.price || 0));
       const itemSubtotal = itemPrice * itemQty;
       const itemDisc = itemSubtotal * discountRatio;
       const netTaxable = Math.max(0, itemSubtotal - itemDisc);
-      const effectiveGstRate = Number(item.gstRate ?? item.resolvedGstRate ?? item.taxRate ?? 18);
+      const liveRate = liveGstRates[String(item.id)];
+      const effectiveGstRate = Number(
+        liveRate ?? item.gstRate ?? item.resolvedGstRate ?? item.taxRate ?? 18
+      );
       const itemTax = (netTaxable * effectiveGstRate) / 100;
       totalTaxSum += itemTax;
+
+      const rateKey = `${effectiveGstRate}%`;
+      if (!slabs[rateKey]) {
+        slabs[rateKey] = {
+          rate: effectiveGstRate,
+          taxableAmount: 0,
+          taxAmount: 0,
+          count: 0
+        };
+      }
+      slabs[rateKey].taxableAmount += netTaxable;
+      slabs[rateKey].taxAmount += itemTax;
+      slabs[rateKey].count += itemQty;
     });
-    return parseFloat(totalTaxSum.toFixed(2));
-  };
+
+    return {
+      totalTax: parseFloat(totalTaxSum.toFixed(2)),
+      slabs: Object.values(slabs).sort((a, b) => b.rate - a.rate)
+    };
+  }, [items, liveGstRates, appliedCoupon, appliedDiscount]);
 
   const total = getTotal();
-  const shipping = calculateShippingFallback();
+  const shipping = estimatedShipping !== null ? estimatedShipping : calculateShippingFallback();
   const couponDiscount = appliedCoupon ? appliedDiscount : 0;
-  const tax = calculateItemisedGST(total, couponDiscount);
+  const tax = gstBreakdown.totalTax;
   const prePointsTotal = total + shipping + tax;
   const maxRedeemableCash = Math.min(prePointsTotal, appliedPoints * (loyaltyConfig?.redemptionRatio || 0.2));
   const pointsDiscount = maxRedeemableCash;
@@ -254,7 +343,7 @@ const MobileCheckout = () => {
   const finalTotal = Math.max(0, prePointsTotal - pointsDiscount);
 
   function taxAmount(tot, coupDisc) {
-    return calculateItemisedGST(tot, coupDisc);
+    return gstBreakdown.totalTax;
   }
 
   useEffect(() => {
@@ -266,6 +355,8 @@ const MobileCheckout = () => {
 
   useEffect(() => {
     let active = true;
+    const controller = new AbortController();
+
     const timer = setTimeout(async () => {
       const validItems = items
         .map((item) => ({
@@ -276,27 +367,53 @@ const MobileCheckout = () => {
         .filter((item) => item.productId);
 
       if (!validItems.length) {
-        if (active) setEstimatedShipping(0);
+        if (active) {
+          setEstimatedShipping(0);
+          setIsCodAvailable(true);
+          setIsServiceable(true);
+        }
         return;
       }
 
       setIsEstimatingShipping(true);
       try {
-        const response = await api.post("/shipping/estimate", {
-          items: validItems,
-          shippingAddress: {
-            country: String(formData.country || "").trim(),
+        const response = await api.post(
+          "/shipping/estimate",
+          {
+            items: validItems,
+            shippingAddress: {
+              address: String(formData.address || "").trim(),
+              city: String(formData.city || "").trim(),
+              state: String(formData.state || "").trim(),
+              zipCode: String(formData.zipCode || "").trim(),
+              pincode: String(formData.zipCode || "").trim(),
+              country: String(formData.country || "").trim(),
+            },
+            shippingOption,
+            paymentMethod: formData.paymentMethod === "cash" ? "cod" : "prepaid",
+            couponType: appliedCoupon?.type || null,
           },
-          shippingOption,
-          couponType: appliedCoupon?.type || null,
-        });
+          { signal: controller.signal }
+        );
 
         const payload = response?.data ?? response;
         const nextShipping = Number(payload?.shipping);
         if (active) {
           setEstimatedShipping(Number.isFinite(nextShipping) ? nextShipping : null);
+          if (payload?.isCodAvailable !== undefined) {
+            setIsCodAvailable(Boolean(payload.isCodAvailable));
+          }
+          if (payload?.isServiceable !== undefined) {
+            setIsServiceable(Boolean(payload.isServiceable));
+          }
+          if (payload?.courierInfo) {
+            setCourierBreakdown(payload.courierInfo);
+          }
         }
-      } catch {
+      } catch (err) {
+        if (err?.name === "CanceledError" || err?.name === "AbortError") {
+          return;
+        }
         if (active) {
           setEstimatedShipping(null);
         }
@@ -305,13 +422,23 @@ const MobileCheckout = () => {
           setIsEstimatingShipping(false);
         }
       }
-    }, 250);
+    }, 300);
 
     return () => {
       active = false;
+      controller.abort();
       clearTimeout(timer);
     };
-  }, [items, formData.country, shippingOption, appliedCoupon?.type]);
+  }, [
+    items,
+    formData.zipCode,
+    formData.city,
+    formData.state,
+    formData.country,
+    formData.paymentMethod,
+    shippingOption,
+    appliedCoupon?.type
+  ]);
 
   const handleApplyCoupon = async (codeOverride = "") => {
     const normalizedCode = String(codeOverride || couponCode).trim().toUpperCase();
@@ -368,27 +495,38 @@ const MobileCheckout = () => {
   };
 
   const handleSelectAddress = (address) => {
-    setSelectedAddressId(address.id);
-    setFormData({
-      ...formData,
-      name: address.fullName,
-      phone: address.phone,
-      address: address.address,
-      city: address.city,
-      zipCode: address.zipCode,
-      state: address.state,
-      country: address.country,
-    });
+    if (!address) return;
+    const addressId = address.id || address._id;
+    setSelectedAddressId(addressId);
+    setFormData((prev) => ({
+      ...prev,
+      name: address.fullName || address.name || prev.name,
+      phone: address.phone || prev.phone,
+      address: address.address || prev.address,
+      city: address.city || prev.city,
+      zipCode: address.zipCode || prev.zipCode,
+      state: address.state || prev.state,
+      country: address.country || prev.country || "India",
+    }));
   };
 
-  const handleNewAddress = async (addressData) => {
+  const handleSaveAddress = async (addressData) => {
     try {
-      const newAddress = await addAddress(addressData);
-      handleSelectAddress(newAddress);
+      if (editingAddress) {
+        const addressId = editingAddress.id || editingAddress._id;
+        const updated = await updateAddress(addressId, addressData);
+        const resolved = updated || { ...editingAddress, ...addressData };
+        handleSelectAddress(resolved);
+        toast.success("Address updated successfully!");
+      } else {
+        const newAddress = await addAddress(addressData);
+        handleSelectAddress(newAddress);
+        toast.success("Address added and selected!");
+      }
       setShowAddressForm(false);
-      toast.success("Address added and selected!");
+      setEditingAddress(null);
     } catch (error) {
-      toast.error(error?.message || "Failed to add address");
+      toast.error(error?.message || "Failed to save address");
     }
   };
 
@@ -442,6 +580,16 @@ const MobileCheckout = () => {
       return;
     }
 
+    if (formData.paymentMethod === 'cash' && !isCodAvailable && /^\d{6}$/.test(normalizedShipping.zipCode)) {
+      toast.error(`Cash on Delivery is not available for pincode ${normalizedShipping.zipCode}. Please select Online Payment.`);
+      return;
+    }
+
+    if (!isServiceable && /^\d{6}$/.test(normalizedShipping.zipCode)) {
+      toast.error(`Delivery is currently not serviceable to pincode ${normalizedShipping.zipCode}. Please verify your address.`);
+      return;
+    }
+
     if (isBusiness && b2bSettings?.minOrderValue && total < b2bSettings.minOrderValue) {
       toast.error(`Minimum order value for B2B purchases is ${formatPrice(b2bSettings.minOrderValue)}`);
       return;
@@ -456,6 +604,19 @@ const MobileCheckout = () => {
     }
 
     if (step === 1) {
+      if (isAuthenticated && addresses.length === 0 && normalizedShipping.address) {
+        addAddress({
+          name: "Home",
+          fullName: normalizedShipping.name,
+          phone: normalizedShipping.phone,
+          address: normalizedShipping.address,
+          city: normalizedShipping.city,
+          state: normalizedShipping.state,
+          zipCode: normalizedShipping.zipCode,
+          country: normalizedShipping.country || "India",
+          isDefault: true,
+        }).catch(() => null);
+      }
       setStep(2);
     } else if (step === 2) {
       setIsPlacingOrder(true);
@@ -685,175 +846,244 @@ const MobileCheckout = () => {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     className="px-4 py-4 lg:p-0">
-                    <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                      <FiTruck className="text-primary-600" />
-                      Shipping Information
-                    </h2>
-
-                    {/* Saved Addresses */}
-                    {isAuthenticated && addresses.length > 0 && (
-                      <div className="mb-4">
-                        <h3 className="text-sm font-semibold text-gray-700 mb-3">
-                          Saved Addresses
-                        </h3>
-                        <div className="space-y-2 mb-3">
-                          {addresses.map((address) => (
-                            <div
-                              key={address.id}
-                              onClick={() => handleSelectAddress(address)}
-                              className={`p-3 rounded-xl border-2 cursor-pointer transition-all ${selectedAddressId === address.id
-                                ? "border-primary-500 bg-primary-50"
-                                : "border-gray-200"
-                                }`}>
-                              <div className="flex items-start justify-between">
-                                <div className="flex items-start gap-2 flex-1">
-                                  <FiMapPin className="text-primary-600 mt-0.5 flex-shrink-0" />
-                                  <div className="flex-1">
-                                    <h4 className="font-bold text-gray-800 text-sm">
-                                      {address.name}
-                                    </h4>
-                                    <p className="text-xs text-gray-600">
-                                      {address.fullName}
-                                    </p>
-                                    <p className="text-xs text-gray-600">
-                                      {address.address}
-                                    </p>
-                                    <p className="text-xs text-gray-600">
-                                      {address.city}, {address.state}{" "}
-                                      {address.zipCode}
-                                    </p>
-                                  </div>
-                                </div>
-                                {selectedAddressId === address.id && (
-                                  <FiCheck className="text-primary-600 text-xl flex-shrink-0" />
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                        <FiTruck className="text-primary-600" />
+                        Delivery Address
+                      </h2>
+                      {isAuthenticated && addresses.length > 0 && (
                         <button
                           type="button"
-                          onClick={() => setShowAddressForm(true)}
-                          className="flex items-center gap-2 text-primary-600 hover:text-primary-700 font-semibold text-sm">
-                          <FiPlus />
-                          Add New Address
+                          onClick={() => {
+                            setEditingAddress(null);
+                            setShowAddressForm(true);
+                          }}
+                          className="flex items-center gap-1.5 text-xs font-bold text-primary-600 hover:text-primary-700 bg-primary-50 px-3 py-1.5 rounded-xl transition-all border border-primary-200"
+                        >
+                          <FiPlus className="text-sm" /> Add New Address
                         </button>
+                      )}
+                    </div>
+
+                    {/* If user has saved addresses, display the selected address card */}
+                    {isAuthenticated && addresses.length > 0 && activeSelectedAddress ? (
+                      <div className="bg-white rounded-2xl border-2 border-primary-500 shadow-sm p-4 sm:p-5 relative transition-all">
+                        {/* Header & Badges */}
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="px-2.5 py-1 bg-primary-100 text-primary-800 text-xs font-bold rounded-full uppercase tracking-wider flex items-center gap-1">
+                              <FiMapPin className="text-xs" />
+                              {activeSelectedAddress.name || "Delivery Address"}
+                            </span>
+                            {activeSelectedAddress.isDefault && (
+                              <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-[11px] font-semibold rounded-md">
+                                Default
+                              </span>
+                            )}
+                            <span className="text-[11px] text-green-700 bg-green-50 font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
+                              <FiCheck className="text-xs" /> Delivering Here
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingAddress(activeSelectedAddress);
+                                setShowAddressForm(true);
+                              }}
+                              className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors"
+                              title="Edit this address"
+                            >
+                              <FiEdit2 size={13} />
+                              <span>Edit</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setShowAddressListModal(true)}
+                              className="px-3 py-1.5 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-xs font-bold transition-colors shadow-sm"
+                            >
+                              Change
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Address Details */}
+                        <div className="space-y-1.5 text-sm text-gray-700">
+                          <p className="font-bold text-base text-gray-900 flex items-center gap-2">
+                            {formData.name || activeSelectedAddress.fullName || activeSelectedAddress.name}
+                            {(formData.phone || activeSelectedAddress.phone) && (
+                              <span className="text-xs font-normal text-gray-500 flex items-center gap-1">
+                                <FiPhone size={12} className="text-gray-400" />
+                                {formData.phone || activeSelectedAddress.phone}
+                              </span>
+                            )}
+                          </p>
+                          <p className="text-gray-600 text-sm leading-relaxed">
+                            {formData.address || activeSelectedAddress.address}
+                          </p>
+                          <p className="text-gray-700 text-sm font-medium">
+                            {[formData.city || activeSelectedAddress.city, formData.state || activeSelectedAddress.state].filter(Boolean).join(", ")} - <span className="font-bold text-gray-900">{formData.zipCode || activeSelectedAddress.zipCode}</span>
+                          </p>
+                          {(formData.country || activeSelectedAddress.country) && (
+                            <p className="text-xs text-gray-500">
+                              {formData.country || activeSelectedAddress.country}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Serviceability / Estimated Courier info badge */}
+                        <div className="mt-4 pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 text-xs">
+                            {isEstimatingShipping ? (
+                              <span className="text-gray-400 animate-pulse flex items-center gap-1">
+                                Checking delivery serviceability...
+                              </span>
+                            ) : isServiceable ? (
+                              <span className="text-emerald-700 font-semibold flex items-center gap-1">
+                                <FiCheck className="text-emerald-600" /> Serviceable by Shiprocket couriers
+                              </span>
+                            ) : (
+                              <span className="text-red-600 font-semibold">
+                                ⚠️ Pincode {formData.zipCode} not serviceable
+                              </span>
+                            )}
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => setShowAddressListModal(true)}
+                            className="text-xs text-primary-600 hover:text-primary-700 font-bold"
+                          >
+                            {addresses.length > 1
+                              ? `Choose from ${addresses.length} saved addresses →`
+                              : "+ Add another address"}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      /* Address Form for first-time / guest users without saved addresses */
+                      <div className="space-y-4 bg-white p-4 rounded-xl border border-gray-100 shadow-sm lg:p-6">
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Full Name
+                          </label>
+                          <input
+                            type="text"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleInputChange}
+                            required
+                            placeholder="Recipient's full name"
+                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
+                          />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                              Email
+                            </label>
+                            <input
+                              type="email"
+                              name="email"
+                              value={formData.email}
+                              onChange={handleInputChange}
+                              required
+                              placeholder="example@mail.com"
+                              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                              Phone Number
+                            </label>
+                            <input
+                              type="tel"
+                              name="phone"
+                              value={formData.phone}
+                              onChange={handleInputChange}
+                              required
+                              placeholder="10-digit mobile number"
+                              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Address (House / Flat / Street / Area)
+                          </label>
+                          <textarea
+                            name="address"
+                            value={formData.address}
+                            onChange={handleInputChange}
+                            required
+                            rows={3}
+                            placeholder="Street address, flat/house number, landmark"
+                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                              City
+                            </label>
+                            <input
+                              type="text"
+                              name="city"
+                              value={formData.city}
+                              onChange={handleInputChange}
+                              required
+                              placeholder="City"
+                              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                              State
+                            </label>
+                            <input
+                              type="text"
+                              name="state"
+                              value={formData.state}
+                              onChange={handleInputChange}
+                              required
+                              placeholder="State"
+                              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                              ZIP / PIN Code
+                            </label>
+                            <input
+                              type="text"
+                              name="zipCode"
+                              value={formData.zipCode}
+                              onChange={handleInputChange}
+                              required
+                              placeholder="6-digit pincode"
+                              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                              Country
+                            </label>
+                            <input
+                              type="text"
+                              name="country"
+                              value={formData.country}
+                              onChange={handleInputChange}
+                              required
+                              placeholder="Country"
+                              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
+                            />
+                          </div>
+                        </div>
                       </div>
                     )}
-
-                    {/* Address Form */}
-                    <div className="space-y-4 bg-white p-4 rounded-xl border border-gray-100 shadow-sm lg:p-6">
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Full Name
-                        </label>
-                        <input
-                          type="text"
-                          name="name"
-                          value={formData.name}
-                          onChange={handleInputChange}
-                          required
-                          className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
-                        />
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Email
-                          </label>
-                          <input
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleInputChange}
-                            required
-                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Phone Number
-                          </label>
-                          <input
-                            type="tel"
-                            name="phone"
-                            value={formData.phone}
-                            onChange={handleInputChange}
-                            required
-                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Address
-                        </label>
-                        <textarea
-                          name="address"
-                          value={formData.address}
-                          onChange={handleInputChange}
-                          required
-                          rows={3}
-                          className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            City
-                          </label>
-                          <input
-                            type="text"
-                            name="city"
-                            value={formData.city}
-                            onChange={handleInputChange}
-                            required
-                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            State
-                          </label>
-                          <input
-                            type="text"
-                            name="state"
-                            value={formData.state}
-                            onChange={handleInputChange}
-                            required
-                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            ZIP Code
-                          </label>
-                          <input
-                            type="text"
-                            name="zipCode"
-                            value={formData.zipCode}
-                            onChange={handleInputChange}
-                            required
-                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Country
-                          </label>
-                          <input
-                            type="text"
-                            name="country"
-                            value={formData.country}
-                            onChange={handleInputChange}
-                            required
-                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
-                          />
-                        </div>
-                      </div>
-                    </div>
                   </motion.div>
                 )}
 
@@ -915,44 +1145,64 @@ const MobileCheckout = () => {
                               title: "Online Payment (Razorpay)",
                               desc: "Pay securely via Credit/Debit Cards, UPI, NetBanking & Wallets",
                               badge: "Instant & Secure",
-                              icon: "⚡"
+                              icon: "⚡",
+                              disabled: false,
                             },
                             {
                               id: "cash",
                               title: "Cash on Delivery (COD)",
                               desc: "Pay in cash upon physical order delivery",
-                              badge: "Pay at Doorstep",
-                              icon: "💵"
+                              badge: (!isCodAvailable && /^\d{6}$/.test(String(formData.zipCode || "").trim())) ? "Unavailable for PIN" : "Pay at Doorstep",
+                              icon: "💵",
+                              disabled: !isCodAvailable && /^\d{6}$/.test(String(formData.zipCode || "").trim()),
                             }
                           ].map((option) => (
                             <label
                               key={option.id}
+                              onClick={(e) => {
+                                if (option.disabled) {
+                                  e.preventDefault();
+                                  toast.error(`Cash on Delivery is not available for delivery pincode ${formData.zipCode || ""}. Please select Online Payment.`);
+                                }
+                              }}
                               className={`flex items-start gap-3 p-4 rounded-xl border-2 transition-all cursor-pointer ${
-                                formData.paymentMethod === option.id
-                                  ? "border-primary-500 bg-primary-50/60 shadow-sm"
-                                  : "border-gray-200 hover:border-gray-300 bg-white"
+                                option.disabled
+                                  ? "border-gray-200 bg-gray-50/70 opacity-60 cursor-not-allowed"
+                                  : formData.paymentMethod === option.id
+                                    ? "border-primary-500 bg-primary-50/60 shadow-sm"
+                                    : "border-gray-200 hover:border-gray-300 bg-white"
                               }`}
                             >
                               <input
                                 type="radio"
                                 name="paymentMethod"
                                 value={option.id}
-                                checked={formData.paymentMethod === option.id}
+                                disabled={option.disabled}
+                                checked={formData.paymentMethod === option.id && !option.disabled}
                                 onChange={handleInputChange}
-                                className="w-5 h-5 text-primary-500 mt-1 cursor-pointer"
+                                className="w-5 h-5 text-primary-500 mt-1 cursor-pointer disabled:cursor-not-allowed"
                               />
                               <div className="flex-1">
                                 <div className="flex items-center justify-between">
                                   <span className="font-bold text-gray-800 text-base flex items-center gap-1.5">
                                     <span>{option.icon} {option.title}</span>
                                   </span>
-                                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-gray-100 text-gray-600 border border-gray-200">
+                                  <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md border ${
+                                    option.disabled
+                                      ? "bg-red-50 text-red-700 border-red-200"
+                                      : "bg-gray-100 text-gray-600 border-gray-200"
+                                  }`}>
                                     {option.badge}
                                   </span>
                                 </div>
                                 <p className="text-xs text-gray-500 mt-0.5 font-medium">
                                   {option.desc}
                                 </p>
+                                {option.disabled && (
+                                  <p className="text-[11px] text-red-600 font-semibold mt-1">
+                                    ⚠️ Shiprocket couriers do not support Cash on Delivery for pincode {formData.zipCode}.
+                                  </p>
+                                )}
                               </div>
                             </label>
                           ))
@@ -1067,10 +1317,24 @@ const MobileCheckout = () => {
                         </div>
                       )}
                       
-                      <p className="text-xs text-gray-500 mt-2 font-bold flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                        <span>Logistics Cost Verified: {formatPrice(shipping)}</span>
-                      </p>
+                      <div className="text-xs text-gray-600 mt-2 font-bold flex flex-col gap-1 bg-gray-50 p-2.5 rounded-lg border border-gray-150">
+                        <div className="flex items-center justify-between">
+                          <span className="flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            <span>Logistics Fee: {shipping === 0 ? "FREE" : formatPrice(shipping)}</span>
+                          </span>
+                          {courierBreakdown && Object.values(courierBreakdown)[0]?.source === 'shiprocket' && (
+                            <span className="text-[10px] text-blue-700 bg-blue-50 px-2 py-0.5 rounded font-black">
+                              🚀 Shiprocket Live
+                            </span>
+                          )}
+                        </div>
+                        {courierBreakdown && Object.values(courierBreakdown)[0]?.courierName && (
+                          <p className="text-[11px] text-gray-500 font-normal">
+                            Partner: <strong>{Object.values(courierBreakdown)[0].courierName}</strong> • Est. Delivery: {Object.values(courierBreakdown)[0].estimatedDays || '2-4 Days'}
+                          </p>
+                        )}
+                      </div>
                     </div>
 
                     {/* Loyalty Points Redemption (B2C Only, Flipkart Style Toggle) */}
@@ -1160,7 +1424,7 @@ const MobileCheckout = () => {
                               {isApplyingCoupon ? "Applying..." : "Apply"}
                             </button>
                           </div>
-                          {availableCoupons.length > 0 && (
+                          {!isWalletZero && availableCoupons.length > 0 && (
                             <div className="mt-3 bg-gray-50 rounded-xl p-3 border border-gray-200">
                               <h4 className="text-sm font-semibold text-gray-800 mb-2 flex items-center gap-2">
                                 <FiTag className="text-primary-600" />
@@ -1268,6 +1532,11 @@ const MobileCheckout = () => {
                         finalTotal={finalTotal}
                         formatPrice={formatPrice}
                         pointsDiscount={pointsDiscount}
+                        isEstimatingShipping={isEstimatingShipping}
+                        paymentMethod={formData.paymentMethod}
+                        courierBreakdown={courierBreakdown}
+                        liveGstRates={liveGstRates}
+                        gstSlabs={gstBreakdown.slabs}
                       />
                     </div>
                   </motion.div>
@@ -1287,6 +1556,11 @@ const MobileCheckout = () => {
                       finalTotal={finalTotal}
                       formatPrice={formatPrice}
                       pointsDiscount={pointsDiscount}
+                      isEstimatingShipping={isEstimatingShipping}
+                      paymentMethod={formData.paymentMethod}
+                      courierBreakdown={courierBreakdown}
+                      liveGstRates={liveGstRates}
+                      gstSlabs={gstBreakdown.slabs}
                     />
                     <div className="p-4 border-t border-gray-100 bg-gray-50">
                       <button
@@ -1337,187 +1611,416 @@ const MobileCheckout = () => {
           </form>
         </div>
 
-        {/* Address Form Modal */}
-        <AnimatePresence>
-          {showAddressForm && (
-            <AddressFormModal
-              onSubmit={handleNewAddress}
-              onCancel={() => setShowAddressForm(false)}
-            />
-          )}
-        </AnimatePresence>
+        {/* Address Selection Modal */}
+        <AddressListModal
+          show={showAddressListModal}
+          addresses={addresses}
+          selectedId={selectedAddressId || activeSelectedAddress?.id}
+          onSelect={(addr) => {
+            handleSelectAddress(addr);
+            setShowAddressListModal(false);
+            toast.success(`Delivering to ${addr.fullName || addr.name}`);
+          }}
+          onEdit={(addr) => {
+            setEditingAddress(addr);
+            setShowAddressListModal(false);
+            setShowAddressForm(true);
+          }}
+          onAddNew={() => {
+            setEditingAddress(null);
+            setShowAddressListModal(false);
+            setShowAddressForm(true);
+          }}
+          onClose={() => setShowAddressListModal(false)}
+        />
+
+        {/* Address Add / Edit Modal */}
+        <AddressFormModal
+          show={showAddressForm}
+          initialData={editingAddress}
+          onSubmit={handleSaveAddress}
+          onCancel={() => {
+            setShowAddressForm(false);
+            setEditingAddress(null);
+          }}
+        />
       </MobileLayout>
     </PageTransition>
   );
 };
 
-// Address Form Modal Component
-const AddressFormModal = ({ onSubmit, onCancel }) => {
+// Address Selection List Modal Component
+const AddressListModal = ({
+  show,
+  addresses = [],
+  selectedId,
+  onSelect,
+  onEdit,
+  onAddNew,
+  onClose,
+}) => {
+  if (!show) return null;
+
+  return createPortal(
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/60 z-[9998] flex items-center justify-center p-3 sm:p-4 backdrop-blur-sm"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ scale: 0.95, y: 20 }}
+          animate={{ scale: 1, y: 0 }}
+          exit={{ scale: 0.95, y: 20 }}
+          onClick={(e) => e.stopPropagation()}
+          className="bg-white rounded-3xl w-full max-w-lg max-h-[85vh] flex flex-col shadow-2xl overflow-hidden"
+        >
+          {/* Header */}
+          <div className="p-4 sm:p-5 border-b border-gray-100 flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-bold text-gray-800">
+                Select Delivery Address
+              </h3>
+              <p className="text-xs text-gray-500">
+                Choose where you want your order delivered
+              </p>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 rounded-full text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <FiX className="text-xl" />
+            </button>
+          </div>
+
+          {/* Address List */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {addresses.map((address) => {
+              const isSelected = selectedId === address.id;
+              return (
+                <div
+                  key={address.id}
+                  onClick={() => onSelect(address)}
+                  className={`p-4 rounded-2xl border-2 cursor-pointer transition-all relative ${
+                    isSelected
+                      ? "border-primary-500 bg-primary-50/60 shadow-sm"
+                      : "border-gray-200 hover:border-gray-300 bg-white"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3 flex-1">
+                      <div className="mt-1">
+                        <div
+                          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                            isSelected
+                              ? "border-primary-600 bg-primary-600"
+                              : "border-gray-300"
+                          }`}
+                        >
+                          {isSelected && (
+                            <div className="w-2 h-2 rounded-full bg-white" />
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <span className="font-bold text-gray-900 text-sm">
+                            {address.fullName || address.name}
+                          </span>
+                          <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-[10px] font-bold rounded-md uppercase">
+                            {address.name || "Home"}
+                          </span>
+                          {address.isDefault && (
+                            <span className="px-2 py-0.5 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-md">
+                              Default
+                            </span>
+                          )}
+                        </div>
+
+                        {address.phone && (
+                          <p className="text-xs text-gray-500 mb-1 flex items-center gap-1">
+                            <FiPhone size={11} className="text-gray-400" /> {address.phone}
+                          </p>
+                        )}
+
+                        <p className="text-xs text-gray-600 leading-relaxed">
+                          {address.address}
+                        </p>
+                        <p className="text-xs text-gray-700 font-semibold mt-0.5">
+                          {[address.city, address.state].filter(Boolean).join(", ")} - {address.zipCode}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Edit button */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(address);
+                      }}
+                      className="px-2.5 py-1 text-xs font-semibold text-gray-600 hover:text-primary-600 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center gap-1 transition-colors shrink-0"
+                    >
+                      <FiEdit2 size={12} />
+                      <span>Edit</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Footer with Add New button */}
+          <div className="p-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={onAddNew}
+              className="w-full py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-md transition-all text-sm"
+            >
+              <FiPlus className="text-lg" />
+              <span>Add New Address</span>
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>,
+    document.body
+  );
+};
+
+// Address Form Modal Component (Add / Edit)
+const AddressFormModal = ({ show, initialData = null, onSubmit, onCancel }) => {
+  const isEditing = Boolean(initialData && (initialData.id || initialData._id));
+
   const [formData, setFormData] = useState({
-    name: "",
+    name: "Home",
     fullName: "",
     phone: "",
     address: "",
     city: "",
     state: "",
     zipCode: "",
-    country: "",
+    country: "India",
   });
 
+  useEffect(() => {
+    if (show && initialData) {
+      setFormData({
+        name: initialData.name || "Home",
+        fullName: initialData.fullName || "",
+        phone: initialData.phone || "",
+        address: initialData.address || "",
+        city: initialData.city || "",
+        state: initialData.state || "",
+        zipCode: initialData.zipCode || "",
+        country: initialData.country || "India",
+      });
+    } else if (show && !initialData) {
+      setFormData({
+        name: "Home",
+        fullName: "",
+        phone: "",
+        address: "",
+        city: "",
+        state: "",
+        zipCode: "",
+        country: "India",
+      });
+    }
+  }, [show, initialData]);
+
+  if (!show) return null;
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!formData.fullName.trim() || !formData.phone.trim() || !formData.address.trim() || !formData.zipCode.trim()) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
     onSubmit(formData);
   };
 
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/50 z-50 flex items-end"
-      onClick={onCancel}>
+  return createPortal(
+    <AnimatePresence>
       <motion.div
-        initial={{ y: "100%" }}
-        animate={{ y: 0 }}
-        exit={{ y: "100%" }}
-        onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-t-3xl p-6 w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-bold text-gray-800">Add New Address</h3>
-          <button
-            onClick={onCancel}
-            className="p-2 hover:bg-gray-100 rounded-full">
-            <FiX className="text-xl" />
-          </button>
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Address Label
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
-              placeholder="Home, Work, etc."
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Full Name
-            </label>
-            <input
-              type="text"
-              name="fullName"
-              value={formData.fullName}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Phone Number
-            </label>
-            <input
-              type="tel"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Street Address
-            </label>
-            <input
-              type="text"
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
-            />
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                City
-              </label>
-              <input
-                type="text"
-                name="city"
-                value={formData.city}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                State
-              </label>
-              <input
-                type="text"
-                name="state"
-                value={formData.state}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Zip Code
-              </label>
-              <input
-                type="text"
-                name="zipCode"
-                value={formData.zipCode}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Country
-            </label>
-            <input
-              type="text"
-              name="country"
-              value={formData.country}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
-            />
-          </div>
-          <div className="flex gap-3 pt-4">
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center p-3 sm:p-4 backdrop-blur-sm"
+        onClick={onCancel}
+      >
+        <motion.div
+          initial={{ scale: 0.95, y: 20 }}
+          animate={{ scale: 1, y: 0 }}
+          exit={{ scale: 0.95, y: 20 }}
+          onClick={(e) => e.stopPropagation()}
+          className="bg-white rounded-3xl w-full max-w-lg max-h-[90vh] flex flex-col shadow-2xl overflow-hidden"
+        >
+          <div className="p-4 sm:p-5 border-b border-gray-100 flex items-center justify-between">
+            <h3 className="text-lg font-bold text-gray-800">
+              {isEditing ? "Edit Delivery Address" : "Add New Delivery Address"}
+            </h3>
             <button
-              type="submit"
-              className="flex-1 gradient-green text-white py-3 rounded-xl font-semibold hover:shadow-glow-green transition-all">
-              Add Address
-            </button>
-            <button
-              type="button"
               onClick={onCancel}
-              className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-colors">
-              Cancel
+              className="p-2 hover:bg-gray-100 rounded-full text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <FiX className="text-xl" />
             </button>
           </div>
-        </form>
+
+          <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Address Label
+                </label>
+                <select
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm font-medium"
+                >
+                  <option value="Home">Home</option>
+                  <option value="Work">Work / Office</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Full Name *
+                </label>
+                <input
+                  type="text"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  required
+                  placeholder="Recipient Name"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1">
+                Phone Number *
+              </label>
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                required
+                placeholder="10-digit mobile number"
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1">
+                Street Address *
+              </label>
+              <textarea
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                required
+                rows={2}
+                placeholder="Flat / House no., Building, Street, Landmark"
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  City *
+                </label>
+                <input
+                  type="text"
+                  name="city"
+                  value={formData.city}
+                  onChange={handleChange}
+                  required
+                  placeholder="City"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  State *
+                </label>
+                <input
+                  type="text"
+                  name="state"
+                  value={formData.state}
+                  onChange={handleChange}
+                  required
+                  placeholder="State"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  PIN / ZIP Code *
+                </label>
+                <input
+                  type="text"
+                  name="zipCode"
+                  value={formData.zipCode}
+                  onChange={handleChange}
+                  required
+                  placeholder="6-digit pincode"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Country *
+                </label>
+                <input
+                  type="text"
+                  name="country"
+                  value={formData.country}
+                  onChange={handleChange}
+                  required
+                  placeholder="Country"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-3 border-t border-gray-100">
+              <button
+                type="submit"
+                className="flex-1 gradient-green text-white py-3 rounded-xl font-bold shadow-md hover:shadow-lg transition-all text-sm"
+              >
+                {isEditing ? "Update Address" : "Save Address"}
+              </button>
+              <button
+                type="button"
+                onClick={onCancel}
+                className="px-5 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-colors text-sm"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </motion.div>
       </motion.div>
-    </motion.div>
+    </AnimatePresence>,
+    document.body
   );
 };
 

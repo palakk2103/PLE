@@ -29,7 +29,12 @@ import {
   FiSettings,
   FiTrash2,
   FiShield,
+  FiClock,
+  FiAlertTriangle,
+  FiCheckCircle,
+  FiXCircle,
 } from "react-icons/fi";
+import api from "../../../shared/utils/api";
 
 // Offers System Imports
 import { useOffers } from "../../offers/hooks/useOffers";
@@ -251,10 +256,16 @@ const MobileProfile = () => {
   const [feedbackRating, setFeedbackRating] = useState(5);
   const [feedbackText, setFeedbackText] = useState("");
 
-  // Delete Account State
+  // Delete Account Request State
+  const [deletionData, setDeletionData] = useState({ deletionStatus: 'NONE', request: null });
+  const [isLoadingDeletionStatus, setIsLoadingDeletionStatus] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
-  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [deleteReason, setDeleteReason] = useState("Privacy concerns / Remove my personal data");
+  const [additionalFeedback, setAdditionalFeedback] = useState("");
+  const [isSubmittingDeleteRequest, setIsSubmittingDeleteRequest] = useState(false);
+  const [isCancellingDeleteRequest, setIsCancellingDeleteRequest] = useState(false);
+  const [dismissRejectionAlert, setDismissRejectionAlert] = useState(false);
 
   const filteredProfileOffers = useMemo(() => {
     return profileOffers.filter((offer) => {
@@ -367,23 +378,65 @@ const MobileProfile = () => {
     performUserLogout('/');
   };
 
-  const handleDeleteAccount = async () => {
+  const fetchDeletionStatus = async () => {
+    try {
+      setIsLoadingDeletionStatus(true);
+      const res = await api.get('/user/account-deletion-request/status');
+      if (res?.data) {
+        setDeletionData(res.data);
+      }
+    } catch (err) {
+      // Non-blocking
+    } finally {
+      setIsLoadingDeletionStatus(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchDeletionStatus();
+    }
+  }, [user]);
+
+  const handleSubmitDeleteRequest = async () => {
     if (!deletePassword.trim()) {
-      toast.error("Please enter your account password to confirm deletion.");
+      toast.error("Please enter your account password to confirm.");
       return;
     }
-    setIsDeletingAccount(true);
+    if (!deleteReason.trim()) {
+      toast.error("Please select a reason for deleting your account.");
+      return;
+    }
+    setIsSubmittingDeleteRequest(true);
     try {
-      // Simulate / process account deletion
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      toast.success("Account deleted successfully!");
+      const res = await api.post('/user/account-deletion-request', {
+        password: deletePassword,
+        reason: deleteReason,
+        additionalFeedback: additionalFeedback.trim()
+      });
+      toast.success(res?.message || "Account deletion request sent to Admin for review!");
       setShowDeleteConfirm(false);
       setDeletePassword("");
-      handleLogout();
+      setAdditionalFeedback("");
+      await fetchDeletionStatus();
     } catch (e) {
-      toast.error("Failed to delete account");
+      toast.error(e?.response?.data?.message || e?.message || "Failed to submit deletion request");
     } finally {
-      setIsDeletingAccount(false);
+      setIsSubmittingDeleteRequest(false);
+    }
+  };
+
+  const handleCancelDeleteRequest = async () => {
+    if (!window.confirm("Are you sure you want to cancel your account deletion request?")) return;
+    setIsCancellingDeleteRequest(true);
+    try {
+      const res = await api.post('/user/account-deletion-request/cancel');
+      toast.success(res?.message || "Deletion request cancelled. Your account remains active.");
+      await fetchDeletionStatus();
+    } catch (e) {
+      toast.error(e?.response?.data?.message || e?.message || "Failed to cancel deletion request");
+    } finally {
+      setIsCancellingDeleteRequest(false);
     }
   };
 
@@ -1296,24 +1349,99 @@ const MobileProfile = () => {
                     </div>
                   )}
 
-                  {/* Danger Zone */}
+                  {/* Danger Zone / Account Deletion Status */}
                   <div className="mt-8 pt-8 border-t border-red-100">
-                    <h3 className="text-red-650 font-extrabold text-base mb-2">Danger Zone</h3>
-                    <div className="border border-red-200 bg-red-50/20 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                      <div>
-                        <h4 className="font-bold text-gray-800 text-sm">Delete Account</h4>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Permanently delete your PLE customer account and erase all registered profiling information.
-                        </p>
+                    <h3 className="text-red-650 font-extrabold text-base mb-3">Account Lifecycle & Security</h3>
+                    
+                    {/* Pending Deletion Request Card */}
+                    {(deletionData?.deletionStatus === 'PENDING' || deletionData?.request?.status === 'PENDING') ? (
+                      <div className="border-2 border-amber-300 bg-amber-50/70 rounded-2xl p-5 shadow-sm space-y-3">
+                        <div className="flex items-start justify-between gap-3 flex-wrap">
+                          <div className="flex items-center gap-2.5 text-amber-900">
+                            <span className="p-2 rounded-xl bg-amber-200/70 text-amber-800 text-lg">
+                              <FiClock className="animate-spin-slow" />
+                            </span>
+                            <div>
+                              <h4 className="font-extrabold text-amber-900 text-sm">Account Deletion Request Under Admin Review</h4>
+                              <p className="text-xs text-amber-700">
+                                Submitted on: {deletionData?.request?.createdAt ? new Date(deletionData.request.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Recently'}
+                              </p>
+                            </div>
+                          </div>
+                          <span className="px-3 py-1 bg-amber-200 text-amber-900 font-bold text-[11px] rounded-full uppercase tracking-wider">
+                            Pending Admin Approval
+                          </span>
+                        </div>
+
+                        <div className="bg-white/80 rounded-xl p-3 border border-amber-200/60 text-xs space-y-1">
+                          <p className="text-gray-700">
+                            <strong className="text-gray-900">Reason:</strong> {deletionData?.request?.reason || 'Not specified'}
+                          </p>
+                          {deletionData?.request?.additionalFeedback && (
+                            <p className="text-gray-600">
+                              <strong className="text-gray-900">Additional Notes:</strong> {deletionData.request.additionalFeedback}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1">
+                          <p className="text-xs text-amber-800 leading-relaxed">
+                            Aapki account deletion request Admin ke paas verification ke liye gayi hui hai. Admin review ke baad hi account delete hoga. Is beech aapka account poori tarah active rahega.
+                          </p>
+                          <button
+                            type="button"
+                            disabled={isCancellingDeleteRequest}
+                            onClick={handleCancelDeleteRequest}
+                            className="px-4 py-2 bg-white hover:bg-gray-100 text-amber-900 border border-amber-300 font-bold rounded-xl text-xs transition-colors shadow-xs shrink-0 disabled:opacity-50"
+                          >
+                            {isCancellingDeleteRequest ? "Cancelling..." : "Cancel Deletion Request"}
+                          </button>
+                        </div>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => setShowDeleteConfirm(true)}
-                        className="py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs transition-colors shadow-sm self-start sm:self-center"
-                      >
-                        Delete Account
-                      </button>
-                    </div>
+                    ) : (
+                      <>
+                        {/* Rejection Alert if recently rejected */}
+                        {deletionData?.request?.status === 'REJECTED' && !dismissRejectionAlert && (
+                          <div className="mb-4 border border-rose-300 bg-rose-50/80 rounded-2xl p-4 space-y-2">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex items-center gap-2 text-rose-800 font-bold text-sm">
+                                <FiAlertTriangle className="text-rose-600 shrink-0" />
+                                <span>Previous Deletion Request Declined by Admin</span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setDismissRejectionAlert(true)}
+                                className="text-rose-500 hover:text-rose-700 text-xs font-bold"
+                              >
+                                ✕ Dismiss
+                              </button>
+                            </div>
+                            <p className="text-xs text-rose-700">
+                              <strong>Admin Remarks:</strong> {deletionData.request.adminRemarks || "Request could not be approved at this time."}
+                            </p>
+                            <p className="text-[11px] text-gray-500">
+                              Aapka account active hai. Agar issues resolve ho gaye hain ya aap dobara request submit karna chahte hain, toh aap nayi request bhej sakte hain.
+                            </p>
+                          </div>
+                        )}
+
+                        <div className="border border-red-200 bg-red-50/20 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                          <div>
+                            <h4 className="font-bold text-gray-800 text-sm">Delete Account</h4>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Account deletion requires Admin verification. A formal deletion request will be submitted to Admin for review and approval.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setShowDeleteConfirm(true)}
+                            className="py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs transition-colors shadow-sm self-start sm:self-center shrink-0"
+                          >
+                            Request Account Deletion
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </motion.div>
               )}
@@ -2161,7 +2289,7 @@ const MobileProfile = () => {
           </div>
         </div>
 
-        {/* Delete Account Confirmation Modal */}
+        {/* Delete Account Request Modal (Admin Approval Flow) */}
         <AnimatePresence>
           {showDeleteConfirm && (
             <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
@@ -2169,19 +2297,55 @@ const MobileProfile = () => {
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
-                className="bg-white rounded-3xl p-6 shadow-2xl max-w-md w-full border border-gray-150 space-y-4"
+                className="bg-white rounded-3xl p-6 shadow-2xl max-w-md w-full border border-gray-150 space-y-4 max-h-[90vh] overflow-y-auto"
               >
                 <div className="text-center space-y-2">
-                  <span className="text-4xl">⚠️</span>
-                  <h3 className="text-lg font-bold text-gray-905">Delete Account Permanently?</h3>
-                  <p className="text-xs text-gray-500">
-                    Are you absolutely sure you want to delete your PLE account? This action is permanent and cannot be undone. You will lose access to all your order history, active offers, and billing data.
+                  <div className="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto text-2xl font-bold">
+                    <FiTrash2 />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900">Request Account Deletion</h3>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    Note: Your account will <strong className="text-gray-700">not be deleted immediately</strong>. A formal deletion request will be submitted to our Admin team for verification and approval.
                   </p>
+                </div>
+
+                <div className="bg-amber-50 rounded-2xl p-3 border border-amber-200 text-xs text-amber-900 flex items-start gap-2">
+                  <FiClock className="text-amber-700 text-base shrink-0 mt-0.5" />
+                  <span>
+                    Aapki request submit hone ke baad Admin team ise verify karegi. Approval milne par account close ho jayega.
+                  </span>
                 </div>
 
                 <div className="space-y-3">
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-gray-700">Confirm by typing your account password</label>
+                    <label className="block text-xs font-bold text-gray-700">Reason for leaving <span className="text-red-500">*</span></label>
+                    <select
+                      value={deleteReason}
+                      onChange={(e) => setDeleteReason(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-red-500 text-xs sm:text-sm bg-white font-medium"
+                    >
+                      <option value="Privacy concerns / Remove my personal data">Privacy concerns / Remove my personal data</option>
+                      <option value="No longer shopping or using this account">No longer shopping or using this account</option>
+                      <option value="Created a duplicate account">Created a duplicate account</option>
+                      <option value="Issues with orders or customer experience">Issues with orders or customer experience</option>
+                      <option value="Too many promotional notifications">Too many promotional notifications</option>
+                      <option value="Other reason">Other reason</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-gray-700">Additional Comments / Feedback (Optional)</label>
+                    <textarea
+                      rows={2}
+                      placeholder="Please let us know how we could improve..."
+                      value={additionalFeedback}
+                      onChange={(e) => setAdditionalFeedback(e.target.value)}
+                      className="w-full px-3.5 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-red-500 text-xs bg-white resize-none"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-gray-700">Confirm by typing your account password <span className="text-red-500">*</span></label>
                     <input
                       type="password"
                       placeholder="Enter account password"
@@ -2194,21 +2358,22 @@ const MobileProfile = () => {
                   <div className="flex gap-2 pt-2">
                     <button
                       type="button"
-                      disabled={!deletePassword.trim() || isDeletingAccount}
-                      onClick={handleDeleteAccount}
-                      className="flex-1 py-3 rounded-2xl bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm shadow-md transition-colors flex items-center justify-center gap-2"
+                      disabled={!deletePassword.trim() || isSubmittingDeleteRequest}
+                      onClick={handleSubmitDeleteRequest}
+                      className="flex-1 py-3 rounded-2xl bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs sm:text-sm shadow-md transition-colors flex items-center justify-center gap-2"
                     >
                       <FiTrash2 />
-                      <span>{isDeletingAccount ? "Deleting..." : "Permanently Delete"}</span>
+                      <span>{isSubmittingDeleteRequest ? "Submitting Request..." : "Submit Deletion Request"}</span>
                     </button>
                     <button
                       type="button"
-                      disabled={isDeletingAccount}
+                      disabled={isSubmittingDeleteRequest}
                       onClick={() => {
                         setShowDeleteConfirm(false);
                         setDeletePassword("");
+                        setAdditionalFeedback("");
                       }}
-                      className="flex-1 py-3 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm transition-colors text-center"
+                      className="flex-1 py-3 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs sm:text-sm transition-colors text-center"
                     >
                       Cancel
                     </button>

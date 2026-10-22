@@ -15,6 +15,7 @@ import {
   FiMapPin,
   FiCreditCard,
   FiUserCheck,
+  FiCopy,
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import DataTable from "../../components/DataTable";
@@ -58,7 +59,9 @@ const BusinessUsers = () => {
           creditTerms: u.verificationStatus === 'Approved' ? 'Net 30' : 'Prepaid Only',
           creditLimit: u.verificationStatus === 'Approved' ? 100000 : 0,
           joinDate: u.createdAt ? u.createdAt.substring(0, 10) : new Date().toISOString().substring(0,10),
-          gstCertificate: u.gstCertificate
+          gstCertificate: u.gstCertificate,
+          bankDetails: u.bankDetails || null,
+          cancelledCheque: u.cancelledCheque || null,
         }));
         
         setUsers(mappedUsers);
@@ -549,13 +552,97 @@ const BusinessUsers = () => {
                   </div>
                 </div>
 
+                {/* Company Bank Account Details */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                      <FiCreditCard className="w-4 h-4 text-[#D71920]" /> Company Bank Details
+                    </h3>
+                    {selectedUser.bankDetails?.accountNumber ? (
+                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                        Configured
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                        Not Provided
+                      </span>
+                    )}
+                  </div>
+                  {selectedUser.bankDetails?.accountNumber ? (
+                    <div className="border border-gray-100 rounded-2xl p-4 bg-gray-50/50 space-y-2.5 text-xs sm:text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400 text-xs">Account Holder</span>
+                        <span className="font-semibold text-gray-800">{selectedUser.bankDetails.accountHolderName || selectedUser.businessName}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400 text-xs">Bank Name</span>
+                        <span className="font-semibold text-gray-800">{selectedUser.bankDetails.bankName || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-400 text-xs">Account Number</span>
+                        <div className="flex items-center gap-1.5 font-mono font-bold text-gray-900">
+                          <span>{selectedUser.bankDetails.accountNumber}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(selectedUser.bankDetails.accountNumber);
+                              toast.success('Account Number copied!');
+                            }}
+                            className="text-gray-400 hover:text-gray-700 p-0.5"
+                            title="Copy Account Number"
+                          >
+                            <FiCopy className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-400 text-xs">IFSC Code</span>
+                        <div className="flex items-center gap-1.5 font-mono font-bold text-gray-900 uppercase">
+                          <span>{selectedUser.bankDetails.ifscCode}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(selectedUser.bankDetails.ifscCode);
+                              toast.success('IFSC Code copied!');
+                            }}
+                            className="text-gray-400 hover:text-gray-700 p-0.5"
+                            title="Copy IFSC"
+                          >
+                            <FiCopy className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400 text-xs">Account Type</span>
+                        <span className="font-medium text-gray-800">{selectedUser.bankDetails.accountType || 'Current'} Account</span>
+                      </div>
+                      {selectedUser.bankDetails.branchName && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-400 text-xs">Branch</span>
+                          <span className="font-medium text-gray-800">{selectedUser.bankDetails.branchName}</span>
+                        </div>
+                      )}
+                      {selectedUser.bankDetails.upiId && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-400 text-xs">Corporate UPI</span>
+                          <span className="font-mono text-gray-800">{selectedUser.bankDetails.upiId}</span>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-gray-500 italic p-3 border border-dashed border-gray-200 rounded-xl">
+                      No bank details have been added by the B2B company yet.
+                    </div>
+                  )}
+                </div>
+
                 {/* Verification Documents */}
                 <div className="space-y-3">
                   <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
                     <FiDownload className="w-4 h-4" /> Documents Submitted
                   </h3>
-                  <div className="grid grid-cols-1">
-                    {selectedUser.gstCertificate ? (
+                  <div className="grid grid-cols-1 gap-2">
+                    {selectedUser.gstCertificate && (
                       <a
                         href={selectedUser.gstCertificate}
                         target="_blank"
@@ -568,9 +655,24 @@ const BusinessUsers = () => {
                         </div>
                         <FiDownload className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 ml-1" />
                       </a>
-                    ) : (
+                    )}
+                    {selectedUser.cancelledCheque?.url && (
+                      <a
+                        href={selectedUser.cancelledCheque.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-between p-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer bg-white"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <FiFileText className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                          <span className="text-xs font-medium text-gray-700 truncate">{selectedUser.cancelledCheque.fileName || 'Cancelled_Cheque.pdf'}</span>
+                        </div>
+                        <FiDownload className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 ml-1" />
+                      </a>
+                    )}
+                    {!selectedUser.gstCertificate && !selectedUser.cancelledCheque?.url && (
                       <div className="text-xs text-gray-500 italic p-3 border border-dashed border-gray-200 rounded-xl">
-                        No certificate document uploaded.
+                        No certificate or cancelled cheque document uploaded.
                       </div>
                     )}
                   </div>

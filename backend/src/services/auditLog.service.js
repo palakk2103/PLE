@@ -76,7 +76,7 @@ export const logActivity = async ({
     try {
         if (req) req._auditLogged = true;
         const actorUserId = actor?._id || actor?.id || null;
-        const actorIdentityId = actor?.identityId || (actor?.role === 'superadmin' ? 'SUPER_ADMIN' : 'N/A');
+        const actorIdentityId = actor?.identityId || (actor?.role === 'superadmin' ? 'PLE-SA-000001' : 'N/A');
         const actorName = actor?.name || actor?.email || 'System';
         const actorRole = actor?.role || 'admin';
         const actorUserType = actor?.userType || (actor?.role === 'superadmin' ? 'superadmin' : 'account_team');

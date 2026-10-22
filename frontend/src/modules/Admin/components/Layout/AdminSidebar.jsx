@@ -58,6 +58,7 @@ const iconMap = {
   "B2B Users": FiUsers,
   "RFQ Management": FiInbox,
   "Product Enquiries": FiMessageCircle,
+  "Source Now": FiInbox,
   "Product Requests": FiInbox,
   "Refurbished Mkt": FiRefreshCw,
   "Marketing & Offers": FiPercent,
@@ -98,6 +99,7 @@ const legacyRouteMap = {
     "Category Display Order": "/admin/categories/category-order",
     Brands: "/admin/brands/manage-brands",
     "Product Enquiries": "/admin/product-enquiries",
+    "Source Now": "/admin/product-requests",
     "Product Requests": "/admin/product-requests",
   },
   "/admin/categories": {
@@ -112,6 +114,7 @@ const legacyRouteMap = {
     Addresses: "/admin/customers/addresses",
     Transactions: "/admin/customers/transactions",
     "Customer Chats": "/admin/customers/chats",
+    "Deletion Requests": "/admin/account-deletion-requests",
   },
   "/admin/b2b": {
     "B2B Overview": "/admin/b2b",
@@ -141,6 +144,7 @@ const legacyRouteMap = {
     "In-House Staff Chats": "/admin/managed-vendor-chats",
     "B2B Seller Requests": "/admin/vendors/b2b-requests",
     "Vendor Chats": "/admin/vendors/chats",
+    "Deletion Requests": "/admin/account-deletion-requests",
   },
   "/admin/support": {
     Tickets: "/admin/support/tickets",

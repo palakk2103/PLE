@@ -5,6 +5,7 @@ import Product from '../../../models/Product.model.js';
 import Category from '../../../models/Category.model.js';
 import Brand from '../../../models/Brand.model.js';
 import Vendor from '../../../models/Vendor.model.js';
+import ProductNegotiation from '../../../models/ProductNegotiation.model.js';
 import { slugify } from '../../../utils/slugify.js';
 import { notifyBackInStockWishlistUsers } from '../../../services/customerNotification.service.js';
 import { sendVendorStockAlertEmail } from '../../../services/vendorNotification.service.js';
@@ -368,7 +369,7 @@ export const getVendorProducts = asyncHandler(async (req, res) => {
     const skip = (numericPage - 1) * numericLimit;
     
     const filter = req.user.role === 'managed_vendor'
-        ? { shopId: req.user.shopId }
+        ? { shopId: req.user.shopId, listingType: { $ne: 'admin_managed_listing' } }
         : { vendorId: req.user.id };
 
     if (search) filter.$text = { $search: search };
@@ -379,6 +380,7 @@ export const getVendorProducts = asyncHandler(async (req, res) => {
     const products = await Product.find(filter)
         .populate('categoryId', 'name gstRate status')
         .populate('brandId', 'name status logo')
+        .populate('agreementId', 'status finalAgreedPrice isLocked currentOffer')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(numericLimit);
@@ -520,7 +522,46 @@ export const createProduct = asyncHandler(async (req, res) => {
         stockQuantity: finalStockQuantity,
         lowStockThreshold,
         stock,
+        listingType: isManaged ? 'managed_source' : 'vendor_direct',
+        isSourceProduct: isManaged,
+        requestedSupplyPrice: isManaged ? price : undefined,
+        publicationStatus: isManaged ? 'draft' : 'published',
     });
+
+    if (isManaged) {
+        const initialOffer = {
+            round: 1,
+            price: Number(price),
+            notes: 'Initial requested supply price',
+            offeredByRole: 'managed_vendor',
+            offeredById: req.user.id,
+            offeredByName: req.user.name || 'Managed Vendor',
+            offeredAt: new Date(),
+            status: 'pending',
+        };
+
+        const negotiation = await ProductNegotiation.create({
+            sourceProductId: product._id,
+            shopId: req.user.shopId,
+            vendorUserId: req.user.id,
+            initialSupplyPrice: Number(price),
+            status: 'pending_review',
+            currentOffer: initialOffer,
+            offers: [initialOffer],
+            auditLog: [{
+                action: 'negotiation_initialized',
+                performedBy: req.user.id,
+                performerRole: 'managed_vendor',
+                performerName: req.user.name || 'Managed Vendor',
+                timestamp: new Date(),
+                details: { initialPrice: Number(price) },
+            }],
+        });
+
+        product.agreementId = negotiation._id;
+        await product.save();
+    }
+
     res.status(201).json(new ApiResponse(201, product, 'Product created.'));
 });
 
@@ -537,6 +578,16 @@ export const updateProduct = asyncHandler(async (req, res) => {
         if (!['pending', 'rejected'].includes(product.approvalStatus)) {
             throw new ApiError(403, 'You cannot edit approved or live products.');
         }
+
+        // Price locking protection: check if commercial agreement is locked
+        if (product.agreementId && req.body.price !== undefined) {
+            const negotiation = await ProductNegotiation.findById(product.agreementId);
+            if (negotiation && negotiation.isLocked) {
+                if (Number(req.body.price) !== product.price) {
+                    throw new ApiError(403, 'Agreed commercial supply price is locked and cannot be modified via standard product edit. Submit an authorized counter-offer instead.');
+                }
+            }
+        }
     } else {
         const incomingChannel = req.body.salesChannel || product.salesChannel;
         if (req.body.salesChannel && ['B2B', 'BOTH'].includes(req.body.salesChannel)) {
@@ -546,6 +597,8 @@ export const updateProduct = asyncHandler(async (req, res) => {
 
     const isManaged = req.user.role === 'managed_vendor';
     let reviewNeeded = false;
+    let brandReviewNeeded = false;
+    let categoryReviewNeeded = false;
 
     // Apply generic fields first (excluding category/brand overrides)
     const {
@@ -587,6 +640,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
         product.customParentCategoryId = req.body.customParentCategoryId || undefined;
         if (needsCategoryReview) {
             reviewNeeded = true;
+            categoryReviewNeeded = true;
         }
     }
 
@@ -598,6 +652,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
         product.customBrandName = customBrandName || undefined;
         if (needsBrandReview) {
             reviewNeeded = true;
+            brandReviewNeeded = true;
         }
     }
 
@@ -643,14 +698,18 @@ export const updateProduct = asyncHandler(async (req, res) => {
     );
 
     // Audit log update
+    const updateReasons = [];
+    if (categoryReviewNeeded) updateReasons.push(`custom category request: "${product.customCategoryName}"`);
+    if (brandReviewNeeded) updateReasons.push(`custom brand request: "${product.customBrandName}"`);
+
     product.updatedBy = req.user.id;
     product.auditLog.push({
         action: 'updated',
         userId: req.user.id,
         userType: isManaged ? 'managed_vendor' : 'vendor',
         timestamp: new Date(),
-        reason: brandReviewNeeded
-            ? `Product updated with custom brand request: "${product.customBrandName}"`
+        reason: updateReasons.length > 0
+            ? `Product updated with ${updateReasons.join(', ')}`
             : 'Product details updated'
     });
 

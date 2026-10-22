@@ -37,7 +37,7 @@ const ErrorFallback = ({ error, errorInfo, onReset, fallback }) => {
         </p>
 
         {isDevelopment && error && (
-          <details className="text-left mb-6 bg-red-50 rounded-xl p-4">
+          <details open className="text-left mb-6 bg-red-50 rounded-xl p-4">
             <summary className="font-semibold text-red-700 cursor-pointer mb-2">
               Error Details (Development Mode)
             </summary>

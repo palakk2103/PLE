@@ -17,6 +17,8 @@ import * as uploadController from '../controllers/upload.controller.js';
 import * as vendorPurchaseOrderController from '../controllers/vendorPurchaseOrder.controller.js';
 import * as businessProfileController from '../controllers/businessProfile.controller.js';
 import * as b2bApplicationController from '../controllers/b2bApplication.controller.js';
+import * as productNegotiationController from '../controllers/productNegotiation.controller.js';
+import * as accountDeletionController from '../controllers/accountDeletion.controller.js';
 import { authenticate } from '../../../middlewares/authenticate.js';
 import { authorize, enforceAccountStatus } from '../../../middlewares/authorize.js';
 import { authLimiter, chatLimiter } from '../../../middlewares/rateLimiter.js';
@@ -70,6 +72,11 @@ router.post('/auth/change-password/request-otp', ...vendorAuth, authController.r
 router.post('/auth/change-password/verify-otp', ...vendorAuth, authController.verifyChangePasswordOTP);
 router.put('/auth/bank-details', ...strictVendorAuth, authController.updateBankDetails);
 
+// Account Deletion Request Routes
+router.get('/account-deletion-request/status', ...strictVendorAuth, accountDeletionController.getVendorDeletionStatus);
+router.post('/account-deletion-request', ...strictVendorAuth, accountDeletionController.submitVendorDeletionRequest);
+router.post('/account-deletion-request/cancel', ...strictVendorAuth, accountDeletionController.cancelVendorDeletionRequest);
+
 // Business Profile Routes
 router.get('/business-profile', ...strictVendorAuth, businessProfileController.getBusinessProfile);
 router.post('/business-profile', ...strictVendorAuth, businessProfileController.updateBusinessProfile);
@@ -96,6 +103,12 @@ router.post('/products', ...vendorAuth, validate(createProductSchema), productCo
 router.put('/products/:id', ...vendorAuth, validate(productIdParamSchema, 'params'), validate(updateProductSchema), productController.updateProduct);
 router.delete('/products/:id', ...vendorAuth, validate(productIdParamSchema, 'params'), productController.deleteProduct);
 router.patch('/stock/:productId', ...vendorAuth, productController.updateStock);
+
+// Managed Vendor Commercial Price Negotiation
+router.get('/products/:productId/negotiation', ...vendorAuth, productNegotiationController.getVendorNegotiation);
+router.post('/products/:productId/negotiation/counter-offer', ...vendorAuth, productNegotiationController.submitVendorCounterOffer);
+router.post('/products/:productId/negotiation/accept', ...vendorAuth, productNegotiationController.acceptAdminOffer);
+router.post('/products/:productId/negotiation/reject', ...vendorAuth, productNegotiationController.rejectAdminOffer);
 
 // Orders
 import * as invoiceController from '../../../controllers/invoice.controller.js';

@@ -121,6 +121,9 @@ const AdminWalletDashboard = lazy(() => import("../modules/Admin/pages/wallet/Ad
 // Product Requests System Pages
 const AdminProductRequestsDashboard = lazy(() => import("../modules/Admin/pages/ProductRequestsDashboard"));
 
+// Account Deletion Requests
+const AccountDeletionRequestsDashboard = lazy(() => import("../modules/Admin/pages/AccountDeletionRequestsDashboard"));
+
 // Chat Moderation
 const ChatModerationDashboard = lazy(() => import("../modules/Admin/pages/ChatModerationDashboard"));
 
@@ -207,6 +210,8 @@ export default function AdminRoutes() {
         <Route path="customers/transactions" element={<Transactions />} />
         <Route path="customers/:id" element={<CustomerDetailPage />} />
         <Route path="customers/chats" element={<AdminChatHub category="customer" />} />
+        <Route path="customers/deletion-requests" element={<AccountDeletionRequestsDashboard />} />
+        <Route path="account-deletion-requests" element={<AccountDeletionRequestsDashboard />} />
 
         <Route path="delivery" element={<DeliveryBoys />} />
         <Route path="delivery/delivery-boys" element={<DeliveryBoys />} />
@@ -224,6 +229,7 @@ export default function AdminRoutes() {
         <Route path="vendors/product-approvals" element={<AdminProductApprovals />} />
         <Route path="vendors/b2b-requests" element={<B2BSellerRequests />} />
         <Route path="vendors/chats" element={<AdminChatHub category="vendor" />} />
+        <Route path="vendors/deletion-requests" element={<AccountDeletionRequestsDashboard />} />
 
         <Route path="b2b-users" element={<B2BUsersDashboard />} />
         <Route path="b2b-users/manage" element={<ManageB2BUsers />} />

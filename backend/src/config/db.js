@@ -1,5 +1,12 @@
 import mongoose from 'mongoose';
 import https from 'https';
+import dns from 'dns';
+
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch (e) {
+  // Ignore DNS setServers error if any
+}
 import Admin from '../models/Admin.model.js';
 import DeliveryBoy from '../models/DeliveryBoy.model.js';
 
@@ -26,16 +33,51 @@ const getPublicIP = () => {
 
 const autoSeedAdmin = async () => {
   try {
-    let admin = await Admin.findOne({ email: 'admin@admin.com' });
+    let admin = await Admin.findOne({ email: 'admin@admin.com' }).select('+personalSecretHash');
+    const defaultSecretHash = await Admin.hashPersonalSecret('PLE#Sec99');
+
     if (!admin) {
       await Admin.create({
         name: 'Super Admin',
         email: 'admin@admin.com',
         password: 'admin@123',
         role: 'superadmin',
+        userType: 'superadmin',
+        identityId: 'PLE-SA-000001',
+        identityClass: 'superadmin',
+        personalSecretHash: defaultSecretHash,
+        department: 'PLE Executive Board',
+        designation: 'Chief Super Admin',
         isActive: true,
+        status: 'active'
       });
-      console.log('✅ DATABASE AUTO-SEED SUCCESS: Admin account created (admin@admin.com / admin@123)');
+      console.log('✅ DATABASE AUTO-SEED SUCCESS: Admin account created (admin@admin.com / PLE-SA-000001 / admin@123 / PLE#Sec99)');
+    } else {
+      let needsSave = false;
+      if (!admin.identityId) {
+        admin.identityId = 'PLE-SA-000001';
+        needsSave = true;
+      }
+      if (!admin.personalSecretHash) {
+        admin.personalSecretHash = defaultSecretHash;
+        needsSave = true;
+      }
+      if (!admin.department) {
+        admin.department = 'PLE Executive Board';
+        needsSave = true;
+      }
+      if (!admin.designation) {
+        admin.designation = 'Chief Super Admin';
+        needsSave = true;
+      }
+      if (admin.userType !== 'superadmin') {
+        admin.userType = 'superadmin';
+        needsSave = true;
+      }
+      if (needsSave) {
+        await admin.save();
+        console.log('✅ DATABASE AUTO-MIGRATE SUCCESS: Super Admin updated with identityId (PLE-SA-000001) and personal secret (PLE#Sec99)');
+      }
     }
   } catch (err) {
     console.error('⚠️ DATABASE AUTO-SEED FAILED:', err.message);

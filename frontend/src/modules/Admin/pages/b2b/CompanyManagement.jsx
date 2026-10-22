@@ -9,7 +9,9 @@ import {
   FiFileText, 
   FiDownload, 
   FiRefreshCw,
-  FiSearch
+  FiSearch,
+  FiCreditCard,
+  FiCopy
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
@@ -48,6 +50,8 @@ const CompanyManagement = () => {
         acceptanceExecutionDocument: c.acceptanceExecutionDocument,
         gstCertificate: c.gstCertificate,
         companyRegistrationProof: c.companyRegistrationProof,
+        cancelledCheque: c.cancelledCheque || null,
+        bankDetails: c.bankDetails || null,
         createdAt: c.createdAt,
       }));
       setCompanies(mappedCompanies);
@@ -62,6 +66,12 @@ const CompanyManagement = () => {
   useEffect(() => {
     fetchCompanies();
   }, []);
+
+  const copyToClipboard = (text, label) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} copied to clipboard!`);
+  };
 
   // Statistics
   const stats = useMemo(() => {
@@ -103,6 +113,8 @@ const CompanyManagement = () => {
           acceptanceExecutionDocument: detail.company.acceptanceExecutionDocument || prev.acceptanceExecutionDocument,
           gstCertificate: detail.company.gstCertificate || prev.gstCertificate,
           companyRegistrationProof: detail.company.companyRegistrationProof || prev.companyRegistrationProof,
+          cancelledCheque: detail.company.cancelledCheque || prev.cancelledCheque || null,
+          bankDetails: detail.company.bankDetails || prev.bankDetails || null,
         }));
       }
     } catch (err) {
@@ -335,6 +347,99 @@ const CompanyManagement = () => {
               <p className="text-gray-600 dark:text-zinc-400">Admin Phone: <span className="font-bold text-gray-800 dark:text-zinc-200">{selectedCompany.admin?.phone}</span></p>
             </div>
 
+            {/* Bank Details */}
+            <div className="bg-gray-50 dark:bg-zinc-950 p-4 rounded-xl border dark:border-zinc-800 space-y-3 text-xs">
+              <div className="flex justify-between items-center border-b pb-2 dark:border-zinc-800">
+                <h4 className="font-bold text-gray-800 dark:text-zinc-100 flex items-center gap-1.5">
+                  <FiCreditCard className="text-[#C07A3D]" /> Company Bank Account Details
+                </h4>
+                {selectedCompany.bankDetails?.accountNumber ? (
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40">
+                    Configured
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800/40">
+                    Not Provided Yet
+                  </span>
+                )}
+              </div>
+
+              {selectedCompany.bankDetails?.accountNumber ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <span className="text-gray-400 block mb-0.5 text-[11px]">Account Holder Name</span>
+                    <span className="text-gray-800 dark:text-zinc-200 font-bold">
+                      {selectedCompany.bankDetails.accountHolderName || selectedCompany.companyName}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400 block mb-0.5 text-[11px]">Bank Name</span>
+                    <span className="text-gray-800 dark:text-zinc-200 font-bold">
+                      {selectedCompany.bankDetails.bankName || 'N/A'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400 block mb-0.5 text-[11px]">Account Number</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-bold text-gray-800 dark:text-zinc-200">
+                        {selectedCompany.bankDetails.accountNumber}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => copyToClipboard(selectedCompany.bankDetails.accountNumber, "Account Number")}
+                        className="text-gray-400 hover:text-[#C07A3D] dark:hover:text-zinc-200 p-0.5 transition-colors"
+                        title="Copy Account Number"
+                      >
+                        <FiCopy className="text-xs" />
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-gray-400 block mb-0.5 text-[11px]">IFSC Code</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-bold uppercase text-gray-800 dark:text-zinc-200 tracking-wider">
+                        {selectedCompany.bankDetails.ifscCode}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => copyToClipboard(selectedCompany.bankDetails.ifscCode, "IFSC Code")}
+                        className="text-gray-400 hover:text-[#C07A3D] dark:hover:text-zinc-200 p-0.5 transition-colors"
+                        title="Copy IFSC Code"
+                      >
+                        <FiCopy className="text-xs" />
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-gray-400 block mb-0.5 text-[11px]">Account Type</span>
+                    <span className="text-gray-800 dark:text-zinc-200 font-semibold">
+                      {selectedCompany.bankDetails.accountType || 'Current'} Account
+                    </span>
+                  </div>
+                  {selectedCompany.bankDetails.branchName && (
+                    <div>
+                      <span className="text-gray-400 block mb-0.5 text-[11px]">Branch Name</span>
+                      <span className="text-gray-800 dark:text-zinc-200">
+                        {selectedCompany.bankDetails.branchName}
+                      </span>
+                    </div>
+                  )}
+                  {selectedCompany.bankDetails.upiId && (
+                    <div>
+                      <span className="text-gray-400 block mb-0.5 text-[11px]">Corporate UPI ID</span>
+                      <span className="text-gray-800 dark:text-zinc-200 font-mono">
+                        {selectedCompany.bankDetails.upiId}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-gray-500 italic text-center py-2 text-[11px]">
+                  No bank details have been added by the B2B company yet.
+                </p>
+              )}
+            </div>
+
             {/* Legal Documents */}
             <div className="space-y-3">
               <h4 className="font-bold text-gray-800 dark:text-zinc-100 flex items-center gap-1">
@@ -428,7 +533,36 @@ const CompanyManagement = () => {
                   </div>
                 ) : null}
 
-                {!selectedCompany.acceptanceExecutionDocument?.url && !selectedCompany.gstCertificate?.url && !selectedCompany.companyRegistrationProof?.url && (
+                {/* Cancelled Cheque / Bank Passbook */}
+                {selectedCompany.cancelledCheque?.url ? (
+                  <div className="bg-gray-50 dark:bg-zinc-950 p-3 rounded-xl border dark:border-zinc-800 flex justify-between items-center text-xs">
+                    <div>
+                      <p className="font-bold text-gray-800 dark:text-zinc-200">Cancelled Cheque / Bank Passbook</p>
+                      <p className="text-[10px] text-gray-400">{selectedCompany.cancelledCheque.fileName || 'Cancelled_Cheque.pdf'}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <a 
+                        href={selectedCompany.cancelledCheque.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/20 dark:text-blue-400 px-3 py-1.5 rounded-lg border border-blue-100 dark:border-blue-900/30 transition-colors"
+                      >
+                        <FiEye /> Preview
+                      </a>
+                      <a 
+                        href={selectedCompany.cancelledCheque.url} 
+                        download={selectedCompany.cancelledCheque.fileName || 'Cancelled_Cheque.pdf'} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="inline-flex items-center gap-1 text-[11px] font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:text-zinc-300 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-zinc-700 transition-colors"
+                      >
+                        <FiDownload /> Download
+                      </a>
+                    </div>
+                  </div>
+                ) : null}
+
+                {!selectedCompany.acceptanceExecutionDocument?.url && !selectedCompany.gstCertificate?.url && !selectedCompany.companyRegistrationProof?.url && !selectedCompany.cancelledCheque?.url && (
                   <div className="bg-gray-50 dark:bg-zinc-950 p-4 rounded-xl border dark:border-zinc-800 text-xs text-gray-500 italic text-center">
                     No legal documents uploaded yet for this company.
                   </div>

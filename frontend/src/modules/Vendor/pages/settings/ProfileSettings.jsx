@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { FiSave, FiUser, FiLock, FiShield, FiTrash2, FiAlertTriangle } from 'react-icons/fi';
+import { FiSave, FiUser, FiLock, FiShield, FiTrash2, FiAlertTriangle, FiClock } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useVendorAuthStore } from "../../store/vendorAuthStore";
 import toast from 'react-hot-toast';
 import OTPVerificationModal from '../../../../shared/components/OTPVerificationModal';
 import TwoFactorToggle from '../../../../shared/components/TwoFactorToggle';
 import { requestChangePasswordOTP, verifyChangePasswordOTP } from '../../services/vendorService';
+import api from '../../../../shared/utils/api';
 
 const ProfileSettings = () => {
   const { vendor, updateProfile, verifyProfileOTP, resendProfileOTP, logout } = useVendorAuthStore();
@@ -16,9 +17,15 @@ const ProfileSettings = () => {
   const [isRequestingPasswordOtp, setIsRequestingPasswordOtp] = useState(false);
 
   // Delete Account States
+  const [deletionData, setDeletionData] = useState({ deletionStatus: 'NONE', request: null });
+  const [isLoadingDeletionStatus, setIsLoadingDeletionStatus] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteReason, setDeleteReason] = useState('Closing business / Changing platform');
+  const [additionalFeedback, setAdditionalFeedback] = useState('');
+  const [isSubmittingDeleteRequest, setIsSubmittingDeleteRequest] = useState(false);
+  const [isCancellingDeleteRequest, setIsCancellingDeleteRequest] = useState(false);
+  const [dismissRejectionAlert, setDismissRejectionAlert] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -121,22 +128,65 @@ const ProfileSettings = () => {
     }
   };
 
-  const handleDeleteAccount = async () => {
+  const fetchDeletionStatus = async () => {
+    try {
+      setIsLoadingDeletionStatus(true);
+      const res = await api.get('/vendor/account-deletion-request/status');
+      if (res?.data) {
+        setDeletionData(res.data);
+      }
+    } catch (err) {
+      // Non-blocking
+    } finally {
+      setIsLoadingDeletionStatus(false);
+    }
+  };
+
+  useEffect(() => {
+    if (vendor) {
+      fetchDeletionStatus();
+    }
+  }, [vendor]);
+
+  const handleSubmitDeleteRequest = async () => {
     if (!deletePassword.trim()) {
       toast.error('Please enter your vendor account password to confirm.');
       return;
     }
-    setIsDeleting(true);
+    if (!deleteReason.trim()) {
+      toast.error('Please select a reason for account deletion.');
+      return;
+    }
+    setIsSubmittingDeleteRequest(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      toast.success('Vendor account deleted successfully.');
+      const res = await api.post('/vendor/account-deletion-request', {
+        password: deletePassword,
+        reason: deleteReason,
+        additionalFeedback: additionalFeedback.trim(),
+      });
+      toast.success(res?.message || 'Vendor deletion request submitted to Admin for review!');
       setShowDeleteModal(false);
       setDeletePassword('');
-      logout();
+      setAdditionalFeedback('');
+      await fetchDeletionStatus();
     } catch (error) {
-      toast.error('Failed to delete vendor account');
+      toast.error(error?.response?.data?.message || error?.message || 'Failed to submit vendor deletion request');
     } finally {
-      setIsDeleting(false);
+      setIsSubmittingDeleteRequest(false);
+    }
+  };
+
+  const handleCancelDeleteRequest = async () => {
+    if (!window.confirm('Are you sure you want to cancel your vendor account deletion request?')) return;
+    setIsCancellingDeleteRequest(true);
+    try {
+      const res = await api.post('/vendor/account-deletion-request/cancel');
+      toast.success(res?.message || 'Deletion request cancelled. Your vendor store remains active.');
+      await fetchDeletionStatus();
+    } catch (error) {
+      toast.error(error?.response?.data?.message || error?.message || 'Failed to cancel deletion request');
+    } finally {
+      setIsCancellingDeleteRequest(false);
     }
   };
 
@@ -434,30 +484,99 @@ const ProfileSettings = () => {
                 </ul>
               </div>
 
-              <div className="pt-4 border-t border-gray-200 flex flex-wrap items-center justify-between gap-3">
-                <button
-                  type="button"
-                  onClick={logout}
-                  className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all font-semibold text-sm"
-                >
-                  Logout
-                </button>
+              {/* Deletion Request Status Banner */}
+              {(deletionData?.deletionStatus === 'PENDING' || deletionData?.request?.status === 'PENDING') ? (
+                <div className="p-4 bg-amber-50 border-2 border-amber-300 rounded-xl space-y-3">
+                  <div className="flex items-start justify-between gap-3 flex-wrap">
+                    <div className="flex items-center gap-2.5 text-amber-900">
+                      <span className="p-2 rounded-lg bg-amber-200/70 text-amber-800 text-lg">
+                        <FiClock />
+                      </span>
+                      <div>
+                        <h4 className="font-bold text-amber-900 text-sm">Store Account Deletion Request Under Admin Review</h4>
+                        <p className="text-xs text-amber-700">
+                          Submitted on: {deletionData?.request?.createdAt ? new Date(deletionData.request.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Recently'}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="px-3 py-1 bg-amber-200 text-amber-900 font-bold text-[10px] rounded-full uppercase tracking-wider">
+                      Pending Admin Review
+                    </span>
+                  </div>
 
-                <button
-                  type="button"
-                  onClick={() => setShowDeleteModal(true)}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all font-semibold text-sm shadow-sm"
-                >
-                  <FiTrash2 />
-                  <span>Delete Account</span>
-                </button>
-              </div>
+                  <div className="bg-white/80 rounded-lg p-2.5 border border-amber-200 text-xs space-y-1">
+                    <p className="text-gray-700"><strong className="text-gray-900">Reason:</strong> {deletionData?.request?.reason || 'Not specified'}</p>
+                    {deletionData?.request?.additionalFeedback && (
+                      <p className="text-gray-600"><strong className="text-gray-900">Notes:</strong> {deletionData.request.additionalFeedback}</p>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1">
+                    <p className="text-xs text-amber-800">
+                      Aapki request Admin ke paas gayi hui hai. Approval ke baad hi aapka account close hoga. Tab tak store active rahega.
+                    </p>
+                    <button
+                      type="button"
+                      disabled={isCancellingDeleteRequest}
+                      onClick={handleCancelDeleteRequest}
+                      className="px-4 py-1.5 bg-white hover:bg-gray-50 text-amber-900 border border-amber-300 font-bold rounded-lg text-xs transition-colors shrink-0 disabled:opacity-50"
+                    >
+                      {isCancellingDeleteRequest ? 'Cancelling...' : 'Cancel Deletion Request'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {deletionData?.request?.status === 'REJECTED' && !dismissRejectionAlert && (
+                    <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2 text-rose-800 font-bold text-sm">
+                          <FiAlertTriangle className="text-rose-600" />
+                          <span>Previous Deletion Request Declined by Admin</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setDismissRejectionAlert(true)}
+                          className="text-rose-500 hover:text-rose-700 text-xs font-bold"
+                        >
+                          ✕ Dismiss
+                        </button>
+                      </div>
+                      <p className="text-xs text-rose-700">
+                        <strong>Admin Remarks:</strong> {deletionData.request.adminRemarks || 'Declined by Admin.'}
+                      </p>
+                      <p className="text-[11px] text-gray-500">
+                        Aapka vendor account active hai. Agar requirements poori ho gayi hain toh aap nayi request submit kar sakte hain.
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="pt-4 border-t border-gray-200 flex flex-wrap items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={logout}
+                      className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all font-semibold text-sm"
+                    >
+                      Logout
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowDeleteModal(true)}
+                      className="flex items-center gap-2 px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all font-semibold text-sm shadow-sm"
+                    >
+                      <FiTrash2 />
+                      <span>Request Account Deletion</span>
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>
       </div>
 
-      {/* Delete Vendor Account Confirmation Modal */}
+      {/* Delete Vendor Account Request Modal */}
       <AnimatePresence>
         {showDeleteModal && (
           <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 sm:p-4 backdrop-blur-sm overflow-y-auto">
@@ -471,15 +590,48 @@ const ProfileSettings = () => {
                 <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto text-2xl font-bold">
                   <FiAlertTriangle />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900">Permanently Delete Vendor Account?</h3>
+                <h3 className="text-lg font-bold text-gray-900">Request Store Deletion</h3>
                 <p className="text-xs text-gray-500 leading-relaxed">
-                  Warning: Deleting your vendor account will permanently unlist all your catalog items, cancel pending applications, and erase your store profile.
+                  Notice: Your vendor account and store will <strong className="text-gray-700">not be deleted immediately</strong>. A formal request will be sent to the PLE Admin team for verification and approval.
                 </p>
+              </div>
+
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start gap-2">
+                <FiClock className="text-amber-700 text-base shrink-0 mt-0.5" />
+                <span>
+                  Admin will review your pending orders, inventory, and settlements before approving deletion.
+                </span>
               </div>
 
               <div className="space-y-3">
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-gray-700">Enter your password to confirm</label>
+                  <label className="block text-xs font-bold text-gray-700">Reason for deleting store <span className="text-red-500">*</span></label>
+                  <select
+                    value={deleteReason}
+                    onChange={(e) => setDeleteReason(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-red-500 text-xs sm:text-sm bg-white font-medium"
+                  >
+                    <option value="Closing business / Changing platform">Closing business / Changing platform</option>
+                    <option value="Low sales / High fees">Low sales / High fees</option>
+                    <option value="Operational difficulties">Operational difficulties</option>
+                    <option value="Switching to physical retail only">Switching to physical retail only</option>
+                    <option value="Other reason">Other reason</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-gray-700">Additional Feedback (Optional)</label>
+                  <textarea
+                    rows={2}
+                    placeholder="Provide additional details or feedback for admin..."
+                    value={additionalFeedback}
+                    onChange={(e) => setAdditionalFeedback(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-red-500 text-xs bg-white resize-none"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-gray-700">Enter your password to confirm <span className="text-red-500">*</span></label>
                   <input
                     type="password"
                     placeholder="Account password"
@@ -492,19 +644,20 @@ const ProfileSettings = () => {
                 <div className="flex gap-2 pt-2">
                   <button
                     type="button"
-                    disabled={!deletePassword.trim() || isDeleting}
-                    onClick={handleDeleteAccount}
+                    disabled={!deletePassword.trim() || isSubmittingDeleteRequest}
+                    onClick={handleSubmitDeleteRequest}
                     className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition-colors flex items-center justify-center gap-1.5"
                   >
                     <FiTrash2 />
-                    <span>{isDeleting ? 'Deleting...' : 'Delete Account'}</span>
+                    <span>{isSubmittingDeleteRequest ? 'Submitting...' : 'Submit Deletion Request'}</span>
                   </button>
                   <button
                     type="button"
-                    disabled={isDeleting}
+                    disabled={isSubmittingDeleteRequest}
                     onClick={() => {
                       setShowDeleteModal(false);
                       setDeletePassword('');
+                      setAdditionalFeedback('');
                     }}
                     className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs sm:text-sm rounded-xl transition-colors text-center"
                   >

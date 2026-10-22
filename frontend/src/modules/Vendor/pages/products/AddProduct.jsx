@@ -26,10 +26,11 @@ const AddProduct = () => {
   const isManagedVendor = vendor?.role === "managed_vendor";
   const isB2BApproved = isManagedVendor || vendor?.b2bSellingStatus?.toLowerCase() === 'approved';
   const { addProduct, isSaving } = useVendorProductStore();
-  const { initialize: initCategories } = useCategoryStore();
+  const { categories, initialize: initCategories } = useCategoryStore();
   const { brands, initialize: initBrands } = useBrandStore();
 
   const [b2bSettings, setB2bSettings] = useState(null);
+  const [vendorGstData, setVendorGstData] = useState(null);
 
   const vendorId = vendor?.id || vendor?._id;
 
@@ -63,6 +64,8 @@ const AddProduct = () => {
     returnable: true,
     cancelable: true,
     taxIncluded: false,
+    gstMode: "category",
+    gstRate: 18,
     description: "",
     tags: [],
     variants: {
@@ -127,6 +130,12 @@ const AddProduct = () => {
         setB2bSettings(s);
       }
     }).catch(err => console.error('Failed to load b2b settings', err));
+    api.get('/vendor/gst-settings').then(res => {
+      const payload = res?.data?.data || res?.data || res;
+      if (payload) {
+        setVendorGstData(payload);
+      }
+    }).catch(err => console.error('Failed to load vendor gst settings', err));
   }, [initCategories, initBrands]);
 
   useEffect(() => {
@@ -415,6 +424,17 @@ const AddProduct = () => {
     }
   };
 
+  const selectedCatId = formData.subcategoryId || formData.categoryId;
+  const vendorCatRule = (vendorGstData?.categoryGstRates || []).find(
+    (r) => String(r.categoryId) === String(selectedCatId)
+  );
+  const matchedCategory = (categories || []).find(
+    (c) => String(c.id || c._id) === String(selectedCatId)
+  );
+  const vendorCategoryRate = vendorCatRule ? vendorCatRule.gstRate : null;
+  const platformCategoryRate = matchedCategory?.gstRate ?? 18;
+  const effectiveCategoryRate = vendorCategoryRate !== null && vendorCategoryRate !== undefined ? vendorCategoryRate : platformCategoryRate;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -546,6 +566,9 @@ const AddProduct = () => {
         }))
         .filter((faq) => faq.question && faq.answer),
       variants: buildVariantPayload(formData.variants || {}),
+      gstMode: formData.gstMode || "category",
+      gstRate: formData.gstMode === "custom" && formData.gstRate !== undefined ? Number(formData.gstRate) : effectiveCategoryRate,
+      taxRate: formData.gstMode === "custom" && formData.gstRate !== undefined ? Number(formData.gstRate) : effectiveCategoryRate,
       b2bEnabled: isB2b,
       salesChannel: isManagedVendor ? 'B2C' : formData.salesChannel,
       b2bWholesalePrice: isManagedVendor ? null : parsedB2bWholesalePrice,
@@ -829,11 +852,16 @@ const AddProduct = () => {
               </div>
 
               {/* GST Rate Selector */}
-              <div className="md:col-span-2 p-3 bg-emerald-50/70 border border-emerald-200 rounded-xl space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="block text-xs font-bold text-gray-800">
-                    GST Rate Configuration
-                  </label>
+              <div className="md:col-span-2 p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-xl space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-800">
+                      GST Rate Configuration
+                    </label>
+                    <span className="text-[11px] text-gray-500">
+                      Choose Category GST or specify a custom rate for this product
+                    </span>
+                  </div>
                   <div className="flex gap-3 text-xs font-semibold">
                     <label className="flex items-center gap-1.5 cursor-pointer">
                       <input
@@ -844,7 +872,11 @@ const AddProduct = () => {
                         onChange={handleChange}
                         className="text-emerald-600 focus:ring-emerald-500"
                       />
-                      <span>Category Default</span>
+                      <span>
+                        {vendorCategoryRate !== null && vendorCategoryRate !== undefined
+                          ? `My Category Rate (${vendorCategoryRate}%)`
+                          : `Category Default (${platformCategoryRate}%)`}
+                      </span>
                     </label>
                     <label className="flex items-center gap-1.5 cursor-pointer">
                       <input
@@ -855,33 +887,60 @@ const AddProduct = () => {
                         onChange={handleChange}
                         className="text-emerald-600 focus:ring-emerald-500"
                       />
-                      <span>Custom Rate</span>
+                      <span>Custom Product Rate</span>
                     </label>
                   </div>
                 </div>
 
                 {formData.gstMode === "custom" ? (
-                  <div className="flex items-center gap-2 pt-1">
-                    <span className="text-xs text-gray-600 font-medium">Select GST:</span>
-                    {[0, 5, 12, 18, 28].map((rate) => (
-                      <button
-                        key={rate}
-                        type="button"
-                        onClick={() => setFormData((prev) => ({ ...prev, gstRate: rate, taxRate: rate }))}
-                        className={`px-3 py-1 rounded-lg text-xs font-bold border transition-colors ${
-                          Number(formData.gstRate) === rate
-                            ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
-                            : "bg-white text-gray-700 border-gray-200 hover:bg-gray-100"
-                        }`}
-                      >
-                        {rate}%
-                      </button>
-                    ))}
+                  <div className="space-y-2 pt-1 border-t border-emerald-200/60">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-xs text-gray-700 font-semibold">Quick Slabs:</span>
+                      {[0, 5, 12, 18, 28].map((rate) => (
+                        <button
+                          key={rate}
+                          type="button"
+                          onClick={() => setFormData((prev) => ({ ...prev, gstRate: rate, taxRate: rate }))}
+                          className={`px-3 py-1 rounded-lg text-xs font-bold border transition-colors ${
+                            Number(formData.gstRate) === rate
+                              ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                              : "bg-white text-gray-700 border-gray-200 hover:bg-gray-100"
+                          }`}
+                        >
+                          {rate}%
+                        </button>
+                      ))}
+                      <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-gray-300 focus-within:ring-2 focus-within:ring-emerald-500">
+                        <span className="text-xs font-semibold text-gray-500">Custom:</span>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.1"
+                          name="gstRate"
+                          value={formData.gstRate ?? ""}
+                          onChange={(e) => {
+                            const val = Math.max(0, Math.min(100, Number(e.target.value) || 0));
+                            setFormData((prev) => ({ ...prev, gstRate: val, taxRate: val }));
+                          }}
+                          placeholder="e.g. 18"
+                          className="w-14 px-1 py-0.5 text-xs font-bold text-gray-900 border border-gray-200 rounded focus:outline-none bg-gray-50"
+                        />
+                        <span className="text-xs font-bold text-gray-700">%</span>
+                      </div>
+                    </div>
                   </div>
                 ) : (
-                  <p className="text-xs text-emerald-800 font-medium">
-                    This product will automatically inherit the Category's default GST rate.
-                  </p>
+                  <div className="flex items-center gap-2 text-xs text-emerald-800 font-medium">
+                    <FiInfo className="text-emerald-600 flex-shrink-0" />
+                    <span>
+                      {vendorCategoryRate !== null && vendorCategoryRate !== undefined ? (
+                        <>Using your store's custom category rate: <strong className="font-bold">{vendorCategoryRate}%</strong> (defined in your GST Settings).</>
+                      ) : (
+                        <>Using category default rate: <strong className="font-bold">{platformCategoryRate}%</strong>. You can customize category rates anytime in your <a href="/vendor/settings/gst" className="underline font-bold text-emerald-900">GST Settings</a>.</>
+                      )}
+                    </span>
+                  </div>
                 )}
               </div>
             </div>

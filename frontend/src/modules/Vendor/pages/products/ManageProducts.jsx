@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiSearch, FiEdit, FiTrash2 } from "react-icons/fi";
+import { FiSearch, FiEdit, FiTrash2, FiDollarSign, FiLock } from "react-icons/fi";
 import { motion } from "framer-motion";
 import DataTable from "../../../Admin/components/DataTable";
 import ExportButton from "../../../Admin/components/ExportButton";
@@ -13,6 +13,7 @@ import { useVendorProductStore } from "../../store/vendorProductStore";
 import { useCategoryStore } from "../../../../shared/store/categoryStore";
 import RefurbishedBadge from "../../components/Refurbished/RefurbishedBadge";
 import ApprovalStatusBadge from "../../components/Refurbished/ApprovalStatusBadge";
+import VendorNegotiationModal from "../../components/VendorNegotiationModal";
 
 const ManageProducts = () => {
   const navigate = useNavigate();
@@ -28,6 +29,11 @@ const ManageProducts = () => {
   const [deleteModal, setDeleteModal] = useState({
     isOpen: false,
     productId: null,
+  });
+  const [negotiationModal, setNegotiationModal] = useState({
+    isOpen: false,
+    productId: null,
+    productName: "",
   });
 
   const vendorId = vendor?.id || vendor?._id;
@@ -118,9 +124,38 @@ const ManageProducts = () => {
     },
     {
       key: "price",
-      label: "Price",
+      label: vendor?.role === "managed_vendor" ? "Supply Price" : "Price",
       sortable: true,
-      render: (value) => formatPrice(value),
+      render: (value, row) => {
+        const isManaged = vendor?.role === "managed_vendor" || !!row.shopId;
+        const agreement = row.agreementId;
+        const isLocked = agreement?.isLocked;
+        const currentOffer = agreement?.currentOffer;
+        const hasAdminOffer = currentOffer?.offeredByRole === "admin" && currentOffer?.status === "pending";
+
+        if (!isManaged) return formatPrice(value);
+
+        return (
+          <div className="flex flex-col gap-0.5">
+            <span className={`font-semibold ${isLocked ? "text-emerald-700" : "text-gray-900"}`}>
+              {formatPrice(isLocked && agreement.finalAgreedPrice ? agreement.finalAgreedPrice : value)}
+            </span>
+            {isLocked ? (
+              <span className="text-[10px] text-emerald-600 font-medium flex items-center gap-0.5">
+                <FiLock className="w-2.5 h-2.5" /> Price Locked
+              </span>
+            ) : hasAdminOffer ? (
+              <span className="text-[10px] text-amber-700 font-medium bg-amber-50 px-1 py-0.5 rounded border border-amber-200/60 inline-block w-fit">
+                Admin Offer: {formatPrice(currentOffer.price)}
+              </span>
+            ) : agreement?.status === "in_negotiation" ? (
+              <span className="text-[10px] text-blue-600 font-medium">In Negotiation</span>
+            ) : (
+              <span className="text-[10px] text-gray-400">Asked Price</span>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: "stockQuantity",
@@ -226,6 +261,21 @@ const ManageProducts = () => {
         const isEditable = !isManagedVendor || ['pending', 'rejected'].includes(row.approvalStatus || 'pending');
         return (
           <div className="flex items-center gap-2">
+            {isManagedVendor && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setNegotiationModal({
+                    isOpen: true,
+                    productId: row._id ?? row.id,
+                    productName: row.name,
+                  });
+                }}
+                className="px-2.5 py-1 text-xs font-semibold text-[#C07A3D] bg-[#C07A3D]/10 hover:bg-[#C07A3D]/20 rounded-lg flex items-center gap-1 transition-colors"
+                title="View Commercial Terms & Negotiations">
+                <FiDollarSign className="w-3.5 h-3.5" /> Terms
+              </button>
+            )}
             {isEditable ? (
               <button
                 onClick={(e) => {
@@ -410,6 +460,14 @@ const ManageProducts = () => {
           </div>
         )}
       </div>
+
+      <VendorNegotiationModal
+        isOpen={negotiationModal.isOpen}
+        onClose={() => setNegotiationModal({ isOpen: false, productId: null, productName: "" })}
+        productId={negotiationModal.productId}
+        productName={negotiationModal.productName}
+        onNegotiationUpdated={() => fetchProducts({ fetchAll: true, limit: 200 })}
+      />
 
       <ConfirmModal
         isOpen={deleteModal.isOpen}

@@ -47,18 +47,21 @@ const DesktopHeader = () => {
             return;
         }
         try {
-            const [reqRes, rfqRes] = await Promise.allSettled([
-                api.get('/user/product-requests?limit=1'),
-                api.get('/user/rfq')
+            const b2bToken = sessionStorage.getItem('b2bAdminToken') || localStorage.getItem('b2bAdminToken');
+            const isB2B = user?.role === 'b2bAdmin' || user?.role === 'b2bEmployee' || !!b2bToken;
+
+            const [userRfqRes, b2bRfqRes] = await Promise.allSettled([
+                api.get('/user/rfq'),
+                isB2B ? api.get('/b2b-user/admin/rfq') : Promise.resolve({ data: [] })
             ]);
             let total = 0;
-            if (reqRes.status === 'fulfilled' && reqRes.value) {
-                const data = reqRes.value.data;
-                const reqTotal = data?.pagination?.total ?? (Array.isArray(data) ? data.length : (data?.requests?.length || 0));
-                total += (Number(reqTotal) || 0);
+            if (userRfqRes.status === 'fulfilled' && userRfqRes.value) {
+                const data = userRfqRes.value.data;
+                const rfqList = Array.isArray(data) ? data : (data?.data || []);
+                total += (Array.isArray(rfqList) ? rfqList.length : 0);
             }
-            if (rfqRes.status === 'fulfilled' && rfqRes.value) {
-                const data = rfqRes.value.data;
+            if (b2bRfqRes.status === 'fulfilled' && b2bRfqRes.value) {
+                const data = b2bRfqRes.value.data;
                 const rfqList = Array.isArray(data) ? data : (data?.data || []);
                 total += (Array.isArray(rfqList) ? rfqList.length : 0);
             }
@@ -67,11 +70,20 @@ const DesktopHeader = () => {
             // Keep fallback count if API errors
             setLiveRfqCount(quotations.length || 0);
         }
-    }, [isAuthenticated, quotations.length]);
+    }, [isAuthenticated, user?.role, quotations.length]);
 
     useEffect(() => {
         fetchRfqCount();
     }, [fetchRfqCount, location.pathname]);
+
+    const handleRfqClick = () => {
+        const b2bToken = sessionStorage.getItem('b2bAdminToken') || localStorage.getItem('b2bAdminToken');
+        if (user?.role === 'b2bAdmin' || user?.role === 'b2bEmployee' || !!b2bToken) {
+            navigate('/b2b-dashboard/rfqs');
+        } else {
+            navigate('/rfqs');
+        }
+    };
 
     const rfqCount = isAuthenticated ? liveRfqCount : (quotations.length || 0);
 
@@ -187,7 +199,7 @@ const DesktopHeader = () => {
                     <div className="flex items-center gap-2 lg:gap-4">
                         {/* RFQ Icon */}
                         <button 
-                            onClick={() => navigate('/product-requests')} 
+                            onClick={handleRfqClick} 
                             className="relative text-zinc-400 hover:text-white transition-colors flex flex-col items-center justify-center shrink-0 h-12 w-12 group"
                             title="Request for Quotation"
                         >
@@ -204,7 +216,7 @@ const DesktopHeader = () => {
 
                         {/* Cart */}
                         <button
-                            onClick={toggleCart}
+                            onClick={() => navigate('/cart')}
                             className="relative text-zinc-400 hover:text-white transition-colors flex flex-col items-center justify-center shrink-0 h-12 w-12 group"
                             title="Cart"
                         >
@@ -327,81 +339,106 @@ const DesktopHeader = () => {
 
     return (
         <header className="hidden md:block sticky top-0 z-[999] bg-[#ffffff] dark:!bg-black shadow-sm border-b border-gray-100 dark:!border-black">
-            <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 h-20 flex items-center justify-between gap-3 lg:gap-6">
-                {/* Logo */}
-                <Link to="/home" className="flex-shrink-0 flex items-center gap-2">
-                    {appLogo.src ? (
-                        <div className="relative">
-                            <img
-                                src={appLogo.src}
-                                alt={appLogo.alt}
-                                className="h-11 lg:h-14 w-auto object-contain"
-                                style={{ mixBlendMode: theme === "dark" ? "screen" : "multiply" }}
-                            />
-                            {theme !== "dark" && (
-                                <span 
-                                    className="absolute text-[5px] font-normal text-[#7B0A0A]" 
-                                    style={{ right: '4.5px', bottom: '17px' }}
-                                >
-                                    TM
-                                </span>
-                            )}
-                        </div>
-                    ) : (
-                        <span className="text-xl lg:text-2xl font-bold text-[#7B0A0A]">PLE</span>
-                    )}
-                </Link>
+            <div className="w-full max-w-[1560px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 h-20 flex items-center justify-between gap-3 lg:gap-5 xl:gap-8">
+                {/* Brand & Menu */}
+                <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0">
+                    <Link to="/home" className="flex items-center">
+                        {appLogo.src ? (
+                            <div className="relative">
+                                <img
+                                    src={appLogo.src}
+                                    alt={appLogo.alt}
+                                    className="h-10 lg:h-12 w-auto object-contain"
+                                    style={{ mixBlendMode: theme === "dark" ? "screen" : "multiply" }}
+                                />
+                                {theme !== "dark" && (
+                                    <span 
+                                        className="absolute text-[5px] font-normal text-[#7B0A0A]" 
+                                        style={{ right: '4.5px', bottom: '15px' }}
+                                    >
+                                        TM
+                                    </span>
+                                )}
+                            </div>
+                        ) : (
+                            <span className="text-xl lg:text-2xl font-bold text-[#7B0A0A]">PLE</span>
+                        )}
+                    </Link>
 
-                {/* Hamburger Menu */}
-                <button
-                  onClick={() => setSidebarOpen(true)}
-                  className="p-2 text-gray-650 dark:text-gray-300 hover:text-[#7B0A0A] dark:hover:text-[#FF4D4D] transition-colors"
-                  aria-label="Menu"
-                >
-                  <FiMenu className="text-xl lg:text-2xl" />
-                </button>
+                    {/* Hamburger Menu */}
+                    <button
+                      onClick={() => setSidebarOpen(true)}
+                      className="p-2 rounded-xl text-gray-650 dark:text-gray-300 hover:text-[#7B0A0A] dark:hover:text-[#FF4D4D] hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
+                      aria-label="Menu"
+                      title="All Categories & Menu"
+                    >
+                      <FiMenu className="text-xl lg:text-2xl" />
+                    </button>
+                </div>
 
                 {/* Navigation Links */}
-                <nav className="hidden lg:flex items-center gap-3 xl:gap-6">
-                    <Link to="/home" className="text-gray-655 dark:text-gray-300 hover:text-[#7B0A0A] dark:hover:text-[#FF4D4D] font-semibold text-xs xl:text-sm whitespace-nowrap">Home</Link>
-                    <Link to="/categories" className="text-gray-655 dark:text-gray-300 hover:text-[#7B0A0A] dark:hover:text-[#FF4D4D] font-semibold text-xs xl:text-sm flex items-center gap-1 whitespace-nowrap">
-                        <FiGrid /> Categories
+                <nav className="hidden lg:flex items-center gap-1 xl:gap-2 2xl:gap-3 flex-shrink-0">
+                    <Link 
+                        to="/home" 
+                        className="px-2.5 py-1.5 rounded-lg text-gray-700 dark:text-gray-200 hover:text-[#7B0A0A] dark:hover:text-[#FF4D4D] hover:bg-gray-100/80 dark:hover:bg-neutral-800 font-medium text-xs xl:text-sm whitespace-nowrap transition-colors"
+                    >
+                        Home
                     </Link>
-                    <Link to="/offers" className="text-gray-655 dark:text-gray-300 hover:text-[#7B0A0A] dark:hover:text-[#FF4D4D] font-semibold text-xs xl:text-sm whitespace-nowrap">Offers</Link>
+                    <Link 
+                        to="/categories" 
+                        className="px-2.5 py-1.5 rounded-lg text-gray-700 dark:text-gray-200 hover:text-[#7B0A0A] dark:hover:text-[#FF4D4D] hover:bg-gray-100/80 dark:hover:bg-neutral-800 font-medium text-xs xl:text-sm flex items-center gap-1.5 whitespace-nowrap transition-colors"
+                    >
+                        <FiGrid className="text-sm opacity-80" /> Categories
+                    </Link>
+                    <Link 
+                        to="/offers" 
+                        className="px-2.5 py-1.5 rounded-lg text-gray-700 dark:text-gray-200 hover:text-[#7B0A0A] dark:hover:text-[#FF4D4D] hover:bg-gray-100/80 dark:hover:bg-neutral-800 font-medium text-xs xl:text-sm whitespace-nowrap transition-colors"
+                    >
+                        Offers
+                    </Link>
                     {activeFestivalCampaign && (
-                        <Link to="/festival-campaign" className="text-red-650 dark:text-red-400 hover:text-red-700 font-bold text-xs xl:text-sm transition-all animate-pulse flex items-center gap-1 whitespace-nowrap">
-                            ✨ {activeFestivalCampaign.name}
+                        <Link 
+                            to="/festival-campaign" 
+                            className="px-2.5 xl:px-3 py-1.5 rounded-full bg-red-50 hover:bg-red-100/80 dark:bg-red-950/40 dark:hover:bg-red-900/50 text-[#7B0A0A] dark:text-red-400 font-bold text-xs xl:text-sm border border-red-200/80 dark:border-red-900/50 transition-all flex items-center gap-1.5 whitespace-nowrap shadow-xs"
+                        >
+                            <span>✨</span>
+                            <span className="hidden xl:inline">{activeFestivalCampaign.name}</span>
+                            <span className="xl:hidden">Festive Sale</span>
                         </Link>
                     )}
-                    <Link to="/refurbished-categories" className="text-gray-655 dark:text-gray-300 hover:text-[#7B0A0A] dark:hover:text-[#FF4D4D] font-semibold text-xs xl:text-sm whitespace-nowrap">Refurbished</Link>
+                    <Link 
+                        to="/refurbished-categories" 
+                        className="px-2.5 py-1.5 rounded-lg text-gray-700 dark:text-gray-200 hover:text-[#7B0A0A] dark:hover:text-[#FF4D4D] hover:bg-gray-100/80 dark:hover:bg-neutral-800 font-medium text-xs xl:text-sm whitespace-nowrap transition-colors"
+                    >
+                        Refurbished
+                    </Link>
                 </nav>
 
                 {/* Search Bar */}
-                <div className="flex-1 min-w-[120px] max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg">
+                <div className="flex-1 min-w-[180px] max-w-sm lg:max-w-md xl:max-w-xl mx-1 lg:mx-3">
                     <SearchBar />
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-2 lg:gap-4 flex-shrink-0">
+                <div className="flex items-center gap-1.5 lg:gap-2.5 xl:gap-3 flex-shrink-0">
                     {/* Cart */}
                     <button
-                        onClick={toggleCart}
-                        className="relative p-2 text-gray-655 dark:text-gray-300 hover:text-[#7B0A0A] dark:hover:text-[#FF4D4D] transition-colors"
+                        onClick={() => navigate('/cart')}
+                        className="relative p-2.5 text-gray-700 dark:text-gray-300 hover:text-[#7B0A0A] dark:hover:text-[#FF4D4D] hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full transition-colors"
+                        title="View Cart"
                     >
-                        <FiShoppingBag className="text-2xl" />
+                        <FiShoppingBag className="text-xl lg:text-2xl" />
                         {itemCount > 0 && (
-                            <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#7B0A0A] text-white text-xs font-bold flex items-center justify-center">
+                            <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1 rounded-full bg-[#7B0A0A] text-white text-[11px] font-bold flex items-center justify-center shadow-sm">
                                 {itemCount > 9 ? "9+" : itemCount}
                             </span>
                         )}
                     </button>
-                    {/* Hamburger Menu */}
-
 
                     {/* Theme Toggle */}
                     <button
                         onClick={toggleTheme}
-                        className="relative p-2 text-gray-655 dark:text-[#C8B3A3] hover:text-[#7B0A0A] dark:hover:text-[#D18B4A] transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-[#2A1F1A] focus:outline-none"
+                        className="relative p-2.5 text-gray-700 dark:text-[#C8B3A3] hover:text-[#7B0A0A] dark:hover:text-[#D18B4A] transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800 focus:outline-none"
                         title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
                     >
                         <motion.div
@@ -413,9 +450,9 @@ const DesktopHeader = () => {
                             className="flex items-center justify-center"
                         >
                             {theme === "light" ? (
-                                <FiMoon className="text-2xl" />
+                                <FiMoon className="text-xl lg:text-2xl" />
                             ) : (
-                                <FiSun className="text-2xl text-yellow-500 animate-pulse" />
+                                <FiSun className="text-xl lg:text-2xl text-yellow-500 animate-pulse" />
                             )}
                         </motion.div>
                     </button>
@@ -425,7 +462,7 @@ const DesktopHeader = () => {
                         <div ref={userMenuRef} className="relative">
                             <button
                                 onClick={() => setShowUserMenu(!showUserMenu)}
-                                className="flex items-center gap-2 p-1 lg:p-1.5 hover:bg-gray-50 dark:hover:bg-neutral-900 rounded-full transition-all border border-transparent hover:border-gray-200 dark:hover:border-neutral-800"
+                                className="flex items-center gap-2 p-1.5 lg:px-2.5 lg:py-1.5 hover:bg-gray-100 dark:hover:bg-neutral-900 rounded-full transition-all border border-transparent hover:border-gray-200 dark:hover:border-neutral-800"
                             >
                                 {user?.avatar ? (
                                     <img
@@ -434,9 +471,9 @@ const DesktopHeader = () => {
                                         className="w-8 h-8 rounded-full object-cover"
                                     />
                                 ) : (
-                                    <HiOutlineUserCircle className="text-gray-655 dark:text-gray-305 text-3xl" />
+                                    <HiOutlineUserCircle className="text-gray-700 dark:text-gray-300 text-2xl lg:text-[28px]" />
                                 )}
-                                <span className="hidden lg:block text-sm font-medium text-gray-700 dark:text-gray-300 max-w-[100px] truncate">{user?.name || "User"}</span>
+                                <span className="hidden xl:block text-xs lg:text-sm font-medium text-gray-750 dark:text-gray-200 max-w-[120px] truncate">{user?.name || "User"}</span>
                             </button>
 
                             <AnimatePresence>

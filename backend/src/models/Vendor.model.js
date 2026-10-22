@@ -15,10 +15,18 @@ const vendorSchema = new mongoose.Schema(
         storeDescription: { type: String },
         status: {
             type: String,
-            enum: ['pending', 'approved', 'suspended', 'rejected'],
+            enum: ['pending', 'approved', 'suspended', 'rejected', 'deleted'],
             default: 'pending',
             index: true,
         },
+        deletionStatus: {
+            type: String,
+            enum: ['NONE', 'PENDING', 'APPROVED', 'REJECTED'],
+            default: 'NONE',
+            index: true
+        },
+        isDeleted: { type: Boolean, default: false, index: true },
+        deletedAt: { type: Date, default: null },
         suspensionReason: { type: String },
         isFlagged: { type: Boolean, default: false, index: true },
         flagReason: { type: String, default: null },
@@ -76,6 +84,11 @@ const vendorSchema = new mongoose.Schema(
             aadhar: String,
             businessLicense: String,
         },
+        categoryGstRates: [{
+            categoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
+            gstRate: { type: Number, min: 0, max: 100 }
+        }],
+        defaultGstRate: { type: Number, min: 0, max: 100, default: 18 },
         b2bSettings: {
             autoResponse: { type: Boolean, default: false },
             autoResponseMessage: { type: String, default: "Thank you for submitting a Request For Quotation. We will review your product requirement list and submit a custom wholesale quotation shortly." },
@@ -117,6 +130,13 @@ const vendorSchema = new mongoose.Schema(
             default: 'Other'
         },
         gstRegistered: { type: Boolean, default: false },
+        defaultGstRate: { type: Number, default: 18, min: 0, max: 100 },
+        categoryGstRates: [
+            {
+                categoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
+                gstRate: { type: Number, min: 0, max: 100 }
+            }
+        ],
         businessName: { type: String },
         tradeName: { type: String },
         gstNumber: { type: String },

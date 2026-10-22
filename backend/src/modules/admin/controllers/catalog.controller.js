@@ -814,6 +814,8 @@ export const reviewProduct = asyncHandler(async (req, res) => {
         b2bWholesalePrice,
         b2bMinOrderQty,
         b2bBulkPricingSlabs,
+        gstMode,
+        gstRate,
         approveBrand = true,
         approveCategory = true,
     } = req.body;
@@ -922,6 +924,15 @@ export const reviewProduct = asyncHandler(async (req, res) => {
 
         if (b2bBulkPricingSlabs !== undefined) {
             product.b2bBulkPricingSlabs = b2bBulkPricingSlabs;
+        }
+
+        if (gstMode && ['category', 'custom'].includes(gstMode)) {
+            product.gstMode = gstMode;
+        }
+        if (gstRate !== undefined && !isNaN(gstRate)) {
+            const rate = Math.max(0, Math.min(100, Number(gstRate)));
+            product.gstRate = rate;
+            product.taxRate = rate;
         }
     }
 

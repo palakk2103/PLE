@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import StatsCards from "../components/Analytics/StatsCards";
+import RevenueBreakdownCards from "../components/Analytics/RevenueBreakdownCards";
 import { FiBriefcase, FiPackage, FiShoppingBag, FiTrendingUp } from "react-icons/fi";
 import RevenueLineChart from "../components/Analytics/RevenueLineChart";
 import SalesBarChart from "../components/Analytics/SalesBarChart";
@@ -30,6 +31,11 @@ const Dashboard = () => {
 
   const [stats, setStats] = useState({
     totalRevenue: 0,
+    inHouseRevenue: 0,
+    vendorGrossRevenue: 0,
+    adminCommission: 0,
+    vendorNetEarnings: 0,
+    totalAdminRevenue: 0,
     totalOrders: 0,
     totalProducts: 0,
     totalCustomers: 0,
@@ -153,6 +159,11 @@ const Dashboard = () => {
         const d = statsRes.value.data;
         setStats({
           totalRevenue: d.totalRevenue || 0,
+          inHouseRevenue: d.inHouseRevenue || 0,
+          vendorGrossRevenue: d.vendorGrossRevenue || 0,
+          adminCommission: d.adminCommission || 0,
+          vendorNetEarnings: d.vendorNetEarnings || 0,
+          totalAdminRevenue: d.totalAdminRevenue || 0,
           totalOrders: d.totalOrders || 0,
           totalProducts: d.totalProducts || 0,
           totalCustomers: d.totalUsers || 0,
@@ -170,6 +181,11 @@ const Dashboard = () => {
       } else {
         setStats({
           totalRevenue: 0,
+          inHouseRevenue: 0,
+          vendorGrossRevenue: 0,
+          adminCommission: 0,
+          vendorNetEarnings: 0,
+          totalAdminRevenue: 0,
           totalOrders: 0,
           totalProducts: 0,
           totalCustomers: 0,
@@ -279,6 +295,9 @@ const Dashboard = () => {
 
       {/* Stats Cards */}
       <StatsCards stats={stats} />
+
+      {/* Revenue & Earnings Breakdown (In-House vs Vendors) */}
+      <RevenueBreakdownCards stats={stats} />
 
       {/* Business Verification & Seller Overview */}
       <div className="space-y-4">

@@ -14,6 +14,37 @@ import { useBusinessBuyer } from '../hooks/useBusinessBuyer';
 import api from '../../../shared/utils/api';
 import { useEffect } from 'react';
 
+const COMPANY_TYPE_DOC_CONFIG = {
+  'Proprietorship': {
+    label: 'Business Registration Proof / Shop & Establishment Certificate',
+    hint: 'Shop Act License, Udyam / MSME Registration, or Municipal Trade License'
+  },
+  'Partnership Firm': {
+    label: 'Partnership Deed / Registration Certificate',
+    hint: 'Registered / Notarized Partnership Deed or Registrar of Firms Certificate'
+  },
+  'LLP (Limited Liability Partnership)': {
+    label: 'LLP Agreement / Certificate of Incorporation (LLPIN)',
+    hint: 'LLP Agreement (Form 3) or MCA Certificate of Incorporation'
+  },
+  'Private Limited Company': {
+    label: 'Certificate of Incorporation (CIN / COI)',
+    hint: 'MCA Certificate of Incorporation (CIN) or MOA & AOA'
+  },
+  'Public Limited Company': {
+    label: 'Certificate of Incorporation (CIN / COI)',
+    hint: 'MCA Certificate of Incorporation (CIN) or Commencement Certificate'
+  },
+  'One Person Company (OPC)': {
+    label: 'Certificate of Incorporation (COI)',
+    hint: 'MCA Certificate of Incorporation (CIN)'
+  },
+  'Other': {
+    label: 'Company Registration / Incorporation Proof',
+    hint: 'Official government/state business registration certificate'
+  }
+};
+
 const MobileRegister = ({ isB2BRoute }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -46,6 +77,10 @@ const MobileRegister = ({ isB2BRoute }) => {
   const [uploadedAgreement, setUploadedAgreement] = useState(null);
   const [uploadingAgreement, setUploadingAgreement] = useState(false);
   const [dragOverAgreement, setDragOverAgreement] = useState(false);
+
+  const [uploadedCompanyDoc, setUploadedCompanyDoc] = useState(null);
+  const [uploadingCompanyDoc, setUploadingCompanyDoc] = useState(false);
+  const [dragOverCompanyDoc, setDragOverCompanyDoc] = useState(false);
 
   useEffect(() => {
     api.get('/agreement-template/active')
@@ -170,6 +205,45 @@ const MobileRegister = ({ isB2BRoute }) => {
     }
   };
 
+  const handleCompanyDocUpload = async (file) => {
+    if (!file) return;
+    const allowedTypes = [
+      'application/pdf', 
+      'image/jpeg', 
+      'image/png', 
+      'image/webp'
+    ];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Only PDF, JPG, PNG, and WEBP files are allowed.');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Maximum file size is 10 MB.');
+      return;
+    }
+    
+    setUploadingCompanyDoc(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await api.post('/b2b-user/auth/upload-document', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      const data = response?.data?.data || response?.data || response;
+      if (data && data.url) {
+        setUploadedCompanyDoc(data);
+        toast.success('Company registration document uploaded successfully!');
+      } else {
+        toast.error('Failed to upload company document.');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || error?.message || 'Failed to upload company document.');
+    } finally {
+      setUploadingCompanyDoc(false);
+    }
+  };
+
   const validateStep1 = () => {
     if (!b2bData.companyName || !b2bData.businessEmail || !b2bData.businessPhone || !b2bData.businessAddress || !b2bData.businessType) {
       toast.error('Please fill all required company details.');
@@ -189,6 +263,10 @@ const MobileRegister = ({ isB2BRoute }) => {
         toast.error('Please enter a valid Indian GSTIN format.');
         return false;
       }
+    }
+    if (!uploadedCompanyDoc) {
+      toast.error('Please upload your Company Type registration document.');
+      return false;
     }
     if (!uploadedAgreement) {
       toast.error('Please upload the signed Acceptance & Execution Agreement.');
@@ -251,6 +329,7 @@ const MobileRegister = ({ isB2BRoute }) => {
           website: b2bData.website,
           secretKey: b2bData.secretKey,
           acceptanceExecutionDocument: uploadedAgreement,
+          companyRegistrationProof: uploadedCompanyDoc,
         },
         adminData: {
           adminName: b2bData.adminName,
@@ -487,6 +566,96 @@ const MobileRegister = ({ isB2BRoute }) => {
                           <option value="Other">Other</option>
                         </select>
                       </div>
+
+                      {/* Company Type Document Upload */}
+                      {b2bData.businessType ? (
+                        <div className="p-3.5 bg-gray-50 dark:bg-zinc-900/60 rounded-xl border border-gray-200 dark:border-zinc-800 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <label className="block text-xs font-bold text-gray-800 dark:text-zinc-200">
+                              {COMPANY_TYPE_DOC_CONFIG[b2bData.businessType]?.label || 'Company Registration Proof'} *
+                            </label>
+                            <span className="text-[10px] text-red-600 font-bold bg-red-50 dark:bg-red-950/30 px-2 py-0.5 rounded border border-red-200 dark:border-red-900/40">
+                              Mandatory
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-gray-500 dark:text-zinc-400">
+                            {COMPANY_TYPE_DOC_CONFIG[b2bData.businessType]?.hint || 'Official business registration document'}.
+                          </p>
+
+                          <div
+                            onDragOver={(e) => { e.preventDefault(); setDragOverCompanyDoc(true); }}
+                            onDragLeave={() => setDragOverCompanyDoc(false)}
+                            onDrop={async (e) => {
+                              e.preventDefault();
+                              setDragOverCompanyDoc(false);
+                              const files = e.dataTransfer.files;
+                              if (files.length > 0) {
+                                await handleCompanyDocUpload(files[0]);
+                              }
+                            }}
+                            onClick={() => document.getElementById('company-doc-upload-input').click()}
+                            className={`border-2 border-dashed rounded-xl p-3.5 text-center cursor-pointer transition-colors ${
+                              dragOverCompanyDoc
+                                ? 'border-[#AE020B] bg-red-50/10'
+                                : 'border-gray-200 dark:border-zinc-800 hover:border-[#AE020B]'
+                            }`}
+                          >
+                            <input
+                              type="file"
+                              id="company-doc-upload-input"
+                              accept=".pdf,image/png,image/jpeg,image/webp"
+                              className="hidden"
+                              onChange={async (e) => {
+                                const files = e.target.files;
+                                if (files.length > 0) {
+                                  await handleCompanyDocUpload(files[0]);
+                                }
+                              }}
+                            />
+                            <FiUploadCloud className="text-xl md:text-2xl text-gray-400 dark:text-zinc-600 mx-auto mb-1" />
+                            <p className="text-xs font-bold text-gray-700 dark:text-zinc-300">
+                              Click or Drag & Drop Document
+                            </p>
+                            <p className="text-[10px] text-gray-400 dark:text-zinc-500 mt-0.5">
+                              PDF, JPG, PNG or WEBP (Max 10 MB)
+                            </p>
+                          </div>
+
+                          {uploadingCompanyDoc && (
+                            <p className="text-xs text-blue-500 font-semibold text-center animate-pulse">
+                              Uploading document...
+                            </p>
+                          )}
+
+                          {uploadedCompanyDoc && (
+                            <div className="bg-white dark:bg-zinc-950 p-2.5 rounded-lg border border-gray-200 dark:border-zinc-800 flex items-center justify-between">
+                              <div className="flex items-center gap-2 max-w-[80%]">
+                                <FiFileText className="text-lg text-[#AE020B] shrink-0" />
+                                <div className="overflow-hidden">
+                                  <p className="text-xs font-bold text-gray-800 dark:text-zinc-200 truncate">
+                                    {uploadedCompanyDoc.fileName}
+                                  </p>
+                                  <p className="text-[10px] text-gray-400">
+                                    {(uploadedCompanyDoc.size / 1024 / 1024).toFixed(2)} MB • {b2bData.businessType} Proof
+                                  </p>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setUploadedCompanyDoc(null)}
+                                className="text-red-500 hover:bg-gray-100 dark:hover:bg-zinc-800 p-1.5 rounded-lg transition-colors"
+                                title="Remove File"
+                              >
+                                <FiTrash2 />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-[11px] text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-950/20 p-2 rounded-lg border border-amber-200 dark:border-amber-900/40">
+                          ℹ️ Please select your Company Type above to upload the required registration proof.
+                        </p>
+                      )}
                       <div>
                         <label className="block text-xs md:text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1 md:mb-1.5">Website (Optional)</label>
                         <input type="text" name="website" value={b2bData.website} onChange={handleB2bChange} className="w-full px-3.5 md:px-4 py-2.5 md:py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-xs md:text-base" placeholder="https://apexenterprises.in" />

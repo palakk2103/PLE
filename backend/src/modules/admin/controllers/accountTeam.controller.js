@@ -10,14 +10,18 @@ const CLASS_PREFIX_MAP = {
     employee: 'PLE-EMP-',
     director: 'PLE-DIR-',
     consultant: 'PLE-CON-',
-    intern: 'PLE-INT-'
+    intern: 'PLE-INT-',
+    superadmin: 'PLE-SA-'
 };
 
 /**
  * Safely generate the next sequential unique Identity ID for a class
  */
-export const generateUniqueIdentityId = async (identityClass = 'employee') => {
-    const normalizedClass = String(identityClass).toLowerCase();
+export const generateUniqueIdentityId = async (identityClass = 'employee', role = 'account_team') => {
+    let normalizedClass = String(identityClass || '').toLowerCase();
+    if (role === 'superadmin' || role === 'admin' || normalizedClass === 'superadmin') {
+        normalizedClass = 'superadmin';
+    }
     const prefix = CLASS_PREFIX_MAP[normalizedClass] || 'PLE-EMP-';
 
     // Find the latest identity ID starting with this prefix
@@ -53,16 +57,18 @@ export const generateUniqueIdentityId = async (identityClass = 'employee') => {
     return candidateId;
 };
 
-// GET /api/admin/account-team/next-id?class=employee
+// GET /api/admin/account-team/next-id?class=employee&role=superadmin
 export const getNextId = asyncHandler(async (req, res) => {
-    const identityClass = req.query.class || 'employee';
-    const nextId = await generateUniqueIdentityId(identityClass);
-    return res.status(200).json(new ApiResponse(200, { nextId, identityClass }, 'Next Identity ID generated.'));
+    const identityClass = req.query.class || (req.query.role === 'superadmin' ? 'superadmin' : 'employee');
+    const role = req.query.role || (identityClass === 'superadmin' ? 'superadmin' : 'account_team');
+    const nextId = await generateUniqueIdentityId(identityClass, role);
+    return res.status(200).json(new ApiResponse(200, { nextId, identityClass, role }, 'Next Identity ID generated.'));
 });
 
 // POST /api/admin/account-team/provision
 export const provisionMember = asyncHandler(async (req, res) => {
     const {
+        role = 'account_team',
         identityClass = 'employee',
         identityId: requestedIdentityId,
         name,
@@ -87,6 +93,11 @@ export const provisionMember = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'Initial Domain Password must be at least 6 characters.');
     }
 
+    const isSuperAdmin = role === 'superadmin' || role === 'admin';
+    const finalRole = isSuperAdmin ? 'superadmin' : 'account_team';
+    const finalUserType = isSuperAdmin ? 'superadmin' : 'account_team';
+    const finalIdentityClass = isSuperAdmin ? 'superadmin' : (identityClass ? String(identityClass).toLowerCase() : 'employee');
+
     const normalizedEmail = email.trim().toLowerCase();
 
     // Check if email already exists
@@ -105,21 +116,21 @@ export const provisionMember = asyncHandler(async (req, res) => {
             throw new ApiError(409, `Identity ID "${identityId}" already exists. Please enter a different ID.`);
         }
     } else {
-        identityId = await generateUniqueIdentityId(identityClass);
+        identityId = await generateUniqueIdentityId(finalIdentityClass, finalRole);
     }
 
     // Hash personal secret securely
     const personalSecretHash = await Admin.hashPersonalSecret(personalSecret);
 
-    // Create Account Team user
+    // Create user
     const member = new Admin({
         name: name.trim(),
         email: normalizedEmail,
         password: initialPassword, // pre-save hook will hash this
-        role: 'account_team',
-        userType: 'account_team',
+        role: finalRole,
+        userType: finalUserType,
         identityId,
-        identityClass: identityClass.toLowerCase(),
+        identityClass: finalIdentityClass,
         personalSecretHash,
         phone: phone ? phone.trim() : undefined,
         department: department.trim(),
@@ -136,16 +147,17 @@ export const provisionMember = asyncHandler(async (req, res) => {
     // Audit log
     await logActivity({
         actor: req.user,
-        action: 'IDENTITY_PROVISIONED',
+        action: isSuperAdmin ? 'SUPER_ADMIN_PROVISIONED' : 'IDENTITY_PROVISIONED',
         module: 'ACCOUNT_TEAM',
         entityType: 'Admin',
         entityId: member._id,
-        description: `Provisioned organizational identity ${identityId} for ${name.trim()} (${department.trim()} - ${designation.trim()})`,
+        description: `Provisioned ${isSuperAdmin ? 'Super Administrator' : 'organizational identity'} ${identityId} for ${name.trim()} (${department.trim()} - ${designation.trim()})`,
         req,
         status: 'SUCCESS',
         metadata: {
             identityId,
-            identityClass,
+            identityClass: finalIdentityClass,
+            role: finalRole,
             name: member.name,
             email: member.email,
             department: member.department,
@@ -154,19 +166,20 @@ export const provisionMember = asyncHandler(async (req, res) => {
         }
     });
 
-    // Security Notification Item 188: Employee account created
+    // Security Notification Item 188: Employee/Admin account created
     sendSecurityAlert({
         user: member,
         recipientEmail: member.email,
-        eventType: 'employee_created',
+        eventType: isSuperAdmin ? 'admin_created' : 'employee_created',
         ipAddress: req.ip || req.connection?.remoteAddress,
         userAgent: req.headers['user-agent'] || 'Admin Console',
         details: [
             { label: 'Identity ID', value: identityId },
+            { label: 'Role', value: isSuperAdmin ? 'Super Administrator' : 'Account Team Member' },
             { label: 'Department', value: member.department },
             { label: 'Designation', value: member.designation },
         ]
-    }).catch(err => console.warn(`[SecurityAlert] Employee created email failed: ${err.message}`));
+    }).catch(err => console.warn(`[SecurityAlert] Account created email failed: ${err.message}`));
 
     return res.status(201).json(new ApiResponse(201, {
         id: member._id,
@@ -191,10 +204,18 @@ export const getTeamMembers = asyncHandler(async (req, res) => {
     const limit = Math.max(1, Math.min(100, parseInt(req.query.limit, 10) || 15));
     const skip = (page - 1) * limit;
 
-    const { q, status, department, identityClass } = req.query;
+    const { q, status, department, identityClass, role } = req.query;
     const filter = {
         role: { $in: ['account_team', 'admin', 'superadmin'] }
     };
+
+    if (role && role !== 'all') {
+        if (role === 'superadmin' || role === 'admin') {
+            filter.role = { $in: ['superadmin', 'admin'] };
+        } else {
+            filter.role = 'account_team';
+        }
+    }
 
     if (q) {
         const queryRegex = new RegExp(q.trim(), 'i');

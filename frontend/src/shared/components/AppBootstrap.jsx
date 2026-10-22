@@ -177,6 +177,46 @@ const AppBootstrap = () => {
     };
   }, []);
 
+  useEffect(() => {
+    // If a customer was marked deleted/approved, clear their session and redirect to Portal Selection (/)
+    if (mainAuthIsAuthenticated) {
+      api.get('/user/account-deletion-request/status', { silent: true, skipErrorToast: true })
+        .then((res) => {
+          if (res?.data?.deletionStatus === 'APPROVED' || res?.data?.isDeleted) {
+            toast.error('Your account deletion request has been approved. This account is closed.');
+            useAuthStore.getState().logout('/');
+            window.location.href = '/';
+          }
+        })
+        .catch((err) => {
+          const msg = (err?.response?.data?.message || '').toLowerCase();
+          if (err?.response?.status === 403 && (msg.includes('deleted') || msg.includes('deactivated') || msg.includes('closed'))) {
+            useAuthStore.getState().logout('/');
+            window.location.href = '/';
+          }
+        });
+    }
+
+    // If a vendor was marked deleted/approved, clear their session and redirect to Vendor Login (/vendor/login)
+    const isVendorAuth = useVendorAuthStore.getState().isAuthenticated;
+    if (isVendorAuth) {
+      api.get('/vendor/account-deletion-request/status', { silent: true, skipErrorToast: true })
+        .then((res) => {
+          if (res?.data?.deletionStatus === 'APPROVED' || res?.data?.accountStatus === 'deleted') {
+            toast.error('Your vendor account deletion request has been approved. Store is closed.');
+            useVendorAuthStore.getState().logout();
+            window.location.href = '/vendor/login';
+          }
+        })
+        .catch((err) => {
+          const msg = (err?.response?.data?.message || '').toLowerCase();
+          if (err?.response?.status === 403 && (msg.includes('deleted') || msg.includes('closed'))) {
+            useVendorAuthStore.getState().logout();
+            window.location.href = '/vendor/login';
+          }
+        });
+    }
+  }, [mainAuthIsAuthenticated]);
 
   useEffect(() => {
     if (!user?.id) {

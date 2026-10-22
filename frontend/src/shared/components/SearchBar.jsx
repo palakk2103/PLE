@@ -288,7 +288,7 @@ const SearchBar = () => {
                 ? { repeat: Infinity, repeatType: "loop", duration: 4, ease: "linear" } 
                 : { duration: 0 }
             }}
-            className="absolute inset-y-0 left-12 md:left-12 md:right-12 flex items-center justify-start text-gray-400 pointer-events-none z-10 whitespace-nowrap overflow-hidden text-ellipsis text-left"
+            className="absolute inset-y-0 left-11 right-4 flex items-center justify-start text-gray-400 pointer-events-none z-10 whitespace-nowrap overflow-hidden text-ellipsis text-left text-sm"
           >
             {displayedPlaceholder}
           </motion.span>

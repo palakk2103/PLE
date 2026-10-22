@@ -261,9 +261,9 @@ export const placeOrder = asyncHandler(async (req, res) => {
 
     for (const item of items) {
         const product = await Product.findById(item.productId)
-            .populate('vendorId', 'commissionRate storeName shippingEnabled defaultShippingRate freeShippingThreshold')
+            .populate('vendorId', 'commissionRate storeName shippingEnabled defaultShippingRate freeShippingThreshold categoryGstRates defaultGstRate')
             .populate('shopId', 'name logo')
-            .populate('categoryId', 'name gstRate');
+            .populate('categoryId', 'name gstRate parentId');
         if (!product) throw new ApiError(404, `Product not found: ${item.productId}`);
         if (product.stock === 'out_of_stock') throw new ApiError(400, `${product.name} is out of stock.`);
         if (product.stockQuantity < item.quantity) throw new ApiError(400, `Only ${product.stockQuantity} units of ${product.name} available.`);
@@ -293,7 +293,7 @@ export const placeOrder = asyncHandler(async (req, res) => {
         subtotal += itemSubtotal;
 
         // Resolve seller-controlled GST for this product/category
-        const itemGstRate = resolveProductGST(product, product.categoryId);
+        const itemGstRate = resolveProductGST(product, product.categoryId, product.vendorId);
         const { taxableAmount, gstAmount } = calculateItemGST(itemPrice, item.quantity, itemGstRate, 0, product.taxIncluded);
 
         const variantImage =
@@ -302,6 +302,9 @@ export const placeOrder = asyncHandler(async (req, res) => {
                 : '';
 
         const isManagedShop = !!product.shopId;
+        const isManagedListing = product.listingType === 'admin_managed_listing';
+        const unitSupplyPrice = isManagedListing ? (product.negotiatedSupplyPrice || itemPrice) : itemPrice;
+        const itemSupplySubtotal = unitSupplyPrice * item.quantity;
         const vendorIdObj = isManagedShop ? product.shopId._id : product.vendorId?._id;
         const vendorNameStr = isManagedShop ? (product.shopId.name || "Managed Shop") : (product.vendorId?.storeName || "Unknown Vendor");
         const commissionRateNum = isManagedShop ? 0 : (product.vendorId?.commissionRate || 10);
@@ -340,16 +343,19 @@ export const placeOrder = asyncHandler(async (req, res) => {
                 vendorId: vendorIdObj,
                 vendorName: vendorNameStr,
                 commissionRate: commissionRateNum,
+                isManagedListing,
                 shippingEnabled: shippingEnabledVal,
                 defaultShippingRate: defaultShippingRateVal,
                 freeShippingThreshold: freeShippingThresholdVal,
                 items: [],
                 subtotal: 0,
+                supplySubtotal: 0,
                 tax: 0,
             };
         }
         vendorMap[vid].items.push(enriched);
         vendorMap[vid].subtotal += itemSubtotal;
+        vendorMap[vid].supplySubtotal += itemSupplySubtotal;
         vendorMap[vid].tax = parseFloat(((vendorMap[vid].tax || 0) + gstAmount).toFixed(2));
     }
 
@@ -380,13 +386,28 @@ export const placeOrder = asyncHandler(async (req, res) => {
         shippingEnabled: vendorGroup.shippingEnabled,
         defaultShippingRate: vendorGroup.defaultShippingRate,
         freeShippingThreshold: vendorGroup.freeShippingThreshold,
+        items: vendorGroup.items,
     }));
-    const { totalShipping: shipping, shippingByVendor } = await calculateVendorShippingForGroups({
+    const {
+        totalShipping: shipping,
+        shippingByVendor,
+        isCodAvailable,
+        isServiceable
+    } = await calculateVendorShippingForGroups({
         vendorGroups: vendorShippingInput,
         shippingAddress,
         shippingOption,
+        paymentMethod: normalizedPaymentMethod,
         couponType: appliedCoupon?.type || null,
     });
+
+    const isCodOrder = ['cod', 'cash'].includes(String(normalizedPaymentMethod).toLowerCase());
+    if (isCodOrder && isCodAvailable === false) {
+        throw new ApiError(
+            400,
+            `Cash on Delivery is not available for delivery pincode ${shippingAddress?.zipCode || ''}. Please select an Online Payment method.`
+        );
+    }
 
     // 4. Calculate loyalty discount (server-side validation)
     let loyaltyDiscount = 0;
@@ -657,15 +678,33 @@ export const placeOrder = asyncHandler(async (req, res) => {
             }
 
             // 8. Record commissions
-            const commissionDocs = Object.values(vendorMap).map((v) => ({
-                orderId: order._id,
-                vendorId: v.vendorId,
-                vendorName: v.vendorName,
-                subtotal: v.subtotal,
-                commissionRate: v.commissionRate,
-                commission: parseFloat(((v.subtotal * v.commissionRate) / 100).toFixed(2)),
-                vendorEarnings: parseFloat((v.subtotal - (v.subtotal * v.commissionRate) / 100).toFixed(2)),
-            }));
+            const commissionDocs = Object.values(vendorMap).map((v) => {
+                if (v.isManagedListing) {
+                    const supplyEarnings = parseFloat(Number(v.supplySubtotal || 0).toFixed(2));
+                    const adminMargin = parseFloat(Math.max(0, v.subtotal - supplyEarnings).toFixed(2));
+                    return {
+                        orderId: order._id,
+                        vendorId: v.vendorId,
+                        vendorName: v.vendorName,
+                        subtotal: v.subtotal,
+                        commissionRate: 0,
+                        commission: adminMargin, // Admin retained commercial margin
+                        vendorEarnings: supplyEarnings, // Contracted supply price payable to managed shop
+                    };
+                }
+
+                // Standard third-party vendor commission
+                const comm = parseFloat(((v.subtotal * v.commissionRate) / 100).toFixed(2));
+                return {
+                    orderId: order._id,
+                    vendorId: v.vendorId,
+                    vendorName: v.vendorName,
+                    subtotal: v.subtotal,
+                    commissionRate: v.commissionRate,
+                    commission: comm,
+                    vendorEarnings: parseFloat((v.subtotal - comm).toFixed(2)),
+                };
+            });
             await Commission.insertMany(commissionDocs, { session });
 
             // 9. Increment coupon usage

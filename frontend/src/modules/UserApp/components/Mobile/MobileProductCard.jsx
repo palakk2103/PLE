@@ -117,6 +117,9 @@ const MobileProductCard = memo(({ product }) => {
       stockQuantity: product.stockQuantity,
       vendorId: product.vendorId,
       vendorName: product.vendorName,
+      gstRate: product.gstRate !== undefined ? Number(product.gstRate) : (product.taxRate !== undefined ? Number(product.taxRate) : 18),
+      taxRate: product.gstRate !== undefined ? Number(product.gstRate) : (product.taxRate !== undefined ? Number(product.taxRate) : 18),
+      taxIncluded: Boolean(product.taxIncluded),
     });
     if (!addedToCart) return;
     triggerCartAnimation();

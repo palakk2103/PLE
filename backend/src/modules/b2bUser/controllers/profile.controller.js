@@ -62,6 +62,21 @@ export const updateCompanyProfile = asyncHandler(async (req, res) => {
     delete updates.businessEmail;
     delete updates.gstNumber;
 
+    if (updates.bankDetails && typeof updates.bankDetails === 'object') {
+        if (updates.bankDetails.ifscCode) {
+            updates.bankDetails.ifscCode = String(updates.bankDetails.ifscCode).trim().toUpperCase();
+        }
+        if (updates.bankDetails.accountNumber) {
+            updates.bankDetails.accountNumber = String(updates.bankDetails.accountNumber).trim();
+        }
+        if (updates.bankDetails.accountHolderName) {
+            updates.bankDetails.accountHolderName = String(updates.bankDetails.accountHolderName).trim();
+        }
+        if (updates.bankDetails.bankName) {
+            updates.bankDetails.bankName = String(updates.bankDetails.bankName).trim();
+        }
+    }
+
     const company = await B2BCompany.findByIdAndUpdate(
         companyId,
         { $set: updates },
@@ -233,7 +248,7 @@ export const uploadLegalDocument = asyncHandler(async (req, res) => {
         throw new ApiError(404, 'Company not found.');
     }
 
-    const validDocTypes = ['acceptanceExecutionDocument', 'gstCertificate', 'companyRegistrationProof'];
+    const validDocTypes = ['acceptanceExecutionDocument', 'gstCertificate', 'companyRegistrationProof', 'cancelledCheque'];
     const docType = req.body?.docType || req.query?.docType || 'acceptanceExecutionDocument';
     const targetDocField = validDocTypes.includes(docType) ? docType : 'acceptanceExecutionDocument';
 
