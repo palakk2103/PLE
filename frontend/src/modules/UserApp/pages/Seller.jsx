@@ -43,6 +43,12 @@ const Seller = () => {
     const navigate = useNavigate();
     const handleBack = useSafeBack('/home');
     const { isAuthenticated, user } = useAuthStore();
+    const b2bUserRole = useB2bStore((state) => state.userRole);
+    const isB2BUser =
+        user?.role === 'b2bAdmin' ||
+        user?.role === 'b2bEmployee' ||
+        user?.isEmployee ||
+        b2bUserRole === 'business_buyer';
     const vendorId = String(id ?? "").trim();
     const [catalogVersion, setCatalogVersion] = useState(0);
     const [remoteVendor, setRemoteVendor] = useState(null);
@@ -110,6 +116,7 @@ const Seller = () => {
     const filterButtonRef = useRef(null);
 
     const handleChatWithStore = async () => {
+        if (!isB2BUser) return;
         if (isInitiatingChat) return;
         try {
             if (!isAuthenticated) {
@@ -475,15 +482,17 @@ const Seller = () => {
                                             <span>{vendorProducts.length} Products</span>
                                         </div>
                                     </div>
-                                    <button
-                                        type="button"
-                                        onClick={handleChatWithStore}
-                                        disabled={isInitiatingChat}
-                                        className="mt-3 relative z-10 flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#9B1C1C] via-[#7B0A0A] to-[#4C0505] text-white font-bold rounded-xl shadow-md hover:shadow-lg active:scale-95 transition-all duration-200 text-xs cursor-pointer disabled:opacity-50"
-                                    >
-                                        <FiMessageSquare className="text-sm" />
-                                        <span>{isInitiatingChat ? "Connecting..." : "Chat with Store"}</span>
-                                    </button>
+                                    {isB2BUser && (
+                                        <button
+                                            type="button"
+                                            onClick={handleChatWithStore}
+                                            disabled={isInitiatingChat}
+                                            className="mt-3 relative z-10 flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#9B1C1C] via-[#7B0A0A] to-[#4C0505] text-white font-bold rounded-xl shadow-md hover:shadow-lg active:scale-95 transition-all duration-200 text-xs cursor-pointer disabled:opacity-50"
+                                        >
+                                            <FiMessageSquare className="text-sm" />
+                                            <span>{isInitiatingChat ? "Connecting..." : "Chat with Store"}</span>
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>

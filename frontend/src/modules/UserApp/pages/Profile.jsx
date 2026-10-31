@@ -356,8 +356,13 @@ const MobileProfile = () => {
         phone: data?.phone,
         gender: data?.gender,
         dob: data?.dob,
+        ...(!isB2BUser && data?.email ? { email: data.email.trim() } : {}),
       });
-      if (res?.success) {
+      if (res?.pendingUpdateId) {
+        setPendingUpdateId(res.pendingUpdateId);
+        setShowOtpModal(true);
+        toast.success("OTP sent to your current email to confirm the new email.");
+      } else if (res?.success) {
         toast.success("Profile updated successfully!");
       }
     } catch (error) {
@@ -647,14 +652,14 @@ const MobileProfile = () => {
         bg: "bg-[#7B0A0A]/10",
         link: "/support-tickets",
       },
-      {
+      ...(isB2BUser ? [{
         id: "my-chats",
         label: "My Store Chats",
         icon: FiMessageSquare,
         color: "text-[#7B0A0A]",
         bg: "bg-[#7B0A0A]/10",
         link: "/chats",
-      },
+      }] : []),
       {
         id: "help",
         label: "Help & Support",
@@ -679,7 +684,7 @@ const MobileProfile = () => {
         link: "/settings",
       },
     ];
-  }, [isBusiness, unreadNotificationCount, wishlistCount, availablePoints]);
+  }, [isBusiness, isB2BUser, unreadNotificationCount, wishlistCount, availablePoints]);
 
   const legalOptions = [
     {
@@ -1182,16 +1187,18 @@ const MobileProfile = () => {
                               isValidEmail(value) ||
                               "Please enter a valid email",
                           })}
-                          readOnly
+                          readOnly={isB2BUser}
                           className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 ${personalErrors.email
                               ? "border-red-300 focus:border-red-500"
                               : "border-gray-200 focus:border-primary-500"
-                            } focus:outline-none transition-colors text-base bg-gray-50 text-gray-500 cursor-not-allowed`}
+                            } focus:outline-none transition-colors text-base ${isB2BUser ? "bg-gray-50 text-gray-500 cursor-not-allowed" : ""}`}
                           placeholder="your.email@example.com"
                         />
                       </div>
                       <p className="mt-1 text-xs text-gray-500">
-                        Email cannot be changed from profile settings.
+                        {isB2BUser
+                          ? "Business email cannot be changed from profile settings."
+                          : "Changing your email requires OTP verification."}
                       </p>
                       <AnimatePresence>
                         {personalErrors.email && (
@@ -2392,6 +2399,25 @@ const MobileProfile = () => {
             </div>
           )}
         </AnimatePresence>
+
+        <OTPVerificationModal
+          isOpen={showOtpModal}
+          onClose={() => {
+            setShowOtpModal(false);
+            setPendingUpdateId(null);
+          }}
+          email={user?.email}
+          onVerify={async (otp) => {
+            await verifyProfileOTP(pendingUpdateId, otp);
+            toast.success("Email updated successfully!");
+            setShowOtpModal(false);
+            setPendingUpdateId(null);
+          }}
+          onResend={async () => {
+            await resendProfileOTP(pendingUpdateId);
+            toast.success("OTP resent successfully");
+          }}
+        />
       </MobileLayout>
     </PageTransition>
   );

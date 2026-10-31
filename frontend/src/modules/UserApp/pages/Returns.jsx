@@ -135,7 +135,10 @@ const Returns = () => {
                     <div className="flex justify-between items-center pb-2 border-b border-gray-50">
                       <div>
                         <span className="text-[10px] text-gray-400 font-semibold block">Return ID</span>
-                        <span className="text-xs font-bold text-gray-800">{req.id}</span>
+                        <span className="text-xs font-bold text-gray-800 break-all">{req.returnId || req.id}</span>
+                        <span className="text-[10px] text-gray-500 font-medium block mt-0.5">
+                          Order ID: <span className="font-bold text-[#7B0A0A]">#{req.orderId}</span>
+                        </span>
                       </div>
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                         req.status === 'Rejected' ? 'bg-red-50 text-red-700' :
@@ -159,6 +162,10 @@ const Returns = () => {
                           {req.items?.[0]?.name || 'Unknown Product'}
                           {req.items?.length > 1 && ` + ${req.items.length - 1} more`}
                         </h4>
+                        <p className="text-[10px] text-gray-500 mt-0.5">
+                          Qty: {req.items?.[0]?.quantity || 1}
+                          {req.items?.length > 1 && ` (+${req.items.length - 1} more)`}
+                        </p>
                         <p className="text-[10px] text-gray-400 mt-0.5">
                           Requested on {new Date(req.requestDate).toLocaleDateString()}
                         </p>

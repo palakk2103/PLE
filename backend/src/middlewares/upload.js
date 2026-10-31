@@ -20,6 +20,14 @@ const ALLOWED_DOCUMENT_MIME_TYPES = [
     'application/x-zip',
     'text/plain',
 ];
+const ALLOWED_DOCUMENT_EXTENSIONS = [
+    'pdf', 'jpg', 'jpeg', 'png', 'webp', 'gif', 'doc', 'docx', 'xls', 'xlsx', 'zip', 'txt',
+];
+// Browsers/OSes often report PDFs as x-pdf, octet-stream, etc., so also trust the extension.
+const isAllowedDocument = (file) => {
+    const ext = path.extname(file.originalname || '').slice(1).toLowerCase();
+    return ALLOWED_DOCUMENT_MIME_TYPES.includes(file.mimetype) || ALLOWED_DOCUMENT_EXTENSIONS.includes(ext);
+};
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const MAX_DOCUMENT_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -81,7 +89,7 @@ export const uploadDocumentSingle = (fieldName) =>
     multer({
         storage: imageDiskStorage,
         fileFilter: (req, file, cb) => {
-            if (ALLOWED_DOCUMENT_MIME_TYPES.includes(file.mimetype)) {
+            if (isAllowedDocument(file)) {
                 cb(null, true);
             } else {
                 cb(
@@ -101,7 +109,7 @@ export const uploadDeliveryDocuments = (fields) =>
     multer({
         storage: deliveryDocumentStorage,
         fileFilter: (req, file, cb) => {
-            if (ALLOWED_DOCUMENT_MIME_TYPES.includes(file.mimetype)) {
+            if (isAllowedDocument(file)) {
                 cb(null, true);
             } else {
                 cb(

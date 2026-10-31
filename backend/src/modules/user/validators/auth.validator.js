@@ -48,9 +48,17 @@ export const resetPasswordSchema = Joi.object({
 
 export const updateProfileSchema = Joi.object({
     name: Joi.string().trim().min(2).max(50).required(),
-    phone: Joi.string().pattern(/^[0-9]{10}$/).allow('').optional(),
-    gender: Joi.string().valid('male', 'female', 'other', 'prefer_not_to_say', '').optional(),
-    dob: Joi.string().allow('').optional(),
+    // Accept formatted input (+91, spaces, dashes); the controller normalizes to the last 10 digits.
+    email: Joi.string().trim().email({ tlds: { allow: false } }).allow('').optional(),
+    phone: Joi.string().trim().max(20).allow('', null).optional()
+        .custom((value, helpers) => {
+            if (!value) return value;
+            const digits = String(value).replace(/\D/g, '').slice(-10);
+            if (!/^[6-9][0-9]{9}$/.test(digits)) return helpers.message('Please enter a valid 10-digit phone number');
+            return value;
+        }),
+    gender: Joi.string().valid('male', 'female', 'other', 'prefer_not_to_say', '').allow(null).optional(),
+    dob: Joi.string().allow('', null).optional(),
 });
 
 export const changePasswordSchema = Joi.object({

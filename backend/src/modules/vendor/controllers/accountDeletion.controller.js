@@ -8,7 +8,7 @@ import Admin from '../../../models/Admin.model.js';
 
 // GET /api/vendor/account-deletion-request/status
 export const getVendorDeletionStatus = asyncHandler(async (req, res) => {
-    const vendorId = req.vendor._id || req.vendor.id;
+    const vendorId = req.user.id;
 
     const latestRequest = await AccountDeletionRequest.findOne({
         requesterId: vendorId,
@@ -32,7 +32,7 @@ export const getVendorDeletionStatus = asyncHandler(async (req, res) => {
 
 // POST /api/vendor/account-deletion-request
 export const submitVendorDeletionRequest = asyncHandler(async (req, res) => {
-    const vendorId = req.vendor._id || req.vendor.id;
+    const vendorId = req.user.id;
     const { password, reason, additionalFeedback } = req.body;
 
     if (!reason || !reason.trim()) {
@@ -126,7 +126,7 @@ export const submitVendorDeletionRequest = asyncHandler(async (req, res) => {
 
 // POST /api/vendor/account-deletion-request/cancel
 export const cancelVendorDeletionRequest = asyncHandler(async (req, res) => {
-    const vendorId = req.vendor._id || req.vendor.id;
+    const vendorId = req.user.id;
 
     const pendingRequest = await AccountDeletionRequest.findOne({
         requesterId: vendorId,

@@ -2,6 +2,8 @@ import mongoose from 'mongoose';
 
 const invoiceItemSchema = new mongoose.Schema(
     {
+        // Order.items[]._id this invoice line was generated from.
+        orderItemId: { type: mongoose.Schema.Types.ObjectId },
         productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
         vendorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vendor', index: true },
         name: { type: String, required: true },

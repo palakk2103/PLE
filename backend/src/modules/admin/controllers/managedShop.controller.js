@@ -151,13 +151,18 @@ export const getVendorUsers = asyncHandler(async (req, res) => {
 
 // PUT /api/admin/managed-vendors/:id
 export const updateVendorUser = asyncHandler(async (req, res) => {
-    const { name, phone, password, role, status, companyName, gstNumber, address } = req.body;
+    const { name, phone, password, role, status, companyName, gstNumber, address, shopId } = req.body;
     const vendorUser = await ManagedVendorUser.findById(req.params.id);
     if (!vendorUser) throw new ApiError(404, 'Managed Vendor User not found.');
 
     if (name !== undefined) vendorUser.name = String(name).trim();
     if (phone !== undefined) vendorUser.phone = String(phone || '').trim();
     if (role !== undefined) vendorUser.role = role;
+    if (shopId !== undefined) {
+        const shopExists = await ManagedShop.findById(shopId);
+        if (!shopExists) throw new ApiError(404, 'Assigned Managed Shop not found.');
+        vendorUser.shopId = shopId;
+    }
     if (status !== undefined) {
         if (!['active', 'inactive'].includes(status)) {
             throw new ApiError(400, 'Invalid status.');

@@ -543,6 +543,7 @@ const AddProduct = () => {
 
     const payload = {
       ...formData,
+      unit: formData.unit?.trim() || "Piece",
       price: parsedPrice,
       originalPrice: parsedOriginalPrice,
       stockQuantity: parsedStockQuantity,
@@ -708,12 +709,26 @@ const AddProduct = () => {
               </label>
               <input
                 type="text"
+                list="unit-suggestions"
                 name="unit"
                 value={formData.unit}
                 onChange={handleChange}
-                placeholder="e.g., Piece, Kilogram, Gram, Pair"
+                placeholder="e.g., Piece, Kilogram, Gram, Litre, Pair"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
               />
+              <datalist id="unit-suggestions">
+                <option value="Piece" />
+                <option value="Kilogram" />
+                <option value="Gram" />
+                <option value="Litre" />
+                <option value="Millilitre" />
+                <option value="Pack" />
+                <option value="Box" />
+                <option value="Pair" />
+                <option value="Dozen" />
+                <option value="Meter" />
+                <option value="Set" />
+              </datalist>
             </div>
 
             <div>

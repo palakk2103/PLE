@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FiTrash2, FiMinus, FiPlus, FiHeart, FiAlertCircle } from "react-icons/fi";
 import { toast } from "react-hot-toast";
@@ -135,6 +135,9 @@ const SwipeableCartItem = ({ item, index }) => {
                     </h3>
                     <p className="text-sm font-bold text-primary-600 mb-2">
                         {formatPrice(item.price)}
+                        {item.unit && (
+                            <span className="text-xs text-gray-500 font-normal ml-1">/ {item.unit}</span>
+                        )}
                     </p>
                     {formatVariantLabel(item?.variant) && (
                         <p className="text-xs text-gray-500 mb-2">

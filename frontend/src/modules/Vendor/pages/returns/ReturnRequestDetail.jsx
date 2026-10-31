@@ -167,7 +167,7 @@ const ReturnRequestDetail = () => {
           </button>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
-              {returnRequest.id}
+              {returnRequest.returnId || returnRequest.id}
             </h1>
             <p className="text-xs text-gray-500">
               Requested on{" "}
@@ -339,7 +339,7 @@ const ReturnRequestDetail = () => {
             <div className="space-y-2">
               {returnRequest.items.map((item, index) => (
                 <div
-                  key={item.id || index}
+                  key={item.orderItemId || item.id || index}
                   className="flex items-center gap-3 p-2.5 bg-gray-50 rounded-lg">
                   {item.image && (
                     <img

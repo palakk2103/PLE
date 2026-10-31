@@ -62,7 +62,7 @@
         "route": "/ple-ops-desk/vendors/pending-approvals"
       },
       {
-        "title": "Product Approvals",
+        "title": "In-House Product Approval",
         "route": "/ple-ops-desk/vendors/product-approvals"
       },
       {
@@ -74,15 +74,7 @@
         "route": "/ple-ops-desk/vendors/vendor-analytics"
       },
       {
-        "title": "In-House Managed Shops",
-        "route": "/ple-ops-desk/vendors/managed-shops"
-      },
-      {
-        "title": "In-House Staff Chats",
-        "route": "/ple-ops-desk/managed-vendor-chats"
-      },
-      {
-        "title": "B2B Seller Requests",
+        "title": "Vendor Applications",
         "route": "/ple-ops-desk/vendors/b2b-requests"
       },
       {
@@ -92,6 +84,25 @@
       {
         "title": "Deletion Requests",
         "route": "/ple-ops-desk/account-deletion-requests"
+      }
+    ]
+  },
+  {
+    "title": "In-House Shops & Staff",
+    "route": "/ple-ops-desk/vendors/managed-shops",
+    "icon": "In-House Shops & Staff",
+    "children": [
+      {
+        "title": "In-House Managed Shops",
+        "route": "/ple-ops-desk/vendors/managed-shops"
+      },
+      {
+        "title": "In-House Staff",
+        "route": "/ple-ops-desk/vendors/in-house-staff"
+      },
+      {
+        "title": "In-House Staff Chats",
+        "route": "/ple-ops-desk/managed-vendor-chats"
       }
     ]
   },

@@ -53,7 +53,7 @@ const ReturnRequestForm = () => {
           const itemsMap = {};
           const qtyMap = {};
           fetched.items.forEach(item => {
-            const itemId = item.id || item.productId;
+            const itemId = item.orderItemId || item.id || item.productId;
             itemsMap[itemId] = true;
             qtyMap[itemId] = item.quantity || 1;
           });
@@ -177,12 +177,14 @@ const ReturnRequestForm = () => {
     setIsSubmitting(true);
 
     const itemsToReturn = order.items
-      .filter(item => selectedItems[item.id || item.productId])
+      .filter(item => selectedItems[item.orderItemId || item.id || item.productId])
       .map(item => ({
-        id: item.id || item.productId,
+        id: item.orderItemId || item.id || item.productId,
+        orderItemId: item.orderItemId,
+        productId: item.productId,
         name: item.name,
         price: item.price,
-        quantity: quantities[item.id || item.productId] || 1,
+        quantity: quantities[item.orderItemId || item.id || item.productId] || 1,
         image: item.image,
         reason: reason
       }));
@@ -238,7 +240,7 @@ const ReturnRequestForm = () => {
               <h2 className="text-sm font-bold text-gray-800 mb-3">Select items to return</h2>
               <div className="space-y-3">
                 {order.items.map((item) => {
-                  const itemId = item.id || item.productId;
+                  const itemId = item.orderItemId || item.id || item.productId;
                   const isSelected = !!selectedItems[itemId];
                   return (
                     <div key={itemId} className="flex gap-3 items-start border-b border-gray-100 pb-3 last:border-0 last:pb-0">

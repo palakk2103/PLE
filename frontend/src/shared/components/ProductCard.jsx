@@ -135,6 +135,7 @@ const ProductCard = memo(({ product, hideRating = false, isFlashSale = false, sh
       name: product.name,
       price: product.price,
       image: product.image,
+      unit: product.unit,
       quantity: 1,
       stockQuantity: product.stockQuantity,
       vendorId: product.vendorId,

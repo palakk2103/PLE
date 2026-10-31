@@ -89,6 +89,12 @@ export const handleFailedLogin = async ({ scope, identifier, doc = null, default
     const now = new Date();
     const lockoutMs = config.lockoutMinutes * 60 * 1000;
 
+    // Vendor logins for non-existent accounts are not counted, so an email can't be
+    // locked out before its account even exists.
+    if (scope === 'vendor' && !doc) {
+        throw new ApiError(401, defaultMessage);
+    }
+
     let currentAttempts = 0;
     if (doc && typeof doc.loginAttempts === 'number') {
         currentAttempts = doc.loginAttempts;
@@ -167,6 +173,18 @@ export const handleFailedLogin = async ({ scope, identifier, doc = null, default
         const remaining = config.maxAttempts - currentAttempts;
         const attemptWord = remaining === 1 ? 'attempt' : 'attempts';
         throw new ApiError(401, `${defaultMessage} ${remaining} ${attemptWord} remaining.`);
+    }
+};
+
+/**
+ * Clear any lockout/attempt counters (e.g. after a successful password reset).
+ * Mutates `doc` but does not save it; the caller is expected to save.
+ */
+export const clearLoginLockout = (scope, identifier, doc = null) => {
+    memoryAttempts.delete(`${scope}:${String(identifier || '').trim().toLowerCase()}`);
+    if (doc) {
+        doc.loginAttempts = 0;
+        doc.lockUntil = null;
     }
 };
 

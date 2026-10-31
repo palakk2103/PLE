@@ -141,7 +141,7 @@ const B2BSellerRequests = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-gray-900 flex items-center gap-2">
-            <FiShield className="text-primary-600" /> B2B Seller Applications
+            <FiShield className="text-primary-600" /> Vendor Applications
           </h1>
           <p className="text-sm text-gray-500 mt-1">
             Review GST documents and approve third-party vendor permissions for wholesale B2B product sales.

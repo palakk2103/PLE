@@ -2,11 +2,18 @@ import mongoose from 'mongoose';
 
 const returnRequestSchema = new mongoose.Schema(
     {
+        // Public, unique Return ID ("RET-..."). Legacy records without it get a derived ID at the API layer.
+        returnId: { type: String, unique: true, sparse: true, index: true, trim: true },
         orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order', required: true, index: true },
+        // Snapshot of the original public Order ID (Order.orderId) for fast lookup/search.
+        orderNumber: { type: String, index: true, trim: true },
         userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
         vendorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vendor', index: true },
         items: [
             {
+                // Exact Order.items[]._id this return line was raised against.
+                orderItemId: { type: mongoose.Schema.Types.ObjectId },
+                variantKey: String,
                 productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
                 name: String,
                 price: Number,

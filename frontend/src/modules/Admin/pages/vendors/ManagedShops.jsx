@@ -11,6 +11,7 @@ import {
   FiPhone,
   FiMapPin,
   FiInfo,
+  FiUsers,
 } from "react-icons/fi";
 import toast from "react-hot-toast";
 import api from "../../../../shared/utils/api";
@@ -137,13 +138,22 @@ const ManagedShops = () => {
             Admin-owned shops and internal staff / managed vendors.
           </p>
         </div>
-        <button
-          onClick={handleOpenAdd}
-          className="flex items-center gap-2 px-4 py-2.5 bg-[#C07A3D] hover:bg-[#A8642C] text-white rounded-xl font-semibold shadow-md transition-all text-sm"
-        >
-          <FiPlus className="text-lg" />
-          Create Shop
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => navigate("/ple-ops-desk/vendors/in-house-staff")}
+            className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-all text-sm"
+          >
+            <FiUsers className="text-base" />
+            In-House Staff
+          </button>
+          <button
+            onClick={handleOpenAdd}
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#C07A3D] hover:bg-[#A8642C] text-white rounded-xl font-semibold shadow-md transition-all text-sm"
+          >
+            <FiPlus className="text-lg" />
+            Create Shop
+          </button>
+        </div>
       </div>
 
       {/* Grid List */}

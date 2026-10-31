@@ -32,10 +32,13 @@ export const createReturnRequestSchema = Joi.object({
     items: Joi.array()
         .items(
             Joi.object({
-                productId: Joi.string().required(),
+                // orderItemId (Order.items[]._id) identifies the exact purchased line; productId alone is
+                // still accepted for backward compatibility but is rejected server-side if ambiguous.
+                orderItemId: Joi.string().hex().length(24).optional(),
+                productId: Joi.string().optional(),
                 quantity: Joi.number().integer().min(1).required(),
                 reason: Joi.string().trim().max(300).allow('').optional(),
-            })
+            }).or('orderItemId', 'productId')
         )
         .min(1)
         .optional(),

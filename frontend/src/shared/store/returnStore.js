@@ -178,7 +178,8 @@ export const useReturnStore = create((set, get) => ({
 
             // Transform items to match backend expectation
             const transformedItems = (requestData.items || []).map(item => ({
-                productId: item.id || item.productId,
+                orderItemId: item.orderItemId,
+                productId: item.productId || item.id,
                 quantity: item.quantity,
                 reason: requestData.reason,
             }));

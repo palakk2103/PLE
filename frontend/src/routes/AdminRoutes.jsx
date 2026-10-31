@@ -50,6 +50,7 @@ const CommissionRates = lazy(() => import("../modules/Admin/pages/vendors/Commis
 const AdminVendorAnalytics = lazy(() => import("../modules/Admin/pages/vendors/VendorAnalytics"));
 const ManagedShops = lazy(() => import("../modules/Admin/pages/vendors/ManagedShops"));
 const ManagedShopDetails = lazy(() => import("../modules/Admin/pages/vendors/ManagedShopDetails"));
+const InHouseStaff = lazy(() => import("../modules/Admin/pages/vendors/InHouseStaff"));
 const AdminProductApprovals = lazy(() => import("../modules/Admin/pages/vendors/ProductApprovals"));
 const B2BSellerRequests = lazy(() => import("../modules/Admin/pages/vendors/B2BSellerRequests"));
 const B2BUsersDashboard = lazy(() => import("../modules/Admin/pages/b2b-users/B2BUsersDashboard"));
@@ -226,6 +227,12 @@ export default function AdminRoutes() {
         <Route path="vendors/:id" element={<VendorDetail />} />
         <Route path="vendors/managed-shops" element={<ManagedShops />} />
         <Route path="vendors/managed-shops/:id" element={<ManagedShopDetails />} />
+        <Route path="vendors/in-house-staff" element={<InHouseStaff />} />
+        <Route path="in-house" element={<ManagedShops />} />
+        <Route path="in-house/managed-shops" element={<ManagedShops />} />
+        <Route path="in-house/managed-shops/:id" element={<ManagedShopDetails />} />
+        <Route path="in-house/staff" element={<InHouseStaff />} />
+        <Route path="in-house/staff-chats" element={<AdminManagedVendorChatHub />} />
         <Route path="vendors/product-approvals" element={<AdminProductApprovals />} />
         <Route path="vendors/b2b-requests" element={<B2BSellerRequests />} />
         <Route path="vendors/chats" element={<AdminChatHub category="vendor" />} />

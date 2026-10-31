@@ -115,7 +115,7 @@ const ReturnDetail = () => {
             </button>
             <div className="flex-1">
               <h1 className="text-xl font-bold text-gray-800">Return Details</h1>
-              <p className="text-xs text-gray-500">ID: {request.id}</p>
+              <p className="text-xs text-gray-500 break-all">Return ID: {request.returnId || request.id}</p>
             </div>
             <span className={`px-3 py-1 rounded-full text-xs font-bold ${
               isRejected ? 'bg-red-50 text-red-700 border border-red-200' :
@@ -135,11 +135,17 @@ const ReturnDetail = () => {
                   #{request.orderId}
                 </span>
               </div>
+              {request.invoiceNumber && (
+                <div className="flex items-center justify-between pb-3 border-b border-gray-100 mb-3">
+                  <span className="text-xs font-semibold text-gray-500">Invoice No:</span>
+                  <span className="text-xs font-bold text-gray-800">{request.invoiceNumber}</span>
+                </div>
+              )}
               
               <h3 className="text-xs font-bold text-gray-800 mb-2">Returned Items</h3>
               <div className="space-y-3">
                 {request.items && request.items.map((item, idx) => (
-                  <div key={item.id || idx} className="flex gap-3 items-center">
+                  <div key={item.orderItemId || item.id || idx} className="flex gap-3 items-center">
                     <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
                       <LazyImage src={item.image} alt={item.name} className="w-full h-full object-cover" />
                     </div>

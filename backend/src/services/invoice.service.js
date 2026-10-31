@@ -213,6 +213,7 @@ export const generateInvoiceForOrder = async (orderId, session = null) => {
             : parseFloat((lineTotal - (item.taxIncluded ? gstAmount : 0)).toFixed(2));
 
         return {
+            orderItemId: item._id,
             productId: item.productId?._id || item.productId,
             vendorId: item.vendorId?._id || item.vendorId,
             name: item.name || 'Product',
@@ -398,7 +399,14 @@ export const generateInvoiceForOrder = async (orderId, session = null) => {
     }
 
     // 8. Create and persist Invoice
-    const invoiceNumber = generateInvoiceNumber(order.orderId);
+    // Invoice numbers are a separate numbering series from Order IDs; guarantee uniqueness
+    // (base format is kept, a numeric suffix is appended only on collision).
+    let invoiceNumber = generateInvoiceNumber(order.orderId);
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+        const taken = await Invoice.exists({ invoiceNumber }).session(session);
+        if (!taken) break;
+        invoiceNumber = `${generateInvoiceNumber(order.orderId)}${Math.floor(10 + Math.random() * 90)}`;
+    }
 
     const [createdInvoice] = await Invoice.create(
         [

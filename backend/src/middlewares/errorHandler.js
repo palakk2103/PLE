@@ -4,6 +4,16 @@ import ApiError from '../utils/ApiError.js';
 const errorHandler = (err, req, res, next) => {
     let error = err;
 
+    // Multer upload errors (file too large, unexpected field, ...) are client errors
+    if (err?.name === 'MulterError') {
+        const message = err.code === 'LIMIT_FILE_SIZE'
+            ? 'File is too large.'
+            : err.code === 'LIMIT_UNEXPECTED_FILE'
+                ? `Unexpected file field: ${err.field}`
+                : err.message;
+        error = new ApiError(400, message);
+    }
+
     // Wrap non-ApiError instances
     if (!(error instanceof ApiError)) {
         const statusCode = error.statusCode || 500;

@@ -51,8 +51,6 @@ const VendorB2BOrders = lazy(() => import("../modules/Vendor/pages/b2b/VendorB2B
 const VendorB2BAnalytics = lazy(() => import("../modules/Vendor/pages/b2b/B2BAnalytics"));
 const VendorB2BSettings = lazy(() => import("../modules/Vendor/pages/b2b/B2BSettings"));
 const VendorB2BSellerApplication = lazy(() => import("../modules/Vendor/pages/b2b/B2BSellerApplication"));
-const VendorDirectRFQs = lazy(() => import("../modules/Vendor/pages/b2b/VendorDirectRFQs"));
-const VendorDirectRFQDetail = lazy(() => import("../modules/Vendor/pages/b2b/VendorDirectRFQDetail"));
 const VendorDeliverySettings = lazy(() => import("../modules/Vendor/pages/VendorDeliverySettings"));
 const VendorFestivalCampaigns = lazy(() => import("../modules/Vendor/pages/FestivalCampaigns"));
 const VendorProductRequests = lazy(() => import("../modules/Vendor/pages/ProductRequests"));
@@ -146,9 +144,8 @@ export default function VendorRoutes() {
         <Route path="b2b-enquiries/analytics" element={<VendorB2BAnalytics />} />
         <Route path="b2b-enquiries/settings" element={<VendorB2BSettings />} />
 
-        {/* Direct RFQ Routes */}
-        <Route path="direct-rfqs" element={<VendorDirectRFQs />} />
-        <Route path="direct-rfqs/:id" element={<VendorDirectRFQDetail />} />
+        {/* Direct RFQ Routes - Removed */}
+        <Route path="direct-rfqs/*" element={<Navigate to="/vendor/dashboard" replace />} />
 
         {/* Offers & Promotion Management System (Seller) - Removed */}
         <Route path="my-offers/*" element={<Navigate to="/vendor/dashboard" replace />} />

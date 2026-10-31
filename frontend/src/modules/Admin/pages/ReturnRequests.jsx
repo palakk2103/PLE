@@ -87,7 +87,7 @@ const ReturnRequests = () => {
   // Table columns
   const columns = [
     {
-      key: 'id',
+      key: 'returnId',
       label: 'Return ID',
       sortable: true,
       render: (value) => <span className="font-semibold">{value}</span>,
@@ -326,8 +326,9 @@ const ReturnRequests = () => {
             <ExportButton
               data={filteredRequests}
               headers={[
-                { label: 'Return ID', accessor: (row) => row.id || row._id || 'N/A' },
+                { label: 'Return ID', accessor: (row) => row.returnId || row.id || row._id || 'N/A' },
                 { label: 'Order ID', accessor: (row) => row.orderId || 'N/A' },
+                { label: 'Invoice Number', accessor: (row) => row.invoiceNumber || 'N/A' },
                 { label: 'Customer', accessor: (row) => row.customer?.name || 'Guest' },
                 { label: 'Email', accessor: (row) => row.customer?.email || 'N/A' },
                 { label: 'Request Date', accessor: (row) => formatDateTime(row.requestDate || row.createdAt) },

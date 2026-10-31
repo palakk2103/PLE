@@ -132,7 +132,7 @@ const ReturnRequestDetail = () => {
             <FiArrowLeft className="text-lg text-gray-600" />
           </button>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-800">{returnRequest.id}</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-800 break-all">{returnRequest.returnId || returnRequest.id}</h1>
             <p className="text-xs text-gray-500">Requested on {formatDateTime(returnRequest.requestDate)}</p>
           </div>
         </div>
@@ -257,6 +257,11 @@ const ReturnRequestDetail = () => {
               <span>View Order: {returnRequest.orderId}</span>
               <FiArrowLeft className="rotate-180 text-xs" />
             </Link>
+            {returnRequest.invoiceNumber && (
+              <p className="text-xs text-gray-600 mt-2">
+                Invoice Number: <span className="font-semibold text-gray-800">{returnRequest.invoiceNumber}</span>
+              </p>
+            )}
           </div>
 
           {/* Return Items */}
@@ -267,7 +272,7 @@ const ReturnRequestDetail = () => {
             </h2>
             <div className="space-y-2">
               {returnRequest.items.map((item, index) => (
-                <div key={item.id || index} className="flex items-center gap-3 p-2.5 bg-gray-50 rounded-lg">
+                <div key={item.orderItemId || item.id || index} className="flex items-center gap-3 p-2.5 bg-gray-50 rounded-lg">
                   {item.image && (
                     <img
                       src={item.image}
@@ -280,6 +285,12 @@ const ReturnRequestDetail = () => {
                   )}
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm text-gray-800 truncate">{item.name || 'Unknown Product'}</p>
+                    {(item.orderItemId || item.productId) && (
+                      <p className="text-[11px] text-gray-500 break-all">
+                        {item.orderItemId && <>Order Item: {item.orderItemId} · </>}
+                        Product: {item.productId}
+                      </p>
+                    )}
                     <div className="flex items-center gap-3 mt-1">
                       <p className="text-xs text-gray-600">
                         {formatCurrency(item.price || 0)} × {item.quantity || 1}

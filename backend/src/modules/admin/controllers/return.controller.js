@@ -1,5 +1,6 @@
 import ReturnRequest from '../../../models/ReturnRequest.model.js';
 import Order from '../../../models/Order.model.js';
+import Invoice from '../../../models/Invoice.model.js';
 import Product from '../../../models/Product.model.js';
 import User from '../../../models/User.model.js';
 import * as walletService from '../../../services/wallet.service.js';
@@ -11,30 +12,14 @@ import {
 import { ApiError } from '../../../utils/ApiError.js';
 import { ApiResponse } from '../../../utils/ApiResponse.js';
 import { asyncHandler } from '../../../utils/asyncHandler.js';
+import {
+    enrichReturnItems,
+    buildReturnIdentifiers,
+    getInvoiceNumberMap,
+    escapeRegex,
+} from '../../../utils/returnMapping.js';
 
-const enrichReturnItems = (request) => {
-    const orderItems = Array.isArray(request?.orderId?.items) ? request.orderId.items : [];
-    const returnItems = Array.isArray(request?.items) ? request.items : [];
-
-    return returnItems.map((rawItem) => {
-        const item = rawItem?._doc || (typeof rawItem?.toObject === 'function' ? rawItem.toObject() : rawItem) || {};
-        const productId = String(item?.productId || '');
-        const matchedOrderItem = orderItems.find(
-            (orderItem) => String(orderItem?.productId || '') === productId
-        );
-
-        return {
-            ...item,
-            productId,
-            quantity: Number(item?.quantity || matchedOrderItem?.quantity || 1),
-            name: item?.name || matchedOrderItem?.name || 'Unknown Product',
-            price: Number(item?.price ?? matchedOrderItem?.price ?? 0),
-            image: item?.image || matchedOrderItem?.image || '',
-        };
-    });
-};
-
-const normalizeReturnRequest = (request) => {
+const normalizeReturnRequest = (request, invoiceMap = new Map()) => {
     const doc = request._doc || request;
     const refundDetails = doc.refundDetails ? { ...doc.refundDetails } : {};
     if (refundDetails.gatewayRefundId && !refundDetails.gatewayRrn) {
@@ -52,8 +37,8 @@ const normalizeReturnRequest = (request) => {
                 phone: request.userId.phone
             }
             : { name: 'Guest', email: 'N/A' },
+        ...buildReturnIdentifiers(request, invoiceMap),
         orderId: request.orderId?.orderId || 'N/A',
-        orderRefId: request.orderId?._id || null,
         requestDate: request.createdAt,
         items: enrichReturnItems(request),
         refundDetails,
@@ -83,20 +68,23 @@ export const getAllReturnRequests = asyncHandler(async (req, res) => {
 
     // Search by return id, order number, customer fields, and reason text
     if (search) {
-        const regex = new RegExp(search, 'i');
+        const regex = new RegExp(escapeRegex(search), 'i');
         const isObjectId = search.match(/^[0-9a-fA-F]{24}$/);
 
-        const [matchedOrders, matchedUsers] = await Promise.all([
+        const [matchedOrders, matchedInvoices, matchedUsers] = await Promise.all([
             Order.find({ orderId: regex }).select('_id').lean(),
+            Invoice.find({ invoiceNumber: regex }).select('orderId').limit(200).lean(),
             User.find({
                 $or: [{ name: regex }, { email: regex }, { phone: regex }]
             }).select('_id').limit(200).lean(),
         ]);
 
-        const matchedOrderIds = matchedOrders.map((o) => o._id);
+        const matchedOrderIds = [...matchedOrders.map((o) => o._id), ...matchedInvoices.map((i) => i.orderId)];
         const matchedUserIds = matchedUsers.map((u) => u._id);
 
         const orFilters = [
+            { returnId: regex },
+            { orderNumber: regex },
             { reason: regex },
             { 'items.name': regex },
             ...(matchedOrderIds.length > 0 ? [{ orderId: { $in: matchedOrderIds } }] : []),
@@ -114,7 +102,7 @@ export const getAllReturnRequests = asyncHandler(async (req, res) => {
 
     const returnRequests = await ReturnRequest.find(filter)
         .populate('userId', 'name email phone')
-        .populate('orderId', 'orderId total')
+        .populate('orderId', 'orderId total items')
         .sort({ createdAt: -1 })
         .skip((numericPage - 1) * numericLimit)
         .limit(numericLimit);
@@ -122,7 +110,8 @@ export const getAllReturnRequests = asyncHandler(async (req, res) => {
     const total = await ReturnRequest.countDocuments(filter);
 
     // Normalize data for frontend
-    const normalizedRequests = returnRequests.map(normalizeReturnRequest);
+    const invoiceMap = await getInvoiceNumberMap(returnRequests.map((r) => r.orderId?._id));
+    const normalizedRequests = returnRequests.map((r) => normalizeReturnRequest(r, invoiceMap));
 
     res.status(200).json(
         new ApiResponse(200, {
@@ -153,7 +142,8 @@ export const getReturnRequestById = asyncHandler(async (req, res) => {
     }
 
     // Normalize
-    const normalized = normalizeReturnRequest(request);
+    const invoiceMap = await getInvoiceNumberMap([request.orderId?._id]);
+    const normalized = normalizeReturnRequest(request, invoiceMap);
 
     res.status(200).json(
         new ApiResponse(200, normalized, 'Return request details fetched successfully')
@@ -213,6 +203,7 @@ export const updateReturnRequestStatus = asyncHandler(async (req, res) => {
                 email: request.userId.email,
                 phone: request.userId.phone
             } : { name: 'Guest', email: 'N/A' },
+            ...buildReturnIdentifiers(request),
             orderId: request.orderId?.orderId || 'N/A',
             requestDate: request.createdAt
         };
@@ -364,7 +355,8 @@ export const updateReturnRequestStatus = asyncHandler(async (req, res) => {
         console.warn('Could not emit socket event for return status update', e);
     }
 
-    const normalized = normalizeReturnRequest(request);
+    const invoiceMap = await getInvoiceNumberMap([request.orderId?._id]);
+    const normalized = normalizeReturnRequest(request, invoiceMap);
 
     res.status(200).json(new ApiResponse(200, normalized, 'Return request status updated successfully'));
 });

@@ -603,6 +603,7 @@ const MobileProductDetail = () => {
       name: product.name,
       price: finalPrice,
       image: product.image,
+      unit: product.unit,
       quantity: quantity,
       variant: selectedVariant,
       stockQuantity: effectiveStock,
@@ -896,9 +897,14 @@ const MobileProductDetail = () => {
                     </div>
                   )}
 
-                  <h1 className="text-2xl lg:text-4xl font-extrabold text-gray-900 mb-4 leading-tight">
+                  <h1 className="text-2xl lg:text-4xl font-extrabold text-gray-900 mb-1 leading-tight">
                     {product.name}
                   </h1>
+                  {product.unit && (
+                    <p className="text-sm font-semibold text-gray-500 mb-3">
+                      {product.unit}
+                    </p>
+                  )}
 
                   {/* Rating & Reviews */}
                   {!!product.rating && (
@@ -929,6 +935,11 @@ const MobileProductDetail = () => {
                       <span className="text-4xl font-extrabold text-gray-900">
                         {formatPrice(activePrice)}
                       </span>
+                      {product.unit && (
+                        <span className="text-base text-gray-500 font-medium mb-1">
+                          / {product.unit}
+                        </span>
+                      )}
                       {(product.originalPrice ||
                         (isBusiness && currentPrice !== activePrice)) && (
                         <span className="text-xl text-gray-400 line-through font-medium mb-1.5">

@@ -18,7 +18,7 @@ import {
 } from '../../../services/refreshToken.service.js';
 
 import { uploadLocalFileToCloudinaryAndCleanupWithType } from '../../../services/upload.service.js';
-import { checkLoginLockout, handleFailedLogin, handleSuccessfulLogin } from '../../../services/loginAttempt.service.js';
+import { checkLoginLockout, clearLoginLockout, handleFailedLogin, handleSuccessfulLogin } from '../../../services/loginAttempt.service.js';
 import {
     sendVendorRegistrationReceivedEmail,
     sendVendorBankDetailsEmail,
@@ -295,6 +295,7 @@ export const resetPassword = asyncHandler(async (req, res) => {
     vendor.resetOtpVerified = false;
     vendor.refreshTokenHash = undefined;
     vendor.refreshTokenExpiresAt = undefined;
+    clearLoginLockout('vendor', normalizedEmail, vendor);
     await vendor.save();
 
     return res.status(200).json(new ApiResponse(200, null, 'Password reset successful. Please login.'));

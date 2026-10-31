@@ -55,7 +55,7 @@ const ReturnRequests = () => {
     if (searchQuery) {
       filtered = filtered.filter(
         (request) =>
-          request.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          String(request.returnId || request.id).toLowerCase().includes(searchQuery.toLowerCase()) ||
           request.orderId.toLowerCase().includes(searchQuery.toLowerCase()) ||
           request.customer.name
             .toLowerCase()
@@ -158,7 +158,7 @@ const ReturnRequests = () => {
   // Table columns
   const columns = [
     {
-      key: "id",
+      key: "returnId",
       label: "Return ID",
       sortable: true,
       render: (value) => <span className="font-semibold">{value}</span>,
@@ -415,7 +415,7 @@ const ReturnRequests = () => {
             <ExportButton
               data={filteredRequests}
               headers={[
-                { label: "Return ID", accessor: (row) => row.id },
+                { label: "Return ID", accessor: (row) => row.returnId || row.id },
                 { label: "Order ID", accessor: (row) => row.orderId },
                 { label: "Customer", accessor: (row) => row.customer.name },
                 { label: "Email", accessor: (row) => row.customer.email },

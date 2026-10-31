@@ -53,6 +53,8 @@ const AdminHeader = ({ onMenuClick }) => {
       content: 'Content',
       settings: 'Settings',
       more: 'More',
+      'b2b-requests': 'Vendor Applications',
+      'product-approvals': 'In-House Product Approval',
     };
     return pageNames[path] || path.charAt(0).toUpperCase() + path.slice(1);
   };

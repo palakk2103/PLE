@@ -336,7 +336,7 @@ export const getProfile = asyncHandler(async (req, res) => {
 
 // PUT /api/user/auth/profile
 export const updateProfile = asyncHandler(async (req, res) => {
-    const { name, phone, gender, dob } = req.body;
+    const { name, phone, gender, dob, email } = req.body;
     const normalizedName = String(name || '').trim();
     const normalizedPhone = String(phone || '').replace(/\D/g, '').slice(-10);
 
@@ -353,7 +353,27 @@ export const updateProfile = asyncHandler(async (req, res) => {
     );
     if (!user) throw new ApiError(404, 'User not found.');
 
-    res.status(200).json(new ApiResponse(200, user, 'Profile updated successfully.'));
+    // Email change requires OTP verification (sent to the current email).
+    const newEmail = String(email || '').trim().toLowerCase();
+    let pendingUpdateId = null;
+    if (newEmail && newEmail !== String(user.email).toLowerCase()) {
+        const existing = await User.findOne({ email: newEmail, _id: { $ne: user._id } }).select('_id');
+        if (existing) throw new ApiError(400, 'A user with this email already exists.');
+        pendingUpdateId = await initiateProfileUpdateOTP({
+            userId: user._id,
+            userModel: 'User',
+            role: user.role,
+            email: user.email,
+            pendingData: { email: newEmail },
+        });
+    }
+
+    const data = pendingUpdateId ? { ...user.toObject(), pendingUpdateId } : user;
+    res.status(200).json(new ApiResponse(
+        200,
+        data,
+        pendingUpdateId ? 'OTP sent to your current email to verify the new email.' : 'Profile updated successfully.'
+    ));
 });
 
 // POST /api/user/auth/profile/verify-otp

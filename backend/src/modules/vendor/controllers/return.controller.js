@@ -8,30 +8,15 @@ import Commission from '../../../models/Commission.model.js';
 import User from '../../../models/User.model.js';
 import Admin from '../../../models/Admin.model.js';
 import { createNotification } from '../../../services/notification.service.js';
+import {
+    enrichReturnItems,
+    buildReturnIdentifiers,
+    getInvoiceNumberMap,
+    escapeRegex,
+} from '../../../utils/returnMapping.js';
 
-const enrichReturnItems = (request) => {
-    const orderItems = Array.isArray(request?.orderId?.items) ? request.orderId.items : [];
-    const returnItems = Array.isArray(request?.items) ? request.items : [];
-
-    return returnItems.map((item) => {
-        const productId = String(item?.productId || '');
-        const matchedOrderItem = orderItems.find(
-            (orderItem) => String(orderItem?.productId || '') === productId
-        );
-
-        return {
-            ...item,
-            name: item?.name || matchedOrderItem?.name || 'Unknown Product',
-            price: Number(item?.price ?? matchedOrderItem?.price ?? 0),
-            image: item?.image || matchedOrderItem?.image || '',
-        };
-    });
-};
-
-const normalizeReturnRequest = (requestDoc) => {
+const normalizeReturnRequest = (requestDoc, invoiceMap = new Map()) => {
     const request = requestDoc.toObject ? requestDoc.toObject() : requestDoc;
-    const orderOrderId = request.orderId?.orderId;
-    const orderRefId = request.orderId?._id ?? request.orderId ?? null;
 
     return {
         ...request,
@@ -43,8 +28,7 @@ const normalizeReturnRequest = (requestDoc) => {
                 phone: request.userId.phone ?? '',
             }
             : { name: 'Guest', email: 'N/A', phone: '' },
-        orderId: orderOrderId || String(orderRefId || ''),
-        orderRefId: orderRefId ? String(orderRefId) : null,
+        ...buildReturnIdentifiers(request, invoiceMap),
         requestDate: request.createdAt,
         rejectionReason: request.rejectionReason || request.adminNote || '',
         items: enrichReturnItems(request),
@@ -63,7 +47,7 @@ export const getVendorReturnRequests = asyncHandler(async (req, res) => {
     }
 
     if (search) {
-        const regex = new RegExp(search, 'i');
+        const regex = new RegExp(escapeRegex(search), 'i');
         const isObjectId = /^[0-9a-fA-F]{24}$/.test(search);
 
         const [matchedOrders, matchedUsers] = await Promise.all([
@@ -80,6 +64,8 @@ export const getVendorReturnRequests = asyncHandler(async (req, res) => {
         const matchedUserIds = matchedUsers.map((u) => u._id);
 
         const orFilters = [
+            { returnId: regex },
+            { orderNumber: regex },
             { reason: regex },
             { 'items.name': regex },
             ...(matchedOrderIds.length > 0 ? [{ orderId: { $in: matchedOrderIds } }] : []),
@@ -103,7 +89,8 @@ export const getVendorReturnRequests = asyncHandler(async (req, res) => {
         ReturnRequest.countDocuments(filter),
     ]);
 
-    const normalized = requests.map(normalizeReturnRequest);
+    const invoiceMap = await getInvoiceNumberMap(requests.map((r) => r.orderId?._id));
+    const normalized = requests.map((r) => normalizeReturnRequest(r, invoiceMap));
     res.status(200).json(
         new ApiResponse(
             200,
@@ -133,7 +120,7 @@ export const getVendorReturnRequestById = asyncHandler(async (req, res) => {
     if (!request) throw new ApiError(404, 'Return request not found.');
 
     res.status(200).json(
-        new ApiResponse(200, normalizeReturnRequest(request), 'Return request fetched.')
+        new ApiResponse(200, normalizeReturnRequest(request, await getInvoiceNumberMap([request.orderId?._id])), 'Return request fetched.')
     );
 });
 

@@ -340,8 +340,9 @@ export const useAuthStore = create(
             phone: profileData?.phone,
             gender: profileData?.gender,
             dob: profileData?.dob,
+            ...(profileData?.email ? { email: profileData.email } : {}),
           });
-          const payload = response?.data ?? response;
+          const { pendingUpdateId, ...payload } = response?.data ?? response ?? {};
           const currentUser = get().user || {};
           const updatedUser = {
             ...currentUser,
@@ -353,7 +354,7 @@ export const useAuthStore = create(
             user: updatedUser,
             isLoading: false,
           });
-          return { success: true, user: updatedUser };
+          return { success: true, user: updatedUser, pendingUpdateId: pendingUpdateId || null };
         } catch (error) {
           set({ isLoading: false });
           throw error;
@@ -373,7 +374,7 @@ export const useAuthStore = create(
           const updatedUser = {
             ...currentUser,
             ...payload,
-            email: currentUser.email || payload.email,
+            email: payload?.email || currentUser.email,
           };
 
           set({

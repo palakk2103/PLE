@@ -14,6 +14,13 @@ import Vendor from '../../../models/Vendor.model.js';
 import { generateOrderId } from '../../../utils/generateOrderId.js';
 import { generateTrackingNumber } from '../../../utils/generateTrackingNumber.js';
 import mongoose from 'mongoose';
+import {
+    generateReturnId,
+    getReturnedQuantities,
+    enrichReturnItems,
+    buildReturnIdentifiers,
+    getInvoiceNumberMap,
+} from '../../../utils/returnMapping.js';
 import { User } from '../../../models/User.model.js';
 import Wallet from '../../../models/Wallet.model.js';
 import WalletTransaction from '../../../models/WalletTransaction.model.js';
@@ -1091,32 +1098,8 @@ export const cancelOrder = asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(200, { refund: refundResult }, responseMsg));
 });
 
-const enrichReturnItems = (request) => {
-    const orderItems = Array.isArray(request?.orderId?.items) ? request.orderId.items : [];
-    const returnItems = Array.isArray(request?.items) ? request.items : [];
-
-    return returnItems.map((rawItem) => {
-        const item = rawItem?._doc || (typeof rawItem?.toObject === 'function' ? rawItem.toObject() : rawItem) || {};
-        const productId = String(item?.productId || '');
-        const matchedOrderItem = orderItems.find(
-            (orderItem) => String(orderItem?.productId || '') === productId
-        );
-
-        return {
-            ...item,
-            productId,
-            quantity: Number(item?.quantity || matchedOrderItem?.quantity || 1),
-            name: item?.name || matchedOrderItem?.name || 'Unknown Product',
-            price: Number(item?.price ?? matchedOrderItem?.price ?? 0),
-            image: item?.image || matchedOrderItem?.image || '',
-        };
-    });
-};
-
-const normalizeReturnRequest = (requestDoc) => {
+const normalizeReturnRequest = (requestDoc, invoiceMap = new Map()) => {
     const request = typeof requestDoc?.toObject === 'function' ? requestDoc.toObject() : requestDoc;
-    const orderOrderId = request?.orderId?.orderId || '';
-    const orderRefId = request?.orderId?._id || request?.orderId || null;
     const refundDetails = request?.refundDetails ? { ...request.refundDetails } : {};
     if (refundDetails.gatewayRefundId && !refundDetails.gatewayRrn) {
         if (refundDetails.gatewayRefundId.includes('Do69qx') || refundDetails.gatewayRefundId.includes('rfnd_T')) {
@@ -1126,8 +1109,8 @@ const normalizeReturnRequest = (requestDoc) => {
     return {
         ...request,
         id: String(request?._id || ''),
-        orderId: orderOrderId || String(orderRefId || ''),
-        orderRefId: orderRefId ? String(orderRefId) : null,
+        // returnId = public Return ID; orderId = original public Order ID; never interchanged.
+        ...buildReturnIdentifiers(request, invoiceMap),
         requestDate: request?.createdAt,
         items: enrichReturnItems(request),
         refundDetails,
@@ -1163,70 +1146,137 @@ export const createReturnRequest = asyncHandler(async (req, res) => {
     }
 
     const requestedItems = Array.isArray(req.body.items) ? req.body.items : [];
-    let normalizedItems = [];
+    const fallbackReason = String(req.body.reason || '').trim();
+    const refundDestination = req.body.refundDestination || 'Original Payment Method';
 
-    if (requestedItems.length > 0) {
-        normalizedItems = requestedItems.map((inputItem) => {
-            const productId = String(inputItem?.productId || '');
-            const orderItem = vendorScopedItems.find((it) => String(it?.productId || '') === productId);
-            if (!orderItem) {
-                throw new ApiError(400, `Product ${productId} is not valid for this return request.`);
+    let request;
+    const session = await mongoose.startSession();
+    try {
+        await session.withTransaction(async () => {
+            // Re-read inside the transaction so quantity checks see a consistent snapshot.
+            const txOrder = await Order.findById(order._id).session(session);
+            if (!txOrder || txOrder.status !== 'delivered') {
+                throw new ApiError(400, 'Return can only be requested for delivered orders.');
+            }
+            const txVendorItems = (txOrder.items || []).filter((item) => String(item?.vendorId || '') === vendorId);
+
+            // Quantity already claimed on this exact order by earlier (non-rejected) returns.
+            const alreadyReturned = await getReturnedQuantities(txOrder, { session });
+            const remainingFor = (orderItem) =>
+                Number(orderItem.quantity || 0) - (alreadyReturned.get(String(orderItem._id)) || 0);
+
+            let normalizedItems = [];
+            if (requestedItems.length > 0) {
+                const seen = new Set();
+                normalizedItems = requestedItems.map((inputItem) => {
+                    const orderItemId = String(inputItem?.orderItemId || '');
+                    const productId = String(inputItem?.productId || '');
+                    let orderItem;
+
+                    if (orderItemId) {
+                        orderItem = txVendorItems.find((it) => String(it._id) === orderItemId);
+                        if (!orderItem) {
+                            throw new ApiError(400, `Order item ${orderItemId} does not belong to this order/vendor.`);
+                        }
+                        if (productId && String(orderItem.productId || '') !== productId) {
+                            throw new ApiError(400, 'Product does not match the referenced order item.');
+                        }
+                    } else {
+                        // Backward-compatible path for clients that only send productId.
+                        const candidates = txVendorItems.filter((it) => String(it?.productId || '') === productId);
+                        if (candidates.length === 0) {
+                            throw new ApiError(400, `Product ${productId} is not valid for this return request.`);
+                        }
+                        if (candidates.length > 1) {
+                            throw new ApiError(400, 'Multiple order lines match this product. Please send orderItemId.');
+                        }
+                        orderItem = candidates[0];
+                    }
+
+                    const key = String(orderItem._id);
+                    if (seen.has(key)) {
+                        throw new ApiError(400, `Order item for ${orderItem.name || key} was listed more than once.`);
+                    }
+                    seen.add(key);
+
+                    const requestedQty = Number(inputItem?.quantity || 0);
+                    const remaining = remainingFor(orderItem);
+                    if (!Number.isFinite(requestedQty) || requestedQty <= 0 || requestedQty > remaining) {
+                        throw new ApiError(
+                            400,
+                            remaining <= 0
+                                ? `${orderItem.name || 'This item'} has already been returned.`
+                                : `Invalid quantity for ${orderItem.name || key}. Maximum returnable: ${remaining}.`
+                        );
+                    }
+
+                    return {
+                        orderItemId: orderItem._id,
+                        variantKey: orderItem.variantKey || '',
+                        productId: orderItem.productId,
+                        name: orderItem.name,
+                        price: orderItem.price,
+                        image: orderItem.image,
+                        quantity: requestedQty,
+                        reason: String(inputItem?.reason || fallbackReason).trim(),
+                    };
+                });
+            } else {
+                normalizedItems = txVendorItems
+                    .filter((item) => remainingFor(item) > 0)
+                    .map((item) => ({
+                        orderItemId: item._id,
+                        variantKey: item.variantKey || '',
+                        productId: item.productId,
+                        name: item.name,
+                        price: item.price,
+                        image: item.image,
+                        quantity: remainingFor(item),
+                        reason: fallbackReason,
+                    }));
+                if (normalizedItems.length === 0) {
+                    throw new ApiError(400, 'All items of this order have already been returned.');
+                }
             }
 
-            const requestedQty = Number(inputItem?.quantity || 0);
-            const maxQty = Number(orderItem?.quantity || 0);
-            if (!Number.isFinite(requestedQty) || requestedQty <= 0 || requestedQty > maxQty) {
-                throw new ApiError(400, `Invalid quantity for product ${orderItem.name || productId}.`);
+            const refundAmount = normalizedItems.reduce(
+                (sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0),
+                0
+            );
+
+            // Unique Return ID, independent from the Order ID.
+            let returnId = generateReturnId();
+            for (let i = 0; i < 5 && (await ReturnRequest.exists({ returnId }).session(session)); i += 1) {
+                returnId = generateReturnId();
             }
 
-            return {
-                productId: orderItem.productId,
-                name: orderItem.name,
-                price: orderItem.price,
-                image: orderItem.image,
-                quantity: requestedQty,
-                reason: String(inputItem?.reason || req.body.reason || '').trim(),
-            };
+            // Touch the order so concurrent return submissions for the same order conflict and are retried serially.
+            await Order.updateOne({ _id: txOrder._id }, { $set: { updatedAt: new Date() } }, { session });
+
+            const [created] = await ReturnRequest.create(
+                [
+                    {
+                        returnId,
+                        orderId: txOrder._id,
+                        orderNumber: txOrder.orderId,
+                        userId: req.user.id,
+                        vendorId,
+                        items: normalizedItems,
+                        reason: fallbackReason,
+                        status: 'pending',
+                        refundAmount: Number(refundAmount.toFixed(2)),
+                        refundStatus: 'pending',
+                        refundDestination,
+                        images: Array.isArray(req.body.images) ? req.body.images : [],
+                    },
+                ],
+                { session }
+            );
+            request = created;
         });
-    } else {
-        normalizedItems = vendorScopedItems.map((item) => ({
-            productId: item.productId,
-            name: item.name,
-            price: item.price,
-            image: item.image,
-            quantity: Number(item.quantity || 1),
-            reason: String(req.body.reason || '').trim(),
-        }));
+    } finally {
+        await session.endSession();
     }
-
-    const existingOpen = await ReturnRequest.findOne({
-        orderId: order._id,
-        userId: req.user.id,
-        vendorId,
-        status: { $in: ['pending', 'approved', 'processing'] },
-    });
-    if (existingOpen) {
-        throw new ApiError(409, 'An active return request already exists for this vendor in the selected order.');
-    }
-
-    const refundAmount = normalizedItems.reduce((sum, item) => {
-        const orderItem = vendorScopedItems.find((it) => String(it?.productId || '') === String(item.productId || ''));
-        const unitPrice = Number(orderItem?.price || 0);
-        return sum + unitPrice * Number(item.quantity || 0);
-    }, 0);
-
-    const request = await ReturnRequest.create({
-        orderId: order._id,
-        userId: req.user.id,
-        vendorId,
-        items: normalizedItems,
-        reason: String(req.body.reason || '').trim(),
-        status: 'pending',
-        refundAmount: Number(refundAmount.toFixed(2)),
-        refundStatus: 'pending',
-        refundDestination: req.body.refundDestination || 'Original Payment Method',
-        images: Array.isArray(req.body.images) ? req.body.images : [],
-    });
 
     const admins = await Admin.find({ isActive: true }).select('_id').lean();
     await Promise.all(
@@ -1277,7 +1327,8 @@ export const createReturnRequest = asyncHandler(async (req, res) => {
         .populate('orderId', 'orderId total items createdAt')
         .populate('vendorId', 'storeName email');
 
-    res.status(201).json(new ApiResponse(201, normalizeReturnRequest(populated), 'Return request submitted successfully.'));
+    const invoiceMap = await getInvoiceNumberMap([order._id]);
+    res.status(201).json(new ApiResponse(201, normalizeReturnRequest(populated, invoiceMap), 'Return request submitted successfully.'));
 });
 
 // GET /api/user/returns
@@ -1298,8 +1349,10 @@ export const getUserReturnRequests = asyncHandler(async (req, res) => {
         ReturnRequest.countDocuments(filter),
     ]);
 
+    const invoiceMap = await getInvoiceNumberMap(requests.map((r) => r.orderId?._id || r.orderId));
+
     res.status(200).json(new ApiResponse(200, {
-        returnRequests: requests.map(normalizeReturnRequest),
+        returnRequests: requests.map((r) => normalizeReturnRequest(r, invoiceMap)),
         pagination: {
             total,
             page: numericPage,
@@ -1315,5 +1368,6 @@ export const getUserReturnRequestById = asyncHandler(async (req, res) => {
         .populate('orderId', 'orderId total items createdAt')
         .populate('vendorId', 'storeName email');
     if (!request) throw new ApiError(404, 'Return request not found.');
-    res.status(200).json(new ApiResponse(200, normalizeReturnRequest(request), 'Return request fetched.'));
+    const invoiceMap = await getInvoiceNumberMap([request.orderId?._id || request.orderId]);
+    res.status(200).json(new ApiResponse(200, normalizeReturnRequest(request, invoiceMap), 'Return request fetched.'));
 });

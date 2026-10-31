@@ -490,7 +490,7 @@ const Cart = () => {
                                     <span className="text-sm font-bold text-gray-700 dark:text-zinc-300">
                                       {formatPrice(item.price)}
                                       <span className="text-[11px] font-normal text-gray-500 dark:text-zinc-400 ml-1">
-                                        / unit
+                                        / {item.unit || "unit"}
                                       </span>
                                     </span>
                                     {(() => {

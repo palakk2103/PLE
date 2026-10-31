@@ -36,11 +36,7 @@
             "B2B Settings"
         ]
     },
-    {
-        "title": "Direct RFQs",
-        "route": "/vendor/direct-rfqs",
-        "children": []
-    },
+
     {
         "title":  "Return Requests",
         "route":  "/vendor/return-requests",
