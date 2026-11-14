@@ -1,0 +1,104 @@
+- generic [ref=f2e2]:
+  - generic [ref=f2e3]:
+    - complementary [ref=f2e5]:
+      - heading "B2B Admin" [level=2] [ref=f2e13]
+      - button "Back to B2B Store" [ref=f2e15] [cursor=pointer]
+      - navigation [ref=f2e25]:
+        - link "Dashboard" [ref=f2e26] [cursor=pointer]:
+          - /url: /b2b-dashboard/overview
+        - link "Employees" [ref=f2e31] [cursor=pointer]:
+          - /url: /b2b-dashboard/employees
+        - link "RFQs" [ref=f2e38] [cursor=pointer]:
+          - /url: /b2b-dashboard/rfqs
+        - link "Quotations" [ref=f2e43] [cursor=pointer]:
+          - /url: /b2b-dashboard/quotations
+        - link "Product Requests" [ref=f2e48] [cursor=pointer]:
+          - /url: /b2b-dashboard/product-requests
+        - link "RFQ Discussions" [ref=f2e53] [cursor=pointer]:
+          - /url: /b2b-dashboard/discussions
+        - link "Shop Chats" [ref=f2e57] [cursor=pointer]:
+          - /url: /b2b-dashboard/shop-chats
+        - link "Purchase Orders" [ref=f2e61] [cursor=pointer]:
+          - /url: /b2b-dashboard/purchase-orders
+        - link "Business Wallet" [ref=f2e65] [cursor=pointer]:
+          - /url: /wallet
+        - link "Company Profile" [ref=f2e69] [cursor=pointer]:
+          - /url: /b2b-dashboard/company-profile
+        - link "Legal Documents" [ref=f2e74] [cursor=pointer]:
+          - /url: /b2b-dashboard/legal-documents
+        - link "Admin Profile" [ref=f2e79] [cursor=pointer]:
+          - /url: /b2b-dashboard/admin-profile
+        - link "Support Desk" [ref=f2e84] [cursor=pointer]:
+          - /url: /b2b-dashboard/support
+        - link "Notifications" [ref=f2e89] [cursor=pointer]:
+          - /url: /b2b-dashboard/notifications
+        - link "Settings" [ref=f2e94] [cursor=pointer]:
+          - /url: /b2b-dashboard/settings
+      - button "Logout" [ref=f2e100] [cursor=pointer]
+    - generic [ref=f2e104]:
+      - banner [ref=f2e106]:
+        - textbox "Search..." [ref=f2e112]
+        - generic [ref=f2e113]:
+          - button "Back to B2B Store" [ref=f2e114] [cursor=pointer]
+          - button "Toggle theme" [ref=f2e118] [cursor=pointer]
+          - button [ref=f2e121] [cursor=pointer]
+          - generic [ref=f2e125] [cursor=pointer]:
+            - generic [ref=f2e126]: Z
+            - generic [ref=f2e127]:
+              - paragraph [ref=f2e128]: ZZ Test Co 1794654844
+              - paragraph [ref=f2e129]: B2B Admin
+      - main [ref=f2e130]:
+        - generic [ref=f2e131]:
+          - generic [ref=f2e132]:
+            - generic [ref=f2e133]:
+              - heading "Employee Management" [level=1] [ref=f2e134]
+              - paragraph [ref=f2e135]: Manage your company's employees and their access.
+            - button "Add Employee" [ref=f2e136] [cursor=pointer]
+          - generic [ref=f2e138]:
+            - textbox "Search employees by name, email, or department..." [ref=f2e144]
+            - table [ref=f2e198]:
+              - rowgroup [ref=f2e199]:
+                - row [ref=f2e200]:
+                  - columnheader "Employee Name" [ref=f2e201] [cursor=pointer]
+                  - columnheader "Department" [ref=f2e203] [cursor=pointer]
+                  - columnheader "Designation" [ref=f2e205] [cursor=pointer]
+                  - columnheader "Allotted Wallet" [ref=f2e207] [cursor=pointer]
+                  - columnheader "Spending Limit" [ref=f2e209] [cursor=pointer]
+                  - columnheader "Status" [ref=f2e211] [cursor=pointer]
+                  - columnheader "Actions" [ref=f2e213]
+              - rowgroup [ref=f2e215]:
+                - row [ref=f2e367]:
+                  - cell "SE Second Employee zzemp2-1794654844@example.test" [ref=f2e368]:
+                    - generic [ref=f2e369]:
+                      - generic [ref=f2e370]: SE
+                      - generic [ref=f2e371]:
+                        - paragraph [ref=f2e372]: Second Employee
+                        - paragraph [ref=f2e373]: zzemp2-1794654844@example.test
+                  - cell "IT" [ref=f2e374]
+                  - cell "-" [ref=f2e375]
+                  - cell "₹50" [ref=f2e376]
+                  - cell "Unlimited" [ref=f2e378]
+                  - cell "Active" [ref=f2e379]
+                  - cell [ref=f2e380]:
+                    - generic [ref=f2e381]:
+                      - button "Allot Funds" [ref=f2e382] [cursor=pointer]
+                      - button "Edit" [ref=f2e385] [cursor=pointer]
+                      - button "Delete" [ref=f2e388] [cursor=pointer]
+                - row [ref=f2e311]:
+                  - cell "TE Test Employee zzemp-1794654844@example.test" [ref=f2e217]:
+                    - generic [ref=f2e218]:
+                      - generic [ref=f2e219]: TE
+                      - generic [ref=f2e220]:
+                        - paragraph [ref=f2e221]: Test Employee
+                        - paragraph [ref=f2e222]: zzemp-1794654844@example.test
+                  - cell "Procurement" [ref=f2e223]
+                  - cell "Senior Buyer" [ref=f2e312]
+                  - cell "₹300" [ref=f2e259]
+                  - cell "Unlimited" [ref=f2e227]
+                  - cell "Active" [ref=f2e228]
+                  - cell [ref=f2e229]:
+                    - generic [ref=f2e230]:
+                      - button "Allot Funds" [ref=f2e231] [cursor=pointer]
+                      - button "Edit" [ref=f2e234] [cursor=pointer]
+                      - button "Delete" [ref=f2e237] [cursor=pointer]
+  - status [ref=f2e396]: Employee created successfully

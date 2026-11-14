@@ -3,6 +3,7 @@ import ApiResponse from '../../../utils/ApiResponse.js';
 import Order from '../../../models/Order.model.js';
 import Product from '../../../models/Product.model.js';
 import Commission from '../../../models/Commission.model.js';
+import ReturnRequest from '../../../models/ReturnRequest.model.js';
 import mongoose from 'mongoose';
 
 const toDateKey = (value) => {
@@ -63,7 +64,7 @@ export const getAnalyticsOverview = asyncHandler(async (req, res) => {
         ? { $or: [{ shopId: req.user.shopId }, { vendorId: { $in: vendorIdsToMatch } }, { vendorUserId: req.user.id }] }
         : { vendorId: req.user.id };
 
-    const [orders, productsCount, commissions] = await Promise.all([
+    const [orders, productsCount, commissions, returnDocs, periodOrderCount] = await Promise.all([
         Order.find({
             'vendorItems.vendorId': { $in: vendorIdsToMatch },
             isDeleted: { $ne: true },
@@ -81,7 +82,44 @@ export const getAnalyticsOverview = asyncHandler(async (req, res) => {
         })
             .select('vendorEarnings status')
             .lean(),
+        ReturnRequest.find({
+            vendorId: { $in: vendorIdsToMatch },
+            createdAt: { $gte: start, $lte: end },
+        })
+            .select('status refundAmount refundStatus refundDetails.amount items.price items.quantity')
+            .lean(),
+        Order.countDocuments({
+            'vendorItems.vendorId': { $in: vendorIdsToMatch },
+            isDeleted: { $ne: true },
+            createdAt: { $gte: start, $lte: end },
+        }),
     ]);
+
+    const REJECTED = ['rejected', 'claim_rejected'];
+    const COMPLETED = ['completed', 'refund_processed'];
+    let rejectedReturns = 0, completedReturns = 0, refundedAmount = 0, pendingRefundAmount = 0, returnValue = 0;
+    for (const r of returnDocs) {
+        if (REJECTED.includes(r.status)) rejectedReturns += 1;
+        else if (COMPLETED.includes(r.status)) completedReturns += 1;
+
+        const itemsValue = (r.items || []).reduce((s, i) => s + Number(i.price || 0) * Number(i.quantity || 1), 0);
+        const amount = Number(r.refundAmount ?? r.refundDetails?.amount ?? itemsValue) || 0;
+        if (!REJECTED.includes(r.status)) returnValue += amount;
+        if (r.refundStatus === 'processed') refundedAmount += amount;
+        else if (r.refundStatus === 'pending' && !REJECTED.includes(r.status)) pendingRefundAmount += amount;
+    }
+    const returns = {
+        totalReturns: returnDocs.length,
+        pendingReturns: returnDocs.length - rejectedReturns - completedReturns,
+        completedReturns,
+        rejectedReturns,
+        returnValue,
+        refundedAmount,
+        pendingRefundAmount,
+        returnRate: periodOrderCount > 0
+            ? Number(((returnDocs.length / periodOrderCount) * 100).toFixed(1))
+            : 0,
+    };
 
     const dailyMap = {};
     const statusCounts = {};
@@ -91,7 +129,7 @@ export const getAnalyticsOverview = asyncHandler(async (req, res) => {
             (vi) => vendorIdsToMatch.map(String).includes(String(vi?.vendorId))
         );
         if (!vendorItem) continue;
-        if (String(vendorItem?.status || '').toLowerCase() === 'cancelled') continue;
+        if (['cancelled', 'returned'].includes(String(vendorItem?.status || '').toLowerCase())) continue;
 
         const dateKey = toDateKey(order?.createdAt || order?.date);
         if (!dateKey) continue;
@@ -132,7 +170,7 @@ export const getAnalyticsOverview = asyncHandler(async (req, res) => {
     res.status(200).json(
         new ApiResponse(
             200,
-            { summary, timeseries, statusBreakdown },
+            { summary, timeseries, statusBreakdown, returns },
             'Analytics overview fetched.'
         )
     );

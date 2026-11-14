@@ -81,64 +81,46 @@ export const submitB2BApplication = asyncHandler(async (req, res) => {
     const vendor = await Vendor.findById(req.user.id);
     if (!vendor) throw new ApiError(404, 'Vendor not found.');
 
-    const isGst = gstStatus === 'gst_registered';
-
-    if (isGst) {
-        if (!legalName || !legalName.trim()) {
-            throw new ApiError(400, 'Legal Business Name is required for GST registered sellers.');
-        }
-        if (!gstNumber || !gstNumber.trim()) {
-            throw new ApiError(400, 'GST Number is required.');
-        }
-        const trimmedGst = gstNumber.trim().toUpperCase();
-        if (!GST_REGEX.test(trimmedGst)) {
-            throw new ApiError(400, 'Invalid GST Number format. Expected 15 characters (e.g. 22AAAAA0000A1Z5).');
-        }
-        if (!gstCertificate) {
-            throw new ApiError(400, 'Please upload your GST Certificate document.');
-        }
-        if (!panNumber || !panNumber.trim()) {
-            throw new ApiError(400, 'PAN Number is required.');
-        }
-
-        vendor.b2bSellingGstStatus = 'gst_registered';
-        vendor.b2bSellingGstNumber = trimmedGst;
-        vendor.b2bSellingGstCertificate = gstCertificate;
-        vendor.b2bSellingLegalName = legalName.trim();
-        vendor.b2bSellingTradeName = tradeName ? tradeName.trim() : (vendor.storeName || '');
-        vendor.b2bSellingPan = panNumber.trim().toUpperCase();
-        vendor.b2bSellingAddress = address ? address.trim() : '';
-        vendor.b2bSellingCity = city ? city.trim() : '';
-        vendor.b2bSellingState = state ? state.trim() : '';
-        vendor.b2bSellingPincode = pincode ? pincode.trim() : '';
-        vendor.b2bSellingDeclaration = declaration || '';
-
-        // Also sync to main vendor fields
-        vendor.gstRegistered = true;
-        vendor.gstNumber = trimmedGst;
-        vendor.gstCertificate = gstCertificate;
-        vendor.businessName = legalName.trim();
-        vendor.tradeName = vendor.b2bSellingTradeName;
-        vendor.panNumber = vendor.b2bSellingPan;
-    } else {
-        if (!legalName || !legalName.trim()) {
-            throw new ApiError(400, 'Business / Store Name is required.');
-        }
-
-        vendor.b2bSellingGstStatus = 'non_gst';
-        vendor.b2bSellingGstNumber = '';
-        vendor.b2bSellingGstCertificate = '';
-        vendor.b2bSellingLegalName = legalName.trim();
-        vendor.b2bSellingTradeName = tradeName ? tradeName.trim() : (vendor.storeName || '');
-        vendor.b2bSellingPan = panNumber ? panNumber.trim().toUpperCase() : '';
-        vendor.b2bSellingAddress = address ? address.trim() : '';
-        vendor.b2bSellingCity = city ? city.trim() : '';
-        vendor.b2bSellingState = state ? state.trim() : '';
-        vendor.b2bSellingPincode = pincode ? pincode.trim() : '';
-        vendor.b2bSellingDeclaration = declaration || 'Non-GST seller request submitted for review.';
-
-        vendor.gstRegistered = false;
+    // Only GST-registered vendors may apply for B2B selling.
+    if (gstStatus !== 'gst_registered') {
+        throw new ApiError(400, 'Only GST-registered vendors can apply for B2B selling. GST registration is mandatory.');
     }
+    if (!legalName || !legalName.trim()) {
+        throw new ApiError(400, 'Legal Business Name is required for GST registered sellers.');
+    }
+    if (!gstNumber || !gstNumber.trim()) {
+        throw new ApiError(400, 'GST Number is required.');
+    }
+    const trimmedGst = gstNumber.trim().toUpperCase();
+    if (!GST_REGEX.test(trimmedGst)) {
+        throw new ApiError(400, 'Invalid GST Number format. Expected 15 characters (e.g. 22AAAAA0000A1Z5).');
+    }
+    if (!gstCertificate) {
+        throw new ApiError(400, 'Please upload your GST Certificate document.');
+    }
+    if (!panNumber || !panNumber.trim()) {
+        throw new ApiError(400, 'PAN Number is required.');
+    }
+
+    vendor.b2bSellingGstStatus = 'gst_registered';
+    vendor.b2bSellingGstNumber = trimmedGst;
+    vendor.b2bSellingGstCertificate = gstCertificate;
+    vendor.b2bSellingLegalName = legalName.trim();
+    vendor.b2bSellingTradeName = tradeName ? tradeName.trim() : (vendor.storeName || '');
+    vendor.b2bSellingPan = panNumber.trim().toUpperCase();
+    vendor.b2bSellingAddress = address ? address.trim() : '';
+    vendor.b2bSellingCity = city ? city.trim() : '';
+    vendor.b2bSellingState = state ? state.trim() : '';
+    vendor.b2bSellingPincode = pincode ? pincode.trim() : '';
+    vendor.b2bSellingDeclaration = declaration || '';
+
+    // Also sync to main vendor fields
+    vendor.gstRegistered = true;
+    vendor.gstNumber = trimmedGst;
+    vendor.gstCertificate = gstCertificate;
+    vendor.businessName = legalName.trim();
+    vendor.tradeName = vendor.b2bSellingTradeName;
+    vendor.panNumber = vendor.b2bSellingPan;
 
     vendor.b2bSellingStatus = 'pending';
     vendor.b2bSellingAppliedAt = new Date();

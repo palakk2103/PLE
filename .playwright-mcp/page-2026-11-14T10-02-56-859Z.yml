@@ -1,0 +1,732 @@
+- generic [ref=f1e49]:
+  - banner [ref=f1e50]:
+    - generic [ref=f1e51]:
+      - generic [ref=f1e52]:
+        - link [ref=f1e53] [cursor=pointer]:
+          - /url: /home
+          - img "OPLE Logo" [ref=f1e54]
+        - button "Menu" [ref=f1e55] [cursor=pointer]
+      - navigation [ref=f1e57]:
+        - link "Home" [ref=f1e58] [cursor=pointer]:
+          - /url: /home
+        - link "Other Shops Marketplace" [ref=f1e59] [cursor=pointer]:
+          - /url: /home?tab=marketplace
+          - generic [ref=f1e60]: Other Shops
+          - generic [ref=f1e61]: Marketplace
+        - link "Categories ▼" [ref=f1e62] [cursor=pointer]:
+          - /url: /categories
+          - generic [ref=f1e63]: Categories
+          - generic [ref=f1e64]: ▼
+        - link "Offers" [ref=f1e65] [cursor=pointer]:
+          - /url: /offers
+        - generic [ref=f1e66] [cursor=pointer]:
+          - generic [ref=f1e67]: Brands by PLE
+          - generic [ref=f1e68]: New
+          - generic [ref=f1e69]: ▼
+      - generic [ref=f1e70]:
+        - textbox "Search products, brands, categories..." [ref=f1e71]
+        - button [ref=f1e72] [cursor=pointer]
+      - generic [ref=f1e76]:
+        - button "3 RFQ" [ref=f1e77] [cursor=pointer]:
+          - generic [ref=f1e78]: "3"
+          - generic [ref=f1e83]: RFQ
+        - button "Cart" [ref=f1e84] [cursor=pointer]
+        - button "Theme" [ref=f1e89] [cursor=pointer]
+        - button [ref=f1e95] [cursor=pointer]:
+          - generic [ref=f1e98]:
+            - paragraph [ref=f1e99]: palak
+            - paragraph [ref=f1e100]: Business Account
+  - main [ref=f1e101]:
+    - generic [ref=f1e103]:
+      - generic [ref=f1e105]:
+        - generic [ref=f1e106]:
+          - generic [ref=f1e107]:
+            - generic [ref=f1e108]:
+              - heading "Browse Categories" [level=3] [ref=f1e109]
+              - generic [ref=f1e110]:
+                - button "Computers & Peripherals" [ref=f1e111] [cursor=pointer]
+                - button "Components" [ref=f1e119] [cursor=pointer]
+                - button "Security & Surveillance" [ref=f1e128] [cursor=pointer]
+                - button "Networking" [ref=f1e136] [cursor=pointer]
+                - button "Storage & Backup" [ref=f1e145] [cursor=pointer]
+                - button "Office Equipment" [ref=f1e155] [cursor=pointer]
+                - button "Power & Electricals" [ref=f1e165] [cursor=pointer]
+                - button "Software & Licenses" [ref=f1e173] [cursor=pointer]
+                - button "Mobility & Accessories" [ref=f1e182] [cursor=pointer]
+                - button "Consumables" [ref=f1e190] [cursor=pointer]
+            - button "View All Categories" [ref=f1e200] [cursor=pointer]
+          - generic [ref=f1e201]:
+            - generic [ref=f1e202]:
+              - text: Corporate Procurement Made Easy
+              - heading "Smart Sourcing. Reliable Supply. Built for Business." [level=2] [ref=f1e203]: Smart Sourcing.Reliable Supply.Built for Business.
+              - paragraph [ref=f1e204]: End-to-end procurement solutions with GST-compliant invoicing, bulk pricing, and dedicated support.
+            - generic [ref=f1e205]:
+              - button "RFQ Details ➔" [ref=f1e206] [cursor=pointer]:
+                - text: RFQ Details
+                - generic [ref=f1e207]: ➔
+              - button "Source Now" [ref=f1e208] [cursor=pointer]
+          - generic [ref=f1e213]:
+            - generic [ref=f1e214]:
+              - generic [ref=f1e215]:
+                - heading "Business Account" [level=3] [ref=f1e216]
+                - link "View Profile ➔" [ref=f1e217] [cursor=pointer]:
+                  - /url: /profile
+              - generic [ref=f1e223]:
+                - heading "alexa" [level=4] [ref=f1e224]
+                - paragraph [ref=f1e225]:
+                  - generic [ref=f1e226]: "GSTIN: 22AAAAA0000A1Z5"
+                  - generic [ref=f1e227]: ✔
+              - generic [ref=f1e228]:
+                - generic [ref=f1e229]:
+                  - generic [ref=f1e230]: Admin
+                  - generic [ref=f1e231]: palak
+                - generic [ref=f1e232]:
+                  - generic [ref=f1e233]: Role
+                  - generic [ref=f1e234]: Super Admin
+                - generic [ref=f1e235]:
+                  - generic [ref=f1e236]: Purchases History
+                  - link "View History" [ref=f1e237] [cursor=pointer]:
+                    - /url: /orders
+                - generic [ref=f1e238]:
+                  - generic [ref=f1e239]: Member Since
+                  - generic [ref=f1e240]: June 2026
+              - generic [ref=f1e241]: Need bulk pricing or custom sourcing? Submit an RFQ and get best quotes.
+            - button "RFQ Details" [ref=f1e246] [cursor=pointer]
+        - generic [ref=f1e247]:
+          - generic [ref=f1e253]:
+            - heading "Wholesale Pricing" [level=4] [ref=f1e254]
+            - paragraph [ref=f1e255]: Verified tier discounts & bulk volume rates on all catalog items.
+          - generic [ref=f1e259] [cursor=pointer]:
+            - heading "Source Now" [level=4] [ref=f1e260]
+            - paragraph [ref=f1e261]: Request custom or unlisted items.
+          - generic [ref=f1e269]:
+            - heading "Fast & Reliable Delivery" [level=4] [ref=f1e270]
+            - paragraph [ref=f1e271]: Pan-India delivery with real-time tracking.
+          - generic [ref=f1e276]:
+            - heading "GST Compliant" [level=4] [ref=f1e277]
+            - paragraph [ref=f1e278]: All invoices & billing 100% GST compliant.
+        - generic [ref=f1e279]:
+          - generic [ref=f1e280]:
+            - heading "Explore By Category" [level=3] [ref=f1e281]
+            - link "View All ➔" [ref=f1e282] [cursor=pointer]:
+              - /url: /categories
+          - generic [ref=f1e283]:
+            - generic [ref=f1e284] [cursor=pointer]:
+              - img "Computers & Peripherals" [ref=f1e286]
+              - generic [ref=f1e287]: Computers & Peripherals
+            - generic [ref=f1e288] [cursor=pointer]:
+              - img "Components" [ref=f1e290]
+              - generic [ref=f1e291]: Components
+            - generic [ref=f1e292] [cursor=pointer]:
+              - img "Security & Surveillance" [ref=f1e294]
+              - generic [ref=f1e295]: Security & Surveillance
+            - generic [ref=f1e296] [cursor=pointer]:
+              - img "Networking" [ref=f1e298]
+              - generic [ref=f1e299]: Networking
+            - generic [ref=f1e300] [cursor=pointer]:
+              - img "Storage & Backup" [ref=f1e302]
+              - generic [ref=f1e303]: Storage & Backup
+            - generic [ref=f1e304] [cursor=pointer]:
+              - img "Office Equipment" [ref=f1e306]
+              - generic [ref=f1e307]: Office Equipment
+            - generic [ref=f1e308] [cursor=pointer]:
+              - img "Power & Electricals" [ref=f1e310]
+              - generic [ref=f1e311]: Power & Electricals
+            - generic [ref=f1e312] [cursor=pointer]:
+              - img "Software & Licenses" [ref=f1e314]
+              - generic [ref=f1e315]: Software & Licenses
+            - generic [ref=f1e316] [cursor=pointer]:
+              - img "Mobility & Accessories" [ref=f1e318]
+              - generic [ref=f1e319]: Mobility & Accessories
+        - generic [ref=f1e320]:
+          - generic [ref=f1e324]:
+            - strong [ref=f1e325]: 200+ Trusted Brands
+            - text: Curated for Business
+          - generic [ref=f1e330]:
+            - strong [ref=f1e331]: GST Compliant Billing
+            - text: 100% Secure & Compliant
+          - generic [ref=f1e338]:
+            - strong [ref=f1e339]: PAN India Delivery
+            - text: Fast & Reliable
+          - generic [ref=f1e343]:
+            - strong [ref=f1e344]: Dedicated Support
+            - text: Always Here For You
+      - generic [ref=f1e348]:
+        - generic [ref=f1e349]:
+          - generic [ref=f1e350] [cursor=pointer]:
+            - img "Armani Exchange"
+          - paragraph [ref=f1e351]: Armani Exchange
+        - generic [ref=f1e352]:
+          - generic [ref=f1e353] [cursor=pointer]:
+            - img "Chanel"
+          - paragraph [ref=f1e354]: Chanel
+        - generic [ref=f1e355]:
+          - generic [ref=f1e356] [cursor=pointer]:
+            - img "Charles & Keith"
+          - paragraph [ref=f1e357]: Charles & Keith
+        - generic [ref=f1e358]:
+          - generic [ref=f1e359] [cursor=pointer]:
+            - img "Chloe"
+          - paragraph [ref=f1e360]: Chloe
+        - generic [ref=f1e361]:
+          - generic [ref=f1e362] [cursor=pointer]:
+            - img "Crocs"
+          - paragraph [ref=f1e363]: Crocs
+        - generic [ref=f1e364]:
+          - generic [ref=f1e365] [cursor=pointer]:
+            - img "Emporio Armani"
+          - paragraph [ref=f1e366]: Emporio Armani
+        - generic [ref=f1e367]:
+          - generic [ref=f1e368] [cursor=pointer]:
+            - img "Fendi"
+          - paragraph [ref=f1e369]: Fendi
+        - generic [ref=f1e370]:
+          - generic [ref=f1e371] [cursor=pointer]:
+            - img "Fossil"
+          - paragraph [ref=f1e372]: Fossil
+        - generic [ref=f1e373]:
+          - generic [ref=f1e374] [cursor=pointer]:
+            - img "G-Shock"
+          - paragraph [ref=f1e375]: G-Shock
+        - generic [ref=f1e376]:
+          - generic [ref=f1e377] [cursor=pointer]:
+            - img "Gucci"
+          - paragraph [ref=f1e378]: Gucci
+      - generic [ref=f1e381]:
+        - generic [ref=f1e382]:
+          - generic [ref=f1e383]:
+            - heading "Best Sellers" [level=2] [ref=f1e384]
+            - paragraph [ref=f1e385]: Shop from trusted stores
+          - link "See All" [ref=f1e386] [cursor=pointer]:
+            - /url: /sellers
+        - generic [ref=f1e390]:
+          - link "Anita Mega Mart 4.8 0 products Visit Store" [ref=f1e391] [cursor=pointer]:
+            - /url: /seller/6a523ed45ae325dd5d7041c1
+            - generic [ref=f1e392]:
+              - heading "Anita Mega Mart" [level=3] [ref=f1e400]
+              - generic [ref=f1e401]: "4.8"
+              - generic [ref=f1e414]: 0 products
+              - generic [ref=f1e419]: Visit Store
+          - link "P PLE shop 4.8 10 products Visit Store" [ref=f1e424] [cursor=pointer]:
+            - /url: /seller/6a53a50ba7fd2a88646fa54c
+            - generic [ref=f1e425]:
+              - generic [ref=f1e426]: P
+              - heading "PLE shop" [level=3] [ref=f1e433]
+              - generic [ref=f1e434]: "4.8"
+              - generic [ref=f1e447]: 10 products
+              - generic [ref=f1e452]: Visit Store
+          - link "F Fashion Hub Store 4.3 4 products Visit Store" [ref=f1e457] [cursor=pointer]:
+            - /url: /seller/6996c04b4a33b2417858505e
+            - generic [ref=f1e458]:
+              - generic [ref=f1e459]: F
+              - heading "Fashion Hub Store" [level=3] [ref=f1e466]
+              - generic [ref=f1e467]: "4.3"
+              - generic [ref=f1e480]: 4 products
+              - generic [ref=f1e485]: Visit Store
+          - link "All is well 4.0 2 products Visit Store" [ref=f1e490] [cursor=pointer]:
+            - /url: /seller/69fd7efe55e69c0dfdf08fec
+            - generic [ref=f1e491]:
+              - heading "All is well" [level=3] [ref=f1e499]
+              - generic [ref=f1e500]: "4.0"
+              - generic [ref=f1e513]: 2 products
+              - generic [ref=f1e518]: Visit Store
+          - link "M MCP Store 0 products Visit Store" [ref=f1e523] [cursor=pointer]:
+            - /url: /seller/6ae9bc828e78bd0fad5f9394
+            - generic [ref=f1e524]:
+              - generic [ref=f1e525]: M
+              - heading "MCP Store" [level=3] [ref=f1e532]
+              - generic [ref=f1e533]: 0 products
+              - generic [ref=f1e538]: Visit Store
+          - link "U UI Store 0 products Visit Store" [ref=f1e543] [cursor=pointer]:
+            - /url: /seller/6ae9bacd8e78bd0fad5f8e23
+            - generic [ref=f1e544]:
+              - generic [ref=f1e545]: U
+              - heading "UI Store" [level=3] [ref=f1e552]
+              - generic [ref=f1e553]: 0 products
+              - generic [ref=f1e558]: Visit Store
+          - link "P PLE store 1 products Visit Store" [ref=f1e563] [cursor=pointer]:
+            - /url: /seller/6ae4b23dfdcdfc1795752df7
+            - generic [ref=f1e564]:
+              - generic [ref=f1e565]: P
+              - heading "PLE store" [level=3] [ref=f1e572]
+              - generic [ref=f1e573]: 1 products
+              - generic [ref=f1e578]: Visit Store
+          - link "F Fashion Hub Official 3 products Visit Store" [ref=f1e583] [cursor=pointer]:
+            - /url: /seller/6ac5f04352e2803067ca5cd6
+            - generic [ref=f1e584]:
+              - generic [ref=f1e585]: F
+              - heading "Fashion Hub Official" [level=3] [ref=f1e592]
+              - generic [ref=f1e593]: 3 products
+              - generic [ref=f1e598]: Visit Store
+          - link "A Ankit shop 0 products Visit Store" [ref=f1e603] [cursor=pointer]:
+            - /url: /seller/6aa13adab4d6beaa1ea00a1f
+            - generic [ref=f1e604]:
+              - generic [ref=f1e605]: A
+              - heading "Ankit shop" [level=3] [ref=f1e612]
+              - generic [ref=f1e613]: 0 products
+              - generic [ref=f1e618]: Visit Store
+      - generic [ref=f1e624]:
+        - generic [ref=f1e1351]:
+          - generic:
+            - generic:
+              - generic:
+                - img "Hero Product"
+          - button "New Deals Every Day Daily Deals Check out today's best deals Save 30%" [ref=f1e1352] [cursor=pointer]:
+            - generic [ref=f1e1353]:
+              - generic [ref=f1e1354]: New Deals Every Day
+              - heading "Daily Deals" [level=3] [ref=f1e1360]
+              - paragraph [ref=f1e1361]: Check out today's best deals
+              - generic [ref=f1e1362]: Save 30%
+        - generic [ref=f1e639]:
+          - button [ref=f1e640] [cursor=pointer]
+          - button [ref=f1e642] [cursor=pointer]
+          - button [ref=f1e644] [cursor=pointer]
+      - generic [ref=f1e647]:
+        - generic [ref=f1e648]:
+          - generic [ref=f1e654]:
+            - heading "New Arrivals" [level=2] [ref=f1e655]
+            - paragraph [ref=f1e656]: Fresh products just added
+          - link "See All" [ref=f1e658] [cursor=pointer]:
+            - /url: /new-arrivals
+        - generic [ref=f1e659]:
+          - link [ref=f1e661] [cursor=pointer]:
+            - /url: /product/6ada3975fdcdfc17957474c8
+          - link [ref=f1e667] [cursor=pointer]:
+            - /url: /product/6ada3975fdcdfc17957474c2
+          - link [ref=f1e673] [cursor=pointer]:
+            - /url: /product/6ada3975fdcdfc17957474bc
+          - link [ref=f1e679] [cursor=pointer]:
+            - /url: /product/6ada3975fdcdfc17957474b6
+          - link [ref=f1e685] [cursor=pointer]:
+            - /url: /product/6ada3975fdcdfc17957474b0
+          - link [ref=f1e691] [cursor=pointer]:
+            - /url: /product/6ada3975fdcdfc17957474aa
+      - generic [ref=f1e696]:
+        - generic [ref=f1e697]:
+          - heading "Most Popular" [level=2] [ref=f1e698]
+          - link "See All" [ref=f1e699] [cursor=pointer]:
+            - /url: /search
+        - generic [ref=f1e700]:
+          - generic [ref=f1e702] [cursor=pointer]:
+            - generic [ref=f1e703]:
+              - button [ref=f1e705]
+              - link "32% OFF" [ref=f1e708]:
+                - /url: /product/6ada3975fdcdfc17957474c8
+            - generic [ref=f1e712]:
+              - link [ref=f1e713]:
+                - /url: /product/6ada3975fdcdfc17957474c8
+                - heading "6-Socket Surge Protector" [level=3] [ref=f1e714]
+              - paragraph [ref=f1e715]: Piece
+              - generic [ref=f1e716]: Fast Bulk Cargo
+              - generic [ref=f1e719]:
+                - generic [ref=f1e720]:
+                  - generic [ref=f1e721]: "Bulk Price:"
+                  - generic [ref=f1e722]: ₹1,359.2
+                  - generic [ref=f1e723]: /Piece
+                - generic [ref=f1e724]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f1e728]
+          - generic [ref=f1e733] [cursor=pointer]:
+            - generic [ref=f1e734]:
+              - button [ref=f1e736]
+              - link "38% OFF" [ref=f1e739]:
+                - /url: /product/6ada3975fdcdfc17957474c2
+            - generic [ref=f1e743]:
+              - link [ref=f1e744]:
+                - /url: /product/6ada3975fdcdfc17957474c2
+                - heading "USB Wired Optical Mouse" [level=3] [ref=f1e745]
+              - paragraph [ref=f1e746]: Piece
+              - generic [ref=f1e747]: Fast Bulk Cargo
+              - generic [ref=f1e750]:
+                - generic [ref=f1e751]:
+                  - generic [ref=f1e752]: "Bulk Price:"
+                  - generic [ref=f1e753]: ₹199.2
+                  - generic [ref=f1e754]: /Piece
+                - generic [ref=f1e755]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f1e759]
+          - generic [ref=f1e764] [cursor=pointer]:
+            - generic [ref=f1e765]:
+              - button [ref=f1e767]
+              - link "24% OFF" [ref=f1e770]:
+                - /url: /product/6ada3975fdcdfc17957474bc
+            - generic [ref=f1e774]:
+              - link [ref=f1e775]:
+                - /url: /product/6ada3975fdcdfc17957474bc
+                - heading "600VA Line-Interactive UPS" [level=3] [ref=f1e776]
+              - paragraph [ref=f1e777]: Piece
+              - generic [ref=f1e778]: Fast Bulk Cargo
+              - generic [ref=f1e781]:
+                - generic [ref=f1e782]:
+                  - generic [ref=f1e783]: "Bulk Price:"
+                  - generic [ref=f1e784]: ₹3,039.2
+                  - generic [ref=f1e785]: /Piece
+                - generic [ref=f1e786]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f1e790]
+          - generic [ref=f1e795] [cursor=pointer]:
+            - generic [ref=f1e796]:
+              - button [ref=f1e798]
+              - link "22% OFF" [ref=f1e801]:
+                - /url: /product/6ada3975fdcdfc17957474b6
+            - generic [ref=f1e805]:
+              - link [ref=f1e806]:
+                - /url: /product/6ada3975fdcdfc17957474b6
+                - heading "PIXMA Inkjet Printer" [level=3] [ref=f1e807]
+              - paragraph [ref=f1e808]: Piece
+              - generic [ref=f1e809]: Fast Bulk Cargo
+              - generic [ref=f1e812]:
+                - generic [ref=f1e813]:
+                  - generic [ref=f1e814]: "Bulk Price:"
+                  - generic [ref=f1e815]: ₹5,599.2
+                  - generic [ref=f1e816]: /Piece
+                - generic [ref=f1e817]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f1e821]
+          - generic [ref=f1e826] [cursor=pointer]:
+            - generic [ref=f1e827]:
+              - button [ref=f1e829]
+              - link "29% OFF" [ref=f1e832]:
+                - /url: /product/6ada3975fdcdfc17957474b0
+            - generic [ref=f1e836]:
+              - link [ref=f1e837]:
+                - /url: /product/6ada3975fdcdfc17957474b0
+                - heading "DataTraveler 32GB USB Flash Drive" [level=3] [ref=f1e838]
+              - paragraph [ref=f1e839]: Piece
+              - generic [ref=f1e840]: Fast Bulk Cargo
+              - generic [ref=f1e843]:
+                - generic [ref=f1e844]:
+                  - generic [ref=f1e845]: "Bulk Price:"
+                  - generic [ref=f1e846]: ₹399.2
+                  - generic [ref=f1e847]: /Piece
+                - generic [ref=f1e848]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f1e852]
+      - generic [ref=f1e860]:
+        - generic [ref=f1e861]:
+          - generic [ref=f1e862]:
+            - generic [ref=f1e867]:
+              - heading "Daily Deals" [level=2] [ref=f1e868]
+              - paragraph [ref=f1e869]: Limited time offers - Up to 70% OFF
+            - link "See All" [ref=f1e870] [cursor=pointer]:
+              - /url: /daily-deals
+          - generic [ref=f1e872]:
+            - paragraph [ref=f1e873]: Deal ends in
+            - generic [ref=f1e879]:
+              - generic [ref=f1e880]:
+                - generic [ref=f1e881]: "08"
+                - generic [ref=f1e882]: Hrs
+              - generic [ref=f1e883]: ":"
+              - generic [ref=f1e884]:
+                - generic [ref=f1e885]: "27"
+                - generic [ref=f1e886]: Min
+              - generic [ref=f1e887]: ":"
+              - generic [ref=f1e888]:
+                - generic [ref=f1e889]: "03"
+                - generic [ref=f1e890]: Sec
+        - generic [ref=f1e891]:
+          - generic [ref=f1e893] [cursor=pointer]:
+            - generic [ref=f1e894]:
+              - button [ref=f1e896]
+              - link "32% OFF Hot Deal" [ref=f1e899]:
+                - /url: /product/6ada3975fdcdfc17957474c8
+                - generic [ref=f1e900]:
+                  - generic [ref=f1e901]: 32% OFF
+                  - generic [ref=f1e902]: Hot Deal
+            - generic [ref=f1e905]:
+              - link [ref=f1e906]:
+                - /url: /product/6ada3975fdcdfc17957474c8
+                - heading "6-Socket Surge Protector" [level=3] [ref=f1e907]
+              - paragraph [ref=f1e908]: Piece
+              - generic [ref=f1e909]: Ending Soon
+              - generic [ref=f1e911]: Fast Bulk Cargo
+              - generic [ref=f1e914]:
+                - generic [ref=f1e915]: Available
+                - generic [ref=f1e916]: 91% Sold
+              - generic [ref=f1e920]:
+                - generic [ref=f1e921]:
+                  - generic [ref=f1e922]: "Bulk Price:"
+                  - generic [ref=f1e923]: ₹1,359.2
+                  - generic [ref=f1e924]: /Piece
+                - generic [ref=f1e925]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f1e929]
+          - generic [ref=f1e934] [cursor=pointer]:
+            - generic [ref=f1e935]:
+              - button [ref=f1e937]
+              - link "38% OFF Hot Deal" [ref=f1e940]:
+                - /url: /product/6ada3975fdcdfc17957474c2
+                - generic [ref=f1e941]:
+                  - generic [ref=f1e942]: 38% OFF
+                  - generic [ref=f1e943]: Hot Deal
+            - generic [ref=f1e946]:
+              - link [ref=f1e947]:
+                - /url: /product/6ada3975fdcdfc17957474c2
+                - heading "USB Wired Optical Mouse" [level=3] [ref=f1e948]
+              - paragraph [ref=f1e949]: Piece
+              - generic [ref=f1e950]: Ending Soon
+              - generic [ref=f1e952]: Fast Bulk Cargo
+              - generic [ref=f1e955]:
+                - generic [ref=f1e956]: Available
+                - generic [ref=f1e957]: 50% Sold
+              - generic [ref=f1e961]:
+                - generic [ref=f1e962]:
+                  - generic [ref=f1e963]: "Bulk Price:"
+                  - generic [ref=f1e964]: ₹199.2
+                  - generic [ref=f1e965]: /Piece
+                - generic [ref=f1e966]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f1e970]
+          - generic [ref=f1e975] [cursor=pointer]:
+            - generic [ref=f1e976]:
+              - button [ref=f1e978]
+              - link "24% OFF Hot Deal" [ref=f1e981]:
+                - /url: /product/6ada3975fdcdfc17957474bc
+                - generic [ref=f1e982]:
+                  - generic [ref=f1e983]: 24% OFF
+                  - generic [ref=f1e984]: Hot Deal
+            - generic [ref=f1e987]:
+              - link [ref=f1e988]:
+                - /url: /product/6ada3975fdcdfc17957474bc
+                - heading "600VA Line-Interactive UPS" [level=3] [ref=f1e989]
+              - paragraph [ref=f1e990]: Piece
+              - generic [ref=f1e991]: Ending Soon
+              - generic [ref=f1e993]: Fast Bulk Cargo
+              - generic [ref=f1e996]:
+                - generic [ref=f1e997]: Available
+                - generic [ref=f1e998]: 95% Sold
+              - generic [ref=f1e1002]:
+                - generic [ref=f1e1003]:
+                  - generic [ref=f1e1004]: "Bulk Price:"
+                  - generic [ref=f1e1005]: ₹3,039.2
+                  - generic [ref=f1e1006]: /Piece
+                - generic [ref=f1e1007]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f1e1011]
+          - generic [ref=f1e1016] [cursor=pointer]:
+            - generic [ref=f1e1017]:
+              - button [ref=f1e1019]
+              - link "22% OFF Hot Deal" [ref=f1e1022]:
+                - /url: /product/6ada3975fdcdfc17957474b6
+                - generic [ref=f1e1023]:
+                  - generic [ref=f1e1024]: 22% OFF
+                  - generic [ref=f1e1025]: Hot Deal
+            - generic [ref=f1e1028]:
+              - link [ref=f1e1029]:
+                - /url: /product/6ada3975fdcdfc17957474b6
+                - heading "PIXMA Inkjet Printer" [level=3] [ref=f1e1030]
+              - paragraph [ref=f1e1031]: Piece
+              - generic [ref=f1e1032]: Ending Soon
+              - generic [ref=f1e1034]: Fast Bulk Cargo
+              - generic [ref=f1e1037]:
+                - generic [ref=f1e1038]: Available
+                - generic [ref=f1e1039]: 95% Sold
+              - generic [ref=f1e1043]:
+                - generic [ref=f1e1044]:
+                  - generic [ref=f1e1045]: "Bulk Price:"
+                  - generic [ref=f1e1046]: ₹5,599.2
+                  - generic [ref=f1e1047]: /Piece
+                - generic [ref=f1e1048]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f1e1052]
+          - generic [ref=f1e1057] [cursor=pointer]:
+            - generic [ref=f1e1058]:
+              - button [ref=f1e1060]
+              - link "29% OFF Hot Deal" [ref=f1e1063]:
+                - /url: /product/6ada3975fdcdfc17957474b0
+                - generic [ref=f1e1064]:
+                  - generic [ref=f1e1065]: 29% OFF
+                  - generic [ref=f1e1066]: Hot Deal
+            - generic [ref=f1e1069]:
+              - link [ref=f1e1070]:
+                - /url: /product/6ada3975fdcdfc17957474b0
+                - heading "DataTraveler 32GB USB Flash Drive" [level=3] [ref=f1e1071]
+              - paragraph [ref=f1e1072]: Piece
+              - generic [ref=f1e1073]: Ending Soon
+              - generic [ref=f1e1075]: Fast Bulk Cargo
+              - generic [ref=f1e1078]:
+                - generic [ref=f1e1079]: Available
+                - generic [ref=f1e1080]: 70% Sold
+              - generic [ref=f1e1084]:
+                - generic [ref=f1e1085]:
+                  - generic [ref=f1e1086]: "Bulk Price:"
+                  - generic [ref=f1e1087]: ₹399.2
+                  - generic [ref=f1e1088]: /Piece
+                - generic [ref=f1e1089]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f1e1093]
+      - generic [ref=f1e1097]:
+        - generic [ref=f1e1098]:
+          - heading "Trending Now" [level=2] [ref=f1e1099]
+          - link "See All" [ref=f1e1100] [cursor=pointer]:
+            - /url: /search
+        - generic [ref=f1e1101]:
+          - generic [ref=f1e1103] [cursor=pointer]:
+            - generic [ref=f1e1104]:
+              - button [ref=f1e1106]
+              - link "32% OFF" [ref=f1e1109]:
+                - /url: /product/6ada3975fdcdfc17957474c8
+            - generic [ref=f1e1113]:
+              - link [ref=f1e1114]:
+                - /url: /product/6ada3975fdcdfc17957474c8
+                - heading "6-Socket Surge Protector" [level=3] [ref=f1e1115]
+              - paragraph [ref=f1e1116]: Piece
+              - generic [ref=f1e1117]: Fast Bulk Cargo
+              - generic [ref=f1e1120]:
+                - generic [ref=f1e1121]:
+                  - generic [ref=f1e1122]: "Bulk Price:"
+                  - generic [ref=f1e1123]: ₹1,359.2
+                  - generic [ref=f1e1124]: /Piece
+                - generic [ref=f1e1125]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f1e1129]
+          - generic [ref=f1e1134] [cursor=pointer]:
+            - generic [ref=f1e1135]:
+              - button [ref=f1e1137]
+              - link "38% OFF" [ref=f1e1140]:
+                - /url: /product/6ada3975fdcdfc17957474c2
+            - generic [ref=f1e1144]:
+              - link [ref=f1e1145]:
+                - /url: /product/6ada3975fdcdfc17957474c2
+                - heading "USB Wired Optical Mouse" [level=3] [ref=f1e1146]
+              - paragraph [ref=f1e1147]: Piece
+              - generic [ref=f1e1148]: Fast Bulk Cargo
+              - generic [ref=f1e1151]:
+                - generic [ref=f1e1152]:
+                  - generic [ref=f1e1153]: "Bulk Price:"
+                  - generic [ref=f1e1154]: ₹199.2
+                  - generic [ref=f1e1155]: /Piece
+                - generic [ref=f1e1156]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f1e1160]
+          - generic [ref=f1e1165] [cursor=pointer]:
+            - generic [ref=f1e1166]:
+              - button [ref=f1e1168]
+              - link "24% OFF" [ref=f1e1171]:
+                - /url: /product/6ada3975fdcdfc17957474bc
+            - generic [ref=f1e1175]:
+              - link [ref=f1e1176]:
+                - /url: /product/6ada3975fdcdfc17957474bc
+                - heading "600VA Line-Interactive UPS" [level=3] [ref=f1e1177]
+              - paragraph [ref=f1e1178]: Piece
+              - generic [ref=f1e1179]: Fast Bulk Cargo
+              - generic [ref=f1e1182]:
+                - generic [ref=f1e1183]:
+                  - generic [ref=f1e1184]: "Bulk Price:"
+                  - generic [ref=f1e1185]: ₹3,039.2
+                  - generic [ref=f1e1186]: /Piece
+                - generic [ref=f1e1187]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f1e1191]
+          - generic [ref=f1e1196] [cursor=pointer]:
+            - generic [ref=f1e1197]:
+              - button [ref=f1e1199]
+              - link "22% OFF" [ref=f1e1202]:
+                - /url: /product/6ada3975fdcdfc17957474b6
+            - generic [ref=f1e1206]:
+              - link [ref=f1e1207]:
+                - /url: /product/6ada3975fdcdfc17957474b6
+                - heading "PIXMA Inkjet Printer" [level=3] [ref=f1e1208]
+              - paragraph [ref=f1e1209]: Piece
+              - generic [ref=f1e1210]: Fast Bulk Cargo
+              - generic [ref=f1e1213]:
+                - generic [ref=f1e1214]:
+                  - generic [ref=f1e1215]: "Bulk Price:"
+                  - generic [ref=f1e1216]: ₹5,599.2
+                  - generic [ref=f1e1217]: /Piece
+                - generic [ref=f1e1218]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f1e1222]
+          - generic [ref=f1e1227] [cursor=pointer]:
+            - generic [ref=f1e1228]:
+              - button [ref=f1e1230]
+              - link "29% OFF" [ref=f1e1233]:
+                - /url: /product/6ada3975fdcdfc17957474b0
+            - generic [ref=f1e1237]:
+              - link [ref=f1e1238]:
+                - /url: /product/6ada3975fdcdfc17957474b0
+                - heading "DataTraveler 32GB USB Flash Drive" [level=3] [ref=f1e1239]
+              - paragraph [ref=f1e1240]: Piece
+              - generic [ref=f1e1241]: Fast Bulk Cargo
+              - generic [ref=f1e1244]:
+                - generic [ref=f1e1245]:
+                  - generic [ref=f1e1246]: "Bulk Price:"
+                  - generic [ref=f1e1247]: ₹399.2
+                  - generic [ref=f1e1248]: /Piece
+                - generic [ref=f1e1249]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f1e1253]
+  - contentinfo [ref=f1e1257]:
+    - generic [ref=f1e1259]:
+      - generic [ref=f1e1260]:
+        - link "PLE Logo TM" [ref=f1e1261] [cursor=pointer]:
+          - /url: /home
+          - generic [ref=f1e1262]:
+            - img "PLE Logo" [ref=f1e1263]
+            - generic [ref=f1e1264]: TM
+        - paragraph [ref=f1e1265]: Your destination for electronics across consumer, business, and specialized sourcing needs — from everyday tech and accessories to enterprise procurement solutions.
+        - generic [ref=f1e1266]:
+          - link [ref=f1e1267] [cursor=pointer]:
+            - /url: https://www.facebook.com/share/1EaNrat2yr/
+          - link [ref=f1e1270] [cursor=pointer]:
+            - /url: https://www.instagram.com/peoplesleagueofelectronics?igsh=MWdtbTNzajdqMGV4cQ==
+          - link [ref=f1e1274] [cursor=pointer]:
+            - /url: https://x.com/PeoplesE9405
+          - link [ref=f1e1277] [cursor=pointer]:
+            - /url: https://www.linkedin.com/company/ple-electronics
+      - generic [ref=f1e1282]:
+        - heading "Quick Links" [level=3] [ref=f1e1283]
+        - list [ref=f1e1284]:
+          - listitem [ref=f1e1285]:
+            - link "Home" [ref=f1e1286] [cursor=pointer]:
+              - /url: /home
+          - listitem [ref=f1e1287]:
+            - link "Categories" [ref=f1e1288] [cursor=pointer]:
+              - /url: /categories
+          - listitem [ref=f1e1289]:
+            - link "Offers" [ref=f1e1290] [cursor=pointer]:
+              - /url: /offers
+          - listitem [ref=f1e1291]:
+            - link "Refurbished" [ref=f1e1292] [cursor=pointer]:
+              - /url: /refurbished-categories
+          - listitem [ref=f1e1293]:
+            - link "My Profile" [ref=f1e1294] [cursor=pointer]:
+              - /url: /profile
+          - listitem [ref=f1e1295]:
+            - link "About Us" [ref=f1e1296] [cursor=pointer]:
+              - /url: /about-us
+      - generic [ref=f1e1297]:
+        - heading "Customer Support" [level=3] [ref=f1e1298]
+        - list [ref=f1e1299]:
+          - listitem [ref=f1e1300]:
+            - link "Help & Support" [ref=f1e1301] [cursor=pointer]:
+              - /url: /help-support
+          - listitem [ref=f1e1302]:
+            - link "Privacy Policy" [ref=f1e1303] [cursor=pointer]:
+              - /url: /privacy-policy
+          - listitem [ref=f1e1304]:
+            - link "Terms & Conditions" [ref=f1e1305] [cursor=pointer]:
+              - /url: /terms-conditions
+          - listitem [ref=f1e1306]:
+            - link "Return Policy" [ref=f1e1307] [cursor=pointer]:
+              - /url: /return-policy
+          - listitem [ref=f1e1308]:
+            - link "Warranty Policy" [ref=f1e1309] [cursor=pointer]:
+              - /url: /warranty-policy
+          - listitem [ref=f1e1310]:
+            - link "Business Onboarding Policy" [ref=f1e1311] [cursor=pointer]:
+              - /url: /business-onboarding-policy
+          - listitem [ref=f1e1312]:
+            - link "Execution & Acceptance Policy" [ref=f1e1313] [cursor=pointer]:
+              - /url: /execution-acceptance-policy
+          - listitem [ref=f1e1314]:
+            - link "Shipping and Delivery Policy" [ref=f1e1315] [cursor=pointer]:
+              - /url: /shipping-and-delivery-policy
+          - listitem [ref=f1e1316]:
+            - link "User Agreement" [ref=f1e1317] [cursor=pointer]:
+              - /url: /user-agreement
+      - generic [ref=f1e1318]:
+        - generic [ref=f1e1319]:
+          - heading "Subscribe to Newsletter" [level=3] [ref=f1e1320]
+          - paragraph [ref=f1e1321]: Be the first to hear about special offers, new arrivals, and events.
+          - generic [ref=f1e1322]:
+            - textbox "Enter email address" [ref=f1e1323]
+            - button [ref=f1e1324] [cursor=pointer]
+        - generic [ref=f1e1328]:
+          - generic [ref=f1e1329]: support@plebusiness.com
+          - generic [ref=f1e1334]: +91 9071149100
+          - generic [ref=f1e1338]: SHOP NO.25, R S NO.1045/3, 2ND CROSS, UJWAL NAGAR, Belgaum Fort, Karnataka, India,590016
+    - generic [ref=f1e1344]:
+      - generic [ref=f1e1345]: © 2026 PLE Inc. All rights reserved.
+      - generic [ref=f1e1346]:
+        - link "Privacy" [ref=f1e1347] [cursor=pointer]:
+          - /url: /privacy-policy
+        - link "Terms" [ref=f1e1348] [cursor=pointer]:
+          - /url: /terms-conditions
+        - link "Sitemap" [ref=f1e1349] [cursor=pointer]:
+          - /url: /help-support

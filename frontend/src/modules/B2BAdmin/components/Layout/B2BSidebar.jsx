@@ -24,6 +24,7 @@ const B2BSidebar = ({ isOpen, setIsOpen, isMobile }) => {
   const navItems = [
     { name: 'Dashboard', path: '/b2b-dashboard/overview', icon: FiHome },
     { name: 'Employees', path: '/b2b-dashboard/employees', icon: FiUsers },
+    { name: 'Employee Purchases', path: '/b2b-dashboard/employee-purchases', icon: FiShoppingBag },
     { name: 'RFQs', path: '/b2b-dashboard/rfqs', icon: FiFileText },
     { name: 'Quotations', path: '/b2b-dashboard/quotations', icon: FiTrendingUp },
     { name: 'Product Requests', path: '/b2b-dashboard/product-requests', icon: FiBriefcase },

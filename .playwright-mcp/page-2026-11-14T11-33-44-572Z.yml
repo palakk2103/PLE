@@ -1,0 +1,79 @@
+- main [ref=f6e5]:
+  - generic [ref=f6e6]:
+    - generic [ref=f6e8]:
+      - generic [ref=f6e9]:
+        - button [ref=f6e10] [cursor=pointer]
+        - heading "Checkout" [level=1] [ref=f6e13]
+      - generic [ref=f6e16]:
+        - generic [ref=f6e18]:
+          - generic [ref=f6e19]: "1"
+          - generic [ref=f6e20]: Step 1
+        - generic [ref=f6e23]:
+          - generic [ref=f6e24]: "2"
+          - generic [ref=f6e25]: Step 2
+    - generic [ref=f6e27]:
+      - generic [ref=f6e29]:
+        - generic [ref=f6e30]:
+          - heading "Delivery Address" [level=2] [ref=f6e31]
+          - button "Add New Address" [ref=f6e37] [cursor=pointer]
+        - generic [ref=f6e39]:
+          - generic [ref=f6e40]:
+            - generic [ref=f6e41]:
+              - generic [ref=f6e42]: Home
+              - generic [ref=f6e46]: Default
+              - generic [ref=f6e47]: Delivering Here
+            - generic [ref=f6e50]:
+              - button "Edit" [ref=f6e51] [cursor=pointer]
+              - button "Change" [ref=f6e55] [cursor=pointer]
+          - generic [ref=f6e56]:
+            - paragraph [ref=f6e57]:
+              - text: Test Employee
+              - generic [ref=f6e58]: "9876500009"
+            - paragraph [ref=f6e61]: 1 Test Road, Fort
+            - paragraph [ref=f6e62]: Mumbai, Maharashtra - 400001
+            - paragraph [ref=f6e63]: India
+          - generic [ref=f6e64]:
+            - generic [ref=f6e65]: Serviceable by Shiprocket couriers
+            - button "+ Add another address" [ref=f6e69] [cursor=pointer]
+      - generic [ref=f6e71]:
+        - generic [ref=f6e72]:
+          - generic [ref=f6e73]:
+            - heading "Order Summary" [level=3] [ref=f6e74]
+            - generic [ref=f6e76]:
+              - generic [ref=f6e77]:
+                - generic [ref=f6e82]: XYZ
+                - generic [ref=f6e83]: ₹996
+              - generic [ref=f6e85]:
+                - img "USB Wired Optical Mouse" [ref=f6e86]
+                - generic [ref=f6e87]:
+                  - paragraph [ref=f6e88]: USB Wired Optical Mouse
+                  - paragraph [ref=f6e89]: ₹199.2 x 5
+                  - generic [ref=f6e90]: 18% GST (+₹179.28)
+            - generic [ref=f6e91]:
+              - generic [ref=f6e92]:
+                - generic [ref=f6e93]: Subtotal
+                - generic [ref=f6e94]: ₹996
+              - generic [ref=f6e96]:
+                - generic [ref=f6e97]:
+                  - generic [ref=f6e98]: Delivery Fee
+                  - generic [ref=f6e99]: Prepaid
+                - generic [ref=f6e100]: FREE
+              - generic [ref=f6e101]:
+                - generic [ref=f6e102]:
+                  - generic [ref=f6e103]: Estimated GST & Taxes
+                  - generic [ref=f6e104]: ₹179.28
+                - generic [ref=f6e105]:
+                  - generic [ref=f6e106]:
+                    - generic [ref=f6e107]: Configured GST Slabs
+                    - generic [ref=f6e108]: CGST + SGST
+                  - generic [ref=f6e109]:
+                    - generic [ref=f6e110]: GST @ 18% (5 items, ₹996)
+                    - generic [ref=f6e111]: ₹179.28
+              - generic [ref=f6e112]:
+                - generic [ref=f6e113]: Total
+                - generic [ref=f6e114]: ₹1,175.28
+            - generic [ref=f6e115]:
+              - generic [ref=f6e116]: "🎯 You will earn:"
+              - generic [ref=f6e117]: 49 Points
+          - button "Continue to Payment" [ref=f6e119] [cursor=pointer]
+        - generic [ref=f6e120]: Secure Checkout

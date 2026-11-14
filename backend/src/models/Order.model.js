@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { companyScopePlugin } from '../utils/companyScope.js';
 
 const orderItemSchema = new mongoose.Schema({
     productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', index: true },
@@ -35,6 +36,8 @@ const orderSchema = new mongoose.Schema(
     {
         orderId: { type: String, required: true, unique: true, index: true },
         userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true, default: null },
+        // B2B company the buyer belongs to (auto-filled from userId; null for B2C/guest orders)
+        companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'B2BCompany', index: true, default: null },
         guestInfo: { name: String, email: String, phone: String },
         items: [orderItemSchema],
         vendorItems: [vendorItemGroupSchema],
@@ -148,6 +151,9 @@ const orderSchema = new mongoose.Schema(
     },
     { timestamps: true }
 );
+
+orderSchema.plugin(companyScopePlugin);
+orderSchema.index({ companyId: 1, userId: 1, createdAt: -1 });
 
 // Prevent duplicate order creation for the same retry key per actor (user/guest).
 orderSchema.index(

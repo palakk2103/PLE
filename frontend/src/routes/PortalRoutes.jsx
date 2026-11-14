@@ -18,6 +18,7 @@ import MobileSearch from "../modules/UserApp/pages/Search";
 // Secondary Mobile/UserApp Pages (Lazy Loaded)
 const RefurbishedCatalog = lazy(() => import("../modules/UserApp/pages/RefurbishedCatalog"));
 const MobileSeller = lazy(() => import("../modules/UserApp/pages/Seller"));
+const AllSellers = lazy(() => import("../modules/UserApp/pages/AllSellers"));
 const MobileCategory = lazy(() => import("../modules/UserApp/pages/Category"));
 const MobileBrand = lazy(() => import("../modules/UserApp/pages/Brand"));
 const MobileCheckout = lazy(() => import("../modules/UserApp/pages/Checkout"));
@@ -41,6 +42,8 @@ const MobileOrderDetail = lazy(() => import("../modules/UserApp/pages/OrderDetai
 const LoyaltyHistory = lazy(() => import("../modules/UserApp/pages/LoyaltyHistory"));
 const MobileRFQDetail = lazy(() => import("../modules/UserApp/pages/RFQDetail"));
 const RFQList = lazy(() => import("../modules/UserApp/pages/RFQList"));
+const ConsumerRFQs = lazy(() => import("../modules/UserApp/pages/ConsumerRFQs"));
+const ConsumerRFQDetailPage = lazy(() => import("../modules/UserApp/pages/ConsumerRFQDetail"));
 const MobileAddresses = lazy(() => import("../modules/UserApp/pages/Addresses"));
 const MobileWishlist = lazy(() => import("../modules/UserApp/pages/Wishlist"));
 const MobileCart = lazy(() => import("../modules/UserApp/pages/Cart"));
@@ -171,6 +174,14 @@ export default function PortalRoutes() {
         element={
           <RouteWrapper>
             <MobileProductDetail />
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/sellers"
+        element={
+          <RouteWrapper>
+            <AllSellers />
           </RouteWrapper>
         }
       />
@@ -381,6 +392,26 @@ export default function PortalRoutes() {
           <RouteWrapper>
             <ProtectedRoute>
               <MobileRFQDetail />
+            </ProtectedRoute>
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/consumer-rfqs"
+        element={
+          <RouteWrapper>
+            <ProtectedRoute>
+              <ConsumerRFQs />
+            </ProtectedRoute>
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/consumer-rfqs/:id"
+        element={
+          <RouteWrapper>
+            <ProtectedRoute>
+              <ConsumerRFQDetailPage />
             </ProtectedRoute>
           </RouteWrapper>
         }

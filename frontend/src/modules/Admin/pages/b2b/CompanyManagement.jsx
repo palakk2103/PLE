@@ -14,6 +14,8 @@ import {
   FiCopy
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import CompanyOrdersSection from '../../components/b2b/CompanyOrdersSection';
+import { getDownloadUrl } from '../../../../shared/utils/documentUrl';
 
 const CompanyManagement = () => {
   const [companies, setCompanies] = useState([]);
@@ -347,6 +349,9 @@ const CompanyManagement = () => {
               <p className="text-gray-600 dark:text-zinc-400">Admin Phone: <span className="font-bold text-gray-800 dark:text-zinc-200">{selectedCompany.admin?.phone}</span></p>
             </div>
 
+            {/* Company-level orders (the company is the buyer) */}
+            <CompanyOrdersSection companyId={selectedCompany._id || selectedCompany.id} />
+
             {/* Bank Details */}
             <div className="bg-gray-50 dark:bg-zinc-950 p-4 rounded-xl border dark:border-zinc-800 space-y-3 text-xs">
               <div className="flex justify-between items-center border-b pb-2 dark:border-zinc-800">
@@ -463,7 +468,7 @@ const CompanyManagement = () => {
                         <FiEye /> Preview
                       </a>
                       <a 
-                        href={selectedCompany.acceptanceExecutionDocument.url} 
+                        href={getDownloadUrl(selectedCompany.acceptanceExecutionDocument.url)} 
                         download={selectedCompany.acceptanceExecutionDocument.fileName || 'Signed_Agreement.pdf'} 
                         target="_blank" 
                         rel="noopener noreferrer" 
@@ -492,7 +497,7 @@ const CompanyManagement = () => {
                         <FiEye /> Preview
                       </a>
                       <a 
-                        href={selectedCompany.gstCertificate.url} 
+                        href={getDownloadUrl(selectedCompany.gstCertificate.url)} 
                         download={selectedCompany.gstCertificate.fileName || 'GST_Certificate.pdf'} 
                         target="_blank" 
                         rel="noopener noreferrer" 
@@ -521,7 +526,7 @@ const CompanyManagement = () => {
                         <FiEye /> Preview
                       </a>
                       <a 
-                        href={selectedCompany.companyRegistrationProof.url} 
+                        href={getDownloadUrl(selectedCompany.companyRegistrationProof.url)} 
                         download={selectedCompany.companyRegistrationProof.fileName || 'Registration_Proof.pdf'} 
                         target="_blank" 
                         rel="noopener noreferrer" 
@@ -550,7 +555,7 @@ const CompanyManagement = () => {
                         <FiEye /> Preview
                       </a>
                       <a 
-                        href={selectedCompany.cancelledCheque.url} 
+                        href={getDownloadUrl(selectedCompany.cancelledCheque.url)} 
                         download={selectedCompany.cancelledCheque.fileName || 'Cancelled_Cheque.pdf'} 
                         target="_blank" 
                         rel="noopener noreferrer" 

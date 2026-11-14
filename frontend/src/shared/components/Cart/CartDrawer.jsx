@@ -61,10 +61,6 @@ const CartDrawer = () => {
     }
   }, [isCartOpen, isMobile, closeCart, navigate]);
 
-  if (!isMobile) {
-    return null;
-  }
-
   const rootCategories = useMemo(() => {
     return getRootCategories().filter(cat => cat.isActive !== false).slice(0, 4);
   }, [categories, getRootCategories]);
@@ -105,6 +101,10 @@ const CartDrawer = () => {
   }, [items]);
   const estimatedShipping = isBusiness ? 1500 : 50;
   const drawerFinalTotal = total + estimatedShipping + estimatedGst;
+
+  if (!isMobile) {
+    return null;
+  }
 
   return (
     <AnimatePresence>

@@ -1,0 +1,817 @@
+[     637ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:3055/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:21550
+[    1036ms] [LOG] ✅ Service Worker registered: ServiceWorkerRegistration @ http://localhost:3055/src/services/pushNotificationService.js:10
+[    1040ms] [LOG] ✅ Service Worker registered: ServiceWorkerRegistration @ http://localhost:3055/src/services/pushNotificationService.js:10
+[    1057ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5055/api/admin/settings/general:0
+[    1062ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5055/api/admin/settings/email:0
+[    1064ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5055/api/admin/settings/notifications:0
+[    1097ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5055/api/admin/settings/general:0
+[    1108ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5055/api/admin/settings/email:0
+[    1114ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5055/api/admin/settings/notifications:0
+[    1624ms] [LOG] Socket connected: UKY6ShCj_yvfA_VwAAAD @ http://localhost:3055/src/shared/utils/socket.js:49
+[    1625ms] [LOG] Vendor joined room: user_6ae9b73ec0f689e56e2f4cca @ http://localhost:3055/src/modules/Vendor/components/Layout/VendorLayout.jsx:59
+[   66219ms] [ERROR] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s 6ae9b7c5c0f689e56e2f4f6c 
+    at div
+    at div
+    at div
+    at div
+    at div
+    at MotionComponent (http://localhost:3055/node_modules/.vite/deps/framer-motion.js?v=9476b445:277:40)
+    at Chat (http://localhost:3055/src/modules/Vendor/pages/Chat.jsx:57:22)
+    at RenderedRoute (http://localhost:3055/node_modules/.vite/deps/react-router-dom.js?v=9476b445:4108:5)
+    at Outlet (http://localhost:3055/node_modules/.vite/deps/react-router-dom.js?v=9476b445:4514:26)
+    at div
+    at main
+    at div
+    at div
+    at VendorLayout (http://localhost:3055/src/modules/Vendor/components/Layout/VendorLayout.jsx:33:41)
+    at VendorProtectedRoute (http://localhost:3055/src/modules/Vendor/components/VendorProtectedRoute.jsx:31:33)
+    at RenderedRoute (http://localhost:3055/node_modules/.vite/deps/react-router-dom.js?v=9476b445:4108:5)
+    at Routes (http://localhost:3055/node_modules/.vite/deps/react-router-dom.js?v=9476b445:4578:5)
+    at VendorRoutes
+    at RenderedRoute (http://localhost:3055/node_modules/.vite/deps/react-router-dom.js?v=9476b445:4108:5)
+    at Routes (http://localhost:3055/node_modules/.vite/deps/react-router-dom.js?v=9476b445:4578:5)
+    at PortalRoutes
+    at ActiveRoutes
+    at Suspense
+    at OfflineDetector (http://localhost:3055/src/shared/components/OfflineDetector.jsx:22:28)
+    at Router (http://localhost:3055/node_modules/.vite/deps/react-router-dom.js?v=9476b445:4521:15)
+    at BrowserRouter (http://localhost:3055/node_modules/.vite/deps/react-router-dom.js?v=9476b445:5267:5)
+    at ErrorBoundary (http://localhost:3055/src/shared/components/ErrorBoundary/ErrorBoundary.jsx:8:5)
+    at App @ http://localhost:3055/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:520
+[   99343ms] [LOG] Socket disconnected @ http://localhost:3055/src/shared/utils/socket.js:53
+[   99867ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3055/@vite/client:559
+[   99876ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  100025ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  100901ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  101404ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  101912ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  102927ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  103934ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  104941ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  105950ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  106450ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  106957ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  107970ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  108977ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  109982ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  111000ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  111470ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  112009ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  113022ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  114040ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  115059ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  116081ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  116505ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  117090ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  118106ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  119121ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  120132ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  121141ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  121551ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  121553ms] [ERROR] Failed to fetch vendor notifications: AxiosError @ http://localhost:3055/src/modules/Vendor/store/vendorNotificationStore.js:32
+[  121557ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5055/api/vendor/notifications?page=1&limit=10:0
+[  122149ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  123164ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  124177ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  125195ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  126211ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  126564ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  127224ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  128246ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  129261ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  130280ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  131294ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  131580ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  132312ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  133321ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  134340ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  135359ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  136369ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  136594ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  137375ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  138386ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  139394ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  140404ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  141440ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  141602ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  142459ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  143476ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  144505ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  145515ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  146530ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  146608ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  147562ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  148571ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  149592ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  150606ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  151626ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  151655ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  152652ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  153664ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  154692ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  155709ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  156663ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  156732ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  157740ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  158748ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  159759ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  160774ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  161690ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  161795ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  162808ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  163828ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  164842ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  165854ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  166709ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  166862ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  167876ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  168892ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  169911ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  170927ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  171726ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  171938ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  172949ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  173962ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  174970ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  175978ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  176744ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  176993ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  178015ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  179041ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  180058ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  181078ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  181548ms] [ERROR] Failed to fetch vendor notifications: AxiosError @ http://localhost:3055/src/modules/Vendor/store/vendorNotificationStore.js:32
+[  181553ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5055/api/vendor/notifications?page=1&limit=10:0
+[  181758ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  182092ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  183110ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  184127ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  185144ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  186157ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  186777ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  187172ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  188194ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  189209ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  190224ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  191243ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  191792ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  192266ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  193286ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  194294ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  195311ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  196322ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  196810ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  197345ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  198363ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  199375ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  200405ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  201424ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  201842ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  202443ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  203462ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  204468ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  205482ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  206501ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  206859ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  207507ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  208526ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  209547ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  210555ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  211568ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  211878ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  212576ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  213595ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  214610ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  215629ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  216643ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  216891ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  217657ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  218676ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  219688ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  220694ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  221712ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  221911ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  222730ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  223744ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  224762ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  225776ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  226790ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  226924ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  227796ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  228811ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  229830ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  230844ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  231865ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  231943ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  232881ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  233897ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  234905ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  235913ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  236941ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  236959ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  237960ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  238980ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  239984ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  240999ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  241550ms] [ERROR] Failed to fetch vendor notifications: AxiosError @ http://localhost:3055/src/modules/Vendor/store/vendorNotificationStore.js:32
+[  241554ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5055/api/vendor/notifications?page=1&limit=10:0
+[  241966ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  242011ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  243027ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  244041ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  245048ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  246060ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  246980ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  247077ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  248097ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  249108ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  250128ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  251161ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  252013ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  252179ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  253195ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  254215ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  255228ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  256247ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  257046ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  257263ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  258270ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  259285ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  260294ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  261311ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  262094ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  262328ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  263348ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  264362ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  265372ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  266379ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  267172ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  267400ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  268411ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  269429ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  270449ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  271465ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  272254ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  272481ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  273507ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  274515ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  275542ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  276554ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  277404ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  277580ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  278592ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  279613ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  280635ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  281648ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  282561ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  282665ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  283677ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  284688ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  285692ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  286724ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  287742ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  288039ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  288764ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  289777ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  290800ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  291811ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  292827ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  293675ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  293833ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  294853ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  295871ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  296884ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  297901ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  298916ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  299227ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  299936ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  300949ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  301551ms] [ERROR] Failed to fetch vendor notifications: AxiosError @ http://localhost:3055/src/modules/Vendor/store/vendorNotificationStore.js:32
+[  301554ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5055/api/vendor/notifications?page=1&limit=10:0
+[  301967ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  302976ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  303995ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  305014ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  306024ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  307037ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  307103ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  308048ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  309062ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  310092ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  311113ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  312119ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  313130ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  314148ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  315165ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  315231ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  316180ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  317201ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  318217ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  319244ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  320251ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  321258ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  322278ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  323297ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  324315ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  324454ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  325327ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  326342ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  327355ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  328360ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  329387ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  330392ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  331399ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  332410ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  332965ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  333432ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  334438ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  335450ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  336464ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  337474ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  338498ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  339514ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  340196ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  340520ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  341531ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  342547ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  343577ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  344582ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  345216ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  345597ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  346618ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  347630ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  348647ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  349664ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  350228ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  350683ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  351705ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  352716ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  353728ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  354747ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  355246ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  355763ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  356778ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  357787ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  358797ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  359812ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  360264ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  360831ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  361550ms] [ERROR] Failed to fetch vendor notifications: AxiosError @ http://localhost:3055/src/modules/Vendor/store/vendorNotificationStore.js:32
+[  361552ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5055/api/vendor/notifications?page=1&limit=10:0
+[  361846ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  362864ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  363878ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  364888ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  365280ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  365906ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  366928ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  367946ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  368964ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  369978ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  370309ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  370998ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  372013ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  373032ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  374046ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  375063ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  375330ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  376080ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  377095ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  378113ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  379124ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  380144ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  380363ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  381161ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  382176ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  383197ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  384212ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  385229ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  385396ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  386248ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  387264ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  388274ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  389289ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  390309ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  390420ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  391324ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  392344ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  393364ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  394394ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  395410ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  395479ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  396428ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  397449ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  398469ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  399489ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  400506ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  400627ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  401518ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  402527ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  403543ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  404562ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  405582ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  405831ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  406596ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  407618ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  408632ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  409650ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  410667ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  411120ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  411684ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  412690ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  413698ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  414713ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  415732ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  416703ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  416749ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  417764ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  418779ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  419804ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  420814ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  421537ms] [ERROR] Failed to fetch vendor notifications: AxiosError @ http://localhost:3055/src/modules/Vendor/store/vendorNotificationStore.js:32
+[  421539ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5055/api/vendor/notifications?page=1&limit=10:0
+[  421833ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  422851ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  423867ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  424063ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  424879ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  425896ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  426904ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  427918ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  428927ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  429946ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  430964ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  431979ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  431979ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  433000ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  434013ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  435029ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  436042ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  437057ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  438066ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  439077ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  440088ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  441123ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  441126ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  442144ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  443159ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  444182ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  445201ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  446213ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  447244ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  448261ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  448726ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  449284ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  450302ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  451321ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  452331ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  453352ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  454362ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  455379ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  455521ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  456407ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  457433ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  458453ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  459494ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  460534ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  461555ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  462570ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  463583ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  464594ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  464707ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  465607ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  466625ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  467638ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  468650ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  469663ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  469725ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  470680ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  471697ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  472716ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  473734ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  474736ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  474746ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  475771ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  476781ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  477806ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  478817ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  479748ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  479825ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  480845ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  481549ms] [ERROR] Failed to fetch vendor notifications: AxiosError @ http://localhost:3055/src/modules/Vendor/store/vendorNotificationStore.js:32
+[  481553ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5055/api/vendor/notifications?page=1&limit=10:0
+[  481860ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  482870ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  483884ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  484767ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  484901ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  485912ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  486928ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  487941ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  488953ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  489778ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  489970ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  490992ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  492010ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  493026ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  494042ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  494801ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  495052ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  496066ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  497078ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  498084ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  499103ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  499830ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  500122ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  501134ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  502152ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  503161ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  504175ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  504852ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  505198ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  506214ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  507234ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  508248ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  509266ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  509896ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  510280ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  511285ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  512317ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  513336ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  514359ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  514938ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  515386ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  516393ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  517411ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  518418ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  519430ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  520010ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  520447ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  521468ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  522485ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  523510ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  524522ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  525147ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  525540ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  526554ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  527572ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  528581ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  529592ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  530449ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  530600ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  531610ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  532619ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  533634ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  534656ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  535668ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  535765ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  536688ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  537699ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  538706ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  539723ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  540736ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  541537ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  541543ms] [ERROR] Failed to fetch vendor notifications: AxiosError @ http://localhost:3055/src/modules/Vendor/store/vendorNotificationStore.js:32
+[  541551ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5055/api/vendor/notifications?page=1&limit=10:0
+[  541751ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  542773ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  543788ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  544794ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  545805ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  546818ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  547173ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  547832ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  548849ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  549866ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  550894ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  551902ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  552918ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  553924ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  554933ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  555589ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  555964ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  556983ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  558002ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  559020ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  560029ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  561038ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  562046ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  563053ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  563933ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  564070ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  565079ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  566086ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  567104ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  568120ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  569130ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  570151ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  571164ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  571848ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  572170ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  573189ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  574197ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  575221ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  576235ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  577245ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  578263ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  578941ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  579283ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  580304ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  581318ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  582332ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  583352ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  584370ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  585387ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  586395ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  587405ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  587873ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  588430ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  589444ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  590466ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  591482ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  592503ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  592886ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  593518ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  594536ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  595551ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  596569ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  597587ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  597901ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  598603ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  599619ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  600626ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  601535ms] [ERROR] Failed to fetch vendor notifications: AxiosError @ http://localhost:3055/src/modules/Vendor/store/vendorNotificationStore.js:32
+[  601538ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5055/api/vendor/notifications?page=1&limit=10:0
+[  601639ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  602655ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  602919ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  603669ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  604687ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  605702ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  606712ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  607730ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  607932ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  608746ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  609752ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  610769ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  611784ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  612792ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  612947ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  613810ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  614814ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  615818ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  616832ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  617844ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  617981ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  618858ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  619875ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  620907ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  621915ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  622930ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  623006ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  623943ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  624953ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  625966ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  626986ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  628004ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  628034ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  629020ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  630045ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  631056ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  632076ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  633067ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  633091ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  634103ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  635112ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  636121ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  637143ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  638103ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  638154ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  639182ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  640192ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  641206ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  642222ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  643150ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  643238ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  644247ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  645254ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  646263ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  647274ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  648290ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  648321ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  649300ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  650324ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  651338ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  652365ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  653371ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  653469ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  654389ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  655418ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  656423ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  657436ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  658442ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  658698ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  659461ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  660470ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  661495ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  661551ms] [ERROR] Failed to fetch vendor notifications: AxiosError @ http://localhost:3055/src/modules/Vendor/store/vendorNotificationStore.js:32
+[  661554ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5055/api/vendor/notifications?page=1&limit=10:0
+[  662506ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  663534ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  664555ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  664556ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  665575ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  666581ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  667586ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  668600ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  669627ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  670641ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  670960ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  671658ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  672674ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  673702ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  674722ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  675729ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  676751ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  677757ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  678159ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  678775ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  679790ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  680803ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  681821ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  682838ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  683858ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  684871ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  685321ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  685891ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  686905ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  687921ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  688938ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  689950ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  690985ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  692019ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  693038ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  693505ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  694057ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  695072ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  696089ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  697105ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  698121ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  699139ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  700158ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  700873ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  701187ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  702209ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  703220ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  704256ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  705270ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  706276ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  707292ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  708306ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  709325ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  709724ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  710338ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  711350ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  712361ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  713373ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  714378ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  714740ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  715391ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  716406ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  717423ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  718447ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  719461ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  719755ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  720481ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  721500ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  721535ms] [ERROR] Failed to fetch vendor notifications: AxiosError @ http://localhost:3055/src/modules/Vendor/store/vendorNotificationStore.js:32
+[  721538ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5055/api/vendor/notifications?page=1&limit=10:0
+[  722506ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  723526ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  724531ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  724773ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  725543ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  726556ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  727575ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  728590ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  729599ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  729801ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  730617ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  731639ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  732645ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  733659ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  734675ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  734839ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  735693ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  736707ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  737723ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  738737ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  739753ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  739871ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  740770ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  741785ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  742791ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  743808ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  744828ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0
+[  744913ms] [ERROR] WebSocket connection to 'ws://localhost:5055/socket.io/?EIO=4&transport=websocket' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/node_modules/.vite/deps/socket__io-client.js?v=9476b445:1523
+[  745841ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0

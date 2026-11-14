@@ -1,0 +1,309 @@
+[    4445ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:21550
+[    4813ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5000/api/admin/settings/general:0
+[    4824ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5000/api/admin/settings/email:0
+[    4827ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5000/api/admin/settings/notifications:0
+[    4828ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5000/api/products?page=1&limit=500:0
+[    4829ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5000/api/vendors/all?status=approved&page=1&limit=200:0
+[    4841ms] Error: Objects are not valid as a React child (found: object with keys {code, message}). If you meant to render a collection of children, use an array instead.
+    at throwOnInvalidObjectType (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:9934:17)
+    at reconcileChildFibers2 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:10564:15)
+    at reconcileChildren (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14290:37)
+    at updateHostComponent (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14807:11)
+    at beginWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:15935:22)
+    at HTMLUnknownElement.callCallback2 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3674:22)
+    at Object.invokeGuardedCallbackDev (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3699:24)
+    at invokeGuardedCallback (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3733:39)
+    at beginWork$1 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19765:15)
+    at performUnitOfWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19198:20)
+[    4848ms] Error: Objects are not valid as a React child (found: object with keys {code, message}). If you meant to render a collection of children, use an array instead.
+    at throwOnInvalidObjectType (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:9934:17)
+    at reconcileChildFibers2 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:10564:15)
+    at reconcileChildren (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14290:37)
+    at updateHostComponent (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14807:11)
+    at beginWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:15935:22)
+    at HTMLUnknownElement.callCallback2 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3674:22)
+    at Object.invokeGuardedCallbackDev (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3699:24)
+    at invokeGuardedCallback (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3733:39)
+    at beginWork$1 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19765:15)
+    at performUnitOfWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19198:20)
+[    4849ms] Error: Objects are not valid as a React child (found: object with keys {code, message}). If you meant to render a collection of children, use an array instead.
+    at throwOnInvalidObjectType (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:9934:17)
+    at reconcileChildFibers2 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:10564:15)
+    at reconcileChildren (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14290:37)
+    at updateHostComponent (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14807:11)
+    at beginWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:15935:22)
+    at HTMLUnknownElement.callCallback2 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3674:22)
+    at Object.invokeGuardedCallbackDev (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3699:24)
+    at invokeGuardedCallback (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3733:39)
+    at beginWork$1 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19765:15)
+    at performUnitOfWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19198:20)
+[    4850ms] Error: Objects are not valid as a React child (found: object with keys {code, message}). If you meant to render a collection of children, use an array instead.
+    at throwOnInvalidObjectType (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:9934:17)
+    at reconcileChildFibers2 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:10564:15)
+    at reconcileChildren (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14290:37)
+    at updateHostComponent (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14807:11)
+    at beginWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:15935:22)
+    at HTMLUnknownElement.callCallback2 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3674:22)
+    at Object.invokeGuardedCallbackDev (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3699:24)
+    at invokeGuardedCallback (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3733:39)
+    at beginWork$1 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19765:15)
+    at performUnitOfWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19198:20)
+[    4851ms] Error: Objects are not valid as a React child (found: object with keys {code, message}). If you meant to render a collection of children, use an array instead.
+    at throwOnInvalidObjectType (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:9934:17)
+    at reconcileChildFibers2 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:10564:15)
+    at reconcileChildren (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14290:37)
+    at updateHostComponent (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14807:11)
+    at beginWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:15935:22)
+    at HTMLUnknownElement.callCallback2 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3674:22)
+    at Object.invokeGuardedCallbackDev (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3699:24)
+    at invokeGuardedCallback (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3733:39)
+    at beginWork$1 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19765:15)
+    at performUnitOfWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19198:20)
+[    4866ms] Error: Objects are not valid as a React child (found: object with keys {code, message}). If you meant to render a collection of children, use an array instead.
+    at throwOnInvalidObjectType (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:9934:17)
+    at reconcileChildFibers2 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:10564:15)
+    at reconcileChildren (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14290:37)
+    at updateHostComponent (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14807:11)
+    at beginWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:15935:22)
+    at HTMLUnknownElement.callCallback2 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3674:22)
+    at Object.invokeGuardedCallbackDev (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3699:24)
+    at invokeGuardedCallback (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3733:39)
+    at beginWork$1 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19765:15)
+    at performUnitOfWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19198:20)
+[    4868ms] Error: Objects are not valid as a React child (found: object with keys {code, message}). If you meant to render a collection of children, use an array instead.
+    at throwOnInvalidObjectType (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:9934:17)
+    at reconcileChildFibers2 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:10564:15)
+    at reconcileChildren (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14290:37)
+    at updateHostComponent (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14807:11)
+    at beginWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:15935:22)
+    at HTMLUnknownElement.callCallback2 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3674:22)
+    at Object.invokeGuardedCallbackDev (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3699:24)
+    at invokeGuardedCallback (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3733:39)
+    at beginWork$1 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19765:15)
+    at performUnitOfWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19198:20)
+[    4869ms] Error: Objects are not valid as a React child (found: object with keys {code, message}). If you meant to render a collection of children, use an array instead.
+    at throwOnInvalidObjectType (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:9934:17)
+    at reconcileChildFibers2 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:10564:15)
+    at reconcileChildren (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14290:37)
+    at updateHostComponent (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14807:11)
+    at beginWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:15935:22)
+    at HTMLUnknownElement.callCallback2 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3674:22)
+    at Object.invokeGuardedCallbackDev (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3699:24)
+    at invokeGuardedCallback (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3733:39)
+    at beginWork$1 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19765:15)
+    at performUnitOfWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19198:20)
+[    4870ms] Error: Objects are not valid as a React child (found: object with keys {code, message}). If you meant to render a collection of children, use an array instead.
+    at throwOnInvalidObjectType (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:9934:17)
+    at reconcileChildFibers2 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:10564:15)
+    at reconcileChildren (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14290:37)
+    at updateHostComponent (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14807:11)
+    at beginWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:15935:22)
+    at HTMLUnknownElement.callCallback2 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3674:22)
+    at Object.invokeGuardedCallbackDev (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3699:24)
+    at invokeGuardedCallback (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3733:39)
+    at beginWork$1 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19765:15)
+    at performUnitOfWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19198:20)
+[    4871ms] Error: Objects are not valid as a React child (found: object with keys {code, message}). If you meant to render a collection of children, use an array instead.
+    at throwOnInvalidObjectType (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:9934:17)
+    at reconcileChildFibers2 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:10564:15)
+    at reconcileChildren (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14290:37)
+    at updateHostComponent (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14807:11)
+    at beginWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:15935:22)
+    at HTMLUnknownElement.callCallback2 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3674:22)
+    at Object.invokeGuardedCallbackDev (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3699:24)
+    at invokeGuardedCallback (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3733:39)
+    at beginWork$1 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19765:15)
+    at performUnitOfWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19198:20)
+[    4880ms] [ERROR] The above error occurred in the <div> component:
+
+    at div
+    at a2
+    at div
+    at a2
+    at http://localhost:3000/node_modules/.vite/deps/react-hot-toast.js?v=9476b445:437:26
+    at div
+    at we (http://localhost:3000/node_modules/.vite/deps/react-hot-toast.js?v=9476b445:442:17)
+    at div
+    at Fe (http://localhost:3000/node_modules/.vite/deps/react-hot-toast.js?v=9476b445:465:27)
+    at OfflineDetector (http://localhost:3000/src/shared/components/OfflineDetector.jsx:22:28)
+    at Router (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=9476b445:4521:15)
+    at BrowserRouter (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=9476b445:5267:5)
+    at ErrorBoundary (http://localhost:3000/src/shared/components/ErrorBoundary/ErrorBoundary.jsx:8:5)
+    at App
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary. @ http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14031
+[    4881ms] [ERROR] ErrorBoundary caught an error: Error: Objects are not valid as a React child (found: object with keys {code, message}). If you meant to render a collection of children, use an array instead.
+    at throwOnInvalidObjectType (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:9934:17)
+    at reconcileChildFibers2 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:10564:15)
+    at reconcileChildren (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14290:37)
+    at updateHostComponent (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14807:11)
+    at beginWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:15935:22)
+    at beginWork$1 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19753:22)
+    at performUnitOfWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19198:20)
+    at workLoopSync (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19137:13)
+    at renderRootSync (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19116:15)
+    at recoverFromConcurrentError (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:18736:28) {componentStack: 
+    at div
+    at a2
+    at div
+    at a2
+    at …s/ErrorBoundary/ErrorBoundary.jsx:8:5)
+    at App} @ http://localhost:3000/src/shared/components/ErrorBoundary/ErrorBoundary.jsx:14
+[    4881ms] [ERROR] The above error occurred in the <div> component:
+
+    at div
+    at a2
+    at div
+    at a2
+    at http://localhost:3000/node_modules/.vite/deps/react-hot-toast.js?v=9476b445:437:26
+    at div
+    at we (http://localhost:3000/node_modules/.vite/deps/react-hot-toast.js?v=9476b445:442:17)
+    at div
+    at Fe (http://localhost:3000/node_modules/.vite/deps/react-hot-toast.js?v=9476b445:465:27)
+    at OfflineDetector (http://localhost:3000/src/shared/components/OfflineDetector.jsx:22:28)
+    at Router (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=9476b445:4521:15)
+    at BrowserRouter (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=9476b445:5267:5)
+    at ErrorBoundary (http://localhost:3000/src/shared/components/ErrorBoundary/ErrorBoundary.jsx:8:5)
+    at App
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary. @ http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14031
+[    4882ms] [ERROR] ErrorBoundary caught an error: Error: Objects are not valid as a React child (found: object with keys {code, message}). If you meant to render a collection of children, use an array instead.
+    at throwOnInvalidObjectType (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:9934:17)
+    at reconcileChildFibers2 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:10564:15)
+    at reconcileChildren (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14290:37)
+    at updateHostComponent (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14807:11)
+    at beginWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:15935:22)
+    at beginWork$1 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19753:22)
+    at performUnitOfWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19198:20)
+    at workLoopSync (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19137:13)
+    at renderRootSync (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19116:15)
+    at recoverFromConcurrentError (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:18736:28) {componentStack: 
+    at div
+    at a2
+    at div
+    at a2
+    at …s/ErrorBoundary/ErrorBoundary.jsx:8:5)
+    at App} @ http://localhost:3000/src/shared/components/ErrorBoundary/ErrorBoundary.jsx:14
+[    4882ms] [ERROR] The above error occurred in the <div> component:
+
+    at div
+    at a2
+    at div
+    at a2
+    at http://localhost:3000/node_modules/.vite/deps/react-hot-toast.js?v=9476b445:437:26
+    at div
+    at we (http://localhost:3000/node_modules/.vite/deps/react-hot-toast.js?v=9476b445:442:17)
+    at div
+    at Fe (http://localhost:3000/node_modules/.vite/deps/react-hot-toast.js?v=9476b445:465:27)
+    at OfflineDetector (http://localhost:3000/src/shared/components/OfflineDetector.jsx:22:28)
+    at Router (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=9476b445:4521:15)
+    at BrowserRouter (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=9476b445:5267:5)
+    at ErrorBoundary (http://localhost:3000/src/shared/components/ErrorBoundary/ErrorBoundary.jsx:8:5)
+    at App
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary. @ http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14031
+[    4882ms] [ERROR] ErrorBoundary caught an error: Error: Objects are not valid as a React child (found: object with keys {code, message}). If you meant to render a collection of children, use an array instead.
+    at throwOnInvalidObjectType (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:9934:17)
+    at reconcileChildFibers2 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:10564:15)
+    at reconcileChildren (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14290:37)
+    at updateHostComponent (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14807:11)
+    at beginWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:15935:22)
+    at beginWork$1 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19753:22)
+    at performUnitOfWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19198:20)
+    at workLoopSync (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19137:13)
+    at renderRootSync (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19116:15)
+    at recoverFromConcurrentError (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:18736:28) {componentStack: 
+    at div
+    at a2
+    at div
+    at a2
+    at …s/ErrorBoundary/ErrorBoundary.jsx:8:5)
+    at App} @ http://localhost:3000/src/shared/components/ErrorBoundary/ErrorBoundary.jsx:14
+[    4883ms] [ERROR] The above error occurred in the <div> component:
+
+    at div
+    at a2
+    at div
+    at a2
+    at http://localhost:3000/node_modules/.vite/deps/react-hot-toast.js?v=9476b445:437:26
+    at div
+    at we (http://localhost:3000/node_modules/.vite/deps/react-hot-toast.js?v=9476b445:442:17)
+    at div
+    at Fe (http://localhost:3000/node_modules/.vite/deps/react-hot-toast.js?v=9476b445:465:27)
+    at OfflineDetector (http://localhost:3000/src/shared/components/OfflineDetector.jsx:22:28)
+    at Router (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=9476b445:4521:15)
+    at BrowserRouter (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=9476b445:5267:5)
+    at ErrorBoundary (http://localhost:3000/src/shared/components/ErrorBoundary/ErrorBoundary.jsx:8:5)
+    at App
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary. @ http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14031
+[    4883ms] [ERROR] ErrorBoundary caught an error: Error: Objects are not valid as a React child (found: object with keys {code, message}). If you meant to render a collection of children, use an array instead.
+    at throwOnInvalidObjectType (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:9934:17)
+    at reconcileChildFibers2 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:10564:15)
+    at reconcileChildren (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14290:37)
+    at updateHostComponent (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14807:11)
+    at beginWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:15935:22)
+    at beginWork$1 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19753:22)
+    at performUnitOfWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19198:20)
+    at workLoopSync (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19137:13)
+    at renderRootSync (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19116:15)
+    at recoverFromConcurrentError (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:18736:28) {componentStack: 
+    at div
+    at a2
+    at div
+    at a2
+    at …s/ErrorBoundary/ErrorBoundary.jsx:8:5)
+    at App} @ http://localhost:3000/src/shared/components/ErrorBoundary/ErrorBoundary.jsx:14
+[    4884ms] [ERROR] The above error occurred in the <div> component:
+
+    at div
+    at a2
+    at div
+    at a2
+    at http://localhost:3000/node_modules/.vite/deps/react-hot-toast.js?v=9476b445:437:26
+    at div
+    at we (http://localhost:3000/node_modules/.vite/deps/react-hot-toast.js?v=9476b445:442:17)
+    at div
+    at Fe (http://localhost:3000/node_modules/.vite/deps/react-hot-toast.js?v=9476b445:465:27)
+    at OfflineDetector (http://localhost:3000/src/shared/components/OfflineDetector.jsx:22:28)
+    at Router (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=9476b445:4521:15)
+    at BrowserRouter (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=9476b445:5267:5)
+    at ErrorBoundary (http://localhost:3000/src/shared/components/ErrorBoundary/ErrorBoundary.jsx:8:5)
+    at App
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary. @ http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14031
+[    4884ms] [ERROR] ErrorBoundary caught an error: Error: Objects are not valid as a React child (found: object with keys {code, message}). If you meant to render a collection of children, use an array instead.
+    at throwOnInvalidObjectType (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:9934:17)
+    at reconcileChildFibers2 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:10564:15)
+    at reconcileChildren (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14290:37)
+    at updateHostComponent (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14807:11)
+    at beginWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:15935:22)
+    at beginWork$1 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19753:22)
+    at performUnitOfWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19198:20)
+    at workLoopSync (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19137:13)
+    at renderRootSync (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19116:15)
+    at recoverFromConcurrentError (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:18736:28) {componentStack: 
+    at div
+    at a2
+    at div
+    at a2
+    at …s/ErrorBoundary/ErrorBoundary.jsx:8:5)
+    at App} @ http://localhost:3000/src/shared/components/ErrorBoundary/ErrorBoundary.jsx:14
+[    5004ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5000/api/brands/all:0
+[    5005ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5000/api/categories/all:0
+[    5008ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5000/api/admin/settings/general:0
+[    5010ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5000/api/admin/settings/email:0
+[    5012ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5000/api/admin/settings/notifications:0
+[    5014ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5000/api/products?page=1&limit=500:0
+[    5016ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5000/api/vendors/all?status=approved&page=1&limit=200:0
+[    5017ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5000/api/brands/all:0
+[    5019ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5000/api/categories/all:0
+[    5100ms] [LOG] ✅ Service Worker registered: ServiceWorkerRegistration @ http://localhost:3000/src/services/pushNotificationService.js:10
+[    5101ms] [LOG] ✅ Service Worker registered: ServiceWorkerRegistration @ http://localhost:3000/src/services/pushNotificationService.js:10
+[   11889ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5000/api/b2b-user/auth/upload-registration-doc:0
+[   11897ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5000/api/b2b-user/auth/upload-registration-doc:0
+[   11905ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5000/api/b2b-user/auth/upload-registration-doc:0
+[   46181ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://localhost:5000/api/b2b-user/auth/upload-registration-doc:0
+[   47300ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://localhost:5000/api/b2b-user/auth/upload-registration-doc:0
+[   48101ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://localhost:5000/api/b2b-user/auth/upload-registration-doc:0
+[   48114ms] [ERROR] Failed to load resource: the server responded with a status of 400 (Bad Request) @ http://localhost:5000/api/b2b-user/auth/upload-registration-doc:0

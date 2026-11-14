@@ -117,6 +117,12 @@ const isAdminContext = () => {
   return window.location.pathname.startsWith(ADMIN_BASE_ROUTE) || window.location.pathname.startsWith('/admin');
 };
 
+// The vendor portal has no support-ticket backend endpoints. Calling the
+// customer (/user/*) or admin endpoints with a vendor token always yields a
+// 403 "Access denied. Required role: ..." toast, so vendors use local data only.
+const isVendorContext = () =>
+  typeof window !== 'undefined' && window.location.pathname.startsWith('/vendor');
+
 export const useSupportStore = create((set, get) => ({
   tickets: getStoredTickets(),
   isLoading: false,
@@ -133,6 +139,7 @@ export const useSupportStore = create((set, get) => ({
     const isAdmin = isAdminContext();
 
     try {
+      if (isVendorContext()) throw new Error('Vendor portal uses local tickets');
       let ticketList = [];
       let pagination = { total: 0, page: 1, limit: 10, pages: 1 };
 
@@ -208,6 +215,7 @@ export const useSupportStore = create((set, get) => ({
     const isAdmin = isAdminContext();
 
     try {
+      if (isVendorContext()) throw new Error('Vendor portal uses local tickets');
       let ticket = null;
       if (isAdmin) {
         const response = await adminService.getTicketById(id);
@@ -294,7 +302,7 @@ export const useSupportStore = create((set, get) => ({
 
   updateTicketStatus: async (id, status, note = '') => {
     try {
-      await adminService.updateTicketStatus(id, status, note);
+      if (!isVendorContext()) await adminService.updateTicketStatus(id, status, note);
     } catch (e) {
       console.warn('AdminService: updateTicketStatus fallback:', e?.message);
     }
@@ -328,7 +336,9 @@ export const useSupportStore = create((set, get) => ({
   addReply: async (id, message, senderType = 'admin', attachment = null) => {
     let apiMsg = null;
     try {
-      if (senderType === 'admin') {
+      if (isVendorContext()) {
+        // local-only for vendors
+      } else if (senderType === 'admin') {
         const res = await adminService.addTicketMessage(id, message, attachment);
         apiMsg = res?.data || res;
       } else {
@@ -371,7 +381,7 @@ export const useSupportStore = create((set, get) => ({
 
   deleteTicket: async (id) => {
     try {
-      await adminService.deleteTicket(id);
+      if (!isVendorContext()) await adminService.deleteTicket(id);
     } catch (e) {
       console.warn('SupportStore: deleteTicket fallback:', e?.message);
     }

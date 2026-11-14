@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { useVendorAuthStore } from "../store/vendorAuthStore";
 import toast from 'react-hot-toast';
 import api from '../../../shared/utils/api';
+import { getDownloadUrl } from '../../../shared/utils/documentUrl';
 
 const VendorRegister = () => {
   const navigate = useNavigate();
@@ -29,6 +30,15 @@ const VendorRegister = () => {
     city: '',
     state: '',
     pincode: '',
+    bankAccountName: '',
+    bankAccountNumber: '',
+    confirmAccountNumber: '',
+    bankName: '',
+    bankIfscCode: '',
+    bankBranchName: '',
+    bankAccountType: 'Current',
+    bankUpiId: '',
+    bankProofType: 'cancelled_cheque',
     address: {
       street: '',
       city: '',
@@ -60,6 +70,25 @@ const VendorRegister = () => {
   const [generalSettings, setGeneralSettings] = useState(null);
   const [businessLetterFile, setBusinessLetterFile] = useState(null);
   const [businessLetterProgress, setBusinessLetterProgress] = useState(0);
+
+  const [bankProofFile, setBankProofFile] = useState(null);
+
+  const handleBankProofChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const fileExt = file.name.split('.').pop().toLowerCase();
+    if (!['pdf', 'jpg', 'jpeg', 'png'].includes(fileExt)) {
+      toast.error('Invalid file type. Only PDF, JPG, JPEG, and PNG are allowed.');
+      e.target.value = '';
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size exceeds the 10MB limit.');
+      e.target.value = '';
+      return;
+    }
+    setBankProofFile(file);
+  };
 
   const [partnershipAgreementFile, setPartnershipAgreementFile] = useState(null);
   const [partnershipAgreementProgress, setPartnershipAgreementProgress] = useState(0);
@@ -255,6 +284,28 @@ const VendorRegister = () => {
       }
     }
 
+    // Bank details validation
+    if (!formData.bankAccountName.trim() || !formData.bankName.trim()) {
+      toast.error('Account holder name and bank name are required.');
+      return;
+    }
+    if (!/^\d{9,18}$/.test(formData.bankAccountNumber.trim())) {
+      toast.error('Account number must be 9 to 18 digits.');
+      return;
+    }
+    if (formData.bankAccountNumber.trim() !== formData.confirmAccountNumber.trim()) {
+      toast.error('Account numbers do not match.');
+      return;
+    }
+    if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(formData.bankIfscCode.trim().toUpperCase())) {
+      toast.error('Invalid IFSC code format.');
+      return;
+    }
+    if (!bankProofFile) {
+      toast.error('Please upload a bank statement or cancelled cheque.');
+      return;
+    }
+
     // Dynamic Registration Proof validation
     const proofConfig = companyTypeProofs[formData.businessType];
     if (proofConfig && proofConfig.mandatory && !registrationProofFile) {
@@ -316,6 +367,16 @@ const VendorRegister = () => {
         data.append('identityProof', identityProofFile);
       }
     }
+
+    data.append('bankAccountName', formData.bankAccountName.trim());
+    data.append('bankAccountNumber', formData.bankAccountNumber.trim());
+    data.append('bankName', formData.bankName.trim());
+    data.append('bankIfscCode', formData.bankIfscCode.trim().toUpperCase());
+    data.append('bankBranchName', formData.bankBranchName.trim());
+    data.append('bankAccountType', formData.bankAccountType);
+    data.append('bankUpiId', formData.bankUpiId.trim());
+    data.append('bankProofType', formData.bankProofType);
+    data.append('bankProof', bankProofFile);
 
     if (registrationProofFile) {
       data.append('registrationProof', registrationProofFile);
@@ -533,7 +594,7 @@ const VendorRegister = () => {
                     <div className="bg-primary-50/50 p-3 rounded-xl border border-primary-100 flex items-center justify-between text-xs">
                       <span className="text-gray-700 font-medium">Declaration Template:</span>
                       <a
-                        href={generalSettings.businessLetterTemplateUrl}
+                        href={getDownloadUrl(generalSettings.businessLetterTemplateUrl)}
                         target="_blank"
                         rel="noreferrer"
                         className="text-primary-700 font-bold hover:underline"
@@ -618,7 +679,7 @@ const VendorRegister = () => {
                     <div className="bg-primary-50/50 p-3 rounded-xl border border-primary-100 flex items-center justify-between text-xs">
                       <span className="text-gray-700 font-medium">Agreement Template:</span>
                       <a
-                        href={generalSettings.partnershipAgreementTemplateUrl}
+                        href={getDownloadUrl(generalSettings.partnershipAgreementTemplateUrl)}
                         target="_blank"
                         rel="noreferrer"
                         className="text-primary-700 font-bold hover:underline"
@@ -887,6 +948,98 @@ const VendorRegister = () => {
                     className="w-full px-4 py-2.5 bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary-500 text-gray-800 text-sm"
                   />
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bank Details */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Bank Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50/50 p-4 rounded-2xl border-2 border-dashed border-gray-200">
+              {[
+                { name: 'bankAccountName', label: 'Account Holder Name', placeholder: 'As per bank records', required: true },
+                { name: 'bankName', label: 'Bank Name', placeholder: 'e.g. HDFC Bank', required: true },
+                { name: 'bankAccountNumber', label: 'Account Number', placeholder: '9-18 digit account number', required: true, mono: true },
+                { name: 'confirmAccountNumber', label: 'Confirm Account Number', placeholder: 'Re-enter account number', required: true, mono: true },
+                { name: 'bankIfscCode', label: 'IFSC Code', placeholder: 'e.g. HDFC0001234', required: true, mono: true },
+                { name: 'bankBranchName', label: 'Branch Name', placeholder: 'Branch name' },
+              ].map((f) => (
+                <div key={f.name}>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    {f.label} {f.required && <span className="text-red-500">*</span>}
+                  </label>
+                  <input
+                    type="text"
+                    name={f.name}
+                    value={formData[f.name]}
+                    onChange={handleChange}
+                    placeholder={f.placeholder}
+                    className={`w-full px-4 py-2.5 bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary-500 text-gray-800 text-sm ${f.mono ? 'font-mono' : ''}`}
+                    required={f.required}
+                  />
+                </div>
+              ))}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Account Type <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="bankAccountType"
+                  value={formData.bankAccountType}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2.5 bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary-500 text-gray-800 text-sm"
+                >
+                  <option value="Current">Current</option>
+                  <option value="Savings">Savings</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">UPI ID (Optional)</label>
+                <input
+                  type="text"
+                  name="bankUpiId"
+                  value={formData.bankUpiId}
+                  onChange={handleChange}
+                  placeholder="name@bank"
+                  className="w-full px-4 py-2.5 bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary-500 text-gray-800 text-sm"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Bank Proof Document <span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-4 mb-3">
+                  {[
+                    { value: 'cancelled_cheque', label: 'Cancelled Cheque' },
+                    { value: 'bank_statement', label: 'Bank Statement' },
+                  ].map((o) => (
+                    <label key={o.value} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="bankProofType"
+                        value={o.value}
+                        checked={formData.bankProofType === o.value}
+                        onChange={handleChange}
+                        className="w-4 h-4 text-primary-600"
+                      />
+                      <span className="text-sm font-semibold text-gray-700">{o.label}</span>
+                    </label>
+                  ))}
+                </div>
+                <input
+                  type="file"
+                  accept="application/pdf,image/jpeg,image/png,image/jpg"
+                  onChange={handleBankProofChange}
+                  className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+                  required={!bankProofFile}
+                />
+                {bankProofFile && (
+                  <p className="text-xs text-gray-600 mt-1">Selected: {bankProofFile.name}</p>
+                )}
+                <p className="text-[11px] text-gray-500 mt-1">
+                  Accepted formats: PDF, JPG, JPEG, PNG (Max size: 10MB)
+                </p>
               </div>
             </div>
           </div>

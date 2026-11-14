@@ -8,7 +8,7 @@ import { signPreAuthToken, send2FAOtp } from '../../../services/twoFactor.servic
 import { createNotification } from '../../../services/notification.service.js';
 import { sendEmail } from '../../../services/email.service.js';
 import { initiateProfileUpdateOTP, verifyProfileUpdateOTP, resendProfileUpdateOTP } from '../../../services/profileOtp.service.js';
-import { cleanupLocalFiles } from '../../../services/upload.service.js';
+import { cleanupLocalFiles, uploadToCloudinary } from '../../../services/upload.service.js';
 import {
     clearRefreshSession,
     decodeRefreshTokenOrThrow,
@@ -16,9 +16,10 @@ import {
     rotateRefreshSession,
 } from '../../../services/refreshToken.service.js';
 
-const getUploadedPath = (file) => {
-    if (!file?.filename) return '';
-    return `/uploads/delivery-docs/${file.filename}`;
+// Local disk is ephemeral on most hosts, so registration documents go to Cloudinary.
+const uploadDeliveryDoc = async (file, folder) => {
+    const uploaded = await uploadToCloudinary(file.path, folder);
+    return uploaded.url;
 };
 
 // POST /api/delivery/auth/register
@@ -39,6 +40,11 @@ export const register = asyncHandler(async (req, res) => {
         const existing = await DeliveryBoy.findOne({ email: normalizedEmail });
         if (existing) throw new ApiError(409, 'Email already registered.');
 
+        const [drivingLicenseUrl, aadharCardUrl] = await Promise.all([
+            uploadDeliveryDoc(drivingLicenseFile, 'delivery/driving_license'),
+            uploadDeliveryDoc(aadharCardFile, 'delivery/aadhar_card'),
+        ]);
+
         deliveryBoy = await DeliveryBoy.create({
             name: String(name || '').trim(),
             email: normalizedEmail,
@@ -48,8 +54,8 @@ export const register = asyncHandler(async (req, res) => {
             vehicleType: String(vehicleType || '').trim(),
             vehicleNumber: String(vehicleNumber || '').trim(),
             documents: {
-                drivingLicense: getUploadedPath(drivingLicenseFile),
-                aadharCard: getUploadedPath(aadharCardFile),
+                drivingLicense: drivingLicenseUrl,
+                aadharCard: aadharCardUrl,
             },
             applicationStatus: 'pending',
             isActive: false,
@@ -79,14 +85,13 @@ export const register = asyncHandler(async (req, res) => {
             new ApiResponse(201, { email: deliveryBoy.email }, 'Registration submitted. Awaiting admin approval.')
         );
     } catch (error) {
-        const shouldCleanupLocalDocs = !deliveryBoy;
-        if (shouldCleanupLocalDocs) {
-            await cleanupLocalFiles([
-                drivingLicenseFile?.path,
-                aadharCardFile?.path,
-            ]);
-        }
         throw error;
+    } finally {
+        // Temp copies are no longer needed once uploaded (or if registration failed).
+        await cleanupLocalFiles([
+            drivingLicenseFile?.path,
+            aadharCardFile?.path,
+        ]);
     }
 });
 

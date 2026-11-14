@@ -9,7 +9,8 @@ import { createNotification } from '../../../services/notification.service.js';
 
 // GET /api/admin/rfq
 export const getAdminRFQs = asyncHandler(async (req, res) => {
-    const rfqs = await RFQ.find()
+    // Consumer RFQs have their own admin section (/admin/consumer-rfq); keep them out of Managed Sourcing.
+    const rfqs = await RFQ.find({ rfqType: { $ne: 'consumer' } })
         .populate('productId', 'name image price')
         .populate('companyId', 'companyName businessEmail')
         .populate('buyerId', 'name email phone companyName businessAddress gstNumber')
@@ -21,7 +22,7 @@ export const getAdminRFQs = asyncHandler(async (req, res) => {
 
 // GET /api/admin/rfq/:id
 export const getAdminRFQDetail = asyncHandler(async (req, res) => {
-    const rfq = await RFQ.findById(req.params.id)
+    const rfq = await RFQ.findOne({ _id: req.params.id, rfqType: { $ne: 'consumer' } })
         .populate('productId', 'name image price unit stockQuantity')
         .populate('buyerId', 'name email phone companyName businessAddress gstNumber')
         .populate('assignedVendorIds', 'storeName name email phone');
@@ -36,6 +37,7 @@ export const getAdminRFQDetail = asyncHandler(async (req, res) => {
 // GET /api/admin/rfq/stats
 export const getRFQStats = asyncHandler(async (req, res) => {
     const stats = await RFQ.aggregate([
+        { $match: { rfqType: { $ne: 'consumer' } } },
         {
             $group: {
                 _id: '$status',
@@ -103,7 +105,7 @@ export const updateRFQStatus = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'Status is required.');
     }
 
-    const rfq = await RFQ.findById(req.params.id);
+    const rfq = await RFQ.findOne({ _id: req.params.id, rfqType: { $ne: 'consumer' } });
     if (!rfq) {
         throw new ApiError(404, 'RFQ not found.');
     }
@@ -145,7 +147,7 @@ export const assignVendors = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'Array of vendorIds is required.');
     }
 
-    const rfq = await RFQ.findById(req.params.id);
+    const rfq = await RFQ.findOne({ _id: req.params.id, rfqType: { $ne: 'consumer' } });
     if (!rfq) {
         throw new ApiError(404, 'RFQ not found.');
     }
@@ -200,7 +202,7 @@ export const selectVendorQuote = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'Vendor ID is required.');
     }
 
-    const rfq = await RFQ.findById(req.params.id);
+    const rfq = await RFQ.findOne({ _id: req.params.id, rfqType: { $ne: 'consumer' } });
     if (!rfq) {
         throw new ApiError(404, 'RFQ not found.');
     }
@@ -252,7 +254,7 @@ export const selectVendorQuote = asyncHandler(async (req, res) => {
 
 // POST /api/admin/rfq/:id/submit-b2b-approval
 export const submitB2BApproval = asyncHandler(async (req, res) => {
-    const rfq = await RFQ.findById(req.params.id);
+    const rfq = await RFQ.findOne({ _id: req.params.id, rfqType: { $ne: 'consumer' } });
     if (!rfq) {
         throw new ApiError(404, 'RFQ not found.');
     }
@@ -298,7 +300,7 @@ export const submitB2BApproval = asyncHandler(async (req, res) => {
 
 // POST /api/admin/rfq/:id/message
 export const sendAdminDiscussionMessage = asyncHandler(async (req, res) => {
-    const rfq = await RFQ.findById(req.params.id);
+    const rfq = await RFQ.findOne({ _id: req.params.id, rfqType: { $ne: 'consumer' } });
     if (!rfq) {
         throw new ApiError(404, 'RFQ not found.');
     }
@@ -350,7 +352,7 @@ export const sendAdminToVendorMessage = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'Message text is required.');
     }
 
-    const rfq = await RFQ.findById(req.params.id);
+    const rfq = await RFQ.findOne({ _id: req.params.id, rfqType: { $ne: 'consumer' } });
     if (!rfq) {
         throw new ApiError(404, 'RFQ not found.');
     }

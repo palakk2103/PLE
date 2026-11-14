@@ -22,7 +22,7 @@ const FeaturedVendorsSection = ({ vendors = null }) => {
           <p className="text-xs text-gray-600 dark:text-[#888888] mt-0.5">Shop from trusted stores</p>
         </div>
         <Link
-          to="/search"
+          to="/sellers"
           className="flex items-center gap-1 text-sm text-[#7B0A0A] dark:text-[#7B0A0A] font-semibold hover:text-[#AE020B] dark:hover:text-[#FF3333] transition-colors"
         >
           <span>See All</span>

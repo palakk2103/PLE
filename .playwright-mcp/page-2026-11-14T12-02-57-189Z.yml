@@ -1,0 +1,160 @@
+- generic [ref=f19e3]:
+  - generic [ref=f19e5]:
+    - generic [ref=f19e13]:
+      - heading "Super Admin" [level=2] [ref=f19e14]
+      - generic [ref=f19e15]:
+        - paragraph [ref=f19e16]: PLE-SA-000001
+        - generic [ref=f19e17]: Super Admin
+    - navigation [ref=f19e18]:
+      - generic [ref=f19e19]: Dashboard
+      - generic [ref=f19e25]: Consumer RFQs
+      - generic [ref=f19e31]: Source Now
+      - generic [ref=f19e37]: Account Team
+      - generic [ref=f19e48]: Customers
+      - generic [ref=f19e59]: Vendors / Sellers
+      - generic [ref=f19e70]: In-House Shops & Staff
+      - generic [ref=f19e79]: Products & Catalogue
+      - generic [ref=f19e89]: Orders & Fulfilment
+      - generic [ref=f19e98]: Delivery Management
+      - generic [ref=f19e109]:
+        - generic [ref=f19e110] [cursor=pointer]: B2B Marketplace
+        - generic [ref=f19e119]:
+          - generic [ref=f19e120] [cursor=pointer]: B2B Overview
+          - generic [ref=f19e121] [cursor=pointer]: Business Users
+          - generic [ref=f19e122] [cursor=pointer]: User Approvals
+          - generic [ref=f19e123] [cursor=pointer]: B2B Analytics
+          - generic [ref=f19e124] [cursor=pointer]: Company Management
+          - generic [ref=f19e125] [cursor=pointer]: B2B Products
+          - generic [ref=f19e126] [cursor=pointer]: B2B Orders
+          - generic [ref=f19e127] [cursor=pointer]: Pending RFQs
+          - generic [ref=f19e128] [cursor=pointer]: RFQs Under Review
+          - generic [ref=f19e129] [cursor=pointer]: RFQ Negotiations
+          - generic [ref=f19e130] [cursor=pointer]: Vendor RFQs
+          - generic [ref=f19e131] [cursor=pointer]: Purchase Orders
+          - generic [ref=f19e132] [cursor=pointer]: Agreement Templates
+          - generic [ref=f19e133] [cursor=pointer]: B2B Settings
+          - generic [ref=f19e134] [cursor=pointer]: B2B Chats
+      - generic [ref=f19e135]: Refurbished Mkt
+      - generic [ref=f19e145]: Marketing & Offers
+      - generic [ref=f19e155]: Finance & Wallet
+      - generic [ref=f19e162]: Loyalty Program
+      - generic [ref=f19e171]: Support Desk
+      - generic [ref=f19e179]: Reports & Analytics
+      - generic [ref=f19e188]: Notifications
+      - generic [ref=f19e197]: CMS & Web Pages
+      - generic [ref=f19e206]: Settings & Policies
+  - generic [ref=f19e215]:
+    - banner [ref=f19e216]:
+      - generic [ref=f19e217]:
+        - generic [ref=f19e219]:
+          - img "PLE Logo" [ref=f19e220]
+          - generic [ref=f19e221]:
+            - heading "ORD-1794656799335-DKY0" [level=1] [ref=f19e803]
+            - paragraph [ref=f19e223]: Welcome back! Here's your business overview.
+        - generic [ref=f19e224]:
+          - button "Toggle theme" [ref=f19e225] [cursor=pointer]
+          - button [ref=f19e229] [cursor=pointer]
+          - button "Logout" [ref=f19e234] [cursor=pointer]
+    - main [ref=f19e239]:
+      - generic [ref=f19e804]:
+        - generic [ref=f19e805]:
+          - generic [ref=f19e806]:
+            - button [ref=f19e807] [cursor=pointer]
+            - generic [ref=f19e810]:
+              - generic [ref=f19e811]:
+                - heading "ORD-1794656799335-DKY0" [level=1] [ref=f19e812]
+                - generic [ref=f19e813]: B2B WHOLESALE
+              - paragraph [ref=f19e814]: Nov 14, 2026, 05:16 PM
+          - generic [ref=f19e815]:
+            - generic [ref=f19e816]:
+              - button "Invoice" [ref=f19e817] [cursor=pointer]
+              - button "Download PDF" [ref=f19e821] [cursor=pointer]
+            - generic [ref=f19e825]: delivered
+            - button "Edit" [ref=f19e826] [cursor=pointer]
+        - generic [ref=f19e830]:
+          - generic [ref=f19e831]:
+            - generic [ref=f19e833]:
+              - generic [ref=f19e834]:
+                - paragraph [ref=f19e835]: Total
+                - paragraph [ref=f19e836]: ₹944
+              - generic [ref=f19e837]:
+                - paragraph [ref=f19e838]: Items
+                - paragraph [ref=f19e839]: "1"
+              - generic [ref=f19e840]:
+                - paragraph [ref=f19e841]: Payment
+                - paragraph [ref=f19e842]: Digital Wallet
+              - generic [ref=f19e843]:
+                - paragraph [ref=f19e844]: Payment Status
+                - generic [ref=f19e845]: paid
+            - generic [ref=f19e846]:
+              - heading "Order Items (1)" [level=2] [ref=f19e847]
+              - generic [ref=f19e853]:
+                - img "USB Wired Optical Mouse" [ref=f19e854]
+                - generic [ref=f19e855]:
+                  - paragraph [ref=f19e856]: USB Wired Optical Mouse
+                  - paragraph [ref=f19e857]: ₹160 x 5
+                - paragraph [ref=f19e858]: ₹800
+            - generic [ref=f19e860]:
+              - generic [ref=f19e861]:
+                - heading "Business Customer" [level=2] [ref=f19e862]
+                - generic [ref=f19e866]:
+                  - generic [ref=f19e867]:
+                    - paragraph [ref=f19e868]: Company
+                    - paragraph [ref=f19e869]: ZZ Test Co 1794654844
+                    - paragraph [ref=f19e870]: Placed by Test Employee
+                  - generic [ref=f19e871]:
+                    - paragraph [ref=f19e872]: Email
+                    - paragraph [ref=f19e873]: co-1794654844@example.test
+                  - generic [ref=f19e874]:
+                    - paragraph [ref=f19e875]: Phone
+                    - paragraph [ref=f19e878]: "9876500009"
+              - generic [ref=f19e879]:
+                - heading "Shipping Address" [level=2] [ref=f19e880]
+                - generic [ref=f19e884]:
+                  - paragraph [ref=f19e885]: Test Employee
+                  - paragraph [ref=f19e886]: 1 Test Road, Fort
+                  - paragraph [ref=f19e887]: Mumbai, Maharashtra, 400001
+                  - paragraph [ref=f19e888]: India
+            - generic [ref=f19e889]:
+              - heading "Tracking & Delivery" [level=2] [ref=f19e890]
+              - generic [ref=f19e896]:
+                - generic [ref=f19e897]:
+                  - paragraph [ref=f19e898]: Tracking Number
+                  - paragraph [ref=f19e899]: TRK-F84UAFIBWV
+                - generic [ref=f19e900]:
+                  - paragraph [ref=f19e901]: Est. Delivery
+                  - paragraph [ref=f19e905]: Nov 19, 2026, 05:16 PM
+                - generic [ref=f19e906]:
+                  - paragraph [ref=f19e907]: Delivered
+                  - paragraph [ref=f19e912]: Nov 14, 2026, 05:17 PM
+          - generic [ref=f19e913]:
+            - generic [ref=f19e914]:
+              - heading "Order Summary" [level=2] [ref=f19e915]
+              - generic [ref=f19e916]:
+                - generic [ref=f19e917]:
+                  - generic [ref=f19e918]: Subtotal
+                  - generic [ref=f19e919]: ₹800
+                - generic [ref=f19e920]:
+                  - generic [ref=f19e921]: Tax
+                  - generic [ref=f19e922]: ₹144
+                - generic [ref=f19e923]:
+                  - generic [ref=f19e924]: Shipping
+                  - generic [ref=f19e925]: ₹0
+                - generic [ref=f19e926]:
+                  - generic [ref=f19e927]: Total
+                  - generic [ref=f19e928]: ₹944
+            - generic [ref=f19e929]:
+              - heading "Timeline" [level=2] [ref=f19e930]
+              - generic [ref=f19e933]:
+                - generic [ref=f19e936]:
+                  - paragraph [ref=f19e937]: Order Placed
+                  - paragraph [ref=f19e938]: Nov 14, 2026, 05:16 PM
+                - generic [ref=f19e941]:
+                  - paragraph [ref=f19e942]: Delivered
+                  - paragraph [ref=f19e943]: Nov 14, 2026, 05:17 PM
+            - generic [ref=f19e944]:
+              - heading "Quick Actions" [level=2] [ref=f19e945]
+              - generic [ref=f19e946]:
+                - button "Track Order" [ref=f19e947] [cursor=pointer]
+                - button "Email Customer" [ref=f19e953] [cursor=pointer]
+                - button "Call Customer" [ref=f19e957] [cursor=pointer]

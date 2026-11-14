@@ -8,6 +8,8 @@ import { useB2BUserStore } from "../../store/b2bUserStore";
 import toast from "react-hot-toast";
 import api from "../../../../shared/utils/api";
 import { FiDownload } from "react-icons/fi";
+import RegistrationDetailsSections from "../../components/b2b/RegistrationDetailsSections";
+import { getDownloadUrl } from '../../../../shared/utils/documentUrl';
 
 const PendingB2BApprovals = () => {
   const navigate = useNavigate();
@@ -29,6 +31,24 @@ const PendingB2BApprovals = () => {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUserForDetails, setSelectedUserForDetails] = useState(null);
+  const [fullDetail, setFullDetail] = useState(null);
+  const [drafts, setDrafts] = useState([]);
+
+  useEffect(() => {
+    api.get('/admin/b2b-users/drafts')
+      .then((res) => setDrafts(res?.data || []))
+      .catch(() => setDrafts([]));
+  }, []);
+
+  // Full (masked-by-role) record incl. employees for the review modal
+  useEffect(() => {
+    setFullDetail(null);
+    const id = selectedUserForDetails?.id || selectedUserForDetails?._id;
+    if (!id) return;
+    api.get(`/admin/b2b-users/${id}`)
+      .then((res) => setFullDetail(res?.data || null))
+      .catch(() => setFullDetail(null));
+  }, [selectedUserForDetails]);
   const [actionModal, setActionModal] = useState({
     isOpen: false,
     type: null, // 'approve', 'reject', 'resubmit'
@@ -412,6 +432,20 @@ const PendingB2BApprovals = () => {
         />
       )}
 
+      {drafts.length > 0 && (
+        <div className="mt-6 bg-white border border-gray-200 rounded-2xl p-4" data-testid="b2b-drafts">
+          <h3 className="text-sm font-bold text-gray-800 mb-2">Registrations in progress (drafts) - {drafts.length}</h3>
+          <div className="divide-y text-sm">
+            {drafts.map((d) => (
+              <div key={d.email} className="py-2 flex justify-between gap-2">
+                <span className="font-medium text-gray-800">{d.companyName || d.email} <span className="text-gray-400 text-xs">{d.companyName ? d.email : ''}</span></span>
+                <span className="text-xs text-gray-500">Step {d.currentStep} of 4 - saved {new Date(d.updatedAt).toLocaleString()}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {selectedUserForDetails && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
           <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-xl border border-gray-100 max-h-[90vh] overflow-y-auto">
@@ -517,7 +551,7 @@ const PendingB2BApprovals = () => {
                           <FiEye /> View Signed PDF
                         </a>
                         <a 
-                          href={selectedUserForDetails.acceptanceExecutionDocument.url} 
+                          href={getDownloadUrl(selectedUserForDetails.acceptanceExecutionDocument.url)} 
                           download={selectedUserForDetails.acceptanceExecutionDocument.fileName || 'Signed_Agreement.pdf'} 
                           target="_blank" 
                           rel="noopener noreferrer" 
@@ -543,6 +577,10 @@ const PendingB2BApprovals = () => {
                   )}
                 </div>
               </div>
+
+              {fullDetail && (
+                <RegistrationDetailsSections company={fullDetail.company} admin={fullDetail.admin} employees={fullDetail.employees} />
+              )}
 
               {selectedUserForDetails.verificationStatus === "Resubmission Required" && (
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">

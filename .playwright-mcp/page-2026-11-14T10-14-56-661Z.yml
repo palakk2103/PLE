@@ -1,0 +1,37 @@
+- generic [ref=f8e2]:
+  - main [ref=f8e5]:
+    - generic [ref=f8e8]:
+      - button "Go Back" [ref=f8e9] [cursor=pointer]
+      - generic [ref=f8e12]:
+        - heading "Welcome Back" [level=1] [ref=f8e13]
+        - paragraph [ref=f8e14]: Login to access your account
+      - paragraph [ref=f8e16]: "✨ Business mode: unlock wholesale prices, tier discounts, MOQ, GST credit, and credit terms."
+      - generic [ref=f8e17]:
+        - generic [ref=f8e18]:
+          - generic [ref=f8e19]: Email Address
+          - textbox "your.email@example.com" [ref=f8e24]: sneha.kapoor.test@example.com
+        - generic [ref=f8e25]:
+          - generic [ref=f8e26]: Password
+          - generic [ref=f8e27]:
+            - textbox "Enter your password" [ref=f8e31]: Test@12345
+            - button [ref=f8e32] [cursor=pointer]
+        - generic [ref=f8e36]:
+          - generic [ref=f8e37] [cursor=pointer]:
+            - checkbox "Remember me" [ref=f8e38]
+            - generic [ref=f8e39]: Remember me
+          - link "Forgot password?" [ref=f8e40] [cursor=pointer]:
+            - /url: /forgot-password
+        - button "Log In" [ref=f8e41] [cursor=pointer]
+      - paragraph [ref=f8e43]:
+        - text: Don't have an account?
+        - link "Sign Up" [ref=f8e44] [cursor=pointer]:
+          - /url: /b2b/register
+      - generic [ref=f8e45]:
+        - text: By continuing, you agree to our
+        - link "Terms & Conditions" [ref=f8e46] [cursor=pointer]:
+          - /url: /terms-and-conditions
+        - text: and
+        - link "Privacy Policy" [ref=f8e47] [cursor=pointer]:
+          - /url: /privacy-policy
+        - text: .
+  - status [ref=f8e53]: Unable to connect to server. Please check your internet connection or server status.

@@ -44,6 +44,8 @@ const VendorPickupLocations = lazy(() => import("../modules/Vendor/pages/PickupL
 const VendorReports = lazy(() => import("../modules/Vendor/pages/Reports"));
 const VendorLanguageSettings = lazy(() => import("../modules/Vendor/pages/LanguageSettings"));
 const VendorB2BEnquiries = lazy(() => import("../modules/Vendor/pages/b2b/B2BEnquiries"));
+const VendorConsumerRFQs = lazy(() => import("../modules/Vendor/pages/consumerRfq/VendorConsumerRFQs").then((m) => ({ default: m.VendorConsumerRFQs })));
+const VendorConsumerRFQDetail = lazy(() => import("../modules/Vendor/pages/consumerRfq/VendorConsumerRFQs").then((m) => ({ default: m.VendorConsumerRFQDetail })));
 const VendorB2BEnquiryDetail = lazy(() => import("../modules/Vendor/pages/b2b/B2BEnquiryDetail"));
 const VendorB2BCreateQuote = lazy(() => import("../modules/Vendor/pages/b2b/B2BCreateQuote"));
 const VendorB2BQuoteDetail = lazy(() => import("../modules/Vendor/pages/b2b/B2BQuoteDetail"));
@@ -131,6 +133,9 @@ export default function VendorRoutes() {
         <Route path="settings/shipping" element={<VendorSettings />} />
         <Route path="settings/shipping-settings" element={<VendorSettings />} />
         <Route path="settings/business" element={<VendorSettings />} />
+
+        <Route path="consumer-rfqs" element={<VendorConsumerRFQs />} />
+        <Route path="consumer-rfqs/:id" element={<VendorConsumerRFQDetail />} />
 
         {/* B2B Enquiry Routes */}
         <Route path="b2b-application" element={<VendorB2BSellerApplication />} />

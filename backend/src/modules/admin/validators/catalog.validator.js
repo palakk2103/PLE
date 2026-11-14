@@ -64,6 +64,8 @@ const productBaseSchema = {
     seoDescription: Joi.string().allow('').optional(),
     relatedProducts: Joi.array().items(objectId).optional(),
     faqs: Joi.array().items(faqSchema).optional(),
+    // Deep validation happens in services/productSpecs.service.js (category-aware)
+    specifications: Joi.object().unknown(true).allow(null).optional(),
     variants: variantSchema,
 };
 
@@ -115,6 +117,17 @@ export const createCategorySchema = Joi.object({
     order: Joi.number().integer().min(0).optional(),
     isActive: Joi.boolean().optional(),
     gstRate: Joi.number().min(0).max(100).optional(),
+    specFields: Joi.array().items(Joi.object({
+        key: Joi.string().trim().required(),
+        label: Joi.string().trim().required(),
+        group: Joi.string().valid('features', 'additional', 'itemDetails').optional(),
+        type: Joi.string().valid('text', 'textarea', 'number', 'select', 'multiselect', 'boolean', 'date').optional(),
+        options: Joi.array().items(Joi.string()).optional(),
+        unit: Joi.string().allow('').optional(),
+        units: Joi.array().items(Joi.string()).optional(),
+        required: Joi.boolean().optional(),
+        placeholder: Joi.string().allow('').optional(),
+    })).optional(),
 });
 
 export const updateCategorySchema = Joi.object({
@@ -126,6 +139,17 @@ export const updateCategorySchema = Joi.object({
     order: Joi.number().integer().min(0).optional(),
     isActive: Joi.boolean().optional(),
     gstRate: Joi.number().min(0).max(100).optional(),
+    specFields: Joi.array().items(Joi.object({
+        key: Joi.string().trim().required(),
+        label: Joi.string().trim().required(),
+        group: Joi.string().valid('features', 'additional', 'itemDetails').optional(),
+        type: Joi.string().valid('text', 'textarea', 'number', 'select', 'multiselect', 'boolean', 'date').optional(),
+        options: Joi.array().items(Joi.string()).optional(),
+        unit: Joi.string().allow('').optional(),
+        units: Joi.array().items(Joi.string()).optional(),
+        required: Joi.boolean().optional(),
+        placeholder: Joi.string().allow('').optional(),
+    })).optional(),
 }).min(1);
 
 export const reorderCategoriesSchema = Joi.object({

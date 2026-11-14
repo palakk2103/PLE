@@ -23,7 +23,11 @@ const buildDocToken = (relativePath) => {
 const buildDocUrl = (req, relativePath = '') => {
     if (!relativePath) return '';
     if (relativePath.startsWith('http://') || relativePath.startsWith('https://')) return relativePath;
-    const baseUrl = `${req.protocol}://${req.get('host')}${relativePath}`;
+    // Behind a reverse proxy req.protocol is "http"; use the forwarded protocol so the
+    // link is not blocked as mixed content on an https admin panel.
+    const protocol = String(req.get('x-forwarded-proto') || req.protocol).split(',')[0].trim();
+    const host = req.get('x-forwarded-host') || req.get('host');
+    const baseUrl = `${protocol}://${host}${relativePath}`;
     if (relativePath.startsWith('/uploads/delivery-docs/')) {
         const token = buildDocToken(relativePath);
         return `${baseUrl}?${DOC_TOKEN_QUERY_KEY}=${encodeURIComponent(token)}`;

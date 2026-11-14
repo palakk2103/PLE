@@ -8,6 +8,7 @@ import {
     sendVendorQuoteSubmittedEmail,
     sendSourceNowQuoteAvailableEmail
 } from '../../../services/sourcingNotification.service.js';
+import { ensureProductRequestThread } from './chat.controller.js';
 
 // @desc    Get product requests visible to the vendor
 // @route   GET /api/vendor/product-requests
@@ -291,8 +292,14 @@ export const acceptVendorWindow = asyncHandler(async (req, res) => {
         throw new ApiError(409, 'This request has already been accepted by another vendor or the window has expired.');
     }
 
+    // Open the buyer<->vendor chat immediately so the customer can reach the vendor
+    try {
+        await ensureProductRequestThread(updated, sellerId);
+    } catch (chatErr) {
+        console.warn('Failed to auto-create sourcing chat thread:', chatErr.message);
+    }
+
     // Notify Admin
-    const { default: Notification } = await import('../../../models/Notification.model.js');
     await Notification.create({
         recipientType: 'admin',
         type: 'system',

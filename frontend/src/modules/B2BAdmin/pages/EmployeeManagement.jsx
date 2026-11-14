@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FiSearch, FiPlus, FiEdit2, FiTrash2, FiEye, FiEyeOff, FiX, FiDollarSign } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
+import { FiSearch, FiPlus, FiEdit2, FiTrash2, FiEye, FiEyeOff, FiX, FiDollarSign, FiShoppingBag } from 'react-icons/fi';
 import DataTable from '../../Admin/components/DataTable';
 import ConfirmModal from '../../Admin/components/ConfirmModal';
 import { useB2BAdminStore } from '../store/b2bAdminStore';
 
 const EmployeeManagement = () => {
+  const navigate = useNavigate();
   const { employees, fetchEmployees, createEmployee, updateEmployee, deleteEmployee, allotEmployeeWallet, isLoading } = useB2BAdminStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, id: null, name: '' });
@@ -161,6 +163,13 @@ const EmployeeManagement = () => {
       sortable: false,
       render: (_, row) => (
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate(`/b2b-dashboard/employees/${row._id}`)}
+            className="p-1.5 text-gray-700 hover:bg-gray-100 rounded transition-colors"
+            title="View Purchases"
+          >
+            <FiShoppingBag />
+          </button>
           <button
             onClick={() => openAllotModal(row)}
             className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"

@@ -42,6 +42,7 @@ export const createProductSchema = Joi.object({
     seoTitle: Joi.string().allow('', null).optional(),
     seoDescription: Joi.string().allow('', null).optional(),
     relatedProducts: Joi.array().items(objectId).optional(),
+    specifications: Joi.object().unknown(true).allow(null).optional(),
     faqs: Joi.array().items(
         Joi.object({
             question: Joi.string().trim().allow('').optional(),
@@ -108,6 +109,7 @@ export const updateProductSchema = Joi.object({
     seoTitle: Joi.string().allow('', null).optional(),
     seoDescription: Joi.string().allow('', null).optional(),
     relatedProducts: Joi.array().items(objectId).optional(),
+    specifications: Joi.object().unknown(true).allow(null).optional(),
     faqs: Joi.array().items(
         Joi.object({
             question: Joi.string().trim().allow('').optional(),

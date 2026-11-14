@@ -69,6 +69,8 @@ const AdminRFQDetail = lazy(() => import("../modules/Admin/pages/b2b-enquiries/A
 const AdminSellerResponses = lazy(() => import("../modules/Admin/pages/b2b-enquiries/AdminSellerResponses"));
 const AdminRFQDisputes = lazy(() => import("../modules/Admin/pages/b2b-enquiries/AdminRFQDisputes"));
 const AdminRFQSpamMonitor = lazy(() => import("../modules/Admin/pages/b2b-enquiries/AdminRFQSpamMonitor"));
+const AdminConsumerRFQs = lazy(() => import("../modules/Admin/pages/consumerRfq/AdminConsumerRFQs").then((m) => ({ default: m.AdminConsumerRFQs })));
+const AdminConsumerRFQDetail = lazy(() => import("../modules/Admin/pages/consumerRfq/AdminConsumerRFQs").then((m) => ({ default: m.AdminConsumerRFQDetail })));
 const RefurbishedMarketplace = lazy(() => import("../modules/Admin/pages/refurbished/RefurbishedMarketplace"));
 const RefurbishedDashboard = lazy(() => import("../modules/Admin/pages/refurbished/RefurbishedDashboard"));
 const ProductApprovals = lazy(() => import("../modules/Admin/pages/refurbished/ProductApprovals"));
@@ -251,6 +253,9 @@ export default function AdminRoutes() {
         <Route path="b2b/companies" element={<CompanyManagement />} />
         <Route path="b2b/agreement-template" element={<AgreementTemplateManagement />} />
         <Route path="b2b/chats" element={<AdminChatHub category="b2b" />} />
+
+        <Route path="consumer-rfqs" element={<AdminConsumerRFQs />} />
+        <Route path="consumer-rfqs/:id" element={<AdminConsumerRFQDetail />} />
 
         <Route path="b2b-enquiries" element={<AdminB2BEnquiries />} />
         <Route path="b2b-enquiries/all" element={<AdminB2BEnquiries />} />

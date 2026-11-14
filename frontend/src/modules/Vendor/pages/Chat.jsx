@@ -50,7 +50,7 @@ const Chat = () => {
   const [preflightWarning, setPreflightWarning] = useState(null);
   const [showMenu, setShowMenu] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
-  const [reportReason, setReportReason] = useState("OFF_PLATFORM_SOLICITATION");
+  const [reportReason, setReportReason] = useState("CONTACT_SHARING");
   const [reportDetails, setReportDetails] = useState("");
   const [submittingAction, setSubmittingAction] = useState(false);
 
@@ -148,7 +148,9 @@ const Chat = () => {
     const socket = socketService.getSocket();
     if (!socket) return;
 
-    socket.emit("join_chat_room", selectedChat._id);
+    const joinRoom = () => socket.emit("join_chat_room", selectedChat._id);
+    joinRoom();
+    socket.on("connect", joinRoom); // rooms are lost on reconnect
 
     const handleNewMessage = (msg) => {
       setMessages((prev) => {
@@ -167,6 +169,7 @@ const Chat = () => {
 
     return () => {
       socket.emit("leave_chat_room", selectedChat._id);
+      socket.off("connect", joinRoom);
       socket.off("new_message", handleNewMessage);
       socket.off("transaction_proposal_updated", handleProposalUpdated);
     };
@@ -794,9 +797,9 @@ const Chat = () => {
                     onChange={(e) => setReportReason(e.target.value)}
                     className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-white/10 rounded-xl p-2.5 text-xs text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500"
                   >
-                    <option value="OFF_PLATFORM_SOLICITATION">Off-platform contact or payment solicitation</option>
+                    <option value="CONTACT_SHARING">Off-platform contact or payment solicitation</option>
                     <option value="HARASSMENT">Harassment or abusive language</option>
-                    <option value="FRAUD">Fraudulent inquiry or suspicious activity</option>
+                    <option value="SCAM_FRAUD">Fraudulent inquiry or suspicious activity</option>
                     <option value="SPAM">Spam or irrelevant messages</option>
                     <option value="OTHER">Other violation</option>
                   </select>

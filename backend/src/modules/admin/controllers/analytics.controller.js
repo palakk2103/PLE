@@ -6,6 +6,7 @@ import Vendor from '../../../models/Vendor.model.js';
 import Product from '../../../models/Product.model.js';
 import ManagedShop from '../../../models/ManagedShop.model.js';
 import Commission from '../../../models/Commission.model.js';
+import ReturnRequest from '../../../models/ReturnRequest.model.js';
 
 // Helper to add date filter
 const getDateFilter = (startDate, endDate) => {
@@ -15,6 +16,46 @@ const getDateFilter = (startDate, endDate) => {
     if (endDate) createdAt.$lte = new Date(new Date(endDate).setHours(23, 59, 59, 999));
     return { createdAt };
 };
+
+const RETURN_REJECTED = ['rejected', 'claim_rejected'];
+const RETURN_COMPLETED = ['completed', 'refund_processed'];
+
+// GET /api/admin/analytics/returns-summary
+export const getReturnsSummary = asyncHandler(async (req, res) => {
+    const { startDate, endDate } = req.query;
+    const dateFilter = getDateFilter(startDate, endDate);
+
+    const [returns, totalOrders] = await Promise.all([
+        ReturnRequest.find(dateFilter)
+            .select('status refundAmount refundStatus refundDetails.amount items.price items.quantity')
+            .lean(),
+        Order.countDocuments({ isDeleted: { $ne: true }, ...dateFilter }),
+    ]);
+
+    let rejected = 0, completed = 0, refundedAmount = 0, pendingRefundAmount = 0, returnValue = 0;
+    for (const r of returns) {
+        if (RETURN_REJECTED.includes(r.status)) rejected += 1;
+        else if (RETURN_COMPLETED.includes(r.status)) completed += 1;
+
+        const itemsValue = (r.items || []).reduce((s, i) => s + Number(i.price || 0) * Number(i.quantity || 1), 0);
+        const amount = Number(r.refundAmount ?? r.refundDetails?.amount ?? itemsValue) || 0;
+        if (!RETURN_REJECTED.includes(r.status)) returnValue += amount;
+        if (r.refundStatus === 'processed') refundedAmount += amount;
+        else if (r.refundStatus === 'pending' && !RETURN_REJECTED.includes(r.status)) pendingRefundAmount += amount;
+    }
+
+    const totalReturns = returns.length;
+    res.status(200).json(new ApiResponse(200, {
+        totalReturns,
+        pendingReturns: totalReturns - rejected - completed,
+        completedReturns: completed,
+        rejectedReturns: rejected,
+        returnValue,
+        refundedAmount,
+        pendingRefundAmount,
+        returnRate: totalOrders > 0 ? Number(((totalReturns / totalOrders) * 100).toFixed(1)) : 0,
+    }, 'Returns summary fetched.'));
+});
 
 // GET /api/admin/analytics/dashboard
 export const getDashboardStats = asyncHandler(async (req, res) => {
@@ -51,7 +92,7 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
         User.countDocuments({ ...customerRoleFilter, ...dateFilter }),
         Vendor.countDocuments({ status: 'approved' }),
         Product.countDocuments({ isActive: true }),
-        Order.aggregate([{ $match: { ...activeOrderFilter, status: { $ne: 'cancelled' } } }, { $group: { _id: null, total: { $sum: '$total' } } }]),
+        Order.aggregate([{ $match: { ...activeOrderFilter, status: { $nin: ['cancelled', 'returned'] } } }, { $group: { _id: null, total: { $sum: '$total' } } }]),
         Order.countDocuments({ ...activeOrderFilter, status: 'pending' }),
         Vendor.countDocuments(),
         Vendor.countDocuments({ gstRegistered: true }),
@@ -62,9 +103,9 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
         Vendor.countDocuments({ verificationStatus: 'Approved' }),
         Vendor.countDocuments({ verificationStatus: 'Rejected' }),
         Order.aggregate([
-            { $match: { ...activeOrderFilter, status: { $ne: 'cancelled' } } },
+            { $match: { ...activeOrderFilter, status: { $nin: ['cancelled', 'returned'] } } },
             { $unwind: { path: '$vendorItems', preserveNullAndEmptyArrays: false } },
-            { $match: { 'vendorItems.status': { $ne: 'cancelled' } } },
+            { $match: { 'vendorItems.status': { $nin: ['cancelled', 'returned'] } } },
             {
                 $project: {
                     vendorId: '$vendorItems.vendorId',
@@ -79,7 +120,7 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
             }
         ]),
         Commission.aggregate([
-            { $match: { ...dateFilter, status: { $ne: 'cancelled' } } },
+            { $match: { ...dateFilter, status: { $nin: ['cancelled', 'returned'] } } },
             {
                 $project: {
                     vendorId: '$vendorId',
@@ -147,7 +188,7 @@ export const getB2bOverviewStats = asyncHandler(async (req, res) => {
     const activeOrderFilter = { 
         isDeleted: { $ne: true }, 
         $or: [{ orderType: 'b2b' }, { type: 'b2b' }], 
-        status: { $ne: 'cancelled' }, 
+        status: { $nin: ['cancelled', 'returned'] }, 
         ...dateFilter 
     };
     
@@ -173,7 +214,7 @@ export const getB2bOverviewStats = asyncHandler(async (req, res) => {
 export const getRevenueData = asyncHandler(async (req, res) => {
     const { period = 'monthly', startDate, endDate } = req.query;
     const groupFormat = period === 'daily' ? '%Y-%m-%d' : period === 'weekly' ? '%Y-%U' : '%Y-%m';
-    const match = { isDeleted: { $ne: true }, status: { $ne: 'cancelled' } };
+    const match = { isDeleted: { $ne: true }, status: { $nin: ['cancelled', 'returned'] } };
     if (startDate || endDate) {
         match.createdAt = {};
         if (startDate) match.createdAt.$gte = new Date(startDate);
@@ -215,7 +256,7 @@ export const getTopProducts = asyncHandler(async (req, res) => {
     const dateFilter = getDateFilter(startDate, endDate);
 
     const topProducts = await Order.aggregate([
-        { $match: { isDeleted: { $ne: true }, status: { $ne: 'cancelled' }, ...dateFilter } },
+        { $match: { isDeleted: { $ne: true }, status: { $nin: ['cancelled', 'returned'] }, ...dateFilter } },
         { $unwind: '$items' },
         { $group: { _id: '$items.productId', totalSold: { $sum: '$items.quantity' }, revenue: { $sum: { $multiply: ['$items.price', '$items.quantity'] } } } },
         { $sort: { totalSold: -1 } },
@@ -271,7 +312,7 @@ export const getRecentOrders = asyncHandler(async (req, res) => {
 export const getSalesData = asyncHandler(async (req, res) => {
     const { period = 'monthly', startDate, endDate } = req.query;
     const groupFormat = period === 'daily' ? '%Y-%m-%d' : period === 'weekly' ? '%Y-%U' : '%Y-%m';
-    const match = { isDeleted: { $ne: true }, status: { $ne: 'cancelled' } };
+    const match = { isDeleted: { $ne: true }, status: { $nin: ['cancelled', 'returned'] } };
     if (startDate || endDate) {
         match.createdAt = {};
         if (startDate) match.createdAt.$gte = new Date(startDate);
@@ -296,7 +337,7 @@ export const getSalesData = asyncHandler(async (req, res) => {
 export const getFinancialSummary = asyncHandler(async (req, res) => {
     const { period = 'monthly', startDate, endDate } = req.query;
     const groupFormat = period === 'daily' ? '%Y-%m-%d' : period === 'weekly' ? '%Y-%U' : '%Y-%m';
-    const match = { isDeleted: { $ne: true }, status: { $ne: 'cancelled' } };
+    const match = { isDeleted: { $ne: true }, status: { $nin: ['cancelled', 'returned'] } };
     if (startDate || endDate) {
         match.createdAt = {};
         if (startDate) match.createdAt.$gte = new Date(startDate);

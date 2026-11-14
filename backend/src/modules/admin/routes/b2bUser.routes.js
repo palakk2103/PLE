@@ -5,7 +5,9 @@ import {
     updateB2BUserStatus,
     requestDocumentResubmission,
     deleteB2BUser,
-    getB2BAnalytics
+    getB2BAnalytics,
+    getB2BDrafts,
+    getB2BCompanyOrders
 } from '../controllers/b2bUser.controller.js';
 import { authenticate } from '../../../middlewares/authenticate.js';
 import { authorize, enforceAccountStatus } from '../../../middlewares/authorize.js';
@@ -24,8 +26,10 @@ router.patch('/agreement-templates/:id/status', toggleTemplateStatus);
 router.delete('/agreement-templates/:id', deleteTemplate);
 
 router.get('/analytics', getB2BAnalytics);
+router.get('/drafts', getB2BDrafts);
 router.get('/', getAllB2BUsers);
 router.get('/:id', getB2BUserDetail);
+router.get('/:id/orders', getB2BCompanyOrders);
 router.patch('/:id/status', updateB2BUserStatus);
 router.post('/:id/request-resubmit', requestDocumentResubmission);
 router.delete('/:id', deleteB2BUser);

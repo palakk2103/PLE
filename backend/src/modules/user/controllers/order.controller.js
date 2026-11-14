@@ -632,6 +632,14 @@ export const placeOrder = asyncHandler(async (req, res) => {
                 idempotencyScope: idempotencyKey ? idempotencyScope : undefined,
             }], { session });
             order = createdOrder;
+            // Link the wallet debit back to the order so wallet history shows which order it paid for
+            if (walletTxId) {
+                await WalletTransaction.updateOne(
+                    { _id: walletTxId },
+                    { $set: { orderId: createdOrder._id, description: `Payment for order #${createdOrder.orderId}` } },
+                    { session }
+                );
+            }
             // Associate order with transaction log if any points were redeemed
             if (actualPointsRedeemed > 0) {
                 await LoyaltyTransaction.updateOne(

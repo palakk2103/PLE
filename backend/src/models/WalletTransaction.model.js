@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { companyScopePlugin } from '../utils/companyScope.js';
 
 const transactionSchema = new mongoose.Schema({
   walletId: { 
@@ -18,7 +19,7 @@ const transactionSchema = new mongoose.Schema({
   },
   transactionCategory: {
     type: String,
-    enum: ['refund', 'order_payment', 'cashback', 'admin_credit', 'admin_debit', 'recharge', 'referral_reward', 'transfer_in', 'transfer_out', 'withdrawal'],
+    enum: ['refund', 'order_payment', 'cashback', 'admin_credit', 'admin_debit', 'recharge', 'referral_reward', 'transfer_in', 'transfer_out', 'withdrawal', 'b2b_allotment'],
     required: true,
     default: 'recharge'
   },
@@ -30,6 +31,18 @@ const transactionSchema = new mongoose.Schema({
     type: Number,
     required: true,
     default: 0
+  },
+  // B2B company of the wallet owner (auto-filled from userId)
+  companyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'B2BCompany',
+    index: true,
+    default: null
+  },
+  // Who initiated the transaction (e.g. the B2B admin who allotted funds)
+  performedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
   },
   orderId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -62,5 +75,7 @@ const transactionSchema = new mongoose.Schema({
 
 transactionSchema.index({ idempotencyKey: 1 }, { unique: true, sparse: true });
 transactionSchema.index({ userId: 1, createdAt: -1 });
+transactionSchema.index({ companyId: 1, createdAt: -1 });
+transactionSchema.plugin(companyScopePlugin);
 
 export default mongoose.models.WalletTransaction || mongoose.model('WalletTransaction', transactionSchema);

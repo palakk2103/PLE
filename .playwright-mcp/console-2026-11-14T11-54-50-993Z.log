@@ -1,0 +1,79 @@
+[     620ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:21551
+[     881ms] [LOG] ✅ Service Worker registered: ServiceWorkerRegistration @ http://localhost:3000/src/services/pushNotificationService.js?t=1794657144083:11
+[     885ms] [LOG] ✅ Service Worker registered: ServiceWorkerRegistration @ http://localhost:3000/src/services/pushNotificationService.js?t=1794657144083:11
+[     939ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/general:1
+[     941ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/notifications:1
+[     942ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/email:1
+[     945ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/notifications:1
+[     953ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/general:1
+[     967ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/email:1
+[   35780ms] ReferenceError: createPortal is not defined
+    at OrderDrawer (http://localhost:3000/src/modules/B2BAdmin/pages/EmployeeProfile.jsx?t=1794657325901:794:3)
+    at renderWithHooks (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:11548:26)
+    at updateFunctionComponent (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14582:28)
+    at beginWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:15924:22)
+    at HTMLUnknownElement.callCallback2 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3674:22)
+    at Object.invokeGuardedCallbackDev (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3699:24)
+    at invokeGuardedCallback (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3733:39)
+    at beginWork$1 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19765:15)
+    at performUnitOfWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19198:20)
+    at workLoopSync (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19137:13)
+[   35804ms] ReferenceError: createPortal is not defined
+    at OrderDrawer (http://localhost:3000/src/modules/B2BAdmin/pages/EmployeeProfile.jsx?t=1794657325901:794:3)
+    at renderWithHooks (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:11548:26)
+    at updateFunctionComponent (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14582:28)
+    at beginWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:15924:22)
+    at HTMLUnknownElement.callCallback2 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3674:22)
+    at Object.invokeGuardedCallbackDev (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3699:24)
+    at invokeGuardedCallback (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3733:39)
+    at beginWork$1 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19765:15)
+    at performUnitOfWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19198:20)
+    at workLoopSync (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19137:13)
+[   35812ms] [ERROR] The above error occurred in the <OrderDrawer> component:
+
+    at OrderDrawer (http://localhost:3000/src/modules/B2BAdmin/pages/EmployeeProfile.jsx?t=1794657325901:773:24)
+    at div
+    at EmployeeProfile (http://localhost:3000/src/modules/B2BAdmin/pages/EmployeeProfile.jsx?t=1794657325901:1249:18)
+    at RenderedRoute (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=9476b445:4108:5)
+    at Outlet (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=9476b445:4514:26)
+    at main
+    at div
+    at div
+    at B2BDashboardLayout (http://localhost:3000/src/modules/B2BAdmin/components/Layout/B2BDashboardLayout.jsx?t=1794657272599:26:41)
+    at B2BProtectedRoute (http://localhost:3000/src/modules/B2BAdmin/components/B2BProtectedRoute.jsx?t=1794657144083:32:30)
+    at RenderedRoute (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=9476b445:4108:5)
+    at Routes (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=9476b445:4578:5)
+    at B2BRoutes
+    at RenderedRoute (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=9476b445:4108:5)
+    at Routes (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=9476b445:4578:5)
+    at PortalRoutes
+    at ActiveRoutes
+    at Suspense
+    at OfflineDetector (http://localhost:3000/src/shared/components/OfflineDetector.jsx:22:28)
+    at Router (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=9476b445:4521:15)
+    at BrowserRouter (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=9476b445:5267:5)
+    at ErrorBoundary (http://localhost:3000/src/shared/components/ErrorBoundary/ErrorBoundary.jsx:8:5)
+    at App
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary. @ http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14032
+[   35813ms] [ERROR] ErrorBoundary caught an error: ReferenceError: createPortal is not defined
+    at OrderDrawer (http://localhost:3000/src/modules/B2BAdmin/pages/EmployeeProfile.jsx?t=1794657325901:794:3)
+    at renderWithHooks (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:11548:26)
+    at updateFunctionComponent (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14582:28)
+    at beginWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:15924:22)
+    at beginWork$1 (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19753:22)
+    at performUnitOfWork (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19198:20)
+    at workLoopSync (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19137:13)
+    at renderRootSync (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19116:15)
+    at recoverFromConcurrentError (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:18736:28)
+    at performSyncWorkOnRoot (http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:18879:28) {componentStack: 
+    at OrderDrawer (http://localhost:3000/src/mod…s/ErrorBoundary/ErrorBoundary.jsx:8:5)
+    at App} @ http://localhost:3000/src/shared/components/ErrorBoundary/ErrorBoundary.jsx:15
+[   36857ms] [LOG] ✅ Service Worker registered: ServiceWorkerRegistration @ http://localhost:3000/src/services/pushNotificationService.js?t=1794657144083:11
+[   36858ms] [LOG] ✅ Service Worker registered: ServiceWorkerRegistration @ http://localhost:3000/src/services/pushNotificationService.js?t=1794657144083:11
+[   36916ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/general:1
+[   36918ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/email:1
+[   36920ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/notifications:1
+[   36923ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/general:1
+[   36924ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/email:1
+[   36925ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/notifications:1

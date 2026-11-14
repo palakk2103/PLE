@@ -38,7 +38,7 @@ const CustomerVendorChat = () => {
   const [preflightWarning, setPreflightWarning] = useState(null);
   const [showMenu, setShowMenu] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
-  const [reportReason, setReportReason] = useState("OFF_PLATFORM_SOLICITATION");
+  const [reportReason, setReportReason] = useState("CONTACT_SHARING");
   const [reportDetails, setReportDetails] = useState("");
   const [submittingAction, setSubmittingAction] = useState(false);
 
@@ -120,7 +120,9 @@ const CustomerVendorChat = () => {
     const socket = socketService.getSocket();
     if (!socket) return;
 
-    socket.emit("join_chat_room", threadId);
+    const joinRoom = () => socket.emit("join_chat_room", threadId);
+    joinRoom();
+    socket.on("connect", joinRoom); // rooms are lost on reconnect
 
     const handleNewMessage = (msg) => {
       setMessages((prev) => {
@@ -144,6 +146,7 @@ const CustomerVendorChat = () => {
 
     return () => {
       socket.emit("leave_chat_room", threadId);
+      socket.off("connect", joinRoom);
       socket.off("new_message", handleNewMessage);
       socket.off("transaction_proposal_updated", handleProposalUpdated);
     };
@@ -594,9 +597,9 @@ const CustomerVendorChat = () => {
                           onChange={(e) => setReportReason(e.target.value)}
                           className="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500"
                         >
-                          <option value="OFF_PLATFORM_SOLICITATION">Asking to chat or pay off-platform</option>
+                          <option value="CONTACT_SHARING">Asking to chat or pay off-platform</option>
                           <option value="HARASSMENT">Inappropriate or abusive language</option>
-                          <option value="FRAUD">Suspected scam or fake product</option>
+                          <option value="SCAM_FRAUD">Suspected scam or fake product</option>
                           <option value="SPAM">Spam or unwanted advertising</option>
                           <option value="OTHER">Other safety or policy concern</option>
                         </select>

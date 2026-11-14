@@ -1,12 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
-import { FiBarChart2, FiTrendingUp } from 'react-icons/fi';
+import { FiBarChart2, FiTrendingUp, FiRotateCcw, FiDollarSign, FiClock, FiPercent } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import RevenueChart from '../components/Analytics/RevenueChart';
 import SalesChart from '../components/Analytics/SalesChart';
 import TimePeriodFilter from '../components/Analytics/TimePeriodFilter';
 import ExportButton from '../components/ExportButton';
 import { formatCurrency } from '../utils/adminHelpers';
-import { getDashboardStats, getRevenueData } from '../services/adminService';
+import { getDashboardStats, getRevenueData, getReturnsSummary } from '../services/adminService';
 
 const getRangeForPeriod = (period) => {
   const now = new Date();
@@ -44,6 +44,16 @@ const Analytics = () => {
     customersChange: 0,
   });
   const [revenueData, setRevenueData] = useState([]);
+  const [returnsSummary, setReturnsSummary] = useState({
+    totalReturns: 0,
+    pendingReturns: 0,
+    completedReturns: 0,
+    rejectedReturns: 0,
+    returnValue: 0,
+    refundedAmount: 0,
+    pendingRefundAmount: 0,
+    returnRate: 0,
+  });
 
   const mapUiPeriodToApiPeriod = (uiPeriod) => {
     if (uiPeriod === 'today' || uiPeriod === 'week') return 'daily';
@@ -59,10 +69,15 @@ const Analytics = () => {
       try {
         const apiPeriod = mapUiPeriodToApiPeriod(period);
         const range = getRangeForPeriod(period);
-        const [statsRes, revenueRes] = await Promise.allSettled([
+        const [statsRes, revenueRes, returnsRes] = await Promise.allSettled([
           getDashboardStats(range),
           getRevenueData(apiPeriod, range),
+          getReturnsSummary(range),
         ]);
+
+        if (mounted && returnsRes.status === 'fulfilled') {
+          setReturnsSummary((prev) => ({ ...prev, ...(returnsRes.value?.data || {}) }));
+        }
 
         if (mounted && statsRes.status === 'fulfilled') {
           const stats = statsRes.value?.data || {};
@@ -181,6 +196,46 @@ const Analytics = () => {
             <FiTrendingUp className="text-green-600" />
             <span className="text-sm text-green-600">{analyticsSummary.customersChange}%</span>
           </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm text-gray-600">Total Returns</p>
+            <FiRotateCcw className="text-orange-600" />
+          </div>
+          <p className="text-2xl font-bold text-gray-800">{returnsSummary.totalReturns}</p>
+          <p className="text-xs text-gray-500 mt-2">
+            {returnsSummary.pendingReturns} pending · {returnsSummary.completedReturns} completed · {returnsSummary.rejectedReturns} rejected
+          </p>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm text-gray-600">Return Rate</p>
+            <FiPercent className="text-red-600" />
+          </div>
+          <p className="text-2xl font-bold text-gray-800">{returnsSummary.returnRate}%</p>
+          <p className="text-xs text-gray-500 mt-2">Returns ÷ orders in period</p>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm text-gray-600">Total Refunded</p>
+            <FiDollarSign className="text-green-600" />
+          </div>
+          <p className="text-2xl font-bold text-gray-800">{formatCurrency(returnsSummary.refundedAmount)}</p>
+          <p className="text-xs text-gray-500 mt-2">Return value: {formatCurrency(returnsSummary.returnValue)}</p>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm text-gray-600">Pending Refunds</p>
+            <FiClock className="text-yellow-600" />
+          </div>
+          <p className="text-2xl font-bold text-gray-800">{formatCurrency(returnsSummary.pendingRefundAmount)}</p>
+          <p className="text-xs text-gray-500 mt-2">Awaiting processing</p>
         </div>
       </div>
 

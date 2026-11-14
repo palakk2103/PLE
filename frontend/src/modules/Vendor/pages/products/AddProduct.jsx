@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FiSave, FiUpload, FiX, FiInfo, FiLock } from "react-icons/fi";
 import { motion } from "framer-motion";
@@ -10,6 +10,9 @@ import { uploadVendorImage, uploadVendorImages } from "../../services/vendorServ
 import CategorySelector from "../../../Admin/components/CategorySelector";
 import AnimatedSelect from "../../../Admin/components/AnimatedSelect";
 import toast from "react-hot-toast";
+import ProductFormStepper from "../../../../shared/components/Product/ProductFormStepper";
+import ProductSpecificationsForm from "../../../../shared/components/Product/ProductSpecificationsForm";
+import { emptySpecifications, normalizeSpecifications, cleanSpecificationsForSubmit, validateSpecifications } from "../../../../shared/utils/productSpecs";
 import api from "../../../../shared/utils/api";
 import {
   parseVariantAxis,
@@ -83,6 +86,7 @@ const AddProduct = () => {
     seoDescription: "",
     relatedProducts: [],
     faqs: [],
+    specifications: emptySpecifications(),
     b2bEnabled: false,
     salesChannel: "B2C",
     b2bWholesalePrice: "",
@@ -97,6 +101,10 @@ const AddProduct = () => {
     ...DEFAULT_REFURBISHED_STATE,
   });
   const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const [step, setStep] = useState(1);
+  const [specTemplate, setSpecTemplate] = useState([]);
+  const [specErrors, setSpecErrors] = useState({});
+  const step1Ref = useRef(null);
   const [variantAxisInput, setVariantAxisInput] = useState({
     sizes: "",
     colors: "",
@@ -435,8 +443,37 @@ const AddProduct = () => {
   const platformCategoryRate = matchedCategory?.gstRate ?? 18;
   const effectiveCategoryRate = vendorCategoryRate !== null && vendorCategoryRate !== undefined ? vendorCategoryRate : platformCategoryRate;
 
+  const handleNextStep = () => {
+    const container = step1Ref.current;
+    const invalid = container?.querySelector(':invalid');
+    if (invalid) {
+      invalid.reportValidity?.();
+      invalid.focus?.();
+      return;
+    }
+    const isB2cOnly = isManagedVendor ? true : formData.salesChannel === 'B2C';
+    const hasCategory = formData.isCustomCategory ? !!formData.customCategoryName?.trim() : !!(formData.subcategoryId || formData.categoryId);
+    if (!formData.name?.trim()) return toast.error("Please enter the product name");
+    if (!hasCategory || formData.categoryId === "") return toast.error("Please select a category");
+    if (formData.stockQuantity === "" || formData.stockQuantity === undefined) return toast.error("Please enter stock quantity");
+    if (isB2cOnly && !formData.price) return toast.error("Please enter retail price");
+    setStep(2);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (step === 1) {
+      handleNextStep();
+      return;
+    }
+    if (isSaving) return;
+    const specProblems = validateSpecifications(formData.specifications, specTemplate);
+    setSpecErrors(specProblems);
+    if (Object.keys(specProblems).length > 0) {
+      toast.error(Object.values(specProblems)[0]);
+      return;
+    }
 
     if (!vendorId) {
       toast.error("Please log in to add products");
@@ -567,6 +604,7 @@ const AddProduct = () => {
         }))
         .filter((faq) => faq.question && faq.answer),
       variants: buildVariantPayload(formData.variants || {}),
+      specifications: cleanSpecificationsForSubmit(formData.specifications),
       gstMode: formData.gstMode || "category",
       gstRate: formData.gstMode === "custom" && formData.gstRate !== undefined ? Number(formData.gstRate) : effectiveCategoryRate,
       taxRate: formData.gstMode === "custom" && formData.gstRate !== undefined ? Number(formData.gstRate) : effectiveCategoryRate,
@@ -606,6 +644,8 @@ const AddProduct = () => {
       <form
         onSubmit={handleSubmit}
         className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-200 space-y-4">
+        <ProductFormStepper step={step} onStepClick={(n) => { if (n === 1) setStep(1); else handleNextStep(); }} />
+        <div ref={step1Ref} className={step === 1 ? "space-y-4" : "hidden"}>
         
         {/* Sales Channel Selector */}
         {isManagedVendor ? (
@@ -1578,6 +1618,19 @@ const AddProduct = () => {
           </div>
         </div>
 
+        </div>
+
+        {/* Step 2: Specifications & Details */}
+        {step === 2 && (
+          <ProductSpecificationsForm
+            categoryId={formData.isCustomCategory ? "" : (formData.subcategoryId || formData.categoryId)}
+            value={formData.specifications}
+            onChange={(specifications) => setFormData((prev) => ({ ...prev, specifications }))}
+            onTemplateLoaded={setSpecTemplate}
+            errors={specErrors}
+          />
+        )}
+
         {/* Actions */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-4 border-t border-gray-200">
           <button
@@ -1586,6 +1639,25 @@ const AddProduct = () => {
             className="w-full sm:w-auto px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-semibold text-sm">
             Cancel
           </button>
+          {step === 2 && (
+            <button
+              type="button"
+              onClick={() => { setStep(1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+              data-testid="product-form-back"
+              className="w-full sm:w-auto px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors font-semibold text-sm">
+              Back
+            </button>
+          )}
+          {step === 1 && (
+            <button
+              type="button"
+              onClick={handleNextStep}
+              data-testid="product-form-next"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2 gradient-green text-white rounded-xl hover:shadow-glow-green transition-all font-semibold text-sm">
+              Next: Specifications &amp; Details
+            </button>
+          )}
+          {step === 2 && (
           <button
             type="submit"
             disabled={isSaving || isUploadingMedia}
@@ -1593,6 +1665,7 @@ const AddProduct = () => {
             <FiSave />
             {isUploadingMedia ? "Uploading Media..." : isSaving ? "Creating..." : "Create Product"}
           </button>
+          )}
         </div>
       </form>
     </motion.div>

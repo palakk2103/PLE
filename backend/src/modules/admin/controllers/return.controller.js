@@ -414,13 +414,8 @@ export const updateRefurbishedReturn = asyncHandler(async (req, res) => {
         
         const amount = Number(returnReq.refundAmount) || 1000; // Mock amount if not set
         
-        const user = await User.findById(returnReq.userId);
-        if (user && user.role === 'b2bEmployee') {
-            user.b2bWalletBalance = parseFloat((user.b2bWalletBalance + amount).toFixed(2));
-            await user.save();
-        }
-
-        await walletService.creditWallet({
+        // creditUserWallet also restores b2bWalletBalance for B2B employees
+        await walletService.creditUserWallet({
             userId: returnReq.userId,
             amount: amount,
             category: 'refund',

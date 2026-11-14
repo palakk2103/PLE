@@ -18,6 +18,7 @@ import {
 import { useB2BAdminStore } from '../store/b2bAdminStore';
 import api from '../../../shared/utils/api';
 import toast from 'react-hot-toast';
+import { getDownloadUrl } from '../../../shared/utils/documentUrl';
 
 const LegalDocuments = () => {
   const { companyProfile, fetchCompanyProfile, uploadCompanyLegalDocument, submitDocumentResubmission, isLoading } = useB2BAdminStore();
@@ -244,7 +245,7 @@ const LegalDocuments = () => {
             </div>
           </div>
           <a
-            href={activeTemplate.url}
+            href={getDownloadUrl(activeTemplate.url)}
             download={activeTemplate.fileName || 'Acceptance_Agreement_Template.pdf'}
             target="_blank"
             rel="noopener noreferrer"
@@ -344,7 +345,7 @@ const LegalDocuments = () => {
 
                       {/* Download */}
                       <a
-                        href={docData.url}
+                        href={getDownloadUrl(docData.url)}
                         target="_blank"
                         rel="noopener noreferrer"
                         download={docData.fileName || 'document.pdf'}
@@ -453,7 +454,7 @@ const LegalDocuments = () => {
                   {previewDoc.fileName || 'Original Document'}
                 </span>
                 <a
-                  href={previewDoc.url}
+                  href={getDownloadUrl(previewDoc.url)}
                   target="_blank"
                   rel="noopener noreferrer"
                   download={previewDoc.fileName || 'document.pdf'}

@@ -13,6 +13,7 @@ import {
 } from 'react-icons/fi';
 import { useB2BAdminStore } from '../store/b2bAdminStore';
 import toast from 'react-hot-toast';
+import { getDownloadUrl } from '../../../shared/utils/documentUrl';
 
 const COMPANY_TYPES = [
   'Proprietorship',
@@ -522,7 +523,7 @@ const CompanyProfile = () => {
                     <FiEye /> View
                   </a>
                   <a 
-                    href={companyProfile.cancelledCheque.url} 
+                    href={getDownloadUrl(companyProfile.cancelledCheque.url)} 
                     download={companyProfile.cancelledCheque.fileName || 'Cancelled_Cheque.pdf'} 
                     target="_blank" 
                     rel="noopener noreferrer" 

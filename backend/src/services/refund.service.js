@@ -69,7 +69,7 @@ export const processOrderCancellationRefund = async (order, options = {}) => {
     // 1. Refund any wallet balance used
     if (walletUsed > 0 && userId) {
         try {
-            await walletService.creditWallet({
+            await walletService.creditUserWallet({
                 userId,
                 amount: walletUsed,
                 category: 'refund',
@@ -96,7 +96,7 @@ export const processOrderCancellationRefund = async (order, options = {}) => {
             console.warn(`[RefundService] Online paid order ${order.orderId} missing razorpayPaymentId. Falling back to wallet credit.`);
             if (userId) {
                 try {
-                    await walletService.creditWallet({
+                    await walletService.creditUserWallet({
                         userId,
                         amount: onlineAmountToRefund,
                         category: 'refund',
@@ -138,7 +138,7 @@ export const processOrderCancellationRefund = async (order, options = {}) => {
                     if (userId) {
                         try {
                             console.log(`[RefundService] Falling back to wallet credit for order ${order.orderId}`);
-                            await walletService.creditWallet({
+                            await walletService.creditUserWallet({
                                 userId,
                                 amount: onlineAmountToRefund,
                                 category: 'refund',
@@ -162,7 +162,7 @@ export const processOrderCancellationRefund = async (order, options = {}) => {
     } else if (order.paymentMethod === 'wallet' && isPaid && onlineAmountToRefund > 0 && userId) {
         // Entire order was paid via wallet
         try {
-            await walletService.creditWallet({
+            await walletService.creditUserWallet({
                 userId,
                 amount: onlineAmountToRefund,
                 category: 'refund',
@@ -274,13 +274,8 @@ export const processReturnRequestRefund = async (returnRequest, options = {}) =>
 
     if (destination === 'Wallet') {
         // Direct PLE Wallet Credit
-        const user = await User.findById(userId);
-        if (user && user.role === 'b2bEmployee') {
-            user.b2bWalletBalance = parseFloat(((user.b2bWalletBalance || 0) + amount).toFixed(2));
-            await user.save();
-        }
-
-        const walletTx = await walletService.creditWallet({
+        // creditUserWallet also restores b2bWalletBalance for B2B employees
+        const walletTx = await walletService.creditUserWallet({
             userId,
             amount,
             category: 'refund',
@@ -320,7 +315,7 @@ export const processReturnRequestRefund = async (returnRequest, options = {}) =>
                 console.error('[RefundService] Razorpay refund failed for return request:', rzpErr);
                 // Fallback to wallet credit if bank reject/window expired
                 console.log(`[RefundService] Fallback: Crediting return refund to PLE Wallet for request ${returnRequest._id}`);
-                const walletTx = await walletService.creditWallet({
+                const walletTx = await walletService.creditUserWallet({
                     userId,
                     amount,
                     category: 'refund',
@@ -334,7 +329,7 @@ export const processReturnRequestRefund = async (returnRequest, options = {}) =>
             }
         } else if (order.paymentMethod === 'wallet' || order.walletAmountUsed > 0) {
             // Original source was wallet
-            const walletTx = await walletService.creditWallet({
+            const walletTx = await walletService.creditUserWallet({
                 userId,
                 amount,
                 category: 'refund',
@@ -347,7 +342,7 @@ export const processReturnRequestRefund = async (returnRequest, options = {}) =>
             result.walletTransactionId = walletTx?.transaction?._id || null;
         } else {
             // COD or offline payment: Fallback to user wallet
-            const walletTx = await walletService.creditWallet({
+            const walletTx = await walletService.creditUserWallet({
                 userId,
                 amount,
                 category: 'refund',

@@ -26,6 +26,7 @@ import {
 } from '../services/vendorService';
 import toast from 'react-hot-toast';
 import api from '../../../shared/utils/api';
+import { getDownloadUrl } from '../../../shared/utils/documentUrl';
 
 const VendorLegalDocuments = () => {
   const { vendor, setVendor } = useVendorAuthStore();
@@ -343,7 +344,7 @@ const VendorLegalDocuments = () => {
 
                       {/* Download */}
                       <a
-                        href={doc.url}
+                        href={getDownloadUrl(doc.url)}
                         target="_blank"
                         rel="noopener noreferrer"
                         download
@@ -453,7 +454,7 @@ const VendorLegalDocuments = () => {
                   {previewDoc.fileName || previewDoc.name}
                 </span>
                 <a
-                  href={previewDoc.url}
+                  href={getDownloadUrl(previewDoc.url)}
                   target="_blank"
                   rel="noopener noreferrer"
                   download

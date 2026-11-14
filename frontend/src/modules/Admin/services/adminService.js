@@ -29,7 +29,10 @@ export const getB2bOverviewStats = (params = {}) =>
 export const getRevenueData = (period = 'monthly', params = {}) =>
     api.get('/admin/analytics/revenue', { params: { period, ...params } });
 
-export const getOrderStatusBreakdown = (params = {}) =>
+export const getReturnsSummary = (params = {}) =>
+    api.get('/admin/analytics/returns-summary', { params });
+
+export const getOrderStatusBreakdown =(params = {}) =>
     api.get('/admin/analytics/order-status', { params });
 
 export const getTopProducts = (params = {}) =>

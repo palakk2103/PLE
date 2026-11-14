@@ -163,45 +163,35 @@ const B2BSellerApplication = () => {
     e.preventDefault();
     setSubmitting(true);
 
-    const isGst = appData.b2bSellingGstStatus === 'gst_registered';
-
-    if (isGst) {
-      if (!appData.b2bSellingLegalName.trim()) {
-        toast.error('Please enter your Legal Business Name.');
-        setSubmitting(false);
-        return;
-      }
-      if (!appData.b2bSellingGstNumber.trim()) {
-        toast.error('Please enter your GST Number.');
-        setSubmitting(false);
-        return;
-      }
-      if (!GST_REGEX.test(appData.b2bSellingGstNumber.trim())) {
-        toast.error('Invalid GST Number format (15 characters expected, e.g., 22AAAAA0000A1Z5).');
-        setSubmitting(false);
-        return;
-      }
-      if (!appData.b2bSellingGstCertificate) {
-        toast.error('Please upload your GST Certificate document before submitting.');
-        setSubmitting(false);
-        return;
-      }
-      if (!appData.b2bSellingPan.trim()) {
-        toast.error('Please enter your PAN Number.');
-        setSubmitting(false);
-        return;
-      }
-    } else {
-      if (!appData.b2bSellingLegalName.trim()) {
-        toast.error('Please enter your Business / Store Name.');
-        setSubmitting(false);
-        return;
-      }
+    if (!appData.b2bSellingLegalName.trim()) {
+      toast.error('Please enter your Legal Business Name.');
+      setSubmitting(false);
+      return;
+    }
+    if (!appData.b2bSellingGstNumber.trim()) {
+      toast.error('GST registration is mandatory for B2B selling. Please enter your GST Number.');
+      setSubmitting(false);
+      return;
+    }
+    if (!GST_REGEX.test(appData.b2bSellingGstNumber.trim())) {
+      toast.error('Invalid GST Number format (15 characters expected, e.g., 22AAAAA0000A1Z5).');
+      setSubmitting(false);
+      return;
+    }
+    if (!appData.b2bSellingGstCertificate) {
+      toast.error('Please upload your GST Certificate document before submitting.');
+      setSubmitting(false);
+      return;
+    }
+    if (!appData.b2bSellingPan.trim()) {
+      toast.error('Please enter your PAN Number.');
+      setSubmitting(false);
+      return;
     }
 
     try {
       const payload = {
-        gstStatus: appData.b2bSellingGstStatus,
+        gstStatus: 'gst_registered',
         gstNumber: appData.b2bSellingGstNumber,
         gstCertificate: appData.b2bSellingGstCertificate,
         legalName: appData.b2bSellingLegalName,
@@ -410,63 +400,20 @@ const B2BSellerApplication = () => {
             </p>
           </div>
 
-          {/* Registration Type Switcher */}
-          <div className="space-y-3">
-            <label className="block text-sm font-bold text-gray-700">
-              GST Registration Status <span className="text-red-500">*</span>
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <label 
-                className={`relative flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                  appData.b2bSellingGstStatus === 'gst_registered'
-                    ? 'border-primary-600 bg-primary-50/40 text-primary-950 shadow-sm'
-                    : 'border-gray-200 hover:border-gray-300 text-gray-700'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="b2bSellingGstStatus"
-                  value="gst_registered"
-                  checked={appData.b2bSellingGstStatus === 'gst_registered'}
-                  onChange={handleInputChange}
-                  className="mt-1 text-primary-600 focus:ring-primary-500"
-                />
-                <div>
-                  <span className="font-bold text-sm block">GST Registered Business (Recommended)</span>
-                  <span className="text-xs text-gray-500 block mt-0.5">
-                    I have a regular or composition GSTIN and valid GST certificate. Full B2B wholesale selling access.
-                  </span>
-                </div>
-              </label>
-
-              <label 
-                className={`relative flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                  appData.b2bSellingGstStatus === 'non_gst'
-                    ? 'border-amber-500 bg-amber-50/40 text-amber-950 shadow-sm'
-                    : 'border-gray-200 hover:border-gray-300 text-gray-700'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="b2bSellingGstStatus"
-                  value="non_gst"
-                  checked={appData.b2bSellingGstStatus === 'non_gst'}
-                  onChange={handleInputChange}
-                  className="mt-1 text-amber-600 focus:ring-amber-500"
-                />
-                <div>
-                  <span className="font-bold text-sm block">Non-GST / Exempt Seller</span>
-                  <span className="text-xs text-gray-500 block mt-0.5">
-                    Business turnover is below GST exemption threshold or exempt. (B2B wholesale selling remains restricted).
-                  </span>
-                </div>
-              </label>
+          {/* GST requirement notice */}
+          <div className="p-4 bg-primary-50/50 border border-primary-200 rounded-xl flex items-start gap-3">
+            <FiShield className="text-xl text-primary-600 shrink-0 mt-0.5" />
+            <div>
+              <h4 className="font-bold text-sm text-primary-950">GST registration is mandatory</h4>
+              <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+                Only GST-registered sellers can apply for B2B wholesale selling. You need a valid GSTIN and your GST registration certificate. Sellers without GST can continue selling in B2C retail.
+              </p>
             </div>
           </div>
 
           {/* Conditional Form Content */}
           <AnimatePresence mode="wait">
-            {appData.b2bSellingGstStatus === 'gst_registered' ? (
+            {(
               <motion.div
                 key="gst-form"
                 initial={{ opacity: 0, y: 10 }}
@@ -688,70 +635,6 @@ const B2BSellerApplication = () => {
                         className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500"
                       />
                     </div>
-                  </div>
-                </div>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="non-gst-form"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="space-y-6 border-t border-gray-100 pt-6"
-              >
-                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-sm flex items-start gap-3">
-                  <FiAlertCircle className="text-xl text-amber-600 shrink-0 mt-0.5" />
-                  <div>
-                    <h4 className="font-bold text-sm">Non-GST Seller Policy Notice</h4>
-                    <p className="text-xs text-amber-800 mt-1 leading-relaxed">
-                      You can register your non-GST seller profile for admin review. However, under current tax laws, <strong>B2B wholesale sales and tax invoices require GST registration</strong>. Non-GST sellers will be permitted to sell strictly in B2C retail until a valid GST certificate is submitted.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
-                      Business / Store Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="b2bSellingLegalName"
-                      placeholder="Enter Business Name"
-                      value={appData.b2bSellingLegalName}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
-                      PAN Number (Optional)
-                    </label>
-                    <input
-                      type="text"
-                      name="b2bSellingPan"
-                      placeholder="Individual or Business PAN"
-                      maxLength={10}
-                      value={appData.b2bSellingPan}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2.5 text-sm font-mono uppercase rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    />
-                  </div>
-
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
-                      Exemption Declaration / Reason
-                    </label>
-                    <textarea
-                      rows={3}
-                      name="b2bSellingDeclaration"
-                      placeholder="e.g. Annual aggregate turnover is below Rs 40 Lakhs / 20 Lakhs, hence exempt from GST registration."
-                      value={appData.b2bSellingDeclaration}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    />
                   </div>
                 </div>
               </motion.div>

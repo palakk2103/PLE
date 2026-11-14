@@ -5,6 +5,9 @@ import {
   FiPackage,
   FiShoppingBag,
   FiDollarSign,
+  FiRotateCcw,
+  FiPercent,
+  FiClock,
 } from "react-icons/fi";
 import { motion } from "framer-motion";
 import RevenueLineChart from "../../Admin/components/Analytics/RevenueLineChart";
@@ -29,6 +32,17 @@ const Analytics = () => {
     totalOrders: 0,
     totalProducts: 0,
   });
+  const emptyReturns = {
+    totalReturns: 0,
+    pendingReturns: 0,
+    completedReturns: 0,
+    rejectedReturns: 0,
+    returnValue: 0,
+    refundedAmount: 0,
+    pendingRefundAmount: 0,
+    returnRate: 0,
+  };
+  const [returnsSummary, setReturnsSummary] = useState(emptyReturns);
   const [isLoading, setIsLoading] = useState(false);
 
   const vendorId = vendor?.id || vendor?._id;
@@ -55,6 +69,7 @@ const Analytics = () => {
         const timeseries = Array.isArray(data?.timeseries) ? data.timeseries : [];
         setAnalyticsData(timeseries);
         setStatusData(Array.isArray(data?.statusBreakdown) ? data.statusBreakdown : []);
+        setReturnsSummary({ ...emptyReturns, ...(data?.returns || {}) });
         setSummary({
           totalRevenue: data?.summary?.totalRevenue ?? 0,
           pendingEarnings: data?.summary?.pendingEarnings ?? 0,
@@ -64,6 +79,7 @@ const Analytics = () => {
       } catch {
         setAnalyticsData([]);
         setStatusData([]);
+        setReturnsSummary(emptyReturns);
         setSummary({
           totalRevenue: 0,
           pendingEarnings: 0,
@@ -210,6 +226,56 @@ const Analytics = () => {
             {formatPrice(analyticsSummary.pendingEarnings)}
           </p>
           <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mt-2 truncate">Awaiting settlement</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 dark:border-white/5 min-w-0">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium truncate">Total Returns</p>
+            <FiRotateCcw className="text-orange-600 flex-shrink-0" />
+          </div>
+          <p className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white truncate">
+            {returnsSummary.totalReturns}
+          </p>
+          <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mt-2 truncate">
+            {returnsSummary.pendingReturns} pending · {returnsSummary.completedReturns} completed · {returnsSummary.rejectedReturns} rejected
+          </p>
+        </div>
+
+        <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 dark:border-white/5 min-w-0">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium truncate">Return Rate</p>
+            <FiPercent className="text-red-600 flex-shrink-0" />
+          </div>
+          <p className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white truncate">
+            {returnsSummary.returnRate}%
+          </p>
+          <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mt-2 truncate">Returns ÷ orders in period</p>
+        </div>
+
+        <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 dark:border-white/5 min-w-0">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium truncate">Total Refunded</p>
+            <FiDollarSign className="text-green-600 flex-shrink-0" />
+          </div>
+          <p className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white truncate">
+            {formatPrice(returnsSummary.refundedAmount)}
+          </p>
+          <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mt-2 truncate">
+            Return value: {formatPrice(returnsSummary.returnValue)}
+          </p>
+        </div>
+
+        <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 dark:border-white/5 min-w-0">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium truncate">Pending Refunds</p>
+            <FiClock className="text-yellow-600 flex-shrink-0" />
+          </div>
+          <p className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white truncate">
+            {formatPrice(returnsSummary.pendingRefundAmount)}
+          </p>
+          <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mt-2 truncate">Awaiting processing</p>
         </div>
       </div>
 

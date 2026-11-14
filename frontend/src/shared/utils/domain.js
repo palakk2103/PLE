@@ -57,6 +57,7 @@ const isPortalPath = () => {
     '/category',
     '/brand',
     '/seller',
+    '/sellers',
     '/search',
     '/product',
     '/wishlist',

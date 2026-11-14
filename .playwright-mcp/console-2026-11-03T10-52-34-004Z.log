@@ -1,0 +1,11 @@
+[     630ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:21550
+[     949ms] [LOG] ✅ Service Worker registered: ServiceWorkerRegistration @ http://localhost:3000/src/services/pushNotificationService.js:10
+[     951ms] [LOG] ✅ Service Worker registered: ServiceWorkerRegistration @ http://localhost:3000/src/services/pushNotificationService.js:10
+[    1191ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/vendor/login:0
+[    3068ms] [LOG] Socket connected: a4M0ANIC1Z2wesVxAAAF @ http://localhost:3000/src/shared/utils/socket.js?t=1793700881538:49
+[    3069ms] [LOG] Vendor joined room: user_6ae9bc828e78bd0fad5f9394 @ http://localhost:3000/src/modules/Vendor/components/Layout/VendorLayout.jsx?t=1793700881538:59
+[    5719ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:21550
+[    5983ms] [LOG] ✅ Service Worker registered: ServiceWorkerRegistration @ http://localhost:3000/src/services/pushNotificationService.js:10
+[    5986ms] [LOG] ✅ Service Worker registered: ServiceWorkerRegistration @ http://localhost:3000/src/services/pushNotificationService.js:10
+[    6609ms] [LOG] Socket connected: xgh929TCRsD9rMTNAAAH @ http://localhost:3000/src/shared/utils/socket.js?t=1793700881538:49
+[    6610ms] [LOG] Vendor joined room: user_6ae9bc828e78bd0fad5f9394 @ http://localhost:3000/src/modules/Vendor/components/Layout/VendorLayout.jsx?t=1793700881538:59

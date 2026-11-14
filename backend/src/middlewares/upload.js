@@ -1,6 +1,7 @@
 import multer from 'multer';
 import ApiError from '../utils/ApiError.js';
 import fs from 'fs';
+import crypto from 'crypto';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -48,7 +49,7 @@ const imageDiskStorage = multer.diskStorage({
             .replace(/[^a-zA-Z0-9-_]/g, '_')
             .slice(0, 60);
         const ext = path.extname(file.originalname || '').toLowerCase();
-        cb(null, `${Date.now()}-${safeBaseName}${ext}`);
+        cb(null, `${Date.now()}-${crypto.randomBytes(4).toString("hex")}-${safeBaseName}${ext}`);
     }
 });
 
@@ -64,7 +65,7 @@ const deliveryDocumentStorage = multer.diskStorage({
             .replace(/[^a-zA-Z0-9-_]/g, '_')
             .slice(0, 60);
         const ext = path.extname(file.originalname || '').toLowerCase();
-        cb(null, `${Date.now()}-${safeBaseName}${ext}`);
+        cb(null, `${Date.now()}-${crypto.randomBytes(4).toString("hex")}-${safeBaseName}${ext}`);
     }
 });
 
@@ -146,14 +147,15 @@ export const uploadVendorRegistrationDocs = () =>
                 cb(new ApiError(400, 'Invalid file type. Only PDF, JPG, JPEG, and PNG are allowed.'), false);
             }
         },
-        limits: { fileSize: 50 * 1024 * 1024 },
+        limits: { fileSize: MAX_DOCUMENT_FILE_SIZE },
     }).fields([
         { name: 'gstCertificate', maxCount: 1 },
         { name: 'msmeCertificate', maxCount: 1 },
         { name: 'identityProof', maxCount: 1 },
         { name: 'registrationProof', maxCount: 1 },
         { name: 'businessLetter', maxCount: 1 },
-        { name: 'partnershipAgreement', maxCount: 1 }
+        { name: 'partnershipAgreement', maxCount: 1 },
+        { name: 'bankProof', maxCount: 1 }
     ]);
 
 // CSV upload for bulk operations
@@ -226,3 +228,25 @@ export const uploadPDFSingle = (fieldName) =>
         limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
     }).single(fieldName);
 
+
+// Strict registration-document upload (PDF / JPG / PNG only, 5MB). Used by B2B registration.
+const REGISTRATION_DOC_MIMES = ['application/pdf', 'image/jpeg', 'image/png'];
+const REGISTRATION_DOC_EXTS = ['pdf', 'jpg', 'jpeg', 'png'];
+export const REGISTRATION_DOC_MAX_SIZE = 5 * 1024 * 1024;
+export const uploadRegistrationDocSingle = (fieldName) =>
+    multer({
+        storage: imageDiskStorage,
+        fileFilter: (req, file, cb) => {
+            const ext = path.extname(file.originalname || '').slice(1).toLowerCase();
+            // Browsers/OSes often report PDFs as x-pdf or octet-stream; the extension must be valid
+            // and the controller verifies the real content via magic bytes.
+            const mimeOk = REGISTRATION_DOC_MIMES.includes(file.mimetype) ||
+                ['application/x-pdf', 'application/acrobat', 'text/pdf', 'application/octet-stream', 'image/jpg', 'image/pjpeg'].includes(file.mimetype);
+            if (mimeOk && REGISTRATION_DOC_EXTS.includes(ext)) {
+                cb(null, true);
+            } else {
+                cb(new ApiError(400, 'Invalid file type. Only PDF, JPG and PNG files are allowed.'), false);
+            }
+        },
+        limits: { fileSize: REGISTRATION_DOC_MAX_SIZE },
+    }).single(fieldName);

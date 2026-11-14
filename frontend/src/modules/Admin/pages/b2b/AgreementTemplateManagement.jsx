@@ -20,6 +20,7 @@ import {
   updateAgreementTemplateStatus,
   deleteAgreementTemplateGeneric,
 } from "../../services/adminService";
+import { getDownloadUrl } from '../../../../shared/utils/documentUrl';
 
 const AgreementTemplateManagement = () => {
   const [configs, setConfigs] = useState([]);
@@ -180,10 +181,8 @@ const AgreementTemplateManagement = () => {
     );
   };
 
-  const getCleanPdfUrl = (url) => {
-    if (!url) return "";
-    return url.replace("/raw/upload/", "/image/upload/");
-  };
+  // PDFs are stored as Cloudinary raw files (/raw/upload/...); do not rewrite the URL.
+  const getCleanPdfUrl = (url) => url || "";
 
   return (
     <div className="p-6 space-y-6 text-sm bg-gray-50 dark:bg-zinc-950 min-h-screen">
@@ -331,7 +330,7 @@ const AgreementTemplateManagement = () => {
                     <FiEye /> {showPreviewUrl === activeTemplate.url ? "Hide Preview" : "Preview"}
                   </button>
                   <a
-                    href={activeTemplate.url}
+                    href={getDownloadUrl(activeTemplate.url)}
                     download={activeTemplate.fileName}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -403,7 +402,7 @@ const AgreementTemplateManagement = () => {
                         <FiEye />
                       </button>
                       <a
-                        href={item.url}
+                        href={getDownloadUrl(item.url)}
                         download={item.fileName}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -521,7 +520,7 @@ const AgreementTemplateManagement = () => {
                       <FiEye /> Open Document in New Tab
                     </a>
                     <a
-                      href={showPreviewUrl}
+                      href={getDownloadUrl(showPreviewUrl)}
                       download
                       target="_blank"
                       rel="noopener noreferrer"

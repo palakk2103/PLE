@@ -32,9 +32,9 @@ export const getCompanyProfile = asyncHandler(async (req, res) => {
     const companyObj = company.toObject();
     if (companyAdmin) {
         companyObj.admin = {
-            name: companyAdmin.name,
+            name: company.adminInfo?.name || companyAdmin.name,
             email: companyAdmin.email,
-            phone: companyAdmin.phone
+            phone: companyAdmin.phone || company.adminInfo?.phone
         };
     }
 

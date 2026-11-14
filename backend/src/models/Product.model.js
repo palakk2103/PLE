@@ -1,5 +1,16 @@
 import mongoose from 'mongoose';
 
+const specEntrySchema = new mongoose.Schema(
+    {
+        key: { type: String, trim: true },
+        label: { type: String, trim: true },
+        type: { type: String },
+        value: { type: mongoose.Schema.Types.Mixed },
+        unit: { type: String },
+    },
+    { _id: false }
+);
+
 const productSchema = new mongoose.Schema(
     {
         name: { type: String, required: true, trim: true, index: true },
@@ -95,6 +106,13 @@ const productSchema = new mongoose.Schema(
             flagReason: { type: String },
             approvalStatus: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
             rejectionReason: { type: String },
+        },
+        // Dynamic, category-aware specifications (see services/productSpecs.service.js)
+        specifications: {
+            features: { type: [specEntrySchema], default: undefined },
+            additional: { type: [specEntrySchema], default: undefined },
+            itemDetails: { type: [specEntrySchema], default: undefined },
+            whatsInBox: { type: [String], default: undefined },
         },
         seoTitle: { type: String },
         seoDescription: { type: String },

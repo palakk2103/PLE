@@ -13,6 +13,7 @@ import ChatViolation from '../../../models/ChatViolation.model.js';
 import ChatReport from '../../../models/ChatReport.model.js';
 import ChatTransactionProposal from '../../../models/ChatTransactionProposal.model.js';
 import { decryptMessage } from '../../../utils/chatEncryption.util.js';
+import { normalizeReportReason } from '../../../utils/chatReport.util.js';
 
 const buildThreadSeedFromOrder = (order) => {
     const customerName =
@@ -340,7 +341,7 @@ export const updateVendorChatStatus = asyncHandler(async (req, res) => {
 // @desc    Report a chat message or user
 // @route   POST /api/vendor/chat/threads/:id/report
 export const reportVendorChatMessage = asyncHandler(async (req, res) => {
-    const { messageId, reason, description } = req.body;
+    const { messageId, reason, description, details } = req.body;
     if (!reason) throw new ApiError(400, 'Reason is required.');
 
     const thread = await VendorChatThread.findOne({
@@ -363,8 +364,8 @@ export const reportVendorChatMessage = asyncHandler(async (req, res) => {
         reporterType: 'vendor',
         reportedUserId: thread.customerUserId || thread._id,
         reportedUserType: 'customer',
-        reason,
-        description: description || '',
+        reason: normalizeReportReason(reason),
+        description: description || details || '',
     });
 
     res.status(201).json(new ApiResponse(201, report, 'Report submitted successfully.'));
@@ -402,6 +403,62 @@ export const toggleMuteVendorChat = asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(200, { vendorMuted: thread.vendorMuted }, thread.vendorMuted ? 'Chat muted.' : 'Chat unmuted.'));
 });
 
+// Find or create the customer<->vendor chat thread for an accepted ProductRequest (SourceNow).
+// `request.userId` may be populated or a plain ObjectId.
+export const ensureProductRequestThread = async (request, vendorId) => {
+    const { default: ProductRequest } = await import('../../../models/ProductRequest.model.js');
+    let customer = request.userId;
+    if (customer && !customer.name && !customer.email) {
+        const { default: User } = await import('../../../models/User.model.js');
+        customer = (await User.findById(request.userId).select('name email phone').lean()) || { _id: request.userId };
+    }
+    const customerId = customer?._id || request.userId || null;
+
+    let thread = await VendorChatThread.findOne({
+        vendorId,
+        productRequestRef: request._id,
+        hiddenForVendor: { $ne: true }
+    });
+
+    if (thread) {
+        // Re-open a thread that was auto-closed while the request is actively being fulfilled
+        if (thread.status === 'closed' && !thread.isReleased && request.vendorFulfillmentStatus === 'IN_PROGRESS') {
+            thread.status = 'active';
+            await thread.save();
+        }
+        if (String(request.chatThreadId || '') !== String(thread._id)) {
+            await ProductRequest.updateOne({ _id: request._id }, { $set: { chatThreadId: thread._id } });
+        }
+        return thread;
+    }
+
+    thread = await VendorChatThread.create({
+        vendorId,
+        orderRef: null,
+        orderDisplayId: '',
+        productRequestRef: request._id,
+        productRequestId: request.requestId,
+        customerUserId: customerId,
+        customerName: customer?.name || 'Customer',
+        customerEmail: customer?.email || '',
+        customerPhone: customer?.phone || '',
+        lastMessage: `Chat started for product request: ${request.productName}`,
+        lastActivity: new Date(),
+        status: 'active'
+    });
+
+    await ProductRequest.updateOne({ _id: request._id }, { $set: { chatThreadId: thread._id } });
+
+    await VendorChatMessage.create({
+        threadId: thread._id,
+        senderType: 'system',
+        senderId: null,
+        message: `Chat opened for product request #${request.requestId} — "${request.productName}" (Qty: ${request.quantity}). Please discuss product specifications, pricing, and delivery details here.`
+    });
+
+    return thread;
+};
+
 // @desc    Create or retrieve a chat thread linked to a ProductRequest (Vendor Window)
 // @route   POST /api/vendor/product-requests/:requestId/chat/initiate
 // @access  Private (Vendor)
@@ -424,49 +481,7 @@ export const initiateProductRequestChat = asyncHandler(async (req, res) => {
         throw new ApiError(403, 'Only the accepted vendor can initiate the chat for this request.');
     }
 
-    const customer = request.userId;
-    const customerName = customer?.name || 'Customer';
-    const customerEmail = customer?.email || '';
-    const customerPhone = customer?.phone || '';
-
-    // Find or create thread for this vendor + productRequest combo
-    let thread = await VendorChatThread.findOne({
-        vendorId,
-        productRequestRef: request._id,
-        hiddenForVendor: { $ne: true }
-    });
-
-    if (!thread) {
-        thread = await VendorChatThread.create({
-            vendorId,
-            orderRef: null,
-            orderDisplayId: '',
-            productRequestRef: request._id,
-            productRequestId: request.requestId,
-            customerUserId: customer?._id || null,
-            customerName,
-            customerEmail,
-            customerPhone,
-            lastMessage: `Chat started for product request: ${request.productName}`,
-            lastActivity: new Date(),
-            status: 'active'
-        });
-
-        // Link thread back to the ProductRequest
-        await ProductRequest.updateOne(
-            { _id: request._id },
-            { $set: { chatThreadId: thread._id } }
-        );
-
-        // Send a system welcome message
-        const { VendorChatMessage } = await import('../../../models/VendorChatMessage.model.js');
-        await VendorChatMessage.create({
-            threadId: thread._id,
-            senderType: 'system',
-            senderId: null,
-            message: `Chat opened for product request #${request.requestId} — "${request.productName}" (Qty: ${request.quantity}). Please discuss product specifications, pricing, and delivery details here.`
-        });
-    }
+    const thread = await ensureProductRequestThread(request, vendorId);
 
     res.status(200).json(new ApiResponse(200, thread, 'Product request chat thread ready.'));
 });

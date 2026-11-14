@@ -131,6 +131,20 @@ router.post('/rfq/:id/counter', ...customerAuth, rfqController.buyerCounterOffer
 router.post('/rfq/:id/accept', ...customerAuth, rfqController.buyerAcceptQuote);
 router.post('/rfq/:id/reject', ...customerAuth, rfqController.buyerRejectQuote);
 
+// Consumer RFQ (customer -> Admin/Vendor product owner). Customers only.
+import * as consumerRfqController from '../controllers/consumerRfq.controller.js';
+import * as crv from '../validators/consumerRfq.validator.js';
+const consumerRfqAuth = [authenticate, authorize('customer'), enforceAccountStatus];
+const rfqId = validate(crv.idParamSchema, 'params');
+router.post('/consumer-rfq', ...consumerRfqAuth, validate(crv.createConsumerRfqSchema), consumerRfqController.create);
+router.get('/consumer-rfq', ...consumerRfqAuth, validate(crv.listQuerySchema, 'query'), consumerRfqController.list);
+router.get('/consumer-rfq/:id', ...consumerRfqAuth, rfqId, consumerRfqController.detail);
+router.post('/consumer-rfq/:id/counter', ...consumerRfqAuth, rfqId, validate(crv.counterSchema), consumerRfqController.counter);
+router.post('/consumer-rfq/:id/message', ...consumerRfqAuth, rfqId, validate(crv.messageSchema), consumerRfqController.message);
+router.post('/consumer-rfq/:id/accept', ...consumerRfqAuth, rfqId, validate(crv.acceptSchema), consumerRfqController.accept);
+router.post('/consumer-rfq/:id/convert', ...consumerRfqAuth, rfqId, validate(crv.acceptSchema), consumerRfqController.convert);
+router.post('/consumer-rfq/:id/reject', ...consumerRfqAuth, rfqId, validate(crv.noteSchema), consumerRfqController.reject);
+
 // Product Enquiry routes
 import * as enquiryController from '../controllers/productEnquiry.controller.js';
 router.post('/enquiries', ...customerAuth, enquiryController.createEnquiry);
@@ -158,6 +172,7 @@ router.post('/chat/vendor/threads/:id/messages', ...customerAuth, chatLimiter, c
 router.patch('/chat/vendor/threads/:id/read', ...customerAuth, customerChatController.markCustomerChatRead);
 router.post('/chat/vendor/threads/:id/report', ...customerAuth, customerChatController.reportCustomerChatMessage);
 router.post('/chat/vendor/threads/:id/block', ...customerAuth, customerChatController.toggleBlockCustomerChat);
+router.post('/chat/vendor/threads/:id/mute', ...customerAuth, customerChatController.toggleMuteCustomerChat);
 router.get('/chat/vendor/threads/:id/proposal', ...customerAuth, customerChatController.getCustomerProposal);
 router.post('/chat/vendor/threads/:id/proposal/:proposalId/respond', ...customerAuth, customerChatController.respondCustomerProposal);
 router.post('/chat/vendor/threads/:id/proposal/:proposalId/checkout', ...customerAuth, customerChatController.checkoutCustomerProposal);

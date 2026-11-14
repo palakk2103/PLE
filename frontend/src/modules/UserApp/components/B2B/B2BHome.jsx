@@ -24,7 +24,7 @@ import {
 } from "react-icons/fi";
 import { toast } from "react-hot-toast";
 import { motion } from "framer-motion";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import B2BRequestQuoteModal from "./B2BRequestQuoteModal";
 import ProductCard from "../../../../shared/components/ProductCard";
 import AnimatedBanner from "../Mobile/AnimatedBanner";
@@ -59,7 +59,15 @@ const B2BHome = ({
   const navigate = useNavigate();
   const [isRfqOpen, setIsRfqOpen] = useState(false);
   const [activeCategoryTab, setActiveCategoryTab] = useState("All");
-  const [activeMarketTab, setActiveMarketTab] = useState("Official Store");
+  const location = useLocation();
+  const [activeMarketTab, setActiveMarketTab] = useState(
+    new URLSearchParams(location.search).get("tab") === "marketplace" ? "Marketplace" : "Official Store"
+  );
+  useEffect(() => {
+    setActiveMarketTab(
+      new URLSearchParams(location.search).get("tab") === "marketplace" ? "Marketplace" : "Official Store"
+    );
+  }, [location.search]);
 
   const { theme } = useThemeStore();
   const isDark = theme === "dark";
@@ -588,7 +596,7 @@ const B2BHome = ({
 
 
         {/* DESKTOP ONLY TOP SECTION (MATCHING SCREENSHOT) */}
-        <div className="hidden md:block space-y-8 pb-4 w-full">
+        <div className={`${activeMarketTab === "Marketplace" ? "hidden" : "hidden md:block"} space-y-8 pb-4 w-full`}>
           
           {/* 3-Column Layout */}
           <div className="grid grid-cols-12 gap-4 items-stretch">

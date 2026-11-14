@@ -224,6 +224,17 @@ router.put('/notifications/read-all', ...adminAuth, notificationController.markA
 
 // RFQ routes (protected Admin)
 import * as adminRfqController from '../controllers/adminRfq.controller.js';
+
+// Consumer RFQ: full control on admin-owned, read-only monitoring on seller-owned (enforced in service)
+import * as adminConsumerRfq from '../controllers/consumerRfq.controller.js';
+import * as crv from '../../user/validators/consumerRfq.validator.js';
+const crfqId = validate(crv.idParamSchema, 'params');
+router.get('/consumer-rfq', ...adminAuth, validate(crv.listQuerySchema, 'query'), adminConsumerRfq.list);
+router.get('/consumer-rfq/:id', ...adminAuth, crfqId, adminConsumerRfq.detail);
+router.post('/consumer-rfq/:id/quote', ...adminAuth, crfqId, validate(crv.quoteSchema), adminConsumerRfq.quote);
+router.post('/consumer-rfq/:id/accept-offer', ...adminAuth, crfqId, validate(crv.noteSchema), adminConsumerRfq.acceptOffer);
+router.post('/consumer-rfq/:id/reject', ...adminAuth, crfqId, validate(crv.noteSchema), adminConsumerRfq.reject);
+router.post('/consumer-rfq/:id/message', ...adminAuth, crfqId, validate(crv.messageSchema), adminConsumerRfq.message);
 router.get('/rfq', ...adminAuth, adminRfqController.getAdminRFQs);
 router.get('/rfq/stats', ...adminAuth, adminRfqController.getRFQStats);
 router.get('/rfq/:id', ...adminAuth, adminRfqController.getAdminRFQDetail);
@@ -320,6 +331,7 @@ router.post('/auth/2fa/resend', twoFactorController.resendLogin2FAOtp);
 router.get('/analytics/dashboard', ...adminAuth, analyticsController.getDashboardStats);
 router.get('/analytics/b2b-overview', ...adminAuth, analyticsController.getB2bOverviewStats);
 router.get('/analytics/revenue', ...adminAuth, analyticsController.getRevenueData);
+router.get('/analytics/returns-summary', ...adminAuth, analyticsController.getReturnsSummary);
 router.get('/analytics/order-status', ...adminAuth, analyticsController.getOrderStatusBreakdown);
 router.get('/analytics/top-products', ...adminAuth, analyticsController.getTopProducts);
 router.get('/analytics/customer-growth', ...adminAuth, analyticsController.getCustomerGrowth);

@@ -217,6 +217,21 @@ const PaymentSettings = () => {
                 </div>
               </div>
 
+              {(vendor.bankDetails?.branchName || vendor.bankDetails?.accountType || vendor.bankDetails?.bankProofUrl) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 bg-gray-50 dark:bg-white/5 rounded-lg border border-gray-200 dark:border-white/10">
+                  <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Branch:</strong> {vendor.bankDetails.branchName || 'N/A'}</p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Account Type:</strong> {vendor.bankDetails.accountType || 'N/A'}</p>
+                  {vendor.bankDetails.bankProofUrl && (
+                    <p className="text-sm text-gray-700 dark:text-gray-300 md:col-span-2">
+                      <strong>{vendor.bankDetails.bankProofType === 'bank_statement' ? 'Bank Statement' : 'Cancelled Cheque'} (submitted at registration):</strong>{' '}
+                      <a href={vendor.bankDetails.bankProofUrl} target="_blank" rel="noreferrer" className="text-purple-600 hover:underline font-semibold">
+                        {vendor.bankDetails.bankProofName || 'View File'}
+                      </a>
+                    </p>
+                  )}
+                </div>
+              )}
+
               <div className="p-4 bg-yellow-50 dark:bg-yellow-950/40 border border-yellow-200 dark:border-yellow-800/40 rounded-lg">
                 <p className="text-sm text-yellow-800 dark:text-yellow-200">
                   <strong>Note:</strong> Your bank details are encrypted and secure. These details are used for commission payouts.

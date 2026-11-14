@@ -7,6 +7,7 @@ import Brand from '../../../models/Brand.model.js';
 import Vendor from '../../../models/Vendor.model.js';
 import ProductNegotiation from '../../../models/ProductNegotiation.model.js';
 import { slugify } from '../../../utils/slugify.js';
+import { sanitizeSpecifications } from '../../../services/productSpecs.service.js';
 import { notifyBackInStockWishlistUsers } from '../../../services/customerNotification.service.js';
 import { sendVendorStockAlertEmail } from '../../../services/vendorNotification.service.js';
 
@@ -519,6 +520,7 @@ export const createProduct = asyncHandler(async (req, res) => {
         price,
         variants: normalizedVariants,
         faqs: sanitizeFaqs(rest.faqs),
+        specifications: await sanitizeSpecifications(rest.specifications, resolvedCategoryId),
         stockQuantity: finalStockQuantity,
         lowStockThreshold,
         stock,
@@ -663,6 +665,9 @@ export const updateProduct = asyncHandler(async (req, res) => {
 
     if (Object.prototype.hasOwnProperty.call(req.body, 'faqs')) {
         product.faqs = sanitizeFaqs(req.body.faqs);
+    }
+    if (Object.prototype.hasOwnProperty.call(req.body, 'specifications')) {
+        product.specifications = await sanitizeSpecifications(req.body.specifications, product.categoryId);
     }
     if (typeof req.body.stockQuantity !== 'undefined' || typeof req.body.lowStockThreshold !== 'undefined') {
         const stockQuantity = Number(product.stockQuantity ?? 0);

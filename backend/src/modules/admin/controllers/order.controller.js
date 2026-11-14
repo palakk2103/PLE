@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
@@ -66,6 +67,10 @@ export const getAllOrders = asyncHandler(async (req, res) => {
     if (userId) {
         filter.userId = userId;
     }
+    // B2B company the order was placed under (orders are listed company-level for the super admin)
+    if (req.query.companyId && mongoose.isValidObjectId(req.query.companyId)) {
+        filter.companyId = req.query.companyId;
+    }
     if (String(req.query.onlyUnassigned || '') === 'true') {
         filter.deliveryBoyId = null;
     }
@@ -73,6 +78,7 @@ export const getAllOrders = asyncHandler(async (req, res) => {
     const [orders, total] = await Promise.all([
         Order.find(filter)
             .populate('userId', 'name email phone')
+            .populate('companyId', 'companyName')
             .populate('deliveryBoyId', 'name phone')
             .sort({ createdAt: -1 })
             .skip(skip)
@@ -96,6 +102,7 @@ export const getOrderById = asyncHandler(async (req, res) => {
         isDeleted: { $ne: true },
     })
         .populate('userId', 'name email phone')
+        .populate('companyId', 'companyName gstNumber businessEmail')
         .populate('deliveryBoyId', 'name phone email vehicleType vehicleNumber')
         .populate('items.productId', 'name images price')
         .lean();

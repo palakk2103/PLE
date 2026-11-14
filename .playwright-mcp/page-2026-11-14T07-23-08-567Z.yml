@@ -1,0 +1,122 @@
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - link "PLE Logo TM" [ref=e8] [cursor=pointer]:
+          - /url: /home
+          - generic [ref=e9]:
+            - img "PLE Logo" [ref=e10]
+            - generic [ref=e11]: TM
+        - button "Menu" [ref=e12] [cursor=pointer]
+      - navigation [ref=e14]:
+        - link "Home" [ref=e15] [cursor=pointer]:
+          - /url: /home
+        - link "Categories" [ref=e16] [cursor=pointer]:
+          - /url: /categories
+        - link "Offers" [ref=e22] [cursor=pointer]:
+          - /url: /offers
+        - link "✨ Festive Season Mega Sale" [ref=e23] [cursor=pointer]:
+          - /url: /festival-campaign
+          - generic [ref=e24]: ✨
+          - generic [ref=e25]: Festive Season Mega Sale
+        - link "Refurbished" [ref=e26] [cursor=pointer]:
+          - /url: /refurbished-categories
+      - generic [ref=e30]:
+        - textbox [ref=e34]
+        - generic: S
+      - generic [ref=e35]:
+        - button "View Cart" [ref=e36] [cursor=pointer]
+        - button "Switch to Dark Mode" [ref=e40] [cursor=pointer]
+        - link "Login" [ref=e44] [cursor=pointer]:
+          - /url: /login
+  - main [ref=e45]:
+    - heading "Loading product..." [level=2] [ref=e48]
+  - contentinfo [ref=e49]:
+    - generic [ref=e51]:
+      - generic [ref=e52]:
+        - link "PLE Logo TM" [ref=e53] [cursor=pointer]:
+          - /url: /home
+          - generic [ref=e54]:
+            - img "PLE Logo" [ref=e55]
+            - generic [ref=e56]: TM
+        - paragraph [ref=e57]: Your destination for electronics across consumer, business, and specialized sourcing needs — from everyday tech and accessories to enterprise procurement solutions.
+        - generic [ref=e58]:
+          - link [ref=e59] [cursor=pointer]:
+            - /url: https://www.facebook.com/share/1EaNrat2yr/
+          - link [ref=e62] [cursor=pointer]:
+            - /url: https://www.instagram.com/peoplesleagueofelectronics?igsh=MWdtbTNzajdqMGV4cQ==
+          - link [ref=e66] [cursor=pointer]:
+            - /url: https://x.com/PeoplesE9405
+          - link [ref=e69] [cursor=pointer]:
+            - /url: https://www.linkedin.com/company/ple-electronics
+      - generic [ref=e74]:
+        - heading "Quick Links" [level=3] [ref=e75]
+        - list [ref=e76]:
+          - listitem [ref=e77]:
+            - link "Home" [ref=e78] [cursor=pointer]:
+              - /url: /home
+          - listitem [ref=e79]:
+            - link "Categories" [ref=e80] [cursor=pointer]:
+              - /url: /categories
+          - listitem [ref=e81]:
+            - link "Offers" [ref=e82] [cursor=pointer]:
+              - /url: /offers
+          - listitem [ref=e83]:
+            - link "Refurbished" [ref=e84] [cursor=pointer]:
+              - /url: /refurbished-categories
+          - listitem [ref=e85]:
+            - link "My Profile" [ref=e86] [cursor=pointer]:
+              - /url: /profile
+          - listitem [ref=e87]:
+            - link "About Us" [ref=e88] [cursor=pointer]:
+              - /url: /about-us
+      - generic [ref=e89]:
+        - heading "Customer Support" [level=3] [ref=e90]
+        - list [ref=e91]:
+          - listitem [ref=e92]:
+            - link "Help & Support" [ref=e93] [cursor=pointer]:
+              - /url: /help-support
+          - listitem [ref=e94]:
+            - link "Privacy Policy" [ref=e95] [cursor=pointer]:
+              - /url: /privacy-policy
+          - listitem [ref=e96]:
+            - link "Terms & Conditions" [ref=e97] [cursor=pointer]:
+              - /url: /terms-conditions
+          - listitem [ref=e98]:
+            - link "Return Policy" [ref=e99] [cursor=pointer]:
+              - /url: /return-policy
+          - listitem [ref=e100]:
+            - link "Warranty Policy" [ref=e101] [cursor=pointer]:
+              - /url: /warranty-policy
+          - listitem [ref=e102]:
+            - link "Business Onboarding Policy" [ref=e103] [cursor=pointer]:
+              - /url: /business-onboarding-policy
+          - listitem [ref=e104]:
+            - link "Execution & Acceptance Policy" [ref=e105] [cursor=pointer]:
+              - /url: /execution-acceptance-policy
+          - listitem [ref=e106]:
+            - link "Shipping and Delivery Policy" [ref=e107] [cursor=pointer]:
+              - /url: /shipping-and-delivery-policy
+          - listitem [ref=e108]:
+            - link "User Agreement" [ref=e109] [cursor=pointer]:
+              - /url: /user-agreement
+      - generic [ref=e110]:
+        - generic [ref=e111]:
+          - heading "Subscribe to Newsletter" [level=3] [ref=e112]
+          - paragraph [ref=e113]: Be the first to hear about special offers, new arrivals, and events.
+          - generic [ref=e114]:
+            - textbox "Enter email address" [ref=e115]
+            - button [ref=e116] [cursor=pointer]
+        - generic [ref=e120]:
+          - generic [ref=e121]: support@peoplesleagueofelectronics.com
+          - generic [ref=e126]: +91 9071149300
+          - generic [ref=e130]: SHOP NO.25, R S NO.1045/3, 2ND CROSS, UJWAL NAGAR, Belgaum Fort, Karnataka, India,590016
+    - generic [ref=e136]:
+      - generic [ref=e137]: © 2026 PLE Inc. All rights reserved.
+      - generic [ref=e138]:
+        - link "Privacy" [ref=e139] [cursor=pointer]:
+          - /url: /privacy-policy
+        - link "Terms" [ref=e140] [cursor=pointer]:
+          - /url: /terms-conditions
+        - link "Sitemap" [ref=e141] [cursor=pointer]:
+          - /url: /help-support

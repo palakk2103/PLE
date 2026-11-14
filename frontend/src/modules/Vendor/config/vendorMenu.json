@@ -7,6 +7,16 @@
                      ]
     },
     {
+        "title": "Customer RFQs",
+        "route": "/vendor/consumer-rfqs",
+        "children": []
+    },
+    {
+        "title": "Source Now",
+        "route": "/vendor/product-requests",
+        "children": []
+    },
+    {
         "title":  "Products",
         "route":  "/vendor/products",
         "children":  [
@@ -164,11 +174,6 @@
     {
         "title": "Product Enquiries",
         "route": "/vendor/product-enquiries",
-        "children": []
-    },
-    {
-        "title": "Source Now",
-        "route": "/vendor/product-requests",
         "children": []
     },
     {

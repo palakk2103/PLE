@@ -1,0 +1,330 @@
+- generic [ref=f4e2]:
+  - generic [ref=f4e4]:
+    - banner [ref=f4e5]:
+      - generic [ref=f4e6]:
+        - generic [ref=f4e7]:
+          - link [ref=f4e8] [cursor=pointer]:
+            - /url: /home
+            - img "OPLE Logo" [ref=f4e9]
+          - button "Menu" [ref=f4e10] [cursor=pointer]
+        - navigation [ref=f4e12]:
+          - link "Home" [ref=f4e13] [cursor=pointer]:
+            - /url: /home
+          - link "Other Shops Marketplace" [ref=f4e14] [cursor=pointer]:
+            - /url: /home?tab=marketplace
+            - generic [ref=f4e15]: Other Shops
+            - generic [ref=f4e16]: Marketplace
+          - link "Categories ▼" [ref=f4e17] [cursor=pointer]:
+            - /url: /categories
+            - generic [ref=f4e18]: Categories
+            - generic [ref=f4e19]: ▼
+          - link "Offers" [ref=f4e20] [cursor=pointer]:
+            - /url: /offers
+          - generic [ref=f4e21] [cursor=pointer]:
+            - generic [ref=f4e22]: Brands by PLE
+            - generic [ref=f4e23]: New
+            - generic [ref=f4e24]: ▼
+        - generic [ref=f4e25]:
+          - textbox "Search products, brands, categories..." [ref=f4e26]
+          - button [ref=f4e27] [cursor=pointer]
+        - generic [ref=f4e31]:
+          - button "RFQ" [ref=f4e32] [cursor=pointer]
+          - button "5 Cart" [ref=f4e341] [cursor=pointer]:
+            - generic [ref=f4e39]: "5"
+            - generic: Cart
+          - button "Theme" [ref=f4e43] [cursor=pointer]
+          - button [ref=f4e49] [cursor=pointer]:
+            - generic [ref=f4e52]:
+              - paragraph [ref=f4e53]: Test Employee
+              - paragraph [ref=f4e54]: Business Account
+    - main [ref=f4e55]:
+      - generic [ref=f4e56]:
+        - button "Back" [ref=f4e58] [cursor=pointer]
+        - generic [ref=f4e63]:
+          - generic [ref=f4e65]:
+            - generic [ref=f4e67]:
+              - img "USB Wired Optical Mouse - Image 1" [ref=f4e70]
+              - generic: Click to zoom
+            - generic [ref=f4e71]:
+              - button "Add to Wishlist" [ref=f4e72] [cursor=pointer]
+              - button "Share Product" [ref=f4e75] [cursor=pointer]
+          - generic [ref=f4e83]:
+            - generic [ref=f4e84]:
+              - link "XYZ ->" [ref=f4e343] [cursor=pointer]:
+                - /url: /seller/6a74e71712a7e5fa6398cfac
+                - generic [ref=f4e91]: XYZ
+                - generic [ref=f4e95]: "->"
+              - heading "USB Wired Optical Mouse" [level=1] [ref=f4e96]
+              - paragraph [ref=f4e97]: Piece
+              - generic [ref=f4e98]:
+                - generic [ref=f4e99]:
+                  - generic [ref=f4e100]: ₹199.2
+                  - generic [ref=f4e101]: / Piece
+                  - generic [ref=f4e102]: ₹249
+                - generic [ref=f4e103]:
+                  - generic [ref=f4e104]: Wholesale Price
+                  - generic [ref=f4e105]: (Saved 20% based on quantity)
+              - generic [ref=f4e106]:
+                - generic [ref=f4e112]:
+                  - paragraph [ref=f4e113]: Bulk Stock Available
+                  - paragraph [ref=f4e114]: Ready for immediate dispatch (100 Pieces)
+                - generic [ref=f4e115]: "MOQ: 5 Pieces"
+            - generic [ref=f4e123]:
+              - generic [ref=f4e124]:
+                - heading "Wholesale Price Tiers" [level=4] [ref=f4e125]
+                - generic [ref=f4e130]:
+                  - button "5+ Units ₹199.2 Save 20%" [ref=f4e131] [cursor=pointer]:
+                    - generic [ref=f4e132]: 5+ Units
+                    - generic [ref=f4e133]: ₹199.2
+                    - generic [ref=f4e134]: Save 20%
+                  - button "20+ Units ₹174.3 Save 30%" [ref=f4e135] [cursor=pointer]:
+                    - generic [ref=f4e136]: 20+ Units
+                    - generic [ref=f4e137]: ₹174.3
+                    - generic [ref=f4e138]: Save 30%
+                  - button "50+ Units ₹149.4 Save 40%" [ref=f4e139] [cursor=pointer]:
+                    - generic [ref=f4e140]: 50+ Units
+                    - generic [ref=f4e141]: ₹149.4
+                    - generic [ref=f4e142]: Save 40%
+              - generic [ref=f4e143]:
+                - generic [ref=f4e144]: Order Quantity
+                - generic [ref=f4e146]:
+                  - generic [ref=f4e147]:
+                    - button [disabled] [ref=f4e148]
+                    - spinbutton [ref=f4e150]: "5"
+                    - button [ref=f4e151] [cursor=pointer]
+                  - generic [ref=f4e153]:
+                    - generic [ref=f4e154]: 0 Carton(s)
+                    - generic [ref=f4e155]: + 5 Unit(s)
+                    - paragraph [ref=f4e156]: (1 Carton = 10 Pieces)
+              - generic [ref=f4e157]:
+                - button "Min MOQ (5)" [ref=f4e158] [cursor=pointer]
+                - button "+1 Carton (+10)" [ref=f4e159] [cursor=pointer]
+                - button "+2 Cartons (+20)" [ref=f4e160] [cursor=pointer]
+                - button "+5 Cartons (+50)" [ref=f4e161] [cursor=pointer]
+            - generic [ref=f4e162]:
+              - generic [ref=f4e163]:
+                - heading "🚚 Logistics Speed Check" [level=4] [ref=f4e164]
+                - generic [ref=f4e166]: Dynamic SLA Tracking
+              - generic [ref=f4e167]:
+                - textbox "Enter Delivery Pincode (e.g. 400001)" [ref=f4e168]
+                - button "Check Speed" [ref=f4e169] [cursor=pointer]
+              - paragraph [ref=f4e170]: Enter your zipcode to verify Same-City Express eligibility (8–16 Hours) or regional courier durations.
+            - generic [ref=f4e171]:
+              - generic [ref=f4e344]:
+                - button "Go to Cart" [ref=f4e345] [cursor=pointer]
+                - button "Remove" [ref=f4e350] [cursor=pointer]
+              - generic [ref=f4e177]:
+                - button "Enquire Now" [ref=f4e178] [cursor=pointer]
+                - button "Request RFQ" [ref=f4e183] [cursor=pointer]
+                - button [ref=f4e188] [cursor=pointer]
+                - button [ref=f4e191] [cursor=pointer]
+        - generic [ref=f4e198]:
+          - generic [ref=f4e199]:
+            - heading "Product Description" [level=3] [ref=f4e200]
+            - paragraph [ref=f4e202]: Basic wired USB optical mouse for everyday computer use.
+          - generic [ref=f4e203]:
+            - generic [ref=f4e204]:
+              - heading "Wholesale Specifications" [level=3] [ref=f4e205]
+              - generic [ref=f4e206]:
+                - generic [ref=f4e213]:
+                  - generic [ref=f4e214]: GST input credit
+                  - generic [ref=f4e215]: 18% GST Claimable
+                - generic [ref=f4e223]:
+                  - generic [ref=f4e224]: Bulk Delivery
+                  - text: 3 - 5 Dispatch Days
+                - generic [ref=f4e230]:
+                  - generic [ref=f4e231]: Credit Terms
+                  - text: NET 30 Available
+                - generic [ref=f4e236]:
+                  - generic [ref=f4e237]: Packaging
+                  - generic [ref=f4e238]: 10 Pieces/Carton
+            - generic [ref=f4e243]:
+              - paragraph [ref=f4e244]: 💡 Business Buyer Benefit Info
+              - paragraph [ref=f4e245]: GSTIN is pre-filled from your profile on invoices. Bulk shipping rates are automatically calculated during checkout. For custom high-volume contract pricing (>500 units), use the "Request Wholesale Quote" button below.
+          - generic [ref=f4e246]: Reviews are available after product delivery.
+        - generic [ref=f4e354]:
+          - heading "You May Also Like" [level=3] [ref=f4e355]
+          - generic [ref=f4e356]:
+            - generic [ref=f4e357] [cursor=pointer]:
+              - generic [ref=f4e358]:
+                - button [ref=f4e360]
+                - link "72% OFF" [ref=f4e363]:
+                  - /url: /product/69a0a41635b34238ea32ef96
+              - generic [ref=f4e367]:
+                - link [ref=f4e368]:
+                  - /url: /product/69a0a41635b34238ea32ef96
+                  - heading "Samsung Buds 3 Pro" [level=3] [ref=f4e369]
+                - paragraph [ref=f4e370]: Piece
+                - generic [ref=f4e371]: Fast Bulk Cargo
+                - generic [ref=f4e374]:
+                  - generic [ref=f4e375]:
+                    - generic [ref=f4e376]: "Bulk Price:"
+                    - generic [ref=f4e377]: ₹1,119.2
+                    - generic [ref=f4e378]: /Piece
+                  - generic [ref=f4e379]: "MOQ: 5 Pieces"
+                - button "Order Bulk" [ref=f4e383]
+            - generic [ref=f4e387] [cursor=pointer]:
+              - generic [ref=f4e388]:
+                - button [ref=f4e390]
+                - link "68% OFF" [ref=f4e393]:
+                  - /url: /product/69a0a50c35b34238ea32efcc
+              - generic [ref=f4e397]:
+                - link [ref=f4e398]:
+                  - /url: /product/69a0a50c35b34238ea32efcc
+                  - heading "JBL BEATBOX MARTIN GARRIX EDITION" [level=3] [ref=f4e399]
+                - paragraph [ref=f4e400]: Piece
+                - generic [ref=f4e402]:
+                  - generic [ref=f4e403]: "4"
+                  - generic [ref=f4e407]: (2)
+                - generic [ref=f4e408]: Fast Bulk Cargo
+                - generic [ref=f4e411]:
+                  - generic [ref=f4e412]:
+                    - generic [ref=f4e413]: "Bulk Price:"
+                    - generic [ref=f4e414]: ₹1,279.2
+                    - generic [ref=f4e415]: /Piece
+                  - generic [ref=f4e416]: "MOQ: 5 Pieces"
+                - button "Order Bulk" [ref=f4e420]
+            - generic [ref=f4e424] [cursor=pointer]:
+              - generic [ref=f4e425]:
+                - button [ref=f4e427]
+                - link "25% OFF" [ref=f4e430]:
+                  - /url: /product/6a743d5d6310d92f7dc29296
+              - generic [ref=f4e434]:
+                - link [ref=f4e435]:
+                  - /url: /product/6a743d5d6310d92f7dc29296
+                  - heading "headphone" [level=3] [ref=f4e436]
+                - paragraph [ref=f4e437]: "1"
+                - generic [ref=f4e438]: Fast Bulk Cargo
+                - generic [ref=f4e441]:
+                  - generic [ref=f4e442]:
+                    - generic [ref=f4e443]: "Bulk Price:"
+                    - generic [ref=f4e444]: ₹719.2
+                    - generic [ref=f4e445]: /1
+                  - generic [ref=f4e446]: "MOQ: 5 1s"
+                - button "Order Bulk" [ref=f4e450]
+            - generic [ref=f4e454] [cursor=pointer]:
+              - generic [ref=f4e455]:
+                - button [ref=f4e457]
+                - link "37% OFF" [ref=f4e460]:
+                  - /url: /product/6ad9f559fdcdfc17957461a8
+              - generic [ref=f4e464]:
+                - link [ref=f4e465]:
+                  - /url: /product/6ad9f559fdcdfc17957461a8
+                  - heading "RTX 5090" [level=3] [ref=f4e466]
+                - paragraph [ref=f4e467]: "1"
+                - generic [ref=f4e468]: Fast Bulk Cargo
+                - generic [ref=f4e471]:
+                  - generic [ref=f4e472]:
+                    - generic [ref=f4e473]: "Bulk Price:"
+                    - generic [ref=f4e474]: ₹1,26,400
+                    - generic [ref=f4e475]: /1
+                  - generic [ref=f4e476]: "MOQ: 5 1s"
+                - button "Order Bulk" [ref=f4e480]
+            - generic [ref=f4e484] [cursor=pointer]:
+              - generic [ref=f4e485]:
+                - button [ref=f4e487]
+                - link "-5% OFF" [ref=f4e490]:
+                  - /url: /product/6ada2fb1fdcdfc1795746d44
+              - generic [ref=f4e494]:
+                - link [ref=f4e495]:
+                  - /url: /product/6ada2fb1fdcdfc1795746d44
+                  - heading "Zebromics" [level=3] [ref=f4e496]
+                - paragraph [ref=f4e497]: "1"
+                - generic [ref=f4e498]: Fast Bulk Cargo
+                - generic [ref=f4e501]:
+                  - generic [ref=f4e502]:
+                    - generic [ref=f4e503]: "Bulk Price:"
+                    - generic [ref=f4e504]: ₹1,265.6
+                    - generic [ref=f4e505]: /1
+                  - generic [ref=f4e506]: "MOQ: 5 1s"
+                - button "Order Bulk" [ref=f4e510]
+    - contentinfo [ref=f4e248]:
+      - generic [ref=f4e250]:
+        - generic [ref=f4e251]:
+          - link "PLE Logo TM" [ref=f4e252] [cursor=pointer]:
+            - /url: /home
+            - generic [ref=f4e253]:
+              - img "PLE Logo" [ref=f4e254]
+              - generic [ref=f4e255]: TM
+          - paragraph [ref=f4e256]: Your destination for electronics across consumer, business, and specialized sourcing needs — from everyday tech and accessories to enterprise procurement solutions.
+          - generic [ref=f4e257]:
+            - link [ref=f4e258] [cursor=pointer]:
+              - /url: https://www.facebook.com/share/1EaNrat2yr/
+            - link [ref=f4e261] [cursor=pointer]:
+              - /url: https://www.instagram.com/peoplesleagueofelectronics?igsh=MWdtbTNzajdqMGV4cQ==
+            - link [ref=f4e265] [cursor=pointer]:
+              - /url: https://x.com/PeoplesE9405
+            - link [ref=f4e268] [cursor=pointer]:
+              - /url: https://www.linkedin.com/company/ple-electronics
+        - generic [ref=f4e273]:
+          - heading "Quick Links" [level=3] [ref=f4e274]
+          - list [ref=f4e275]:
+            - listitem [ref=f4e276]:
+              - link "Home" [ref=f4e277] [cursor=pointer]:
+                - /url: /home
+            - listitem [ref=f4e278]:
+              - link "Categories" [ref=f4e279] [cursor=pointer]:
+                - /url: /categories
+            - listitem [ref=f4e280]:
+              - link "Offers" [ref=f4e281] [cursor=pointer]:
+                - /url: /offers
+            - listitem [ref=f4e282]:
+              - link "Refurbished" [ref=f4e283] [cursor=pointer]:
+                - /url: /refurbished-categories
+            - listitem [ref=f4e284]:
+              - link "My Profile" [ref=f4e285] [cursor=pointer]:
+                - /url: /profile
+            - listitem [ref=f4e286]:
+              - link "About Us" [ref=f4e287] [cursor=pointer]:
+                - /url: /about-us
+        - generic [ref=f4e288]:
+          - heading "Customer Support" [level=3] [ref=f4e289]
+          - list [ref=f4e290]:
+            - listitem [ref=f4e291]:
+              - link "Help & Support" [ref=f4e292] [cursor=pointer]:
+                - /url: /help-support
+            - listitem [ref=f4e293]:
+              - link "Privacy Policy" [ref=f4e294] [cursor=pointer]:
+                - /url: /privacy-policy
+            - listitem [ref=f4e295]:
+              - link "Terms & Conditions" [ref=f4e296] [cursor=pointer]:
+                - /url: /terms-conditions
+            - listitem [ref=f4e297]:
+              - link "Return Policy" [ref=f4e298] [cursor=pointer]:
+                - /url: /return-policy
+            - listitem [ref=f4e299]:
+              - link "Warranty Policy" [ref=f4e300] [cursor=pointer]:
+                - /url: /warranty-policy
+            - listitem [ref=f4e301]:
+              - link "Business Onboarding Policy" [ref=f4e302] [cursor=pointer]:
+                - /url: /business-onboarding-policy
+            - listitem [ref=f4e303]:
+              - link "Execution & Acceptance Policy" [ref=f4e304] [cursor=pointer]:
+                - /url: /execution-acceptance-policy
+            - listitem [ref=f4e305]:
+              - link "Shipping and Delivery Policy" [ref=f4e306] [cursor=pointer]:
+                - /url: /shipping-and-delivery-policy
+            - listitem [ref=f4e307]:
+              - link "User Agreement" [ref=f4e308] [cursor=pointer]:
+                - /url: /user-agreement
+        - generic [ref=f4e309]:
+          - generic [ref=f4e310]:
+            - heading "Subscribe to Newsletter" [level=3] [ref=f4e311]
+            - paragraph [ref=f4e312]: Be the first to hear about special offers, new arrivals, and events.
+            - generic [ref=f4e313]:
+              - textbox "Enter email address" [ref=f4e314]
+              - button [ref=f4e315] [cursor=pointer]
+          - generic [ref=f4e319]:
+            - generic [ref=f4e320]: support@plebusiness.com
+            - generic [ref=f4e325]: +91 9071149100
+            - generic [ref=f4e329]: SHOP NO.25, R S NO.1045/3, 2ND CROSS, UJWAL NAGAR, Belgaum Fort, Karnataka, India,590016
+      - generic [ref=f4e335]:
+        - generic [ref=f4e336]: © 2026 PLE Inc. All rights reserved.
+        - generic [ref=f4e337]:
+          - link "Privacy" [ref=f4e338] [cursor=pointer]:
+            - /url: /privacy-policy
+          - link "Terms" [ref=f4e339] [cursor=pointer]:
+            - /url: /terms-conditions
+          - link "Sitemap" [ref=f4e340] [cursor=pointer]:
+            - /url: /help-support
+  - status [ref=f4e519]: Added to cart!

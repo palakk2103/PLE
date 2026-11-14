@@ -2,12 +2,13 @@ import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
 import User from '../../../models/User.model.js';
+import WalletTransaction from '../../../models/WalletTransaction.model.js';
 import B2BCompany from '../../../models/B2BCompany.model.js';
 import crypto from 'crypto';
 import { sendEmail } from '../../../services/email.service.js';
 import * as walletService from '../../../services/wallet.service.js';
 
-const getCompanyId = async (req) => {
+export const getCompanyId = async (req) => {
     let companyId = req.user.companyId;
     if (!companyId) {
         const admin = await User.findById(req.user.id);
@@ -16,6 +17,52 @@ const getCompanyId = async (req) => {
     if (!companyId) throw new ApiError(404, 'Admin not found or company ID missing.');
     return companyId;
 };
+
+/**
+ * Move funds from the B2B admin's wallet to an employee's spendable balance,
+ * recording it on both ledgers. Returns the admin's updated wallet.
+ * Throws (before crediting anything) if the admin wallet can't cover it.
+ */
+const transferFundsToEmployee = async ({ adminId, employee, companyId, amount }) => {
+    const { wallet: adminWallet } = await walletService.debitWallet({
+        userId: adminId,
+        amount,
+        category: 'transfer_out',
+        description: `Allotted funds to employee: ${employee.name}`
+    });
+
+    employee.b2bWalletBalance = parseFloat(((employee.b2bWalletBalance || 0) + amount).toFixed(2));
+    await employee.save();
+
+    // Mirror on the employee's Wallet and record the credit on their own ledger
+    const employeeWallet = await walletService.getOrCreateWallet(employee._id);
+    employeeWallet.balance = employee.b2bWalletBalance;
+    employeeWallet.totalCredit = parseFloat(((employeeWallet.totalCredit || 0) + amount).toFixed(2));
+    await employeeWallet.save();
+
+    await WalletTransaction.create({
+        walletId: employeeWallet._id,
+        userId: employee._id,
+        companyId,
+        performedBy: adminId,
+        type: 'credit',
+        transactionCategory: 'b2b_allotment',
+        amount,
+        balanceAfterTransaction: employee.b2bWalletBalance,
+        description: 'Funds allotted by company admin',
+        status: 'completed'
+    });
+
+    return adminWallet;
+};
+
+// Fields a B2B admin may change via "Edit employee". The wallet balance is
+// deliberately excluded: it only changes through allotments, orders and refunds,
+// so every movement is recorded in the ledger.
+const EDITABLE_EMPLOYEE_FIELDS = [
+    'firstName', 'lastName', 'phone', 'password', 'designation', 'department',
+    'address', 'status', 'role', 'b2bSpendingLimit'
+];
 
 /**
  * @desc    Get all employees for the B2B Company
@@ -48,6 +95,21 @@ export const createEmployee = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'A user with this email already exists.');
     }
 
+    // An initial allotment is a real transfer from the admin's wallet: check it can be covered first
+    const initialAllotment = Number(b2bWalletBalance) || 0;
+    if (initialAllotment < 0) {
+        throw new ApiError(400, 'Initial wallet allotment cannot be negative.');
+    }
+    if (initialAllotment > 0) {
+        const adminWallet = await walletService.getOrCreateWallet(req.user.id);
+        if (adminWallet.isFrozen) {
+            throw new ApiError(400, 'Company wallet is frozen. Cannot allot funds.');
+        }
+        if (adminWallet.balance < initialAllotment) {
+            throw new ApiError(400, `Insufficient company wallet balance for initial allotment. Available: ₹${adminWallet.balance}`);
+        }
+    }
+
     const generatedPassword = password || crypto.randomBytes(4).toString('hex');
 
     const newEmployee = await User.create({
@@ -65,9 +127,19 @@ export const createEmployee = asyncHandler(async (req, res) => {
         address,
         isActive: true,
         isVerified: true,
-        b2bWalletBalance: Number(b2bWalletBalance) || 0,
+        b2bWalletBalance: 0,
         b2bSpendingLimit: Number(b2bSpendingLimit) || 0
     });
+
+    if (initialAllotment > 0) {
+        try {
+            await transferFundsToEmployee({ adminId: req.user.id, employee: newEmployee, companyId, amount: initialAllotment });
+        } catch (err) {
+            // Don't leave a half-created employee behind if the transfer fails
+            await User.deleteOne({ _id: newEmployee._id });
+            throw err;
+        }
+    }
 
     const loginUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/login`;
     const emailHtml = `
@@ -113,11 +185,11 @@ export const updateEmployee = asyncHandler(async (req, res) => {
         throw new ApiError(404, 'Employee not found or unauthorized.');
     }
 
-    const updates = req.body;
-    
-    // Prevent updating protected fields
-    delete updates.companyId;
-    delete updates.email; // Do not allow email update through this endpoint easily
+    // Only accept known profile fields (email, companyId, wallet balance etc. are never editable here)
+    const updates = {};
+    for (const field of EDITABLE_EMPLOYEE_FIELDS) {
+        if (req.body[field] !== undefined) updates[field] = req.body[field];
+    }
 
     if (updates.firstName || updates.lastName) {
         const fn = updates.firstName || employee.firstName;
@@ -192,17 +264,7 @@ export const allotWalletFunds = asyncHandler(async (req, res) => {
         throw new ApiError(404, 'Employee not found or unauthorized.');
     }
 
-    // Debit the Admin's wallet
-    const { wallet: adminWallet } = await walletService.debitWallet({
-        userId: req.user.id,
-        amount,
-        category: 'transfer_out',
-        description: `Allotted funds to employee: ${employee.name}`
-    });
-
-    // Credit employee's b2bWalletBalance
-    employee.b2bWalletBalance = parseFloat((employee.b2bWalletBalance + amount).toFixed(2));
-    await employee.save();
+    const adminWallet = await transferFundsToEmployee({ adminId: req.user.id, employee, companyId, amount });
 
     res.status(200).json(new ApiResponse(200, {
         adminBalance: adminWallet.balance,

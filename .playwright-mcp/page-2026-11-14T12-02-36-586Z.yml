@@ -1,0 +1,337 @@
+- generic [ref=f19e3]:
+  - generic [ref=f19e5]:
+    - generic [ref=f19e13]:
+      - heading "Super Admin" [level=2] [ref=f19e14]
+      - generic [ref=f19e15]:
+        - paragraph [ref=f19e16]: PLE-SA-000001
+        - generic [ref=f19e17]: Super Admin
+    - navigation [ref=f19e18]:
+      - generic [ref=f19e19]: Dashboard
+      - generic [ref=f19e25]: Consumer RFQs
+      - generic [ref=f19e31]: Source Now
+      - generic [ref=f19e37]: Account Team
+      - generic [ref=f19e48]: Customers
+      - generic [ref=f19e59]: Vendors / Sellers
+      - generic [ref=f19e70]: In-House Shops & Staff
+      - generic [ref=f19e79]: Products & Catalogue
+      - generic [ref=f19e89]: Orders & Fulfilment
+      - generic [ref=f19e98]: Delivery Management
+      - generic [ref=f19e109]:
+        - generic [ref=f19e110] [cursor=pointer]: B2B Marketplace
+        - generic [ref=f19e119]:
+          - generic [ref=f19e120] [cursor=pointer]: B2B Overview
+          - generic [ref=f19e121] [cursor=pointer]: Business Users
+          - generic [ref=f19e122] [cursor=pointer]: User Approvals
+          - generic [ref=f19e123] [cursor=pointer]: B2B Analytics
+          - generic [ref=f19e124] [cursor=pointer]: Company Management
+          - generic [ref=f19e125] [cursor=pointer]: B2B Products
+          - generic [ref=f19e126] [cursor=pointer]: B2B Orders
+          - generic [ref=f19e127] [cursor=pointer]: Pending RFQs
+          - generic [ref=f19e128] [cursor=pointer]: RFQs Under Review
+          - generic [ref=f19e129] [cursor=pointer]: RFQ Negotiations
+          - generic [ref=f19e130] [cursor=pointer]: Vendor RFQs
+          - generic [ref=f19e131] [cursor=pointer]: Purchase Orders
+          - generic [ref=f19e132] [cursor=pointer]: Agreement Templates
+          - generic [ref=f19e133] [cursor=pointer]: B2B Settings
+          - generic [ref=f19e134] [cursor=pointer]: B2B Chats
+      - generic [ref=f19e135]: Refurbished Mkt
+      - generic [ref=f19e145]: Marketing & Offers
+      - generic [ref=f19e155]: Finance & Wallet
+      - generic [ref=f19e162]: Loyalty Program
+      - generic [ref=f19e171]: Support Desk
+      - generic [ref=f19e179]: Reports & Analytics
+      - generic [ref=f19e188]: Notifications
+      - generic [ref=f19e197]: CMS & Web Pages
+      - generic [ref=f19e206]: Settings & Policies
+  - generic [ref=f19e215]:
+    - banner [ref=f19e216]:
+      - generic [ref=f19e217]:
+        - generic [ref=f19e219]:
+          - img "PLE Logo" [ref=f19e220]
+          - generic [ref=f19e221]:
+            - heading "Companies" [level=1] [ref=f19e222]
+            - paragraph [ref=f19e223]: Welcome back! Here's your business overview.
+        - generic [ref=f19e224]:
+          - button "Toggle theme" [ref=f19e225] [cursor=pointer]
+          - button [ref=f19e229] [cursor=pointer]
+          - button "Logout" [ref=f19e234] [cursor=pointer]
+    - main [ref=f19e239]:
+      - generic [ref=f19e241]:
+        - generic [ref=f19e242]:
+          - generic [ref=f19e243]:
+            - heading "B2B Company Management" [level=1] [ref=f19e244]
+            - paragraph [ref=f19e248]: Manage corporate B2B registrations, employee counts, and verification status.
+          - button "Refresh" [ref=f19e249] [cursor=pointer]
+        - generic [ref=f19e254]:
+          - generic [ref=f19e260]:
+            - text: Total Companies
+            - paragraph [ref=f19e261]: "20"
+          - generic [ref=f19e267]:
+            - text: Active Companies
+            - paragraph [ref=f19e268]: "20"
+          - generic [ref=f19e276]:
+            - text: Total Employees
+            - paragraph [ref=f19e277]: "6"
+        - textbox "Search by Company Name, GST Number, Admin Name, Email..." [ref=f19e283]
+        - table [ref=f19e286]:
+          - rowgroup [ref=f19e287]:
+            - row [ref=f19e288]:
+              - columnheader "Company Name" [ref=f19e289]
+              - columnheader "GST Number" [ref=f19e290]
+              - columnheader "Company Admin" [ref=f19e291]
+              - columnheader "Employees" [ref=f19e292]
+              - columnheader "Status" [ref=f19e293]
+              - columnheader "Actions" [ref=f19e294]
+          - rowgroup [ref=f19e295]:
+            - row [ref=f19e296]:
+              - cell [ref=f19e297]:
+                - paragraph [ref=f19e299]: ZZ Test Co 1794654844
+              - cell "N/A" [ref=f19e300]
+              - cell [ref=f19e301]:
+                - paragraph [ref=f19e302]: ZZ Test Co 1794654844
+                - paragraph [ref=f19e303]: zzadmin-1794654844@example.test
+              - cell "2" [ref=f19e304]
+              - cell "Active" [ref=f19e305]
+              - cell [ref=f19e306]:
+                - button "View Info" [ref=f19e307] [cursor=pointer]
+                - button "Deactivate" [ref=f19e311] [cursor=pointer]
+            - row [ref=f19e312]:
+              - cell [ref=f19e313]:
+                - generic [ref=f19e314]:
+                  - paragraph [ref=f19e315]: Zenith Test Traders
+                  - link "https://zenithtest.example.com" [ref=f19e316] [cursor=pointer]:
+                    - /url: https://zenithtest.example.com
+              - cell "27AAPCG9838F1Z1" [ref=f19e320]
+              - cell [ref=f19e321]:
+                - paragraph [ref=f19e322]: Zenith Test Traders
+                - paragraph [ref=f19e323]: sneha.kapoor.test@example.com
+              - cell "0" [ref=f19e324]
+              - cell "Active" [ref=f19e325]
+              - cell [ref=f19e326]:
+                - button "View Info" [ref=f19e327] [cursor=pointer]
+                - button "Deactivate" [ref=f19e331] [cursor=pointer]
+            - row [ref=f19e332]:
+              - cell [ref=f19e333]:
+                - paragraph [ref=f19e335]: Peoples league of electronics
+              - cell "29AAQCP4616C1Z9" [ref=f19e336]
+              - cell [ref=f19e337]:
+                - paragraph [ref=f19e338]: Peoples league of electronics
+                - paragraph [ref=f19e339]: owaispathan@peoplesleagueofelectronics.com
+              - cell "0" [ref=f19e340]
+              - cell "Active" [ref=f19e341]
+              - cell [ref=f19e342]:
+                - button "View Info" [ref=f19e343] [cursor=pointer]
+                - button "Deactivate" [ref=f19e347] [cursor=pointer]
+            - row [ref=f19e348]:
+              - cell [ref=f19e349]:
+                - generic [ref=f19e350]:
+                  - paragraph [ref=f19e351]: Zenith Logistics LLP
+                  - link "https://zenithlogistics.in" [ref=f19e352] [cursor=pointer]:
+                    - /url: https://zenithlogistics.in
+              - cell "07AAACZ1234K1Z0" [ref=f19e356]
+              - cell [ref=f19e357]:
+                - paragraph [ref=f19e358]: Vikram Malhotra
+                - paragraph [ref=f19e359]: vikram@zenithlogistics.in
+              - cell "0" [ref=f19e360]
+              - cell "Active" [ref=f19e361]
+              - cell [ref=f19e362]:
+                - button "View Info" [ref=f19e363] [cursor=pointer]
+                - button "Deactivate" [ref=f19e367] [cursor=pointer]
+            - row [ref=f19e368]:
+              - cell [ref=f19e369]:
+                - generic [ref=f19e370]:
+                  - paragraph [ref=f19e371]: Nova Healthcare Pvt Ltd
+                  - link "https://novahealth.in" [ref=f19e372] [cursor=pointer]:
+                    - /url: https://novahealth.in
+              - cell "29ABCDE1234F2Z5" [ref=f19e376]
+              - cell [ref=f19e377]:
+                - paragraph [ref=f19e378]: Dr. Ramesh Kumar
+                - paragraph [ref=f19e379]: admin@novahealth.in
+              - cell "0" [ref=f19e380]
+              - cell "Active" [ref=f19e381]
+              - cell [ref=f19e382]:
+                - button "View Info" [ref=f19e383] [cursor=pointer]
+                - button "Deactivate" [ref=f19e387] [cursor=pointer]
+            - row [ref=f19e388]:
+              - cell [ref=f19e389]:
+                - paragraph [ref=f19e391]: Alexa
+              - cell "22AAAAA0000A1Z5" [ref=f19e392]
+              - cell [ref=f19e393]:
+                - paragraph [ref=f19e394]: Alexa
+                - paragraph [ref=f19e395]: furkan0123@gmail.com
+              - cell "0" [ref=f19e396]
+              - cell "Active" [ref=f19e397]
+              - cell [ref=f19e398]:
+                - button "View Info" [ref=f19e399] [cursor=pointer]
+                - button "Deactivate" [ref=f19e403] [cursor=pointer]
+            - row [ref=f19e404]:
+              - cell [ref=f19e405]:
+                - paragraph [ref=f19e407]: Arya
+              - cell "22AAAAA0000A1Z5" [ref=f19e408]
+              - cell [ref=f19e409]:
+                - paragraph [ref=f19e410]: Arya
+                - paragraph [ref=f19e411]: ankitahirwar01@gmail.com
+              - cell "1" [ref=f19e412]
+              - cell "Active" [ref=f19e413]
+              - cell [ref=f19e414]:
+                - button "View Info" [ref=f19e415] [cursor=pointer]
+                - button "Deactivate" [ref=f19e419] [cursor=pointer]
+            - row [ref=f19e420]:
+              - cell [ref=f19e421]:
+                - paragraph [ref=f19e423]: zenx
+              - cell "22AAAAA0000A1Z5" [ref=f19e424]
+              - cell [ref=f19e425]:
+                - paragraph [ref=f19e426]: zenx
+                - paragraph [ref=f19e427]: ritu01@gmail.com
+              - cell "0" [ref=f19e428]
+              - cell "Active" [ref=f19e429]
+              - cell [ref=f19e430]:
+                - button "View Info" [ref=f19e431] [cursor=pointer]
+                - button "Deactivate" [ref=f19e435] [cursor=pointer]
+            - row [ref=f19e436]:
+              - cell [ref=f19e437]:
+                - paragraph [ref=f19e439]: zenco
+              - cell "22AAAAA0000A1Z5" [ref=f19e440]
+              - cell [ref=f19e441]:
+                - paragraph [ref=f19e442]: zenco
+                - paragraph [ref=f19e443]: shriram01@gmail.com
+              - cell "0" [ref=f19e444]
+              - cell "Active" [ref=f19e445]
+              - cell [ref=f19e446]:
+                - button "View Info" [ref=f19e447] [cursor=pointer]
+                - button "Deactivate" [ref=f19e451] [cursor=pointer]
+            - row [ref=f19e452]:
+              - cell [ref=f19e453]:
+                - paragraph [ref=f19e455]: zenzi
+              - cell "22AAAAA0000A1Z5" [ref=f19e456]
+              - cell [ref=f19e457]:
+                - paragraph [ref=f19e458]: zenzi
+                - paragraph [ref=f19e459]: indra01@gmail.com
+              - cell "0" [ref=f19e460]
+              - cell "Active" [ref=f19e461]
+              - cell [ref=f19e462]:
+                - button "View Info" [ref=f19e463] [cursor=pointer]
+                - button "Deactivate" [ref=f19e467] [cursor=pointer]
+            - row [ref=f19e468]:
+              - cell [ref=f19e469]:
+                - paragraph [ref=f19e471]: Peoples League of Electronics Private Limited
+              - cell "29AAQCP4161C1Z9" [ref=f19e472]
+              - cell [ref=f19e473]:
+                - paragraph [ref=f19e474]: Peoples League of Electronics Private Limited
+                - paragraph [ref=f19e475]: adminpeoples12@gmail.com
+              - cell "0" [ref=f19e476]
+              - cell "Active" [ref=f19e477]
+              - cell [ref=f19e478]:
+                - button "View Info" [ref=f19e479] [cursor=pointer]
+                - button "Deactivate" [ref=f19e483] [cursor=pointer]
+            - row [ref=f19e484]:
+              - cell [ref=f19e485]:
+                - paragraph [ref=f19e487]: info
+              - cell "22AAAAA0000A1Z5" [ref=f19e488]
+              - cell [ref=f19e489]:
+                - paragraph [ref=f19e490]: info
+                - paragraph [ref=f19e491]: ankit0123@gmail.com
+              - cell "1" [ref=f19e492]
+              - cell "Active" [ref=f19e493]
+              - cell [ref=f19e494]:
+                - button "View Info" [ref=f19e495] [cursor=pointer]
+                - button "Deactivate" [ref=f19e499] [cursor=pointer]
+            - row [ref=f19e500]:
+              - cell [ref=f19e501]:
+                - paragraph [ref=f19e503]: Peoples League of Electronics Private Limited
+              - cell "29AAQCP4616C1Z9" [ref=f19e504]
+              - cell [ref=f19e505]:
+                - paragraph [ref=f19e506]: Peoples League of Electronics Private Limited
+                - paragraph [ref=f19e507]: rizwanakankudti@gmail.com
+              - cell "2" [ref=f19e508]
+              - cell "Active" [ref=f19e509]
+              - cell [ref=f19e510]:
+                - button "View Info" [ref=f19e511] [cursor=pointer]
+                - button "Deactivate" [ref=f19e515] [cursor=pointer]
+            - row [ref=f19e516]:
+              - cell [ref=f19e517]:
+                - paragraph [ref=f19e519]: Peoples League of Electronics Private Limited
+              - cell "29AAQCP4616C1Z9" [ref=f19e520]
+              - cell [ref=f19e521]:
+                - paragraph [ref=f19e522]: No Admin
+                - paragraph [ref=f19e523]: mohammedzaidkankudti@gmail.com
+              - cell "0" [ref=f19e524]
+              - cell "Active" [ref=f19e525]
+              - cell [ref=f19e526]:
+                - button "View Info" [ref=f19e527] [cursor=pointer]
+                - button "Deactivate" [ref=f19e531] [cursor=pointer]
+            - row [ref=f19e532]:
+              - cell [ref=f19e533]:
+                - paragraph [ref=f19e535]: Peoples League of Electronics Private Limited
+              - cell "29AAQCP4616C1Z9" [ref=f19e536]
+              - cell [ref=f19e537]:
+                - paragraph [ref=f19e538]: Peoples League of Electronics Private Limited
+                - paragraph [ref=f19e539]: mohammedzaidkankudti20074@gmail.com
+              - cell "0" [ref=f19e540]
+              - cell "Active" [ref=f19e541]
+              - cell [ref=f19e542]:
+                - button "View Info" [ref=f19e543] [cursor=pointer]
+                - button "Deactivate" [ref=f19e547] [cursor=pointer]
+            - row [ref=f19e548]:
+              - cell [ref=f19e549]:
+                - paragraph [ref=f19e551]: arya
+              - cell "22AAAAA0000A1Z5" [ref=f19e552]
+              - cell [ref=f19e553]:
+                - paragraph [ref=f19e554]: arya
+                - paragraph [ref=f19e555]: dodjagrati@gmail.com
+              - cell "0" [ref=f19e556]
+              - cell "Active" [ref=f19e557]
+              - cell [ref=f19e558]:
+                - button "View Info" [ref=f19e559] [cursor=pointer]
+                - button "Deactivate" [ref=f19e563] [cursor=pointer]
+            - row [ref=f19e564]:
+              - cell [ref=f19e565]:
+                - generic [ref=f19e566]:
+                  - paragraph [ref=f19e567]: Apex General Enterprises
+                  - link "https://apexenterprises.in" [ref=f19e568] [cursor=pointer]:
+                    - /url: https://apexenterprises.in
+              - cell "27AAPCG9838F1Z1" [ref=f19e572]
+              - cell [ref=f19e573]:
+                - paragraph [ref=f19e574]: Apex General Enterprises
+                - paragraph [ref=f19e575]: sarkarraj0766@gmail.com
+              - cell "0" [ref=f19e576]
+              - cell "Active" [ref=f19e577]
+              - cell [ref=f19e578]:
+                - button "View Info" [ref=f19e579] [cursor=pointer]
+                - button "Deactivate" [ref=f19e583] [cursor=pointer]
+            - row [ref=f19e584]:
+              - cell [ref=f19e585]:
+                - paragraph [ref=f19e587]: oscar
+              - cell "22AAAAA0000A1Z5" [ref=f19e588]
+              - cell [ref=f19e589]:
+                - paragraph [ref=f19e590]: Ankit
+                - paragraph [ref=f19e591]: ankit01@gmail.com
+              - cell "0" [ref=f19e592]
+              - cell "Active" [ref=f19e593]
+              - cell [ref=f19e594]:
+                - button "View Info" [ref=f19e595] [cursor=pointer]
+                - button "Deactivate" [ref=f19e599] [cursor=pointer]
+            - row [ref=f19e600]:
+              - cell [ref=f19e601]:
+                - paragraph [ref=f19e603]: Event
+              - cell "22AAAAA0000A1Z5" [ref=f19e604]
+              - cell [ref=f19e605]:
+                - paragraph [ref=f19e606]: Harsh Vardhan Panchal
+                - paragraph [ref=f19e607]: priyank4y777@gmail.com
+              - cell "0" [ref=f19e608]
+              - cell "Active" [ref=f19e609]
+              - cell [ref=f19e610]:
+                - button "View Info" [ref=f19e611] [cursor=pointer]
+                - button "Deactivate" [ref=f19e615] [cursor=pointer]
+            - row [ref=f19e616]:
+              - cell [ref=f19e617]:
+                - paragraph [ref=f19e619]: alle
+              - cell "22AAAAA0000A1Z5" [ref=f19e620]
+              - cell [ref=f19e621]:
+                - paragraph [ref=f19e622]: Ankit Ahirwar
+                - paragraph [ref=f19e623]: elle01@gmail.com
+              - cell "0" [ref=f19e624]
+              - cell "Active" [ref=f19e625]
+              - cell [ref=f19e626]:
+                - button "View Info" [ref=f19e627] [cursor=pointer]
+                - button "Deactivate" [ref=f19e631] [cursor=pointer]

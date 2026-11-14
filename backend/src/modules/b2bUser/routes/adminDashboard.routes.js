@@ -18,6 +18,7 @@ import {
     submitDocumentResubmission
 } from '../controllers/profile.controller.js';
 import * as rfqController from '../controllers/rfq.controller.js';
+import * as employeePurchase from '../controllers/employeePurchase.controller.js';
 import * as notificationController from '../../user/controllers/notification.controller.js';
 import { authenticate } from '../../../middlewares/authenticate.js';
 import { authorize } from '../../../middlewares/authorize.js';
@@ -44,6 +45,14 @@ router.get('/profile', requireAdmin, getAdminProfile);
 router.put('/profile', requireAdmin, updateAdminProfile);
 router.post('/profile/verify-otp', requireAdmin, verifyAdminProfileOTP);
 router.post('/profile/resend-otp', requireAdmin, resendAdminProfileOTP);
+
+// Employee purchase visibility (Admin only). Registered before the /employees/:id routes.
+router.get('/employees/purchases/summary', requireAdmin, employeePurchase.getPurchaseSummary);
+router.get('/employees/:id/overview', requireAdmin, employeePurchase.getEmployeeOverview);
+router.get('/employees/:id/orders', requireAdmin, employeePurchase.getEmployeeOrders);
+router.get('/employees/:id/orders/:orderId', requireAdmin, employeePurchase.getEmployeeOrderDetail);
+router.get('/employees/:id/returns', requireAdmin, employeePurchase.getEmployeeReturns);
+router.get('/employees/:id/wallet-transactions', requireAdmin, employeePurchase.getEmployeeWalletTransactions);
 
 // Employees (Admin only)
 router.get('/employees', requireAdmin, getEmployees);

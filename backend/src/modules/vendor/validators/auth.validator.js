@@ -19,6 +19,16 @@ export const registerSchema = Joi.object({
     state: Joi.string().trim().allow('').optional(),
     pincode: Joi.string().trim().allow('').optional(),
     address: Joi.any().optional(),
+    bankAccountName: Joi.string().trim().max(100).required(),
+    bankAccountNumber: Joi.string().trim().pattern(/^\d{9,18}$/).required()
+        .messages({ 'string.pattern.base': 'Account number must be 9 to 18 digits.' }),
+    bankName: Joi.string().trim().max(100).required(),
+    bankIfscCode: Joi.string().trim().uppercase().pattern(/^[A-Z]{4}0[A-Z0-9]{6}$/).required()
+        .messages({ 'string.pattern.base': 'Invalid IFSC code format.' }),
+    bankBranchName: Joi.string().trim().max(100).allow('').optional(),
+    bankAccountType: Joi.string().valid('Savings', 'Current', 'Other').required(),
+    bankUpiId: Joi.string().trim().allow('').optional(),
+    bankProofType: Joi.string().valid('bank_statement', 'cancelled_cheque').required(),
     registrationProofName: Joi.string().trim().allow('').optional(),
     registrationProofUrl: Joi.string().trim().allow('').optional(),
     registrationProofUploadedAt: Joi.any().optional(),

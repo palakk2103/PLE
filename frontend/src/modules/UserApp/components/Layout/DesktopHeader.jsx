@@ -32,6 +32,7 @@ const DesktopHeader = () => {
     };
     const navigate = useNavigate();
     const location = useLocation();
+    const isMarketplaceTab = location.pathname === '/home' && new URLSearchParams(location.search).get('tab') === 'marketplace';
     const { user, isAuthenticated, logout } = useAuthStore();
     const itemCount = useCartStore((state) => state.getItemCount());
     const wishlistCount = useWishlistStore((state) => state.getItemCount());
@@ -127,7 +128,7 @@ const DesktopHeader = () => {
     if (isBusiness) {
         return (
             <header className="hidden md:block sticky top-0 z-[999] bg-[#0d0d0d] text-white border-b border-zinc-800 shadow-lg">
-                <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 h-20 flex items-center justify-between gap-3 lg:gap-6">
+                <div className="w-full max-w-[1560px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 h-20 flex items-center justify-between gap-4 lg:gap-6 xl:gap-8">
                     {/* Logo & Hamburger */}
                     <div className="flex items-center gap-3 lg:gap-4 flex-shrink-0">
                         <Link to="/home" className="flex items-center gap-2">
@@ -152,14 +153,29 @@ const DesktopHeader = () => {
                     </div>
 
                     {/* Navigation Links */}
-                    <nav className="hidden lg:flex items-center gap-3 xl:gap-6 text-xs xl:text-sm font-semibold">
-                        <Link to="/home" className="text-white border-b-2 border-red-650 pb-1 px-1 transition-all">Home</Link>
-                        
+                    <nav className="hidden lg:flex items-center gap-5 xl:gap-8 text-xs xl:text-sm font-semibold whitespace-nowrap flex-shrink-0">
+                        <Link
+                            to="/home"
+                            className={`pb-1 px-1 border-b-2 transition-all ${isMarketplaceTab || location.pathname !== '/home' ? 'text-zinc-450 hover:text-white border-transparent' : 'text-white border-red-650'}`}
+                        >
+                            Home
+                        </Link>
+
+                        <Link
+                            to="/home?tab=marketplace"
+                            className={`pb-1 px-1 border-b-2 transition-all flex flex-col items-center leading-tight ${isMarketplaceTab ? 'text-white border-red-650' : 'text-zinc-450 hover:text-white border-transparent'}`}
+                        >
+                            <span className="text-[8px] uppercase font-normal opacity-70 tracking-wide">Other Shops</span>
+                            <span>Marketplace</span>
+                        </Link>
+
                         <Link to="/categories" className="relative group cursor-pointer text-zinc-450 hover:text-white transition-colors py-2 flex items-center gap-1">
                             <span>Categories</span>
                             <span className="text-[10px] opacity-70">▼</span>
                         </Link>
-                        
+
+                        <Link to="/offers" className="text-zinc-450 hover:text-white transition-colors py-2">Offers</Link>
+
                         <div className="relative group cursor-pointer text-zinc-450 hover:text-white transition-colors py-2 flex items-center gap-1">
                             <span>Brands by PLE</span>
                             <span className="bg-red-600 text-white text-[8px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider scale-90 origin-left animate-pulse">New</span>
@@ -184,7 +200,7 @@ const DesktopHeader = () => {
                     </nav>
 
                     {/* Search Bar */}
-                    <div className="flex-1 min-w-[120px] max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg relative flex items-center bg-zinc-900 border border-zinc-800 rounded-lg pl-3 pr-10 py-2">
+                    <div className="flex-1 min-w-[160px] max-w-xs xl:max-w-sm relative flex items-center bg-zinc-900 border border-zinc-800 rounded-lg pl-3 pr-10 py-2">
                         <input
                             type="text"
                             placeholder="Search products, brands, categories..."
@@ -196,7 +212,7 @@ const DesktopHeader = () => {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2 lg:gap-4">
+                    <div className="flex items-center gap-3 lg:gap-5 flex-shrink-0">
                         {/* RFQ Icon */}
                         <button 
                             onClick={handleRfqClick} 
@@ -397,8 +413,8 @@ const DesktopHeader = () => {
                         Offers
                     </Link>
                     {activeFestivalCampaign && (
-                        <Link 
-                            to="/festival-campaign" 
+                        <Link
+                            to="/festival-campaign"
                             className="px-2.5 xl:px-3 py-1.5 rounded-full bg-red-50 hover:bg-red-100/80 dark:bg-red-950/40 dark:hover:bg-red-900/50 text-[#7B0A0A] dark:text-red-400 font-bold text-xs xl:text-sm border border-red-200/80 dark:border-red-900/50 transition-all flex items-center gap-1.5 whitespace-nowrap shadow-xs"
                         >
                             <span>✨</span>

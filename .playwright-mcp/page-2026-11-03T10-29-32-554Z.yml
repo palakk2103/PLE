@@ -1,0 +1,107 @@
+- generic [ref=f1e2]:
+  - generic [ref=f1e3]:
+    - generic [ref=f1e5]:
+      - generic [ref=f1e13]:
+        - heading "Vera Electronics" [level=2] [ref=f1e14]
+        - paragraph [ref=f1e15]: vera@example.com
+      - navigation [ref=f1e16]:
+        - generic [ref=f1e17]: Dashboard
+        - generic [ref=f1e23]: Products
+        - generic [ref=f1e33]: Orders
+        - generic [ref=f1e42]: Customer RFQs
+        - generic [ref=f1e48]: B2B Enquiries
+        - generic [ref=f1e57]: Return Requests
+        - generic [ref=f1e64]: Product Reviews
+        - generic [ref=f1e69]: Stock Management
+        - generic [ref=f1e75]: Wallet History
+        - generic [ref=f1e80]: Chat
+        - generic [ref=f1e85]: Admin Support Chat
+        - generic [ref=f1e90]: Shipping Management
+        - generic [ref=f1e101]: Customers
+        - generic [ref=f1e109]: Inventory Reports
+        - generic [ref=f1e113]: Performance Metrics
+        - generic [ref=f1e119]: Documents
+        - generic [ref=f1e125]: Legal Documents
+        - generic [ref=f1e131]: Analytics
+        - generic [ref=f1e135]: Earnings
+        - generic [ref=f1e143]: Festival Campaigns
+        - generic [ref=f1e148]: Settings
+        - generic [ref=f1e157]: Profile
+        - generic [ref=f1e163]: Product Enquiries
+        - generic [ref=f1e168]: Source Now
+        - generic [ref=f1e174]: Support Escalations
+    - generic [ref=f1e179]:
+      - banner [ref=f1e180]:
+        - generic [ref=f1e181]:
+          - generic [ref=f1e182]:
+            - button "Toggle Sidebar" [ref=f1e183] [cursor=pointer]
+            - generic [ref=f1e185]:
+              - img "PLE Logo" [ref=f1e186]
+              - generic [ref=f1e187]:
+                - heading "Product-requests" [level=1] [ref=f1e188]
+                - paragraph [ref=f1e189]:
+                  - generic [ref=f1e193]: Vera Electronics
+          - generic [ref=f1e194]:
+            - button "Toggle theme" [ref=f1e195] [cursor=pointer]
+            - button [ref=f1e199] [cursor=pointer]
+            - button "Logout" [ref=f1e203] [cursor=pointer]
+      - main [ref=f1e208]:
+        - generic [ref=f1e210]:
+          - generic [ref=f1e211]:
+            - heading "Source Now" [level=1] [ref=f1e212]
+            - paragraph [ref=f1e213]: Respond to custom product requests from buyers on the marketplace
+          - generic [ref=f1e214]:
+            - generic [ref=f1e215]:
+              - generic [ref=f1e216]:
+                - button "all Requests" [ref=f1e217] [cursor=pointer]
+                - button "pending Requests" [ref=f1e218] [cursor=pointer]
+                - button "responded Requests" [ref=f1e219] [cursor=pointer]
+                - button "🏪 Open Windows" [ref=f1e220] [cursor=pointer]
+              - textbox "Search requests..." [ref=f1e225]
+            - generic [ref=f1e226]:
+              - button "All Channels" [ref=f1e227] [cursor=pointer]
+              - button "Marketplace Requests" [ref=f1e228] [cursor=pointer]
+              - button "Direct Requests" [ref=f1e229] [cursor=pointer]
+          - generic [ref=f1e231]:
+            - generic [ref=f1e232]:
+              - generic [ref=f1e233]:
+                - generic [ref=f1e234]: PR-E2E-1
+                - generic [ref=f1e235]:
+                  - generic [ref=f1e236]: Vendor Accepted
+                  - button "Details" [ref=f1e237] [cursor=pointer]
+              - generic [ref=f1e242]:
+                - generic [ref=f1e243]: S
+                - generic [ref=f1e244]:
+                  - heading "Studio Monitor" [level=3] [ref=f1e245]
+                  - generic [ref=f1e246]:
+                    - generic [ref=f1e247]: Electronics
+                    - generic [ref=f1e248]: 🌐 Marketplace Request
+              - generic [ref=f1e249]:
+                - generic [ref=f1e255]:
+                  - text: "Qty:"
+                  - strong [ref=f1e256]: "3"
+                - generic [ref=f1e260]:
+                  - text: "Budget:"
+                  - strong [ref=f1e261]: ₹9000
+                - generic [ref=f1e262]:
+                  - generic [ref=f1e263]: 11/3/2026
+                  - generic [ref=f1e266]: Cathy Customer
+              - generic [ref=f1e270]:
+                - paragraph [ref=f1e271]: "Specifications:"
+                - paragraph [ref=f1e272]: Need 3 studio monitors
+            - generic [ref=f1e280]:
+              - generic [ref=f1e281]:
+                - generic [ref=f1e282]: ✅ You accepted this request
+                - generic [ref=f1e283]: 6d 23h remaining
+              - paragraph [ref=f1e284]: Submit a quotation to the customer within your 7-day window.
+              - generic [ref=f1e285]:
+                - generic [ref=f1e286]: "Buyer: Cathy Customer"
+                - link "Email" [ref=f1e288] [cursor=pointer]:
+                  - /url: "mailto:cathy@example.com?subject=Regarding Product Request: Studio%20Monitor"
+            - generic [ref=f1e293]:
+              - button "📋 Submit Quotation" [ref=f1e294] [cursor=pointer]
+              - generic [ref=f1e295]:
+                - button "💬 Chat with Customer" [ref=f1e296] [cursor=pointer]
+                - button "+Days" [ref=f1e300] [cursor=pointer]
+                - button "Release" [ref=f1e304] [cursor=pointer]
+  - status [ref=f1e310]: ✅ Request accepted! You have 7 days to submit a quotation.

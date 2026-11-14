@@ -12,6 +12,7 @@ import ChatViolation from '../../../models/ChatViolation.model.js';
 import ChatReport from '../../../models/ChatReport.model.js';
 import ChatTransactionProposal from '../../../models/ChatTransactionProposal.model.js';
 import { decryptMessage } from '../../../utils/chatEncryption.util.js';
+import { normalizeReportReason } from '../../../utils/chatReport.util.js';
 
 const serializeMessage = (messageDoc) => ({
     id: messageDoc._id,
@@ -32,6 +33,8 @@ export const initiateVendorChat = asyncHandler(async (req, res) => {
         vendorId,
         customerUserId: req.user.id,
         orderRef: null,
+        productRequestRef: null,
+        isReleased: { $ne: true },
     });
 
     if (!thread) {
@@ -232,7 +235,7 @@ export const markCustomerChatRead = asyncHandler(async (req, res) => {
 // @desc    Report a chat message or vendor
 // @route   POST /api/user/chat/vendor/threads/:id/report
 export const reportCustomerChatMessage = asyncHandler(async (req, res) => {
-    const { messageId, reason, description } = req.body;
+    const { messageId, reason, description, details } = req.body;
     if (!reason) throw new ApiError(400, 'Reason is required.');
 
     const thread = await VendorChatThread.findOne({
@@ -255,8 +258,8 @@ export const reportCustomerChatMessage = asyncHandler(async (req, res) => {
         reporterType: 'customer',
         reportedUserId: thread.vendorId,
         reportedUserType: 'vendor',
-        reason,
-        description: description || '',
+        reason: normalizeReportReason(reason),
+        description: description || details || '',
     });
 
     res.status(201).json(new ApiResponse(201, report, 'Report submitted successfully.'));

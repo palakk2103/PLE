@@ -1,0 +1,187 @@
+- generic [ref=f1e3]:
+  - generic [ref=f1e5]:
+    - generic [ref=f1e13]:
+      - heading "E2E Managed" [level=2] [ref=f1e14]
+      - paragraph [ref=f1e15]: vendor@example.com
+    - navigation [ref=f1e16]:
+      - generic [ref=f1e17]: Dashboard
+      - generic [ref=f1e23]:
+        - generic [ref=f1e24] [cursor=pointer]: Products
+        - generic [ref=f1e34]:
+          - generic [ref=f1e35] [cursor=pointer]: Manage Products
+          - generic [ref=f1e36] [cursor=pointer]: Add Product
+          - generic [ref=f1e37] [cursor=pointer]: Bulk Upload Products
+          - generic [ref=f1e38] [cursor=pointer]: Add Refurbished Product
+      - generic [ref=f1e39]: Orders
+      - generic [ref=f1e48]: Return Requests
+      - generic [ref=f1e55]: Admin Support Chat
+      - generic [ref=f1e60]: Profile
+  - generic [ref=f1e66]:
+    - banner [ref=f1e67]:
+      - generic [ref=f1e68]:
+        - generic [ref=f1e69]:
+          - button "Toggle Sidebar" [ref=f1e70] [cursor=pointer]
+          - generic [ref=f1e72]:
+            - img "PLE Logo" [ref=f1e73]
+            - generic [ref=f1e74]:
+              - heading "Add-product" [level=1] [ref=f1e75]
+              - paragraph [ref=f1e76]:
+                - generic [ref=f1e80]: E2E Managed
+        - generic [ref=f1e81]:
+          - button "Toggle theme" [ref=f1e82] [cursor=pointer]
+          - button [ref=f1e86] [cursor=pointer]
+          - button "Logout" [ref=f1e90] [cursor=pointer]
+    - main [ref=f1e95]:
+      - generic [ref=f1e98]:
+        - navigation "Product form steps" [ref=f1e99]:
+          - list [ref=f1e100]:
+            - listitem [ref=f1e101]:
+              - button "1 1. Basic Information" [ref=f1e102] [cursor=pointer]:
+                - generic [ref=f1e103]: "1"
+                - generic [ref=f1e104]:
+                  - generic [ref=f1e105]: "1."
+                  - text: Basic Information
+            - listitem [ref=f1e107]:
+              - button "2 2. Specifications & Details" [ref=f1e108] [cursor=pointer]:
+                - generic [ref=f1e109]: "2"
+                - generic [ref=f1e110]:
+                  - generic [ref=f1e111]: "2."
+                  - text: Specifications & Details
+        - generic [ref=f1e112]:
+          - generic [ref=f1e116]:
+            - heading "Admin-Moderated Listing & Channel Placement" [level=4] [ref=f1e117]
+            - paragraph [ref=f1e118]: As a managed vendor, you only need to enter the standard product information and pricing. The admin will review your listing and assign where it should be published (B2C Marketplace, B2B Wholesale, or Both).
+          - generic [ref=f1e119]:
+            - heading "Basic Information" [level=2] [ref=f1e120]
+            - generic [ref=f1e121]:
+              - generic [ref=f1e122]:
+                - generic [ref=f1e123]: Product Name *
+                - textbox "Enter product name" [ref=f1e124]
+              - generic [ref=f1e125]:
+                - generic [ref=f1e126]: Unit
+                - combobox "e.g., Piece, Kilogram, Gram, Litre, Pair" [ref=f1e127]
+              - generic [ref=f1e129]:
+                - generic [ref=f1e130]:
+                  - generic [ref=f1e131]: Category *
+                  - button "+ Category not listed?" [ref=f1e132] [cursor=pointer]
+                - button "Select Category" [ref=f1e133] [cursor=pointer]
+              - generic [ref=f1e137]:
+                - generic [ref=f1e138]:
+                  - generic [ref=f1e139]: Brand
+                  - button "+ Brand not listed?" [ref=f1e140] [cursor=pointer]
+                - button "Select Brand" [ref=f1e142] [cursor=pointer]
+              - generic [ref=f1e147]:
+                - generic [ref=f1e148]: Description
+                - textbox "Enter product description..." [ref=f1e149]
+          - generic [ref=f1e150]:
+            - heading "Pricing" [level=2] [ref=f1e151]
+            - generic [ref=f1e152]:
+              - generic [ref=f1e153]:
+                - generic [ref=f1e154]: Price *
+                - spinbutton "0.00" [ref=f1e155]
+              - generic [ref=f1e156]:
+                - generic [ref=f1e157]: Original Price (for discount)
+                - spinbutton "0.00" [ref=f1e158]
+              - generic [ref=f1e159]:
+                - generic [ref=f1e160]:
+                  - generic [ref=f1e161]:
+                    - generic [ref=f1e162]: GST Rate Configuration
+                    - text: Choose Category GST or specify a custom rate for this product
+                  - generic [ref=f1e163]:
+                    - generic [ref=f1e164] [cursor=pointer]:
+                      - radio "Category Default (18%)" [checked] [ref=f1e165]
+                      - generic [ref=f1e166]: Category Default (18%)
+                    - generic [ref=f1e167] [cursor=pointer]:
+                      - radio "Custom Product Rate" [ref=f1e168]
+                      - generic [ref=f1e169]: Custom Product Rate
+                - generic [ref=f1e173]:
+                  - text: "Using category default rate:"
+                  - strong [ref=f1e174]: 18%
+                  - text: . You can customize category rates anytime in your
+                  - link "GST Settings" [ref=f1e175] [cursor=pointer]:
+                    - /url: /vendor/settings/gst
+                  - text: .
+          - generic [ref=f1e177]:
+            - heading "Product Condition Settings" [level=2] [ref=f1e178]
+            - paragraph [ref=f1e179]: Specify if this is a brand new, refurbished, renewed, or open-box item and configure its specs.
+            - generic [ref=f1e180]:
+              - button "Brand New Fresh out of the factory, original sealed packaging." [ref=f1e181] [cursor=pointer]:
+                - generic [ref=f1e182]: Brand New
+                - generic [ref=f1e183]: Fresh out of the factory, original sealed packaging.
+              - button "Refurbished Professionally restored, fully tested, and certified." [ref=f1e184] [cursor=pointer]:
+                - generic [ref=f1e185]: Refurbished
+                - generic [ref=f1e186]: Professionally restored, fully tested, and certified.
+              - button "Renewed Inspected and tested to look and work like new." [ref=f1e187] [cursor=pointer]:
+                - generic [ref=f1e188]: Renewed
+                - generic [ref=f1e189]: Inspected and tested to look and work like new.
+              - button "Open Box Unused product in an opened or damaged original retail box." [ref=f1e190] [cursor=pointer]:
+                - generic [ref=f1e191]: Open Box
+                - generic [ref=f1e192]: Unused product in an opened or damaged original retail box.
+          - generic [ref=f1e193]:
+            - heading "Product Media" [level=2] [ref=f1e194]
+            - generic [ref=f1e198]:
+              - generic [ref=f1e199]:
+                - heading "Main Image" [level=3] [ref=f1e200]
+                - generic [ref=f1e201]:
+                  - generic [ref=f1e202]: Upload Main Image
+                  - generic [ref=f1e203]: Choose Main Image
+              - generic [ref=f1e209]:
+                - heading "Product Gallery" [level=3] [ref=f1e210]
+                - generic [ref=f1e211]:
+                  - generic [ref=f1e212]: Upload Gallery Images (Multiple)
+                  - generic [ref=f1e213]: Choose Gallery Images
+          - generic [ref=f1e219]:
+            - heading "Inventory" [level=2] [ref=f1e220]
+            - generic [ref=f1e221]:
+              - generic [ref=f1e222]:
+                - generic [ref=f1e223]: Stock Quantity *
+                - spinbutton "0" [ref=f1e224]
+              - generic [ref=f1e225]:
+                - generic [ref=f1e226]: Stock Status
+                - button "In Stock" [ref=f1e228] [cursor=pointer]
+          - generic [ref=f1e233]:
+            - heading "Product Variants" [level=2] [ref=f1e234]
+            - generic [ref=f1e235]:
+              - generic [ref=f1e236]:
+                - generic [ref=f1e237]: Sizes
+                - generic [ref=f1e239]:
+                  - textbox "Type size and press Enter (e.g. S, M, L)" [ref=f1e240]
+                  - button "Add" [ref=f1e241] [cursor=pointer]
+              - generic [ref=f1e242]:
+                - generic [ref=f1e243]: Colors
+                - generic [ref=f1e245]:
+                  - textbox "Type color and press Enter (e.g. Red, Blue)" [ref=f1e246]
+                  - button "Add" [ref=f1e247] [cursor=pointer]
+              - generic [ref=f1e248]:
+                - generic [ref=f1e249]:
+                  - generic [ref=f1e250]: Dynamic Attributes (optional)
+                  - button "Add Attribute" [ref=f1e251] [cursor=pointer]
+                - paragraph [ref=f1e252]: "Example: RAM -> 8GB, 16GB | Storage -> 128GB, 256GB"
+          - generic [ref=f1e253]:
+            - heading "Tags" [level=2] [ref=f1e254]
+            - generic [ref=f1e255]:
+              - textbox "tag1, tag2, tag3" [ref=f1e256]
+              - paragraph [ref=f1e257]: Separate tags with commas
+          - generic [ref=f1e258]:
+            - heading "Product Options" [level=2] [ref=f1e259]
+            - generic [ref=f1e260]:
+              - generic [ref=f1e261] [cursor=pointer]:
+                - checkbox "Flash Sale" [ref=f1e262]
+                - generic [ref=f1e263]: Flash Sale
+              - generic [ref=f1e264] [cursor=pointer]:
+                - checkbox "New Arrival" [ref=f1e265]
+                - generic [ref=f1e266]: New Arrival
+              - generic [ref=f1e267] [cursor=pointer]:
+                - checkbox "Featured Product" [ref=f1e268]
+                - generic [ref=f1e269]: Featured Product
+              - generic [ref=f1e270] [cursor=pointer]:
+                - checkbox "Visible to Customers" [checked] [ref=f1e271]
+                - generic [ref=f1e272]: Visible to Customers
+          - generic [ref=f1e273]:
+            - generic [ref=f1e274]:
+              - heading "Product FAQs" [level=2] [ref=f1e275]
+              - button "Add FAQ" [ref=f1e276] [cursor=pointer]
+            - paragraph [ref=f1e278]: No FAQs added yet.
+        - generic [ref=f1e279]:
+          - button "Cancel" [ref=f1e280] [cursor=pointer]
+          - 'button "Next: Specifications & Details" [ref=f1e281] [cursor=pointer]'

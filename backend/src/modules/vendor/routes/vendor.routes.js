@@ -198,6 +198,17 @@ router.post('/uploads/images', ...vendorAuth, uploadMultiple('images', 8), uploa
 
 // RFQ routes (protected Vendor)
 import * as vendorRfqController from '../controllers/vendorRfq.controller.js';
+
+// Consumer RFQ (customers -> this vendor's own products)
+import * as vendorConsumerRfq from '../controllers/consumerRfq.controller.js';
+import * as crv from '../../user/validators/consumerRfq.validator.js';
+const crfqId = validate(crv.idParamSchema, 'params');
+router.get('/consumer-rfq', ...strictVendorAuth, validate(crv.listQuerySchema, 'query'), vendorConsumerRfq.list);
+router.get('/consumer-rfq/:id', ...strictVendorAuth, crfqId, vendorConsumerRfq.detail);
+router.post('/consumer-rfq/:id/quote', ...strictVendorAuth, crfqId, validate(crv.quoteSchema), vendorConsumerRfq.quote);
+router.post('/consumer-rfq/:id/accept-offer', ...strictVendorAuth, crfqId, validate(crv.noteSchema), vendorConsumerRfq.acceptOffer);
+router.post('/consumer-rfq/:id/reject', ...strictVendorAuth, crfqId, validate(crv.noteSchema), vendorConsumerRfq.reject);
+router.post('/consumer-rfq/:id/message', ...strictVendorAuth, crfqId, validate(crv.messageSchema), vendorConsumerRfq.message);
 import * as vendorDirectRfqController from '../controllers/vendorDirectRfq.controller.js';
 
 router.get('/rfq', ...strictVendorAuth, vendorRfqController.getVendorRFQs);

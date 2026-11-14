@@ -1,0 +1,17 @@
+[     588ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:3055/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:21550
+[     819ms] [LOG] ✅ Service Worker registered: ServiceWorkerRegistration @ http://localhost:3055/src/services/pushNotificationService.js:10
+[     819ms] [LOG] ❌ Notification permission denied @ http://localhost:3055/src/services/pushNotificationService.js:29
+[     819ms] [WARNING] ℹ️ Notification permission not granted by user. @ http://localhost:3055/src/services/pushNotificationService.js:75
+[     820ms] [LOG] ✅ Service Worker registered: ServiceWorkerRegistration @ http://localhost:3055/src/services/pushNotificationService.js:10
+[     849ms] [LOG] ❌ Notification permission denied @ http://localhost:3055/src/services/pushNotificationService.js:29
+[     849ms] [WARNING] ℹ️ Notification permission not granted by user. @ http://localhost:3055/src/services/pushNotificationService.js:75
+[     852ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5055/api/admin/settings/general:0
+[     858ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5055/api/admin/settings/email:0
+[     859ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5055/api/admin/settings/notifications:0
+[     865ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5055/api/admin/settings/general:0
+[     866ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5055/api/admin/settings/email:0
+[     869ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5055/api/admin/settings/notifications:0
+[     893ms] [LOG] Socket connected: ZRUbxZr_thUDpUbgAAAJ @ http://localhost:3055/src/shared/utils/socket.js:49
+[   62804ms] [LOG] Socket disconnected @ http://localhost:3055/src/shared/utils/socket.js:53
+[   63331ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3055/@vite/client:559
+[   63340ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3055/:0

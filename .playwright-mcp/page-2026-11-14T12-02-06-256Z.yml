@@ -1,0 +1,38 @@
+- generic [ref=f18e4]:
+  - button "Go Back" [ref=f18e5] [cursor=pointer]
+  - button "Toggle theme" [ref=f18e8] [cursor=pointer]
+  - generic [ref=f18e11]:
+    - img "PLE Logo" [ref=f18e13]
+    - heading "PLE Admin Portal" [level=1] [ref=f18e14]
+    - paragraph [ref=f18e15]: Authorized Personnel Terminal & Organizational Gateway
+  - generic [ref=f18e16]:
+    - button "Super Admin" [ref=f18e17] [cursor=pointer]
+    - button "Account Team" [ref=f18e21] [cursor=pointer]
+  - generic [ref=f18e27]:
+    - generic [ref=f18e28]:
+      - generic [ref=f18e29]: Super Admin Identity ID *
+      - textbox "e.g. PLE-SA-000001" [ref=f18e33]
+    - generic [ref=f18e34]:
+      - generic [ref=f18e35]: Corporate / Domain Email
+      - textbox "admin@admin.com" [ref=f18e40]: MCP Owner
+    - generic [ref=f18e41]:
+      - generic [ref=f18e42]: Domain Password *
+      - generic [ref=f18e43]:
+        - textbox "Enter super admin password" [ref=f18e47]: secret123
+        - button [ref=f18e48] [cursor=pointer]
+    - generic [ref=f18e52]:
+      - generic [ref=f18e53]: Personal Secret Code *
+      - generic [ref=f18e54]:
+        - textbox "Enter super admin personal secret" [ref=f18e57]
+        - button [ref=f18e58] [cursor=pointer]
+    - generic [ref=f18e63] [cursor=pointer]:
+      - checkbox "Remember terminal session" [ref=f18e64]
+      - generic [ref=f18e65]: Remember terminal session
+    - button "AUTHENTICATE SUPER ADMIN TERMINAL" [ref=f18e66] [cursor=pointer]
+  - generic [ref=f18e70]:
+    - paragraph [ref=f18e71]:
+      - generic [ref=f18e72]: "Terminal Access Credentials (DEV ONLY):"
+      - generic [ref=f18e73]: DEV MODE
+    - generic [ref=f18e74]:
+      - paragraph [ref=f18e75]: "Super Admin: ID: PLE-SA-000001 | Pass: admin@123 | Secret: PLE#Sec99"
+      - paragraph [ref=f18e76]: "Account Team: ID: PLE-EMP-000001 | Pass: TempPassword@123 | Secret: PLE#Sec99"

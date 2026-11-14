@@ -597,6 +597,14 @@ const MobileProfile = () => {
         link: "/product-requests",
       },
       {
+        id: "consumer-rfqs",
+        label: "My Quotation Requests",
+        icon: FiFileText,
+        color: "text-[#7B0A0A]",
+        bg: "bg-[#7B0A0A]/10",
+        link: "/consumer-rfqs",
+      },
+      {
         id: "addresses",
         label: "My Addresses",
         icon: FiMapPin,
@@ -1583,6 +1591,103 @@ const MobileProfile = () => {
                         <p className="text-gray-600">Email: <span className="font-bold text-gray-850 break-all">{company.admin?.email || user?.email}</span></p>
                         <p className="text-gray-600">Phone: <span className="font-bold text-gray-855 break-all">{company.admin?.phone || user?.phone}</span></p>
                       </div>
+
+                      {/* Registration details (read-only) */}
+                      {(() => {
+                        const sig = company.authorisedSignatory || {};
+                        const adm = company.adminInfo || {};
+                        const addr = company.addressDetails || {};
+                        const gst = company.gstDetails || {};
+                        const bank = company.bankDetails || {};
+                        const Row = ({ label, value }) => value ? (
+                          <p className="text-gray-600">{label}: <span className="font-bold text-gray-850 break-words">{String(value)}</span></p>
+                        ) : null;
+                        const Section = ({ title, children }) => (
+                          <div className="bg-gray-50 p-4 rounded-xl border space-y-2">
+                            <h4 className="font-bold text-gray-700">{title}</h4>
+                            {children}
+                          </div>
+                        );
+                        const docs = [
+                          ['GST Certificate', company.gstCertificate],
+                          ['Company Registration Proof', company.companyRegistrationProof],
+                          ['Address Proof', company.addressProof],
+                          [company.bankDocumentType === 'cancelled_cheque' ? 'Cancelled Cheque' : 'Bank Statement', company.bankStatement],
+                          ['Cancelled Cheque', company.cancelledCheque],
+                          ['Signatory Identity Document', sig.identityDocument],
+                          ['Authorisation Document (Authorisation Letter / Seal)', sig.authorisationDocument],
+                          ['Acceptance / Execution Document', company.acceptanceExecutionDocument],
+                        ].filter(([, d]) => d?.url);
+                        return (
+                          <>
+                            {(company.companyRegistrationNumber || company.gstRegistered !== undefined || gst.legalName || gst.registrationType || gst.state || addr.line1 || addr.line2 || addr.city || addr.state || addr.country || addr.pincode) && (
+                            <Section title="Registration Details">
+                              <Row label="Registration Number" value={company.companyRegistrationNumber} />
+                              <Row label="GST Registered" value={company.gstRegistered === undefined ? '' : (company.gstRegistered ? 'Yes' : 'No')} />
+                              <Row label="GST Legal Name" value={gst.legalName} />
+                              <Row label="GST Registration Type" value={gst.registrationType} />
+                              <Row label="GST State" value={gst.state} />
+                              <Row label="Address Line 1" value={addr.line1} />
+                              <Row label="Address Line 2" value={addr.line2} />
+                              <Row label="City" value={addr.city} />
+                              <Row label="State" value={addr.state} />
+                              <Row label="Country" value={addr.country} />
+                              <Row label="Pincode" value={addr.pincode} />
+                            </Section>
+                            )}
+                            {(sig.fullName || sig.email || sig.mobile) && (
+                              <Section title="Authorised Signatory">
+                                <Row label="Name" value={sig.fullName} />
+                                <Row label="Designation" value={sig.designation} />
+                                <Row label="Email" value={sig.email} />
+                                <Row label="Mobile" value={sig.mobile} />
+                                <Row label="Declaration Accepted" value={sig.declaration?.accepted ? 'Yes' : ''} />
+                              </Section>
+                            )}
+                            {(adm.name || adm.email || adm.phone) && (
+                              <Section title="Admin Details (Registration)">
+                                <Row label="Name" value={adm.name} />
+                                <Row label="Designation" value={adm.designation} />
+                                <Row label="Email" value={adm.email} />
+                                <Row label="Phone" value={adm.phone} />
+                              </Section>
+                            )}
+                            {(bank.bankName || bank.accountNumber) && (
+                              <Section title="Bank Details">
+                                <Row label="Account Holder" value={bank.accountHolderName} />
+                                <Row label="Bank" value={bank.bankName} />
+                                <Row label="Account Number" value={bank.accountNumber} />
+                                <Row label="IFSC" value={bank.ifscCode} />
+                                <Row label="Branch" value={bank.branchName} />
+                              </Section>
+                            )}
+                            <Section title="Uploaded Documents">
+                              {docs.length === 0 ? (
+                                <p className="text-gray-500">No documents uploaded.</p>
+                              ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                  {docs.map(([label, d]) => (
+                                    <div key={label} className="flex items-center justify-between gap-2 bg-white border rounded-lg p-3">
+                                      <div className="min-w-0">
+                                        <p className="font-bold text-gray-800">{label}</p>
+                                        <p className="text-[11px] text-gray-500 truncate">{d.fileName || 'Document'}</p>
+                                      </div>
+                                      <a
+                                        href={d.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="px-3 py-1.5 bg-[#AE020B] text-white rounded-lg text-[11px] font-bold shrink-0"
+                                      >
+                                        View
+                                      </a>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </Section>
+                          </>
+                        );
+                      })()}
 
                       {isEditingCompany && (
                         <div className="flex gap-2">

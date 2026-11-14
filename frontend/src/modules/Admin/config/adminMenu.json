@@ -6,6 +6,18 @@
     "children": []
   },
   {
+    "title": "Consumer RFQs",
+    "route": "/ple-ops-desk/consumer-rfqs",
+    "icon": "Consumer RFQs",
+    "children": []
+  },
+  {
+    "title": "Source Now",
+    "route": "/ple-ops-desk/product-requests",
+    "icon": "Source Now",
+    "children": []
+  },
+  {
     "title": "Account Team",
     "route": "/ple-ops-desk/account-team",
     "icon": "Account Team",
@@ -138,10 +150,6 @@
       {
         "title": "Product Enquiries",
         "route": "/ple-ops-desk/product-enquiries"
-      },
-      {
-        "title": "Source Now",
-        "route": "/ple-ops-desk/product-requests"
       }
     ]
   },

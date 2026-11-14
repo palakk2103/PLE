@@ -9,14 +9,78 @@ import { signPreAuthToken, send2FAOtp } from '../../../services/twoFactor.servic
 import crypto from 'crypto';
 import { sendEmail } from '../../../services/email.service.js';
 import { uploadLocalFileToCloudinaryAndCleanupWithType } from '../../../services/upload.service.js';
+import B2BRegistrationDraft from '../../../models/B2BRegistrationDraft.model.js';
+import {
+    validateV2Registration, sanitizeDoc, normalizeMobile, matchesMagicBytes
+} from '../../../services/b2bRegistration.service.js';
+import fs from 'fs/promises';
+import path from 'path';
 
+
+// Extra fields persisted for the v2 registration. GST data is dropped entirely when the user declared "no GST".
+const buildV2CompanyFields = ({ companyData, signatoryData, adminData, draft }) => {
+    const a = companyData.addressDetails || {};
+    const b = companyData.bankDetails || {};
+    const gst = companyData.gstRegistered === true;
+    const bankDoc = sanitizeDoc(companyData.bankDocument);
+    const isStatement = companyData.bankDocumentType === 'bank_statement';
+    return {
+        companyRegistrationNumber: companyData.companyRegistrationNumber || undefined,
+        gstRegistered: gst,
+        gstDetails: gst
+            ? { legalName: companyData.gstDetails?.legalName, registrationType: companyData.gstDetails?.registrationType, state: companyData.gstDetails?.state }
+            : undefined,
+        gstCertificate: gst ? sanitizeDoc(companyData.gstCertificate) : undefined,
+        addressDetails: { line1: a.line1, line2: a.line2, country: a.country, state: a.state, city: a.city, pincode: a.pincode },
+        addressProof: sanitizeDoc(companyData.addressProof),
+        bankDetails: {
+            accountHolderName: b.accountHolderName, bankName: b.bankName, accountNumber: b.accountNumber,
+            ifscCode: String(b.ifscCode || '').toUpperCase(), accountType: b.accountType, branchName: b.branchName
+        },
+        bankDocumentType: companyData.bankDocumentType,
+        cancelledCheque: isStatement ? undefined : bankDoc,
+        bankStatement: isStatement ? bankDoc : undefined,
+        authorisedSignatory: {
+            fullName: signatoryData.fullName,
+            designation: signatoryData.designation,
+            email: signatoryData.email,
+            mobile: normalizeMobile(signatoryData.mobile),
+            identityDocument: sanitizeDoc(signatoryData.identityDocument),
+            authorisationDocument: sanitizeDoc(signatoryData.authorisationDocument),
+            declaration: { accepted: signatoryData.declarationAccepted === true, acceptedAt: new Date() }
+        },
+        adminInfo: {
+            sameAsSignatory: adminData.sameAsSignatory === true,
+            name: adminData.adminName, email: adminData.adminEmail, phone: normalizeMobile(adminData.adminPhone),
+            designation: adminData.designation
+        },
+        registrationInfo: { version: 2, submittedAt: new Date(), draftId: draft?._id }
+    };
+};
 
 // POST /api/b2b-user/auth/register
 export const registerB2BUser = asyncHandler(async (req, res) => {
-    const { companyData, adminData, employees } = req.body;
+    const { companyData, adminData, employees, signatoryData, draftToken } = req.body;
+    // version 2 = the 4-step registration (address/bank/GST/signatory). Legacy payloads keep working unchanged.
+    const isV2 = Number(req.body.version) === 2;
 
     if (!companyData || !adminData) {
         throw new ApiError(400, 'Company and Admin data must be provided.');
+    }
+
+    if (isV2) {
+        if (!signatoryData) throw new ApiError(400, 'Authorised signatory details must be provided.');
+        // "Same as Authorised Signatory": the server fills any blank admin field from the signatory record.
+        if (adminData.sameAsSignatory) {
+            adminData.adminName = adminData.adminName || signatoryData.fullName;
+            adminData.adminEmail = adminData.adminEmail || signatoryData.email;
+            adminData.adminPhone = adminData.adminPhone || signatoryData.mobile;
+            adminData.designation = adminData.designation || signatoryData.designation;
+        }
+        const v2Errors = validateV2Registration({ companyData, signatoryData, adminData });
+        if (v2Errors.length) {
+            throw new ApiError(400, v2Errors.map((e) => e.message).join(' '), v2Errors);
+        }
     }
 
     const { 
@@ -33,7 +97,13 @@ export const registerB2BUser = asyncHandler(async (req, res) => {
     } = companyData;
     const { adminName, adminEmail, adminPhone, password } = adminData;
 
-    if (!companyName || !gstNumber || !businessEmail || !businessPhone || !businessAddress || !businessType) {
+    const gstOptional = isV2 && companyData.gstRegistered === false;
+    const addr = companyData.addressDetails || {};
+    const composedAddress = isV2
+        ? [addr.line1, addr.line2, addr.city, addr.state, addr.pincode, addr.country].filter(Boolean).join(', ')
+        : businessAddress;
+
+    if (!companyName || (!gstNumber && !gstOptional) || !businessEmail || !businessPhone || !composedAddress || !businessType) {
         throw new ApiError(400, 'All required company fields must be provided.');
     }
 
@@ -48,6 +118,15 @@ export const registerB2BUser = asyncHandler(async (req, res) => {
 
     if (!adminName || !adminEmail || !adminPhone || !password) {
         throw new ApiError(400, 'All required admin fields must be provided.');
+    }
+
+    // The draft (if any) must belong to this registration email and the caller must own it.
+    let draft = null;
+    if (draftToken) {
+        draft = await B2BRegistrationDraft.findOne({ email: businessEmail.toLowerCase() }).select('+tokenHash');
+        if (!draft || draft.tokenHash !== crypto.createHash('sha256').update(String(draftToken)).digest('hex')) {
+            throw new ApiError(403, 'Draft ownership could not be verified. Resume your draft again.');
+        }
     }
 
     const existingCompany = await B2BCompany.findOne({ businessEmail: businessEmail.toLowerCase() });
@@ -66,16 +145,17 @@ export const registerB2BUser = asyncHandler(async (req, res) => {
     // 1. Create Company
     const b2bCompany = await B2BCompany.create({
         companyName,
-        gstNumber,
+        gstNumber: gstOptional ? '' : gstNumber,
         businessEmail,
         businessPhone,
-        companyAddress: businessAddress,
+        companyAddress: composedAddress,
         companyType: businessType,
         website,
         ownerSecretKey: secretKey,
         verificationStatus,
         acceptanceExecutionDocument,
-        ...(companyRegistrationProof ? { companyRegistrationProof } : {})
+        ...(companyRegistrationProof ? { companyRegistrationProof } : {}),
+        ...(isV2 ? buildV2CompanyFields({ companyData, signatoryData, adminData, draft }) : {})
     });
 
 
@@ -84,13 +164,17 @@ export const registerB2BUser = asyncHandler(async (req, res) => {
         companyId: b2bCompany._id,
         name: companyName,
         email: adminEmail,
-        phone: adminPhone,
+        phone: isV2 ? normalizeMobile(adminPhone) : adminPhone,
         password,
         role: 'b2bAdmin',
         b2bRole: 'Admin',
         isVerified: true,
         isActive: true
     });
+
+    if (draft) {
+        await B2BRegistrationDraft.deleteOne({ _id: draft._id });
+    }
 
     // Send email to Admin
     try {
@@ -318,3 +402,29 @@ export const uploadB2BRegistrationDocument = asyncHandler(async (req, res) => {
 });
 
 
+
+// POST /api/b2b-user/auth/upload-registration-doc  (PDF / JPG / PNG, 5MB; magic bytes verified)
+export const uploadB2BRegistrationDoc = asyncHandler(async (req, res) => {
+    if (!req.file) {
+        throw new ApiError(400, 'No file uploaded.');
+    }
+    const ext = path.extname(req.file.originalname || '').slice(1).toLowerCase();
+    const fd = await fs.open(req.file.path, 'r');
+    const head = Buffer.alloc(8);
+    await fd.read(head, 0, 8, 0);
+    await fd.close();
+    if (!matchesMagicBytes(head, ext)) {
+        await fs.unlink(req.file.path).catch(() => {});
+        throw new ApiError(400, 'File content does not match its extension.');
+    }
+    const result = await uploadLocalFileToCloudinaryAndCleanupWithType(req.file.path, 'b2b/registration_docs', 'auto');
+    res.status(200).json(
+        new ApiResponse(200, {
+            url: result.url,
+            fileName: req.file.originalname,
+            mimeType: req.file.mimetype,
+            size: req.file.size,
+            uploadedAt: new Date()
+        }, 'Document uploaded successfully.')
+    );
+});

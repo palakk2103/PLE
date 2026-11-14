@@ -61,6 +61,7 @@ const iconMap = {
   "B2B Marketplace": FiBriefcase,
   "B2B Users": FiUsers,
   "RFQ Management": FiInbox,
+  "Consumer RFQs": FiFileText,
   "Product Enquiries": FiMessageCircle,
   "Source Now": FiInbox,
   "Product Requests": FiInbox,

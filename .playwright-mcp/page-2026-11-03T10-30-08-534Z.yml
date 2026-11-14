@@ -1,0 +1,117 @@
+- generic [ref=f2e4]:
+  - main [ref=f2e5]:
+    - generic [ref=f2e7]:
+      - generic [ref=f2e8]:
+        - generic [ref=f2e9]:
+          - generic [ref=f2e10]:
+            - button [ref=f2e11] [cursor=pointer]
+            - generic [ref=f2e20]:
+              - heading "Vera Electronics" [level=1] [ref=f2e22]
+              - paragraph [ref=f2e26]: Official Seller Store
+          - button "Chat options" [ref=f2e29] [cursor=pointer]
+        - generic [ref=f2e34]:
+          - generic [ref=f2e35]: Direct Store Inquiry Room
+          - generic [ref=f2e36]:
+            - paragraph [ref=f2e38]: "Chat opened for product request #PR-E2E-1 — \"Studio Monitor\" (Qty: 3). Please discuss product specifications, pricing, and delivery details here."
+            - generic [ref=f2e39]: 03:59 PM
+        - generic [ref=f2e40]: "Safety Tip: Never share phone numbers or make direct payments outside the app."
+        - generic [ref=f2e45]:
+          - textbox "Ask about stock, sizes, custom orders..." [ref=f2e46]
+          - button [disabled] [ref=f2e47]
+      - generic [ref=f2e52]:
+        - generic [ref=f2e58]:
+          - heading "Transaction Box" [level=2] [ref=f2e59]
+          - paragraph [ref=f2e60]: Official In-Chat Order Agreement
+        - generic [ref=f2e67]:
+          - heading "No Active Proposal" [level=3] [ref=f2e68]
+          - paragraph [ref=f2e69]: Discuss product requirements with the store. The seller will register an agreed proposal here.
+        - generic [ref=f2e70]: Official transaction recorded for buyer & seller safety.
+  - contentinfo [ref=f2e75]:
+    - generic [ref=f2e77]:
+      - generic [ref=f2e78]:
+        - link "PLE Logo TM" [ref=f2e79] [cursor=pointer]:
+          - /url: /home
+          - generic [ref=f2e80]:
+            - img "PLE Logo" [ref=f2e81]
+            - generic [ref=f2e82]: TM
+        - paragraph [ref=f2e83]: Your destination for electronics across consumer, business, and specialized sourcing needs — from everyday tech and accessories to enterprise procurement solutions.
+        - generic [ref=f2e84]:
+          - link [ref=f2e85] [cursor=pointer]:
+            - /url: https://www.facebook.com/share/1EaNrat2yr/
+          - link [ref=f2e88] [cursor=pointer]:
+            - /url: https://www.instagram.com/peoplesleagueofelectronics?igsh=MWdtbTNzajdqMGV4cQ==
+          - link [ref=f2e92] [cursor=pointer]:
+            - /url: https://x.com/PeoplesE9405
+          - link [ref=f2e95] [cursor=pointer]:
+            - /url: https://www.linkedin.com/company/ple-electronics
+      - generic [ref=f2e100]:
+        - heading "Quick Links" [level=3] [ref=f2e101]
+        - list [ref=f2e102]:
+          - listitem [ref=f2e103]:
+            - link "Home" [ref=f2e104] [cursor=pointer]:
+              - /url: /home
+          - listitem [ref=f2e105]:
+            - link "Categories" [ref=f2e106] [cursor=pointer]:
+              - /url: /categories
+          - listitem [ref=f2e107]:
+            - link "Offers" [ref=f2e108] [cursor=pointer]:
+              - /url: /offers
+          - listitem [ref=f2e109]:
+            - link "Refurbished" [ref=f2e110] [cursor=pointer]:
+              - /url: /refurbished-categories
+          - listitem [ref=f2e111]:
+            - link "My Profile" [ref=f2e112] [cursor=pointer]:
+              - /url: /profile
+          - listitem [ref=f2e113]:
+            - link "About Us" [ref=f2e114] [cursor=pointer]:
+              - /url: /about-us
+      - generic [ref=f2e115]:
+        - heading "Customer Support" [level=3] [ref=f2e116]
+        - list [ref=f2e117]:
+          - listitem [ref=f2e118]:
+            - link "Help & Support" [ref=f2e119] [cursor=pointer]:
+              - /url: /help-support
+          - listitem [ref=f2e120]:
+            - link "Privacy Policy" [ref=f2e121] [cursor=pointer]:
+              - /url: /privacy-policy
+          - listitem [ref=f2e122]:
+            - link "Terms & Conditions" [ref=f2e123] [cursor=pointer]:
+              - /url: /terms-conditions
+          - listitem [ref=f2e124]:
+            - link "Return Policy" [ref=f2e125] [cursor=pointer]:
+              - /url: /return-policy
+          - listitem [ref=f2e126]:
+            - link "Warranty Policy" [ref=f2e127] [cursor=pointer]:
+              - /url: /warranty-policy
+          - listitem [ref=f2e128]:
+            - link "Business Onboarding Policy" [ref=f2e129] [cursor=pointer]:
+              - /url: /business-onboarding-policy
+          - listitem [ref=f2e130]:
+            - link "Execution & Acceptance Policy" [ref=f2e131] [cursor=pointer]:
+              - /url: /execution-acceptance-policy
+          - listitem [ref=f2e132]:
+            - link "Shipping and Delivery Policy" [ref=f2e133] [cursor=pointer]:
+              - /url: /shipping-and-delivery-policy
+          - listitem [ref=f2e134]:
+            - link "User Agreement" [ref=f2e135] [cursor=pointer]:
+              - /url: /user-agreement
+      - generic [ref=f2e136]:
+        - generic [ref=f2e137]:
+          - heading "Subscribe to Newsletter" [level=3] [ref=f2e138]
+          - paragraph [ref=f2e139]: Be the first to hear about special offers, new arrivals, and events.
+          - generic [ref=f2e140]:
+            - textbox "Enter email address" [ref=f2e141]
+            - button [ref=f2e142] [cursor=pointer]
+        - generic [ref=f2e146]:
+          - generic [ref=f2e147]: support@peoplesleagueofelectronics.com
+          - generic [ref=f2e152]: +91 9071149300
+          - generic [ref=f2e156]: SHOP NO.25, R S NO.1045/3, 2ND CROSS, UJWAL NAGAR, Belgaum Fort, Karnataka, India,590016
+    - generic [ref=f2e162]:
+      - generic [ref=f2e163]: © 2026 PLE Inc. All rights reserved.
+      - generic [ref=f2e164]:
+        - link "Privacy" [ref=f2e165] [cursor=pointer]:
+          - /url: /privacy-policy
+        - link "Terms" [ref=f2e166] [cursor=pointer]:
+          - /url: /terms-conditions
+        - link "Sitemap" [ref=f2e167] [cursor=pointer]:
+          - /url: /help-support

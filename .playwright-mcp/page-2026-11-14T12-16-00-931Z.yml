@@ -1,0 +1,137 @@
+- generic [ref=f23e3]:
+  - generic [ref=f23e5]:
+    - generic [ref=f23e13]:
+      - heading "Super Admin" [level=2] [ref=f23e14]
+      - generic [ref=f23e15]:
+        - paragraph [ref=f23e16]: PLE-SA-000001
+        - generic [ref=f23e17]: Super Admin
+    - navigation [ref=f23e18]:
+      - generic [ref=f23e19]: Dashboard
+      - generic [ref=f23e25]: Consumer RFQs
+      - generic [ref=f23e31]: Source Now
+      - generic [ref=f23e37]: Account Team
+      - generic [ref=f23e48]: Customers
+      - generic [ref=f23e59]: Vendors / Sellers
+      - generic [ref=f23e70]: In-House Shops & Staff
+      - generic [ref=f23e79]: Products & Catalogue
+      - generic [ref=f23e89]:
+        - generic [ref=f23e90] [cursor=pointer]: Orders & Fulfilment
+        - generic [ref=f23e99]:
+          - generic [ref=f23e100] [cursor=pointer]: All Orders
+          - generic [ref=f23e101] [cursor=pointer]: Order Tracking
+          - generic [ref=f23e102] [cursor=pointer]: Return Requests
+      - generic [ref=f23e103]: Delivery Management
+      - generic [ref=f23e114]: B2B Marketplace
+      - generic [ref=f23e123]: Refurbished Mkt
+      - generic [ref=f23e133]: Marketing & Offers
+      - generic [ref=f23e143]: Finance & Wallet
+      - generic [ref=f23e150]: Loyalty Program
+      - generic [ref=f23e159]: Support Desk
+      - generic [ref=f23e167]: Reports & Analytics
+      - generic [ref=f23e176]: Notifications
+      - generic [ref=f23e185]: CMS & Web Pages
+      - generic [ref=f23e194]: Settings & Policies
+  - generic [ref=f23e203]:
+    - banner [ref=f23e204]:
+      - generic [ref=f23e205]:
+        - generic [ref=f23e207]:
+          - img "PLE Logo" [ref=f23e208]
+          - generic [ref=f23e209]:
+            - heading "6af84a4b3c88a44be6c22b5d" [level=1] [ref=f23e210]
+            - paragraph [ref=f23e211]: Welcome back! Here's your business overview.
+        - generic [ref=f23e212]:
+          - button "Toggle theme" [ref=f23e213] [cursor=pointer]
+          - button [ref=f23e217] [cursor=pointer]
+          - button "Logout" [ref=f23e222] [cursor=pointer]
+    - main [ref=f23e227]:
+      - generic [ref=f23e229]:
+        - generic [ref=f23e230]:
+          - generic [ref=f23e231]:
+            - button [ref=f23e232] [cursor=pointer]
+            - generic [ref=f23e235]:
+              - heading "RET-1794656842806-S1ZW" [level=1] [ref=f23e236]
+              - paragraph [ref=f23e237]: Requested on Nov 14, 2026, 05:17 PM
+          - generic [ref=f23e238]:
+            - generic [ref=f23e239]: completed
+            - button "Edit Status" [ref=f23e240] [cursor=pointer]
+        - generic [ref=f23e249]:
+          - generic [ref=f23e250]:
+            - generic [ref=f23e251]:
+              - heading "Return Overview" [level=2] [ref=f23e252]
+              - generic [ref=f23e257]:
+                - generic [ref=f23e258]:
+                  - paragraph [ref=f23e259]: Refund Amount
+                  - paragraph [ref=f23e260]: ₹320
+                - generic [ref=f23e261]:
+                  - paragraph [ref=f23e262]: Items
+                  - paragraph [ref=f23e263]: "1"
+                - generic [ref=f23e264]:
+                  - paragraph [ref=f23e265]: Refund Status
+                  - generic [ref=f23e266]: processed
+            - generic [ref=f23e267]:
+              - heading "Original Order" [level=2] [ref=f23e268]
+              - 'link "View Order: ORD-1794656799335-DKY0" [ref=f23e272] [cursor=pointer]':
+                - /url: /ple-ops-desk/orders/ORD-1794656799335-DKY0
+              - paragraph [ref=f23e276]: "Invoice Number: INV-202611-DKY0"
+            - generic [ref=f23e277]:
+              - heading "Items Being Returned (1)" [level=2] [ref=f23e278]
+              - generic [ref=f23e284]:
+                - img "USB Wired Optical Mouse" [ref=f23e285]
+                - generic [ref=f23e286]:
+                  - paragraph [ref=f23e287]: USB Wired Optical Mouse
+                  - paragraph [ref=f23e288]: "Order Item: 6af84a1f3c88a44be6c22ae1 · Product: 6ada3975fdcdfc17957474c2"
+                  - generic [ref=f23e289]:
+                    - paragraph [ref=f23e290]: ₹160 × 2
+                    - generic [ref=f23e291]: Defective
+                - paragraph [ref=f23e292]: ₹320
+            - generic [ref=f23e293]:
+              - heading "Return Reason" [level=2] [ref=f23e294]
+              - generic [ref=f23e298]:
+                - paragraph [ref=f23e299]: Reason
+                - paragraph [ref=f23e300]: Two mice arrived with broken scroll wheels
+            - generic [ref=f23e301]:
+              - heading "Customer Information" [level=2] [ref=f23e302]
+              - generic [ref=f23e306]:
+                - generic [ref=f23e307]:
+                  - paragraph [ref=f23e308]: Name
+                  - paragraph [ref=f23e309]: Test Employee
+                - generic [ref=f23e310]:
+                  - paragraph [ref=f23e311]: Email
+                  - link "zzemp-1794654844@example.com" [ref=f23e312] [cursor=pointer]:
+                    - /url: mailto:zzemp-1794654844@example.com
+                - generic [ref=f23e313]:
+                  - paragraph [ref=f23e314]: Phone
+                  - link "9876500009" [ref=f23e317] [cursor=pointer]:
+                    - /url: tel:9876500009
+          - generic [ref=f23e318]:
+            - generic [ref=f23e319]:
+              - heading "Refund Summary" [level=2] [ref=f23e320]
+              - generic [ref=f23e323]:
+                - generic [ref=f23e324]:
+                  - generic [ref=f23e325]: Items Total
+                  - generic [ref=f23e326]: ₹320
+                - generic [ref=f23e327]:
+                  - generic [ref=f23e328]: Refund Amount
+                  - generic [ref=f23e329]: ₹320
+                - generic [ref=f23e330]:
+                  - paragraph [ref=f23e331]: Refund Status
+                  - generic [ref=f23e332]: processed
+                - generic [ref=f23e333]:
+                  - generic [ref=f23e334]: Refund Destination
+                  - generic [ref=f23e335]: Original Payment Method
+            - generic [ref=f23e336]:
+              - heading "Status Timeline" [level=2] [ref=f23e337]
+              - generic [ref=f23e340]:
+                - generic [ref=f23e343]:
+                  - paragraph [ref=f23e344]: Request Submitted
+                  - paragraph [ref=f23e345]: Nov 14, 2026, 05:17 PM
+                - generic [ref=f23e348]:
+                  - paragraph [ref=f23e349]: completed
+                  - paragraph [ref=f23e350]: Nov 14, 2026, 05:45 PM
+            - generic [ref=f23e351]:
+              - heading "Quick Actions" [level=2] [ref=f23e352]
+              - generic [ref=f23e353]:
+                - link "View Original Order" [ref=f23e354] [cursor=pointer]:
+                  - /url: /ple-ops-desk/orders/ORD-1794656799335-DKY0
+                - button "Email Customer" [ref=f23e358] [cursor=pointer]
+                - button "Call Customer" [ref=f23e362] [cursor=pointer]

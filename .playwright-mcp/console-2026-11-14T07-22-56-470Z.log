@@ -1,0 +1,261 @@
+[   11399ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5199/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:21551
+[   11869ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5055/api/admin/settings/general:1
+[   11873ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5055/api/admin/settings/notifications:1
+[   11875ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5055/api/admin/settings/email:1
+[   12026ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5055/api/admin/settings/general:1
+[   12035ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5055/api/admin/settings/notifications:1
+[   12038ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5055/api/admin/settings/email:1
+[   12086ms] [LOG] ✅ Service Worker registered: ServiceWorkerRegistration @ http://localhost:5199/src/services/pushNotificationService.js:11
+[   12087ms] [LOG] ✅ Service Worker registered: ServiceWorkerRegistration @ http://localhost:5199/src/services/pushNotificationService.js:11
+[   12107ms] [ERROR] Warning: React has detected a change in the order of Hooks called by %s. This will lead to bugs and errors if not fixed. For more information, read the Rules of Hooks: https://reactjs.org/link/rules-of-hooks
+
+   Previous render            Next render
+   ------------------------------------------------------
+%s   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+%s MobileProductDetail 1. useContext                 useContext
+2. useContext                 useContext
+3. useContext                 useContext
+4. useContext                 useContext
+5. useContext                 useContext
+6. useContext                 useContext
+7. useContext                 useContext
+8. useContext                 useContext
+9. useRef                     useRef
+10. useContext                useContext
+11. useLayoutEffect           useLayoutEffect
+12. useCallback               useCallback
+13. useContext                useContext
+14. useContext                useContext
+15. useContext                useContext
+16. useContext                useContext
+17. useContext                useContext
+18. useContext                useContext
+19. useContext                useContext
+20. useContext                useContext
+21. useContext                useContext
+22. useRef                    useRef
+23. useContext                useContext
+24. useLayoutEffect           useLayoutEffect
+25. useCallback               useCallback
+26. useCallback               useCallback
+27. useMemo                   useMemo
+28. useMemo                   useMemo
+29. useState                  useState
+30. useState                  useState
+31. useState                  useState
+32. useState                  useState
+33. useState                  useState
+34. useEffect                 useEffect
+35. useState                  useState
+36. useState                  useState
+37. useState                  useState
+38. useCallback               useCallback
+39. useEffect                 useEffect
+40. useRef                    useRef
+41. useMemo                   useMemo
+42. useSyncExternalStore      useSyncExternalStore
+43. useEffect                 useEffect
+44. useDebugValue             useDebugValue
+45. useDebugValue             useDebugValue
+46. useRef                    useRef
+47. useMemo                   useMemo
+48. useSyncExternalStore      useSyncExternalStore
+49. useEffect                 useEffect
+50. useDebugValue             useDebugValue
+51. useDebugValue             useDebugValue
+52. useRef                    useRef
+53. useMemo                   useMemo
+54. useSyncExternalStore      useSyncExternalStore
+55. useEffect                 useEffect
+56. useDebugValue             useDebugValue
+57. useDebugValue             useDebugValue
+58. useRef                    useRef
+59. useMemo                   useMemo
+60. useSyncExternalStore      useSyncExternalStore
+61. useEffect                 useEffect
+62. useDebugValue             useDebugValue
+63. useDebugValue             useDebugValue
+64. useRef                    useRef
+65. useMemo                   useMemo
+66. useSyncExternalStore      useSyncExternalStore
+67. useEffect                 useEffect
+68. useDebugValue             useDebugValue
+69. useDebugValue             useDebugValue
+70. useRef                    useRef
+71. useMemo                   useMemo
+72. useSyncExternalStore      useSyncExternalStore
+73. useEffect                 useEffect
+74. useDebugValue             useDebugValue
+75. useDebugValue             useDebugValue
+76. useRef                    useRef
+77. useMemo                   useMemo
+78. useSyncExternalStore      useSyncExternalStore
+79. useEffect                 useEffect
+80. useDebugValue             useDebugValue
+81. useDebugValue             useDebugValue
+82. useRef                    useRef
+83. useMemo                   useMemo
+84. useSyncExternalStore      useSyncExternalStore
+85. useEffect                 useEffect
+86. useDebugValue             useDebugValue
+87. useDebugValue             useDebugValue
+88. useRef                    useRef
+89. useMemo                   useMemo
+90. useSyncExternalStore      useSyncExternalStore
+91. useEffect                 useEffect
+92. useDebugValue             useDebugValue
+93. useDebugValue             useDebugValue
+94. useRef                    useRef
+95. useMemo                   useMemo
+96. useSyncExternalStore      useSyncExternalStore
+97. useEffect                 useEffect
+98. useDebugValue             useDebugValue
+99. useDebugValue             useDebugValue
+100. useRef                   useRef
+101. useMemo                  useMemo
+102. useSyncExternalStore     useSyncExternalStore
+103. useEffect                useEffect
+104. useDebugValue            useDebugValue
+105. useDebugValue            useDebugValue
+106. useMemo                  useMemo
+107. useRef                   useRef
+108. useMemo                  useMemo
+109. useSyncExternalStore     useSyncExternalStore
+110. useEffect                useEffect
+111. useDebugValue            useDebugValue
+112. useDebugValue            useDebugValue
+113. useEffect                useEffect
+114. useState                 useState
+115. useState                 useState
+116. useState                 useState
+117. useState                 useState
+118. useState                 useState
+119. useState                 useState
+120. useState                 useState
+121. useEffect                useEffect
+122. useRef                   useRef
+123. useMemo                  useMemo
+124. useSyncExternalStore     useSyncExternalStore
+125. useEffect                useEffect
+126. useDebugValue            useDebugValue
+127. useDebugValue            useDebugValue
+128. useRef                   useRef
+129. useMemo                  useMemo
+130. useSyncExternalStore     useSyncExternalStore
+131. useEffect                useEffect
+132. useDebugValue            useDebugValue
+133. useDebugValue            useDebugValue
+134. useRef                   useRef
+135. useMemo                  useMemo
+136. useSyncExternalStore     useSyncExternalStore
+137. useEffect                useEffect
+138. useDebugValue            useDebugValue
+139. useDebugValue            useDebugValue
+140. useRef                   useRef
+141. useMemo                  useMemo
+142. useSyncExternalStore     useSyncExternalStore
+143. useEffect                useEffect
+144. useDebugValue            useDebugValue
+145. useDebugValue            useDebugValue
+146. useRef                   useRef
+147. useMemo                  useMemo
+148. useSyncExternalStore     useSyncExternalStore
+149. useEffect                useEffect
+150. useDebugValue            useDebugValue
+151. useDebugValue            useDebugValue
+152. useRef                   useRef
+153. useMemo                  useMemo
+154. useSyncExternalStore     useSyncExternalStore
+155. useEffect                useEffect
+156. useDebugValue            useDebugValue
+157. useDebugValue            useDebugValue
+158. useRef                   useRef
+159. useMemo                  useMemo
+160. useSyncExternalStore     useSyncExternalStore
+161. useEffect                useEffect
+162. useDebugValue            useDebugValue
+163. useDebugValue            useDebugValue
+164. useRef                   useRef
+165. useMemo                  useMemo
+166. useSyncExternalStore     useSyncExternalStore
+167. useEffect                useEffect
+168. useDebugValue            useDebugValue
+169. useDebugValue            useDebugValue
+170. useMemo                  useMemo
+171. useMemo                  useMemo
+172. useEffect                useEffect
+173. useEffect                useEffect
+174. useEffect                useEffect
+175. useMemo                  useMemo
+176. useMemo                  useMemo
+177. useMemo                  useMemo
+178. useMemo                  useMemo
+179. useMemo                  useMemo
+180. useMemo                  useMemo
+181. undefined                useMemo
+ 
+    at MobileProductDetail (http://localhost:5199/src/modules/UserApp/pages/ProductDetail.jsx:172:18)
+    at div
+    at RouteWrapper (http://localhost:5199/src/shared/components/RouteWrapper.jsx:20:25)
+    at RenderedRoute (http://localhost:5199/node_modules/.vite/deps/react-router-dom.js?v=9476b445:4108:5)
+    at Routes (http://localhost:5199/node_modules/.vite/deps/react-router-dom.js?v=9476b445:4578:5)
+    at PortalRoutes
+    at ActiveRoutes
+    at Suspense
+    at OfflineDetector (http://localhost:5199/src/shared/components/OfflineDetector.jsx:22:28)
+    at Router (http://localhost:5199/node_modules/.vite/deps/react-router-dom.js?v=9476b445:4521:15)
+    at BrowserRouter (http://localhost:5199/node_modules/.vite/deps/react-router-dom.js?v=9476b445:5267:5)
+    at ErrorBoundary (http://localhost:5199/src/shared/components/ErrorBoundary/ErrorBoundary.jsx:8:5)
+    at App @ http://localhost:5199/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:521
+[   12111ms] Error: Rendered more hooks than during the previous render.
+    at updateWorkInProgressHook (http://localhost:5199/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:11678:21)
+    at updateMemo (http://localhost:5199/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:12199:22)
+    at Object.useMemo (http://localhost:5199/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:12726:24)
+    at useMemo (http://localhost:5199/node_modules/.vite/deps/chunk-ZMLY2J2T.js?v=9476b445:1094:29)
+    at MobileProductDetail (http://localhost:5199/src/modules/UserApp/pages/ProductDetail.jsx:571:25)
+    at renderWithHooks (http://localhost:5199/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:11548:26)
+    at updateFunctionComponent (http://localhost:5199/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14582:28)
+    at beginWork (http://localhost:5199/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:15924:22)
+    at HTMLUnknownElement.callCallback2 (http://localhost:5199/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3674:22)
+    at Object.invokeGuardedCallbackDev (http://localhost:5199/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3699:24)
+[   12117ms] Error: Rendered more hooks than during the previous render.
+    at updateWorkInProgressHook (http://localhost:5199/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:11678:21)
+    at updateMemo (http://localhost:5199/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:12199:22)
+    at Object.useMemo (http://localhost:5199/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:12726:24)
+    at useMemo (http://localhost:5199/node_modules/.vite/deps/chunk-ZMLY2J2T.js?v=9476b445:1094:29)
+    at MobileProductDetail (http://localhost:5199/src/modules/UserApp/pages/ProductDetail.jsx:571:25)
+    at renderWithHooks (http://localhost:5199/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:11548:26)
+    at updateFunctionComponent (http://localhost:5199/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14582:28)
+    at beginWork (http://localhost:5199/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:15924:22)
+    at HTMLUnknownElement.callCallback2 (http://localhost:5199/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3674:22)
+    at Object.invokeGuardedCallbackDev (http://localhost:5199/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:3699:24)
+[   12122ms] [ERROR] The above error occurred in the <MobileProductDetail> component:
+
+    at MobileProductDetail (http://localhost:5199/src/modules/UserApp/pages/ProductDetail.jsx:172:18)
+    at div
+    at RouteWrapper (http://localhost:5199/src/shared/components/RouteWrapper.jsx:20:25)
+    at RenderedRoute (http://localhost:5199/node_modules/.vite/deps/react-router-dom.js?v=9476b445:4108:5)
+    at Routes (http://localhost:5199/node_modules/.vite/deps/react-router-dom.js?v=9476b445:4578:5)
+    at PortalRoutes
+    at ActiveRoutes
+    at Suspense
+    at OfflineDetector (http://localhost:5199/src/shared/components/OfflineDetector.jsx:22:28)
+    at Router (http://localhost:5199/node_modules/.vite/deps/react-router-dom.js?v=9476b445:4521:15)
+    at BrowserRouter (http://localhost:5199/node_modules/.vite/deps/react-router-dom.js?v=9476b445:5267:5)
+    at ErrorBoundary (http://localhost:5199/src/shared/components/ErrorBoundary/ErrorBoundary.jsx:8:5)
+    at App
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary. @ http://localhost:5199/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14032
+[   12122ms] [ERROR] ErrorBoundary caught an error: Error: Rendered more hooks than during the previous render.
+    at updateWorkInProgressHook (http://localhost:5199/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:11678:21)
+    at updateMemo (http://localhost:5199/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:12199:22)
+    at Object.useMemo (http://localhost:5199/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:12726:24)
+    at useMemo (http://localhost:5199/node_modules/.vite/deps/chunk-ZMLY2J2T.js?v=9476b445:1094:29)
+    at MobileProductDetail (http://localhost:5199/src/modules/UserApp/pages/ProductDetail.jsx:571:25)
+    at renderWithHooks (http://localhost:5199/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:11548:26)
+    at updateFunctionComponent (http://localhost:5199/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:14582:28)
+    at beginWork (http://localhost:5199/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:15924:22)
+    at beginWork$1 (http://localhost:5199/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19753:22)
+    at performUnitOfWork (http://localhost:5199/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:19198:20) {componentStack: 
+    at MobileProductDetail (http://localhost:5199…s/ErrorBoundary/ErrorBoundary.jsx:8:5)
+    at App} @ http://localhost:5199/src/shared/components/ErrorBoundary/ErrorBoundary.jsx:15

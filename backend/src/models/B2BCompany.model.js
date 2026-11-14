@@ -1,6 +1,14 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
+const docSchema = {
+    url: { type: String },
+    fileName: { type: String },
+    mimeType: { type: String },
+    size: { type: Number },
+    uploadedAt: { type: Date }
+};
+
 const b2bCompanySchema = new mongoose.Schema(
     {
         companyName: { 
@@ -8,10 +16,55 @@ const b2bCompanySchema = new mongoose.Schema(
             required: true, 
             trim: true 
         },
+        // gstNumber is mandatory unless the registrant explicitly declared "no GST" (gstRegistered === false).
+        // Legacy records (gstRegistered undefined) keep the original mandatory behaviour.
         gstNumber: { 
             type: String, 
-            required: true, 
+            required: function () { return this.gstRegistered !== false; },
+            default: '',
             trim: true 
+        },
+        gstRegistered: { type: Boolean },
+        gstDetails: {
+            legalName: { type: String, trim: true },
+            registrationType: { type: String, trim: true },
+            state: { type: String, trim: true }
+        },
+        companyRegistrationNumber: { type: String, trim: true },
+        addressDetails: {
+            line1: { type: String, trim: true },
+            line2: { type: String, trim: true },
+            country: { type: String, trim: true },
+            state: { type: String, trim: true },
+            city: { type: String, trim: true },
+            pincode: { type: String, trim: true }
+        },
+        addressProof: docSchema,
+        bankStatement: docSchema,
+        bankDocumentType: { type: String, enum: ['bank_statement', 'cancelled_cheque', ''], default: '' },
+        authorisedSignatory: {
+            fullName: { type: String, trim: true },
+            designation: { type: String, trim: true },
+            email: { type: String, trim: true, lowercase: true },
+            mobile: { type: String, trim: true },
+            identityDocument: docSchema,
+            authorisationDocument: docSchema,
+            declaration: {
+                accepted: { type: Boolean, default: false },
+                acceptedAt: { type: Date }
+            }
+        },
+        adminInfo: {
+            sameAsSignatory: { type: Boolean, default: false },
+            name: { type: String, trim: true },
+            email: { type: String, trim: true, lowercase: true },
+            phone: { type: String, trim: true },
+            designation: { type: String, trim: true }
+        },
+        registrationInfo: {
+            version: { type: Number },
+            submittedAt: { type: Date },
+            draftId: { type: mongoose.Schema.Types.ObjectId }
         },
         businessEmail: { 
             type: String, 

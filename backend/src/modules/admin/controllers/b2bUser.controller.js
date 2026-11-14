@@ -4,9 +4,37 @@ import ApiError from '../../../utils/ApiError.js';
 import B2BCompany from '../../../models/B2BCompany.model.js';
 import User from '../../../models/User.model.js';
 import Order from '../../../models/Order.model.js';
+import ReturnRequest from '../../../models/ReturnRequest.model.js';
+import mongoose from 'mongoose';
 import RFQ from '../../../models/RFQ.model.js';
 import PurchaseOrder from '../../../models/PurchaseOrder.model.js';
 import { sendEmail } from '../../../services/email.service.js';
+import B2BRegistrationDraft from '../../../models/B2BRegistrationDraft.model.js';
+
+// Full bank account numbers are only visible to roles that handle finance; others see the last 4 digits.
+const FULL_BANK_ACCESS_ROLES = ['superadmin', 'account_team'];
+const maskBankForRole = (company, role) => {
+    if (!company?.bankDetails?.accountNumber || FULL_BANK_ACCESS_ROLES.includes(role)) return company;
+    const n = String(company.bankDetails.accountNumber);
+    return { ...company, bankDetails: { ...company.bankDetails, accountNumber: `${'*'.repeat(Math.max(n.length - 4, 0))}${n.slice(-4)}`, masked: true } };
+};
+
+// GET /api/admin/b2b-users/drafts  - in-progress (unsubmitted) registrations, for visibility only
+export const getB2BDrafts = asyncHandler(async (req, res) => {
+    const drafts = await B2BRegistrationDraft.find({ status: 'Draft' })
+        .sort({ updatedAt: -1 })
+        .limit(100)
+        .lean();
+    const rows = drafts.map((d) => ({
+        email: d.email,
+        companyName: d.data?.form?.companyName || '',
+        currentStep: d.currentStep,
+        completedSteps: d.completedSteps,
+        updatedAt: d.updatedAt,
+        expiresAt: d.expiresAt
+    }));
+    res.status(200).json(new ApiResponse(200, rows, 'B2B registration drafts fetched.'));
+});
 
 const escapeRegex = (value = '') => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -48,7 +76,7 @@ export const getAllB2BUsers = asyncHandler(async (req, res) => {
         }
         const employeeCount = await User.countDocuments({ companyId: company._id, role: 'b2bEmployee' });
         return {
-            ...company,
+            ...maskBankForRole(company, req.user?.role),
             admin,
             employeeCount
         };
@@ -80,7 +108,77 @@ export const getB2BUserDetail = asyncHandler(async (req, res) => {
         .select('-password')
         .lean();
 
-    res.status(200).json(new ApiResponse(200, { company, admin, employees }, 'B2B User detail fetched.'));
+    res.status(200).json(new ApiResponse(200, { company: maskBankForRole(company, req.user?.role), admin, employees }, 'B2B User detail fetched.'));
+});
+
+// GET /api/admin/b2b-users/:id/orders
+// Company-level order history for the super admin: the company is the buyer.
+// Employee-wise breakdowns are intentionally not exposed here (that view belongs to the B2B Admin).
+export const getB2BCompanyOrders = asyncHandler(async (req, res) => {
+    if (!mongoose.isValidObjectId(req.params.id)) throw new ApiError(400, 'Invalid company id.');
+    const company = await B2BCompany.findById(req.params.id).select('companyName').lean();
+    if (!company) throw new ApiError(404, 'B2B Company not found.');
+
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 10));
+    const companyId = company._id;
+
+    const filter = { companyId, isDeleted: { $ne: true } };
+    if (req.query.status && req.query.status !== 'all') filter.status = req.query.status;
+
+    const SETTLED = ['paid', 'captured', 'success', 'authorized', 'refunded'];
+    const [orders, total, orderStats, returnStats] = await Promise.all([
+        Order.find(filter)
+            .select('orderId status paymentMethod paymentStatus total walletAmountUsed items.name items.quantity createdAt orderType')
+            .sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
+        Order.countDocuments(filter),
+        Order.aggregate([
+            { $match: { companyId, isDeleted: { $ne: true } } },
+            {
+                $group: {
+                    _id: null,
+                    totalOrders: { $sum: 1 },
+                    cancelledOrders: { $sum: { $cond: [{ $eq: ['$status', 'cancelled'] }, 1, 0] } },
+                    grossSpent: {
+                        $sum: {
+                            $cond: [
+                                { $and: [{ $ne: ['$status', 'cancelled'] }, { $or: [{ $in: ['$paymentStatus', SETTLED] }, { $in: ['$paymentMethod', ['cod', 'cash']] }] }] },
+                                '$total', 0,
+                            ],
+                        },
+                    },
+                    lastOrderAt: { $max: '$createdAt' },
+                },
+            },
+        ]),
+        ReturnRequest.aggregate([
+            { $match: { companyId } },
+            {
+                $group: {
+                    _id: null,
+                    totalReturns: { $sum: 1 },
+                    refundedAmount: { $sum: { $cond: [{ $eq: ['$refundStatus', 'processed'] }, { $ifNull: ['$refundAmount', 0] }, 0] } },
+                },
+            },
+        ]),
+    ]);
+
+    const round = (n) => Math.round((n || 0) * 100) / 100;
+    const o = orderStats[0] || {};
+    const r = returnStats[0] || {};
+    const stats = {
+        totalOrders: o.totalOrders || 0,
+        cancelledOrders: o.cancelledOrders || 0,
+        grossSpent: round(o.grossSpent),
+        totalReturns: r.totalReturns || 0,
+        refundedAmount: round(r.refundedAmount),
+        netSpent: round((o.grossSpent || 0) - (r.refundedAmount || 0)),
+        lastOrderAt: o.lastOrderAt || null,
+    };
+
+    res.status(200).json(new ApiResponse(200, {
+        company, stats, orders, total, page, limit, pages: Math.ceil(total / limit),
+    }, 'Company orders fetched.'));
 });
 
 // PATCH /api/admin/b2b-users/:id/status

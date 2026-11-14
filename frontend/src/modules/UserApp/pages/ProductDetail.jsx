@@ -38,6 +38,9 @@ import Badge from "../../../shared/components/Badge";
 import ProductCard from "../../../shared/components/ProductCard";
 import { getVariantSignature } from "../../../shared/utils/variant";
 import { useSafeBack } from "../../../shared/hooks/useSafeBack";
+import ProductInformationSection from "../../../shared/components/Product/ProductInformationSection";
+import { hasSpecContent } from "../../../shared/utils/productSpecs";
+import { ConsumerRFQModal } from "../components/B2B/ConsumerRFQModal";
 import { useBusinessBuyer } from "../hooks/useBusinessBuyer";
 import { useLoyaltyStore } from "../../../shared/store/loyaltyStore";
 import {
@@ -247,6 +250,7 @@ const MobileProductDetail = () => {
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
   const [isStockRequestModalOpen, setIsStockRequestModalOpen] = useState(false);
   const [isEnquiryModalOpen, setIsEnquiryModalOpen] = useState(false);
+  const [isConsumerRfqOpen, setIsConsumerRfqOpen] = useState(false);
 
   // Smart Delivery State Hooks
   const [pincode, setPincode] = useState("");
@@ -475,6 +479,62 @@ const MobileProductDetail = () => {
     return eligibleOrder?._id || null;
   }, [isAuthenticated, user?.id, product?.id, getAllOrders]);
 
+  const productSchema = useMemo(() => {
+    if (!product) return null;
+    const origin = window.location.origin;
+    const prodUrl = window.location.href;
+
+    const brandName = product.brandName || product.brand?.name || "PLE";
+    const categoryName = product.categoryName || product.category?.name || "Products";
+    
+    return [
+      {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "name": product.name,
+        "image": productImages.map(img => img.startsWith('http') ? img : `${origin}${img}`),
+        "description": product.description || `Buy ${product.name} online at Peoples League of Electronics.`,
+        "sku": product.sku || product.id || product._id,
+        "brand": {
+          "@type": "Brand",
+          "name": brandName
+        },
+        "offers": {
+          "@type": "Offer",
+          "url": prodUrl,
+          "priceCurrency": "INR",
+          "price": currentPrice,
+          "availability": selectedAvailableStock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+          "itemCondition": product.isRefurbished ? "https://schema.org/RefurbishedCondition" : "https://schema.org/NewCondition"
+        }
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": origin
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": categoryName,
+            "item": `${origin}/category/${product.categoryId}`
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": product.name,
+            "item": prodUrl
+          }
+        ]
+      }
+    ];
+  }, [product, productImages, currentPrice, selectedAvailableStock]);
+
   if (!product) {
     return (
       <PageTransition>
@@ -504,6 +564,14 @@ const MobileProductDetail = () => {
       </PageTransition>
     );
   }
+
+  const handleConsumerRfqClick = () => {
+    if (!isAuthenticated) {
+      toast.error("Please sign in or create an account to request a quotation.");
+      return;
+    }
+    setIsConsumerRfqOpen(true);
+  };
 
   const handleEnquiryClick = () => {
     if (!isAuthenticated) {
@@ -680,61 +748,6 @@ const MobileProductDetail = () => {
     return true;
   };
 
-  const productSchema = useMemo(() => {
-    if (!product) return null;
-    const origin = window.location.origin;
-    const prodUrl = window.location.href;
-
-    const brandName = product.brandName || product.brand?.name || "PLE";
-    const categoryName = product.categoryName || product.category?.name || "Products";
-    
-    return [
-      {
-        "@context": "https://schema.org",
-        "@type": "Product",
-        "name": product.name,
-        "image": productImages.map(img => img.startsWith('http') ? img : `${origin}${img}`),
-        "description": product.description || `Buy ${product.name} online at Peoples League of Electronics.`,
-        "sku": product.sku || product.id || product._id,
-        "brand": {
-          "@type": "Brand",
-          "name": brandName
-        },
-        "offers": {
-          "@type": "Offer",
-          "url": prodUrl,
-          "priceCurrency": "INR",
-          "price": currentPrice,
-          "availability": selectedAvailableStock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-          "itemCondition": product.isRefurbished ? "https://schema.org/RefurbishedCondition" : "https://schema.org/NewCondition"
-        }
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        "itemListElement": [
-          {
-            "@type": "ListItem",
-            "position": 1,
-            "name": "Home",
-            "item": origin
-          },
-          {
-            "@type": "ListItem",
-            "position": 2,
-            "name": categoryName,
-            "item": `${origin}/category/${product.categoryId}`
-          },
-          {
-            "@type": "ListItem",
-            "position": 3,
-            "name": product.name,
-            "item": prodUrl
-          }
-        ]
-      }
-    ];
-  }, [product, productImages, currentPrice, selectedAvailableStock]);
 
   return (
     <>
@@ -1360,6 +1373,15 @@ const MobileProductDetail = () => {
                         </button>
                       </>
                     )}
+                    {!rawIsBusiness && isMongoId(product?.id) && product.stock !== "out_of_stock" && (
+                      <button
+                        onClick={handleConsumerRfqClick}
+                        className="flex-1 py-4 bg-[#7B0A0A]/5 text-[#7B0A0A] hover:bg-[#7B0A0A]/10 border-2 border-[#7B0A0A]/20 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 text-sm"
+                      >
+                        <FiFileText className="text-lg shrink-0" />
+                        <span className="truncate">Request Quote</span>
+                      </button>
+                    )}
                     <button
                       onClick={handleFavorite}
                       className={rawIsBusiness
@@ -1405,6 +1427,22 @@ const MobileProductDetail = () => {
                   </div>
                 </div>
 
+              </div>
+            </div>
+          </div>
+
+          {/* Full-width product details (specs, FAQs, reviews) */}
+          <div className="px-4 lg:px-8 mt-6 lg:mt-12 space-y-0 max-w-6xl" data-testid="product-details-full">
+                {/* Product Information (Features & Specs, Additional/Item Details, Description, What's in the Box) */}
+                {hasSpecContent(product.specifications) ? (
+                  <div className="pt-6">
+                    <ProductInformationSection
+                      specifications={product.specifications}
+                      description={product.description}
+                    />
+                  </div>
+                ) : (
+                  <>
                 {/* Description */}
                 <div className="pt-6">
                   <h3 className="text-lg font-bold text-gray-900 mb-4">
@@ -1422,6 +1460,8 @@ const MobileProductDetail = () => {
                     )}
                   </div>
                 </div>
+                  </>
+                )}
 
                 {/* B2B Technical Specs */}
                 <B2BProductDetailSections product={product} />
@@ -1538,8 +1578,6 @@ const MobileProductDetail = () => {
                     </div>
                   </div>
                 )}
-              </div>
-            </div>
           </div>
 
           {/* Similar Products */}
@@ -1585,6 +1623,16 @@ const MobileProductDetail = () => {
                 <span className="truncate">Request RFQ</span>
               </button>
             </>
+          )}
+          {!rawIsBusiness && isMongoId(product?.id) && product.stock !== "out_of_stock" && (
+            <button
+              onClick={handleConsumerRfqClick}
+              className="h-12 w-12 shrink-0 bg-[#7B0A0A]/5 text-[#7B0A0A] border border-[#7B0A0A]/20 rounded-xl flex items-center justify-center transition-all duration-300 active:scale-95"
+              title="Request Quote"
+              aria-label="Request Quote"
+            >
+              <FiFileText className="text-xl" />
+            </button>
           )}
           {isBusiness ? (
             isInCart ? (
@@ -1661,6 +1709,14 @@ const MobileProductDetail = () => {
         <B2BRequestQuoteModal
           isOpen={isQuoteModalOpen}
           onClose={() => setIsQuoteModalOpen(false)}
+          product={product}
+        />
+      )}
+      {/* Consumer RFQ (Request Quote) Modal */}
+      {product && !rawIsBusiness && (
+        <ConsumerRFQModal
+          isOpen={isConsumerRfqOpen}
+          onClose={() => setIsConsumerRfqOpen(false)}
           product={product}
         />
       )}

@@ -1,5 +1,6 @@
 import Wallet from '../models/Wallet.model.js';
 import WalletTransaction from '../models/WalletTransaction.model.js';
+import User from '../models/User.model.js';
 import ApiError from '../utils/ApiError.js';
 import mongoose from 'mongoose';
 
@@ -125,6 +126,40 @@ export const creditWallet = async ({
         }
         throw err;
     }
+};
+
+/**
+ * Credit a user's wallet, keeping B2B employee balances consistent.
+ *
+ * B2B employees spend from `User.b2bWalletBalance`; the Wallet document only
+ * mirrors it for the ledger. For employees this restores b2bWalletBalance and
+ * aligns the Wallet balance first, so the ledger's balanceAfterTransaction
+ * matches the real balance. Idempotent replays do not double-credit.
+ * Other roles behave exactly like creditWallet.
+ */
+export const creditUserWallet = async (params) => {
+    const { userId, amount, idempotencyKey = null } = params;
+    const parsedAmount = Number(amount);
+
+    const user = await User.findById(userId).select('role b2bWalletBalance');
+    if (!user || user.role !== 'b2bEmployee' || isNaN(parsedAmount) || parsedAmount <= 0) {
+        return creditWallet(params);
+    }
+
+    if (idempotencyKey && await WalletTransaction.exists({ idempotencyKey })) {
+        return creditWallet(params);
+    }
+
+    const previousBalance = Number(user.b2bWalletBalance || 0);
+    user.b2bWalletBalance = parseFloat((previousBalance + parsedAmount).toFixed(2));
+    await user.save();
+
+    // Align the mirrored Wallet to the pre-credit balance; creditWallet then adds the amount.
+    const wallet = await getOrCreateWallet(userId);
+    wallet.balance = previousBalance;
+    await wallet.save();
+
+    return creditWallet(params);
 };
 
 /**

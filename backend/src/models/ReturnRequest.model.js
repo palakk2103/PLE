@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { companyScopePlugin } from '../utils/companyScope.js';
 
 const returnRequestSchema = new mongoose.Schema(
     {
@@ -8,6 +9,8 @@ const returnRequestSchema = new mongoose.Schema(
         // Snapshot of the original public Order ID (Order.orderId) for fast lookup/search.
         orderNumber: { type: String, index: true, trim: true },
         userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
+        // B2B company of the requester (auto-filled from userId)
+        companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'B2BCompany', index: true, default: null },
         vendorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vendor', index: true },
         items: [
             {
@@ -51,6 +54,8 @@ const returnRequestSchema = new mongoose.Schema(
     },
     { timestamps: true }
 );
+
+returnRequestSchema.plugin(companyScopePlugin);
 
 const ReturnRequest = mongoose.models.ReturnRequest || mongoose.model('ReturnRequest', returnRequestSchema);
 export { ReturnRequest };

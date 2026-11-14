@@ -1,0 +1,35 @@
+- main [ref=f24e5]:
+  - generic [ref=f24e8]:
+    - button "Go Back" [ref=f24e9] [cursor=pointer]
+    - generic [ref=f24e12]:
+      - heading "Welcome Back" [level=1] [ref=f24e13]
+      - paragraph [ref=f24e14]: Login to access your account
+    - paragraph [ref=f24e16]: "✨ Business mode: unlock wholesale prices, tier discounts, MOQ, GST credit, and credit terms."
+    - generic [ref=f24e17]:
+      - generic [ref=f24e18]:
+        - generic [ref=f24e19]: Email Address
+        - textbox "your.email@example.com" [ref=f24e24]
+      - generic [ref=f24e25]:
+        - generic [ref=f24e26]: Password
+        - generic [ref=f24e27]:
+          - textbox "Enter your password" [ref=f24e31]
+          - button [ref=f24e32] [cursor=pointer]
+      - generic [ref=f24e36]:
+        - generic [ref=f24e37] [cursor=pointer]:
+          - checkbox "Remember me" [ref=f24e38]
+          - generic [ref=f24e39]: Remember me
+        - link "Forgot password?" [ref=f24e40] [cursor=pointer]:
+          - /url: /forgot-password
+      - button "Log In" [ref=f24e41] [cursor=pointer]
+    - paragraph [ref=f24e43]:
+      - text: Don't have an account?
+      - link "Sign Up" [ref=f24e44] [cursor=pointer]:
+        - /url: /b2b/register
+    - generic [ref=f24e45]:
+      - text: By continuing, you agree to our
+      - link "Terms & Conditions" [ref=f24e46] [cursor=pointer]:
+        - /url: /terms-and-conditions
+      - text: and
+      - link "Privacy Policy" [ref=f24e47] [cursor=pointer]:
+        - /url: /privacy-policy
+      - text: .

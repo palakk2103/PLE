@@ -33,6 +33,19 @@ const categorySchema = new mongoose.Schema(
         isActive: { type: Boolean, default: true },
         isRefurbishedCategory: { type: Boolean, default: false },
         gstRate: { type: Number, min: 0, max: 100, default: 18 },
+        // Optional admin-configured specification fields (overrides built-in presets)
+        specFields: [{
+            _id: false,
+            key: { type: String, required: true, trim: true },
+            label: { type: String, required: true, trim: true },
+            group: { type: String, enum: ['features', 'additional', 'itemDetails'], default: 'features' },
+            type: { type: String, enum: ['text', 'textarea', 'number', 'select', 'multiselect', 'boolean', 'date'], default: 'text' },
+            options: [String],
+            unit: String,
+            units: [String],
+            required: { type: Boolean, default: false },
+            placeholder: String,
+        }],
     },
     { timestamps: true }
 );

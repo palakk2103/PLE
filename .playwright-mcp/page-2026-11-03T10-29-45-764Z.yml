@@ -1,0 +1,292 @@
+- generic [ref=e2]:
+  - generic [ref=e47]:
+    - banner [ref=e48]:
+      - generic [ref=e49]:
+        - generic [ref=e50]:
+          - link "PLE Logo TM" [ref=e51] [cursor=pointer]:
+            - /url: /home
+            - generic [ref=e52]:
+              - img "PLE Logo" [ref=e53]
+              - generic [ref=e54]: TM
+          - button "Menu" [ref=e55] [cursor=pointer]
+        - navigation [ref=e57]:
+          - link "Home" [ref=e58] [cursor=pointer]:
+            - /url: /home
+          - link "Categories" [ref=e59] [cursor=pointer]:
+            - /url: /categories
+          - link "Offers" [ref=e65] [cursor=pointer]:
+            - /url: /offers
+          - link "✨ Festive Sale" [ref=e66] [cursor=pointer]:
+            - /url: /festival-campaign
+            - generic [ref=e67]: ✨
+            - generic [ref=e68]: Festive Sale
+          - link "Refurbished" [ref=e69] [cursor=pointer]:
+            - /url: /refurbished-categories
+        - generic [ref=e73]:
+          - textbox [ref=e77]
+          - generic: S
+        - generic [ref=e78]:
+          - button "View Cart" [ref=e79] [cursor=pointer]
+          - button "Switch to Dark Mode" [ref=e83] [cursor=pointer]
+          - button [ref=e88] [cursor=pointer]
+    - main [ref=e91]:
+      - generic [ref=e92]:
+        - generic [ref=e94]:
+          - generic [ref=e95]:
+            - generic [ref=e97]:
+              - generic:
+                - img "Slide 1"
+            - generic:
+              - button [ref=e101] [cursor=pointer]
+              - button [ref=e102] [cursor=pointer]
+              - button [ref=e103] [cursor=pointer]
+              - button [ref=e104] [cursor=pointer]
+          - generic [ref=e105]:
+            - img "Premium Watch" [ref=e108]
+            - generic [ref=e109]:
+              - generic [ref=e110]: PREMIUM
+              - paragraph [ref=e111]: Exclusive Collection
+              - button "Request Product" [ref=e112] [cursor=pointer]
+        - generic [ref=e116]:
+          - generic [ref=e117]:
+            - generic [ref=e118] [cursor=pointer]:
+              - img "Zara"
+            - paragraph [ref=e119]: Zara
+          - generic [ref=e120]:
+            - generic [ref=e121] [cursor=pointer]:
+              - img "Forever 21"
+            - paragraph [ref=e122]: Forever 21
+          - generic [ref=e123]:
+            - generic [ref=e124] [cursor=pointer]:
+              - img "Puma"
+            - paragraph [ref=e125]: Puma
+          - generic [ref=e126]:
+            - generic [ref=e127] [cursor=pointer]:
+              - img "Levi's"
+            - paragraph [ref=e128]: Levi's
+          - generic [ref=e129]:
+            - generic [ref=e130] [cursor=pointer]:
+              - img "Tommy Hilfiger"
+            - paragraph [ref=e131]: Tommy Hilfiger
+          - generic [ref=e132]:
+            - generic [ref=e133] [cursor=pointer]:
+              - img "Fabindia"
+            - paragraph [ref=e134]: Fabindia
+          - generic [ref=e135]:
+            - generic [ref=e136] [cursor=pointer]:
+              - img "Biba"
+            - paragraph [ref=e137]: Biba
+          - generic [ref=e138]:
+            - generic [ref=e139] [cursor=pointer]:
+              - img "Manyavar"
+            - paragraph [ref=e140]: Manyavar
+          - generic [ref=e141]:
+            - generic [ref=e142] [cursor=pointer]:
+              - img "Allen Solly"
+            - paragraph [ref=e143]: Allen Solly
+          - generic [ref=e144]:
+            - generic [ref=e145] [cursor=pointer]:
+              - img "Pantaloons"
+            - paragraph [ref=e146]: Pantaloons
+        - link "Electronics" [ref=e151] [cursor=pointer]:
+          - /url: /home?category=6ae9b73fc0f689e56e2f4cdf
+        - generic [ref=e155]:
+          - generic [ref=e156]:
+            - generic [ref=e157]:
+              - heading "Best Sellers" [level=2] [ref=e158]
+              - paragraph [ref=e159]: Shop from trusted stores
+            - link "See All" [ref=e160] [cursor=pointer]:
+              - /url: /search
+          - generic [ref=e164]:
+            - link "P PLE Shop 4.8 1 products Visit Store" [ref=e165] [cursor=pointer]:
+              - /url: /seller/6ae9b73fc0f689e56e2f4ce1
+              - generic [ref=e166]:
+                - generic [ref=e167]: P
+                - heading "PLE Shop" [level=3] [ref=e174]
+                - generic [ref=e175]: "4.8"
+                - generic [ref=e188]: 1 products
+                - generic [ref=e193]: Visit Store
+            - link "V Vic Gadgets 0 products Visit Store" [ref=e198] [cursor=pointer]:
+              - /url: /seller/6ae9b73fc0f689e56e2f4cd1
+              - generic [ref=e199]:
+                - generic [ref=e200]: V
+                - heading "Vic Gadgets" [level=3] [ref=e207]
+                - generic [ref=e208]: 0 products
+                - generic [ref=e213]: Visit Store
+            - link "V Vera Electronics 1 products Visit Store" [ref=e218] [cursor=pointer]:
+              - /url: /seller/6ae9b73ec0f689e56e2f4cca
+              - generic [ref=e219]:
+                - generic [ref=e220]: V
+                - heading "Vera Electronics" [level=3] [ref=e227]
+                - generic [ref=e228]: 1 products
+                - generic [ref=e233]: Visit Store
+        - generic [ref=e239]:
+          - generic [ref=e240]:
+            - generic:
+              - generic:
+                - generic:
+                  - img "Hero Product"
+            - button "Limited Time Offer Flash Sale Shop now before it ends! Up to 50% OFF" [ref=e241] [cursor=pointer]:
+              - generic [ref=e242]:
+                - generic [ref=e243]: Limited Time Offer
+                - heading "Flash Sale" [level=3] [ref=e248]
+                - paragraph [ref=e249]: Shop now before it ends!
+                - generic [ref=e250]: Up to 50% OFF
+          - generic [ref=e254]:
+            - button [ref=e255] [cursor=pointer]
+            - button [ref=e257] [cursor=pointer]
+            - button [ref=e259] [cursor=pointer]
+        - generic [ref=e261]:
+          - generic [ref=e262]:
+            - heading "Most Popular" [level=2] [ref=e263]
+            - link "See All" [ref=e264] [cursor=pointer]:
+              - /url: /search
+          - generic [ref=e265]:
+            - generic [ref=e267] [cursor=pointer]:
+              - generic [ref=e268]:
+                - button [ref=e270]
+                - link [ref=e273]:
+                  - /url: /product/6ae9b73fc0f689e56e2f4ce7
+              - generic [ref=e276]:
+                - link [ref=e277]:
+                  - /url: /product/6ae9b73fc0f689e56e2f4ce7
+                  - heading "Vera Wireless Earbuds" [level=3] [ref=e278]
+                - paragraph [ref=e279]: Piece
+                - generic [ref=e280]: 🚚 Standard 2-4 Days
+                - generic [ref=e282]: ₹1,200
+                - button "Add to Cart" [ref=e284]
+            - generic [ref=e291] [cursor=pointer]:
+              - generic [ref=e292]:
+                - button [ref=e294]
+                - link [ref=e297]:
+                  - /url: /product/6ae9b73fc0f689e56e2f4ce4
+              - generic [ref=e300]:
+                - link [ref=e301]:
+                  - /url: /product/6ae9b73fc0f689e56e2f4ce4
+                  - heading "PLE Smart Speaker" [level=3] [ref=e302]
+                - paragraph [ref=e303]: Piece
+                - generic [ref=e304]: 🚚 Standard 2-4 Days
+                - generic [ref=e306]: ₹1,200
+                - button "Add to Cart" [ref=e308]
+        - generic [ref=e314]:
+          - generic [ref=e315]:
+            - heading "Trending Now" [level=2] [ref=e316]
+            - link "See All" [ref=e317] [cursor=pointer]:
+              - /url: /search
+          - generic [ref=e318]:
+            - generic [ref=e320] [cursor=pointer]:
+              - generic [ref=e321]:
+                - button [ref=e323]
+                - link [ref=e326]:
+                  - /url: /product/6ae9b73fc0f689e56e2f4ce7
+              - generic [ref=e329]:
+                - link [ref=e330]:
+                  - /url: /product/6ae9b73fc0f689e56e2f4ce7
+                  - heading "Vera Wireless Earbuds" [level=3] [ref=e331]
+                - paragraph [ref=e332]: Piece
+                - generic [ref=e333]: 🚚 Standard 2-4 Days
+                - generic [ref=e335]: ₹1,200
+                - button "Add to Cart" [ref=e337]
+            - generic [ref=e344] [cursor=pointer]:
+              - generic [ref=e345]:
+                - button [ref=e347]
+                - link [ref=e350]:
+                  - /url: /product/6ae9b73fc0f689e56e2f4ce4
+              - generic [ref=e353]:
+                - link [ref=e354]:
+                  - /url: /product/6ae9b73fc0f689e56e2f4ce4
+                  - heading "PLE Smart Speaker" [level=3] [ref=e355]
+                - paragraph [ref=e356]: Piece
+                - generic [ref=e357]: 🚚 Standard 2-4 Days
+                - generic [ref=e359]: ₹1,200
+                - button "Add to Cart" [ref=e361]
+    - contentinfo [ref=e368]:
+      - generic [ref=e370]:
+        - generic [ref=e371]:
+          - link "PLE Logo TM" [ref=e372] [cursor=pointer]:
+            - /url: /home
+            - generic [ref=e373]:
+              - img "PLE Logo" [ref=e374]
+              - generic [ref=e375]: TM
+          - paragraph [ref=e376]: Your destination for electronics across consumer, business, and specialized sourcing needs — from everyday tech and accessories to enterprise procurement solutions.
+          - generic [ref=e377]:
+            - link [ref=e378] [cursor=pointer]:
+              - /url: https://www.facebook.com/share/1EaNrat2yr/
+            - link [ref=e381] [cursor=pointer]:
+              - /url: https://www.instagram.com/peoplesleagueofelectronics?igsh=MWdtbTNzajdqMGV4cQ==
+            - link [ref=e385] [cursor=pointer]:
+              - /url: https://x.com/PeoplesE9405
+            - link [ref=e388] [cursor=pointer]:
+              - /url: https://www.linkedin.com/company/ple-electronics
+        - generic [ref=e393]:
+          - heading "Quick Links" [level=3] [ref=e394]
+          - list [ref=e395]:
+            - listitem [ref=e396]:
+              - link "Home" [ref=e397] [cursor=pointer]:
+                - /url: /home
+            - listitem [ref=e398]:
+              - link "Categories" [ref=e399] [cursor=pointer]:
+                - /url: /categories
+            - listitem [ref=e400]:
+              - link "Offers" [ref=e401] [cursor=pointer]:
+                - /url: /offers
+            - listitem [ref=e402]:
+              - link "Refurbished" [ref=e403] [cursor=pointer]:
+                - /url: /refurbished-categories
+            - listitem [ref=e404]:
+              - link "My Profile" [ref=e405] [cursor=pointer]:
+                - /url: /profile
+            - listitem [ref=e406]:
+              - link "About Us" [ref=e407] [cursor=pointer]:
+                - /url: /about-us
+        - generic [ref=e408]:
+          - heading "Customer Support" [level=3] [ref=e409]
+          - list [ref=e410]:
+            - listitem [ref=e411]:
+              - link "Help & Support" [ref=e412] [cursor=pointer]:
+                - /url: /help-support
+            - listitem [ref=e413]:
+              - link "Privacy Policy" [ref=e414] [cursor=pointer]:
+                - /url: /privacy-policy
+            - listitem [ref=e415]:
+              - link "Terms & Conditions" [ref=e416] [cursor=pointer]:
+                - /url: /terms-conditions
+            - listitem [ref=e417]:
+              - link "Return Policy" [ref=e418] [cursor=pointer]:
+                - /url: /return-policy
+            - listitem [ref=e419]:
+              - link "Warranty Policy" [ref=e420] [cursor=pointer]:
+                - /url: /warranty-policy
+            - listitem [ref=e421]:
+              - link "Business Onboarding Policy" [ref=e422] [cursor=pointer]:
+                - /url: /business-onboarding-policy
+            - listitem [ref=e423]:
+              - link "Execution & Acceptance Policy" [ref=e424] [cursor=pointer]:
+                - /url: /execution-acceptance-policy
+            - listitem [ref=e425]:
+              - link "Shipping and Delivery Policy" [ref=e426] [cursor=pointer]:
+                - /url: /shipping-and-delivery-policy
+            - listitem [ref=e427]:
+              - link "User Agreement" [ref=e428] [cursor=pointer]:
+                - /url: /user-agreement
+        - generic [ref=e429]:
+          - generic [ref=e430]:
+            - heading "Subscribe to Newsletter" [level=3] [ref=e431]
+            - paragraph [ref=e432]: Be the first to hear about special offers, new arrivals, and events.
+            - generic [ref=e433]:
+              - textbox "Enter email address" [ref=e434]
+              - button [ref=e435] [cursor=pointer]
+          - generic [ref=e439]:
+            - generic [ref=e440]: support@peoplesleagueofelectronics.com
+            - generic [ref=e445]: +91 9071149300
+            - generic [ref=e449]: SHOP NO.25, R S NO.1045/3, 2ND CROSS, UJWAL NAGAR, Belgaum Fort, Karnataka, India,590016
+      - generic [ref=e455]:
+        - generic [ref=e456]: © 2026 PLE Inc. All rights reserved.
+        - generic [ref=e457]:
+          - link "Privacy" [ref=e458] [cursor=pointer]:
+            - /url: /privacy-policy
+          - link "Terms" [ref=e459] [cursor=pointer]:
+            - /url: /terms-conditions
+          - link "Sitemap" [ref=e460] [cursor=pointer]:
+            - /url: /help-support
+  - status [ref=e466]: Login successful!

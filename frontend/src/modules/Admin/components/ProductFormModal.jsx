@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { FiSave, FiX, FiUpload } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
@@ -15,6 +15,9 @@ import CategorySelector from "./CategorySelector";
 import AnimatedSelect from "./AnimatedSelect";
 import toast from "react-hot-toast";
 import Button from "./Button";
+import ProductFormStepper from "../../../shared/components/Product/ProductFormStepper";
+import ProductSpecificationsForm from "../../../shared/components/Product/ProductSpecificationsForm";
+import { emptySpecifications, normalizeSpecifications, cleanSpecificationsForSubmit, validateSpecifications } from "../../../shared/utils/productSpecs";
 
 const ProductFormModal = ({ isOpen, onClose, productId, onSuccess }) => {
   const location = useLocation();
@@ -24,6 +27,11 @@ const ProductFormModal = ({ isOpen, onClose, productId, onSuccess }) => {
   const { categories, initialize: initCategories } = useCategoryStore();
   const { brands, initialize: initBrands } = useBrandStore();
   const [vendors, setVendors] = useState([]);
+  const [step, setStep] = useState(1);
+  const [specTemplate, setSpecTemplate] = useState([]);
+  const [specErrors, setSpecErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const step1Ref = useRef(null);
   const [isUploadingMainImage, setIsUploadingMainImage] = useState(false);
   const [isUploadingGallery, setIsUploadingGallery] = useState(false);
   const [variantAxisInput, setVariantAxisInput] = useState({
@@ -76,6 +84,7 @@ const ProductFormModal = ({ isOpen, onClose, productId, onSuccess }) => {
     seoDescription: "",
     relatedProducts: [],
     faqs: [],
+    specifications: emptySpecifications(),
   });
 
   const extractId = (value) => {
@@ -103,6 +112,13 @@ const ProductFormModal = ({ isOpen, onClose, productId, onSuccess }) => {
 
     fetchVendors();
   }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      setStep(1);
+      setSpecErrors({});
+    }
+  }, [isOpen, productId]);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -174,6 +190,7 @@ const ProductFormModal = ({ isOpen, onClose, productId, onSuccess }) => {
             seoDescription: product.seoDescription || "",
             relatedProducts: product.relatedProducts || [],
             faqs: Array.isArray(product.faqs) ? product.faqs : [],
+            specifications: normalizeSpecifications(product.specifications),
           });
         }
       } catch (error) {
@@ -229,6 +246,7 @@ const ProductFormModal = ({ isOpen, onClose, productId, onSuccess }) => {
         seoDescription: "",
         relatedProducts: [],
         faqs: [],
+        specifications: emptySpecifications(),
       });
     }
   }, [isOpen, isEdit, productId, onClose, categories]);
@@ -570,8 +588,41 @@ const ProductFormModal = ({ isOpen, onClose, productId, onSuccess }) => {
     }
   };
 
+  const handleNextStep = () => {
+    const invalid = step1Ref.current?.querySelector(":invalid");
+    if (invalid) {
+      invalid.reportValidity?.();
+      invalid.focus?.();
+      return;
+    }
+    if (!formData.name || !formData.price || !formData.stockQuantity) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+    if (!formData.vendorId) {
+      toast.error("Please select a vendor");
+      return;
+    }
+    if (!formData.categoryId && !formData.subcategoryId) {
+      toast.error("Please select a category");
+      return;
+    }
+    setStep(2);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (step === 1) {
+      handleNextStep();
+      return;
+    }
+    if (isSubmitting) return;
+    const specProblems = validateSpecifications(formData.specifications, specTemplate);
+    setSpecErrors(specProblems);
+    if (Object.keys(specProblems).length > 0) {
+      toast.error(Object.values(specProblems)[0]);
+      return;
+    }
 
     if (!formData.name || !formData.price || !formData.stockQuantity) {
       toast.error("Please fill in all required fields");
@@ -628,8 +679,10 @@ const ProductFormModal = ({ isOpen, onClose, productId, onSuccess }) => {
           answer: String(faq?.answer || "").trim(),
         }))
         .filter((faq) => faq.question && faq.answer),
+      specifications: cleanSpecificationsForSubmit(formData.specifications),
     };
 
+    setIsSubmitting(true);
     try {
       if (isEdit) {
         await updateProduct(productId, submissionData);
@@ -645,6 +698,8 @@ const ProductFormModal = ({ isOpen, onClose, productId, onSuccess }) => {
       onClose();
     } catch (error) {
       // Error is handled in interceptor
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -729,6 +784,8 @@ const ProductFormModal = ({ isOpen, onClose, productId, onSuccess }) => {
               {/* Form Content - Scrollable */}
               <div className="overflow-y-auto flex-1 p-4 sm:p-6">
                 <form onSubmit={handleSubmit} className="space-y-6">
+                  <ProductFormStepper step={step} onStepClick={(n) => { if (n === 1) setStep(1); else handleNextStep(); }} />
+                  <div ref={step1Ref} className={step === 1 ? "space-y-6" : "hidden"}>
                   {/* Basic Information */}
                   <div>
                     <h3 className="text-lg font-bold text-gray-800 mb-4">
@@ -1637,6 +1694,18 @@ const ProductFormModal = ({ isOpen, onClose, productId, onSuccess }) => {
                     </div>
                   </div>
 
+                  </div>
+
+                  {step === 2 && (
+                    <ProductSpecificationsForm
+                      categoryId={formData.subcategoryId || formData.categoryId}
+                      value={formData.specifications}
+                      onChange={(specifications) => setFormData((prev) => ({ ...prev, specifications }))}
+                      onTemplateLoaded={setSpecTemplate}
+                      errors={specErrors}
+                    />
+                  )}
+
                   {/* Actions */}
                   <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
                     <Button
@@ -1646,13 +1715,26 @@ const ProductFormModal = ({ isOpen, onClose, productId, onSuccess }) => {
                       size="sm">
                       Cancel
                     </Button>
-                    <Button
-                      type="submit"
-                      variant="primary"
-                      icon={FiSave}
-                      size="sm">
-                      {isEdit ? "Update Product" : "Create Product"}
-                    </Button>
+                    {step === 2 && (
+                      <Button type="button" onClick={() => setStep(1)} variant="secondary" size="sm" data-testid="product-form-back">
+                        Back
+                      </Button>
+                    )}
+                    {step === 1 ? (
+                      <Button key="next-step" type="button" onClick={handleNextStep} variant="primary" size="sm" data-testid="product-form-next">
+                        Next: Specifications &amp; Details
+                      </Button>
+                    ) : (
+                      <Button
+                        key="submit-product"
+                        type="submit"
+                        variant="primary"
+                        icon={FiSave}
+                        disabled={isSubmitting}
+                        size="sm">
+                        {isSubmitting ? "Saving..." : isEdit ? "Update Product" : "Create Product"}
+                      </Button>
+                    )}
                   </div>
                 </form>
               </div>

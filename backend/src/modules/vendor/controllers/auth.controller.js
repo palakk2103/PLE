@@ -42,6 +42,10 @@ export const register = asyncHandler(async (req, res) => {
 
     const isGst = req.body.gstRegistered === true || req.body.gstRegistered === 'true';
 
+    if (!req.files?.bankProof?.[0]) {
+        throw new ApiError(400, 'Please upload a bank statement or cancelled cheque.');
+    }
+
     // Upload files to Cloudinary
     let gstCertificate = '';
     let msmeCertificate = '';
@@ -56,6 +60,9 @@ export const register = asyncHandler(async (req, res) => {
     let partnershipAgreementUrl = '';
     let partnershipAgreementName = '';
     let partnershipAgreementUploadedAt = null;
+    let bankProofUrl = '';
+    let bankProofName = '';
+    let bankProofUploadedAt = null;
 
     if (req.files) {
         const getResourceType = (file) => (file?.mimetype === 'application/pdf' ? 'raw' : 'auto');
@@ -115,6 +122,16 @@ export const register = asyncHandler(async (req, res) => {
             partnershipAgreementName = req.files.partnershipAgreement[0].originalname;
             partnershipAgreementUploadedAt = new Date();
         }
+        if (req.files.bankProof?.[0]) {
+            const uploaded = await uploadLocalFileToCloudinaryAndCleanupWithType(
+                req.files.bankProof[0].path,
+                'vendors/verification/bank_proof',
+                getResourceType(req.files.bankProof[0])
+            );
+            bankProofUrl = uploaded.url;
+            bankProofName = req.files.bankProof[0].originalname;
+            bankProofUploadedAt = new Date();
+        }
     }
 
     const vendor = await Vendor.create({
@@ -149,6 +166,19 @@ export const register = asyncHandler(async (req, res) => {
         partnershipAgreementUrl,
         partnershipAgreementName,
         partnershipAgreementUploadedAt,
+        bankDetails: {
+            accountName: String(req.body.bankAccountName || '').trim(),
+            accountNumber: String(req.body.bankAccountNumber || '').trim(),
+            bankName: String(req.body.bankName || '').trim(),
+            ifscCode: String(req.body.bankIfscCode || '').trim().toUpperCase(),
+            upiId: String(req.body.bankUpiId || '').trim(),
+            branchName: String(req.body.bankBranchName || '').trim(),
+            accountType: req.body.bankAccountType || '',
+            bankProofType: req.body.bankProofType || '',
+            bankProofUrl,
+            bankProofName,
+            bankProofUploadedAt,
+        },
         verificationStatus: 'Pending',
         status: 'pending'
     });

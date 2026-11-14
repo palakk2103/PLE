@@ -139,7 +139,7 @@ export const createRFQ = asyncHandler(async (req, res) => {
 
 // GET /api/user/rfq
 export const getBuyerRFQs = asyncHandler(async (req, res) => {
-    const rfqs = await RFQ.find({ buyerId: req.user.id })
+    const rfqs = await RFQ.find({ buyerId: req.user.id, rfqType: { $ne: 'consumer' } })
         .populate('productId', 'name image price')
         .populate('sellerId', 'storeName name')
         .sort({ createdAt: -1 });
@@ -149,7 +149,7 @@ export const getBuyerRFQs = asyncHandler(async (req, res) => {
 
 // GET /api/user/rfq/:id
 export const getRFQDetail = asyncHandler(async (req, res) => {
-    const rfq = await RFQ.findOne({ _id: req.params.id, buyerId: req.user.id })
+    const rfq = await RFQ.findOne({ _id: req.params.id, buyerId: req.user.id, rfqType: { $ne: 'consumer' } })
         .populate('productId', 'name image price unit stockQuantity')
         .populate('sellerId', 'storeName name email')
         .populate('buyerId', 'name companyName email phone');
@@ -164,7 +164,7 @@ export const getRFQDetail = asyncHandler(async (req, res) => {
 // POST /api/user/rfq/:id/counter
 export const buyerCounterOffer = asyncHandler(async (req, res) => {
     const { price, quantity, notes } = req.body;
-    const rfq = await RFQ.findOne({ _id: req.params.id, buyerId: req.user.id });
+    const rfq = await RFQ.findOne({ _id: req.params.id, buyerId: req.user.id, rfqType: { $ne: 'consumer' } });
 
     if (!rfq) {
         throw new ApiError(404, 'RFQ not found.');
@@ -203,7 +203,7 @@ export const buyerCounterOffer = asyncHandler(async (req, res) => {
 
 // POST /api/user/rfq/:id/accept
 export const buyerAcceptQuote = asyncHandler(async (req, res) => {
-    const rfq = await RFQ.findOne({ _id: req.params.id, buyerId: req.user.id })
+    const rfq = await RFQ.findOne({ _id: req.params.id, buyerId: req.user.id, rfqType: { $ne: 'consumer' } })
         .populate('productId')
         .populate('sellerId');
 
@@ -380,7 +380,7 @@ export const buyerAcceptQuote = asyncHandler(async (req, res) => {
 
 // POST /api/user/rfq/:id/reject
 export const buyerRejectQuote = asyncHandler(async (req, res) => {
-    const rfq = await RFQ.findOne({ _id: req.params.id, buyerId: req.user.id });
+    const rfq = await RFQ.findOne({ _id: req.params.id, buyerId: req.user.id, rfqType: { $ne: 'consumer' } });
 
     if (!rfq) {
         throw new ApiError(404, 'RFQ not found.');

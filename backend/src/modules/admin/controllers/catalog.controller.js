@@ -7,6 +7,7 @@ import Brand from '../../../models/Brand.model.js';
 import Settings from '../../../models/Settings.model.js';
 import { createNotification } from '../../../services/notification.service.js';
 import { slugify } from '../../../utils/slugify.js';
+import { sanitizeSpecifications } from '../../../services/productSpecs.service.js';
 import { sendVendorProductReviewEmail } from '../../../services/vendorNotification.service.js';
 
 const sanitizeFaqs = (faqs) => {
@@ -196,7 +197,7 @@ const calculateVariantAggregateStock = (variants = {}) => {
 };
 
 const sanitizeCategoryPayload = (payload = {}) => {
-    const allowed = ['name', 'description', 'image', 'icon', 'parentId', 'order', 'isActive', 'isRefurbishedCategory', 'gstRate'];
+    const allowed = ['name', 'description', 'image', 'icon', 'parentId', 'order', 'isActive', 'isRefurbishedCategory', 'gstRate', 'specFields'];
     const sanitized = {};
     for (const key of allowed) {
         if (Object.prototype.hasOwnProperty.call(payload, key)) {
@@ -317,6 +318,7 @@ export const createProduct = asyncHandler(async (req, res) => {
             ? 'low_stock'
             : 'in_stock');
 
+    const specifications = await sanitizeSpecifications(rest.specifications, rest.categoryId);
     const product = await Product.create({
         name,
         slug,
@@ -325,6 +327,7 @@ export const createProduct = asyncHandler(async (req, res) => {
         ...rest,
         variants: normalizedVariants,
         faqs: sanitizeFaqs(rest.faqs),
+        specifications,
     });
     res.status(201).json(new ApiResponse(201, product, 'Product created.'));
 });
@@ -373,6 +376,12 @@ export const updateProduct = asyncHandler(async (req, res) => {
 
     const product = await Product.findById(req.params.id);
     if (!product) throw new ApiError(404, 'Product not found.');
+    if (Object.prototype.hasOwnProperty.call(payload, 'specifications')) {
+        payload.specifications = await sanitizeSpecifications(
+            payload.specifications,
+            payload.categoryId || product.categoryId
+        );
+    }
     Object.assign(product, payload);
     await product.save();
     res.status(200).json(new ApiResponse(200, product, 'Product updated.'));

@@ -407,10 +407,13 @@ const AllOrders = () => {
       const normalizedOrders = response.data.orders.map(order => ({
         ...order,
         id: order.orderId || order._id,
-        customer: {
-          name: order.userId?.name || 'Unknown',
-          email: order.userId?.email || ''
-        },
+        // B2B orders are listed under the company (the buyer); the individual employee isn't shown in lists
+        customer: order.companyId?.companyName
+          ? { name: order.companyId.companyName, email: 'Business account' }
+          : {
+              name: order.userId?.name || 'Unknown',
+              email: order.userId?.email || ''
+            },
         date: order.createdAt,
         finalTotal: order.total
       }));

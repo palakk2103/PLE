@@ -24,6 +24,7 @@ import Wallet from '../models/Wallet.model.js';
 import User from '../models/User.model.js';
 import { optionalAuth } from '../middlewares/authenticate.js';
 import { resolveProductGST } from '../utils/gstUtils.js';
+import { resolveSpecTemplate } from '../services/productSpecs.service.js';
 
 const router = Router();
 
@@ -511,6 +512,16 @@ const getPublicCategoriesList = asyncHandler(async (req, res) => {
     }).sort({ order: 1 });
     res.status(200).json(new ApiResponse(200, categories, 'Categories fetched.'));
 });
+
+// GET /api/spec-template?categoryId= — category-aware specification field definitions
+router.get('/spec-template', asyncHandler(async (req, res) => {
+    const { categoryId } = req.query;
+    if (categoryId && !mongoose.Types.ObjectId.isValid(String(categoryId))) {
+        throw new ApiError(400, 'Invalid categoryId.');
+    }
+    const template = await resolveSpecTemplate(categoryId || null);
+    res.status(200).json(new ApiResponse(200, template, 'Specification template.'));
+}));
 
 router.get('/categories', getPublicCategoriesList);
 router.get('/categories/all', getPublicCategoriesList);

@@ -77,6 +77,12 @@ const vendorSchema = new mongoose.Schema(
             bankName: { type: String, default: '' },
             ifscCode: { type: String, default: '' },
             upiId: { type: String, default: '' },
+            branchName: { type: String, default: '' },
+            accountType: { type: String, default: '' },
+            bankProofType: { type: String, enum: ['', 'bank_statement', 'cancelled_cheque'], default: '' },
+            bankProofUrl: { type: String, default: '' },
+            bankProofName: { type: String, default: '' },
+            bankProofUploadedAt: { type: Date },
         },
         documents: {
             gst: String,

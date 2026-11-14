@@ -72,11 +72,21 @@ const OrderDetail = () => {
         const normalizedOrder = {
           ...o,
           id: o.orderId || o._id,
-          customer: {
-            name: o.userId?.name || 'Unknown',
-            email: o.userId?.email || '',
-            phone: o.userId?.phone || ''
-          },
+          // For B2B orders the company is the buyer; the employee who placed it is secondary info
+          customer: o.companyId?.companyName
+            ? {
+                name: o.companyId.companyName,
+                email: o.companyId.businessEmail || o.userId?.email || '',
+                phone: o.userId?.phone || '',
+                isCompany: true,
+                gstNumber: o.companyId.gstNumber || '',
+                placedBy: o.userId?.name || ''
+              }
+            : {
+                name: o.userId?.name || 'Unknown',
+                email: o.userId?.email || '',
+                phone: o.userId?.phone || ''
+              },
           date: o.createdAt
         };
 
@@ -323,12 +333,18 @@ const OrderDetail = () => {
               <div>
                 <h2 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-1.5">
                   <FiMail className="text-primary-600 text-base" />
-                  Customer
+                  {order.customer?.isCompany ? 'Business Customer' : 'Customer'}
                 </h2>
                 <div className="space-y-2">
                   <div>
-                    <p className="text-xs text-gray-500">Name</p>
+                    <p className="text-xs text-gray-500">{order.customer?.isCompany ? 'Company' : 'Name'}</p>
                     <p className="font-semibold text-sm text-gray-800">{order.customer?.name || order.shippingAddress?.name || 'N/A'}</p>
+                    {order.customer?.isCompany && order.customer.gstNumber && (
+                      <p className="text-[11px] text-gray-500 font-mono">GSTIN: {order.customer.gstNumber}</p>
+                    )}
+                    {order.customer?.isCompany && order.customer.placedBy && (
+                      <p className="text-[11px] text-gray-500">Placed by {order.customer.placedBy}</p>
+                    )}
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Email</p>

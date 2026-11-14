@@ -1,0 +1,84 @@
+- generic [active] [ref=f12e1]:
+  - main [ref=f12e5]:
+    - generic [ref=f12e206]:
+      - generic [ref=f12e208]:
+        - generic [ref=f12e209]:
+          - button [ref=f12e210] [cursor=pointer]
+          - heading "Checkout" [level=1] [ref=f12e213]
+        - generic [ref=f12e216]:
+          - generic [ref=f12e217]: Step 1
+          - generic [ref=f12e225]:
+            - generic [ref=f12e226]: "2"
+            - generic [ref=f12e227]: Step 2
+      - generic [ref=f12e229]:
+        - generic [ref=f12e231]:
+          - heading "Payment Method" [level=2] [ref=f12e232]
+          - generic [ref=f12e235]:
+            - generic [ref=f12e236]:
+              - generic [ref=f12e237]: Use Business Wallet Balance
+              - generic [ref=f12e238]: ₹1,800.00
+            - generic [ref=f12e239] [cursor=pointer]:
+              - checkbox "Pay ₹0 from wallet" [checked] [ref=f12e240]
+              - generic [ref=f12e241]: Pay ₹0 from wallet
+          - generic [ref=f12e242]: Full payment will be processed via Wallet. No other payment method required.
+          - generic [ref=f12e247]:
+            - heading "Shipping & Logistics Options" [level=3] [ref=f12e248]
+            - generic [ref=f12e250]:
+              - radio [checked] [ref=f12e251]
+              - generic [ref=f12e252]:
+                - generic [ref=f12e253]:
+                  - generic [ref=f12e254]: 📦 B2B Bulk Pallet Dispatch
+                  - generic [ref=f12e255]: Enterprise SLA
+                - paragraph [ref=f12e256]: "Estimated Handover: 3–5 Business Days"
+                - paragraph [ref=f12e257]: High-volume pallet security dispatch with priority freight logistics. Delivery is fully vetted and audited for business invoice clearance.
+              - generic [ref=f12e258]: ₹1,500
+            - generic [ref=f12e259]: "Logistics Fee: FREE"
+          - generic [ref=f12e264]:
+            - heading "Coupon Code" [level=3] [ref=f12e265]
+            - generic [ref=f12e266]:
+              - textbox "Enter code" [ref=f12e267]
+              - button "Apply" [ref=f12e268] [cursor=pointer]
+          - generic [ref=f12e269]:
+            - heading "Available Savings & Offers" [level=3] [ref=f12e273]
+            - generic [ref=f12e274]:
+              - generic [ref=f12e275]:
+                - paragraph [ref=f12e276]: Potential Savings Available
+                - paragraph [ref=f12e277]: Try applying coupon codes listed below to save extra.
+              - generic [ref=f12e278]: Save Up To 20%
+            - generic [ref=f12e279]:
+              - generic [ref=f12e280]:
+                - generic [ref=f12e281]:
+                  - generic [ref=f12e282]: 🏦 SBI Card 10% Discount
+                  - generic [ref=f12e283]: SBISAVE10
+                - paragraph [ref=f12e284]: "Min transaction: ₹5,000. Save up to ₹1,500."
+              - generic [ref=f12e285]:
+                - generic [ref=f12e286]:
+                  - generic [ref=f12e287]: 🎉 Site-wide Festival Sale
+                  - generic [ref=f12e288]: FESTIVAL20
+                - paragraph [ref=f12e289]: Flat 20% off all products across clothing & accessories.
+        - generic [ref=f12e291]:
+          - generic [ref=f12e292]:
+            - generic [ref=f12e293]:
+              - heading "Order Summary" [level=3] [ref=f12e294]
+              - generic [ref=f12e295]:
+                - generic [ref=f12e296]:
+                  - generic [ref=f12e297]: Subtotal
+                  - generic [ref=f12e298]: ₹0
+                - generic [ref=f12e300]:
+                  - generic [ref=f12e301]:
+                    - generic [ref=f12e302]: Delivery Fee
+                    - generic [ref=f12e303]: Prepaid
+                  - generic [ref=f12e304]: FREE
+                - generic [ref=f12e306]:
+                  - generic [ref=f12e307]: Estimated GST & Taxes
+                  - generic [ref=f12e308]: ₹0
+                - generic [ref=f12e309]:
+                  - generic [ref=f12e310]: Total
+                  - generic [ref=f12e311]: ₹0
+            - generic [ref=f12e312]:
+              - button "Place Order" [ref=f12e313] [cursor=pointer]
+              - button "Back to Shipping" [ref=f12e314] [cursor=pointer]
+          - generic [ref=f12e315]: Secure Checkout
+  - generic [ref=f12e321]:
+    - heading "Order Successful!" [level=2] [ref=f12e327]
+    - paragraph [ref=f12e328]: Sit tight, we are redirecting you.

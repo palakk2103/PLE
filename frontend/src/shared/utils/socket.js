@@ -20,24 +20,30 @@ const SOCKET_URL = getSocketUrl();
 class SocketService {
   constructor() {
     this.socket = null;
+    this.authToken = null;
+  }
+
+  readToken() {
+    if (typeof window === 'undefined') return '';
+    return (
+      localStorage.getItem('token') ||
+      localStorage.getItem('vendor-token') ||
+      localStorage.getItem('adminToken') ||
+      localStorage.getItem('b2bAdminToken') ||
+      sessionStorage.getItem('token') ||
+      sessionStorage.getItem('vendor-token') ||
+      sessionStorage.getItem('adminToken') ||
+      ''
+    );
   }
 
   connect() {
     if (!this.socket) {
-      const token = typeof window !== 'undefined'
-        ? (localStorage.getItem('token') || 
-           localStorage.getItem('vendor-token') || 
-           localStorage.getItem('adminToken') || 
-           localStorage.getItem('b2bAdminToken') ||
-           sessionStorage.getItem('token') ||
-           sessionStorage.getItem('vendor-token') ||
-           sessionStorage.getItem('adminToken'))
-        : null;
-
+      this.authToken = this.readToken();
       this.socket = io(SOCKET_URL, {
         transports: ['websocket'],
         autoConnect: true,
-        auth: { token: token || '' },
+        auth: { token: this.authToken },
       });
 
       this.socket.on('connect', () => {
@@ -59,10 +65,12 @@ class SocketService {
   }
 
   getSocket() {
-    if (!this.socket) {
-      return this.connect();
+    // Socket was opened before login (empty/stale token) -> it is unauthenticated on the
+    // server and cannot join chat rooms. Reconnect with the current token.
+    if (this.socket && this.readToken() !== this.authToken) {
+      this.disconnect();
     }
-    return this.socket;
+    return this.socket || this.connect();
   }
 }
 
