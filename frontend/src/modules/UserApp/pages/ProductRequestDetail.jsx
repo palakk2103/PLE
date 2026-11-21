@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import MobileLayout from "../components/Layout/MobileLayout";
 import PageTransition from "../../../shared/components/PageTransition";
 import api from "../../../shared/utils/api";
+import SourceNowPayment from "../components/SourceNowPayment";
 
 const ProductRequestDetail = () => {
   const navigate = useNavigate();
@@ -160,17 +161,6 @@ const ProductRequestDetail = () => {
     }
   };
 
-  const handleConfirmProposal = async () => {
-    try {
-      const response = await api.post(`/user/product-requests/${request.requestId}/confirm`);
-      if (response.success || response.statusCode === 200) {
-        toast.success("Proposal accepted! Order created successfully.");
-        fetchRequestDetail();
-      }
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to confirm proposal.");
-    }
-  };
 
   if (isLoading) {
     const loadingContent = (
@@ -595,9 +585,17 @@ const ProductRequestDetail = () => {
                 <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
                   <FiCheckCircle className="text-emerald-600 text-lg shrink-0" />
                   <div>
-                    <strong>Quotation Approved!</strong> A B2B procurement order has been created.
-                    {request.associatedOrderId && (
-                      <span className="ml-1 font-mono font-bold">Order ID: {request.associatedOrderId}</span>
+                    {request.status === "Confirmed" ? (
+                      <>
+                        <strong>Order confirmed!</strong> Payment received and your procurement order is being processed.
+                        {request.associatedOrder?.orderId && (
+                          <span className="ml-1 font-mono font-bold">Order ID: {request.associatedOrder.orderId}</span>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <strong>Quotation Approved!</strong> PLE is finalising your proposal. You will be asked to confirm and pay online next.
+                      </>
                     )}
                   </div>
                 </div>
@@ -606,7 +604,7 @@ const ProductRequestDetail = () => {
           )}
 
           {/* Legacy Proposal Card (backward compatibility) */}
-          {request.status === "Final Proposal" && request.selectedFulfillment && !request.vendorQuotation?.unitPrice && (
+          {request.status === "Final Proposal" && request.selectedFulfillment && (
             <div className="bg-gradient-to-br from-indigo-900 to-indigo-800 text-white rounded-3xl p-6 border border-indigo-950 shadow-md space-y-4">
               <h3 className="text-lg font-black tracking-wide">Procurement Proposal Ready</h3>
               <div className="grid grid-cols-2 gap-4 text-sm bg-black/20 p-4 rounded-2xl">
@@ -628,12 +626,7 @@ const ProductRequestDetail = () => {
                   <strong>Notes:</strong> {request.selectedFulfillment.notes}
                 </p>
               )}
-              <button
-                onClick={handleConfirmProposal}
-                className="w-full py-3 bg-emerald-600 hover:bg-emerald-750 text-white font-extrabold rounded-2xl text-sm transition-all shadow animate-pulse"
-              >
-                Accept Proposal & Checkout Order
-              </button>
+              <SourceNowPayment request={request} onChanged={fetchRequestDetail} />
             </div>
           )}
 
@@ -644,11 +637,19 @@ const ProductRequestDetail = () => {
                 ✅ Procurement Proposal Confirmed
               </h3>
               <p className="text-xs text-emerald-600">
-                You accepted the sourcing proposal. A B2B procurement order has been generated.
+                You accepted the sourcing proposal{request.associatedOrder?.paymentStatus === "paid" ? " and your payment was received" : ""}. Your procurement order is being processed.
               </p>
               {request.associatedOrderId && (
-                <div className="pt-1 text-xs">
-                  Associated Order ID: <span className="font-mono font-bold text-gray-700">{request.associatedOrderId}</span>
+                <div className="pt-1 text-xs space-y-0.5" data-testid="source-now-confirmed">
+                  <div>
+                    Order ID: <span className="font-mono font-bold text-gray-700">{request.associatedOrder?.orderId || request.associatedOrderId}</span>
+                  </div>
+                  {request.associatedOrder?.total != null && (
+                    <div>
+                      Amount paid: <span className="font-bold text-gray-700">₹{Number(request.associatedOrder.total).toLocaleString("en-IN")}</span>
+                      {request.associatedOrder.paymentStatus === "paid" && <span className="ml-1 text-emerald-700 font-bold">(Paid)</span>}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

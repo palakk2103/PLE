@@ -7,6 +7,21 @@ import Notification from '../../../models/Notification.model.js';
 import Vendor from '../../../models/Vendor.model.js';
 import ManagedShop from '../../../models/ManagedShop.model.js';
 import ManagedVendorUser from '../../../models/ManagedVendorUser.model.js';
+import Product from '../../../models/Product.model.js';
+import Order from '../../../models/Order.model.js';
+import Address from '../../../models/Address.model.js';
+import { User } from '../../../models/User.model.js';
+import { generateOrderId } from '../../../utils/generateOrderId.js';
+import {
+    resolveProductGST,
+    calculateItemGST,
+    resolveSellerState,
+    resolveBuyerState,
+    determineSupplyType,
+    applyGSTSplit,
+    summarizeGST,
+} from '../../../utils/gstUtils.js';
+import { createRazorpayOrder } from '../../../services/razorpay.service.js';
 import { moderateMessage, MODERATION_ACTION } from '../../../services/chatModeration.service.js';
 import { sendProductRequestReceivedEmail } from '../../../services/customerNotification.service.js';
 import {
@@ -233,133 +248,196 @@ export const getProductRequestById = asyncHandler(async (req, res) => {
         throw new ApiError(404, 'Product request not found');
     }
 
+    // Summary of the order created when the proposal was accepted (lets the buyer finish an unpaid payment).
+    const data = request.toObject();
+    if (request.associatedOrderId) {
+        data.associatedOrder = await Order.findById(request.associatedOrderId)
+            .select('orderId subtotal tax total taxBreakdown placeOfSupply paymentStatus status shippingAddress')
+            .lean();
+    }
+
     res.status(200).json(
-        new ApiResponse(200, request, 'Product request fetched successfully')
+        new ApiResponse(200, data, 'Product request fetched successfully')
     );
 });
 
-// @desc    B2B Buyer confirms the final sourcing proposal & creates standard Order
-// @route   POST /api/user/product-requests/:id/confirm
+const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
+const escapeRegex = (str) => String(str || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const SELLER_GST_FIELDS = 'storeName name commissionRate gstNumber documents.gst b2bSellingGstNumber b2bSellingState state address businessAddress';
+
+const resolveShippingAddress = async (userId, body) => {
+    const user = await User.findById(userId).select('name email phone').lean();
+    if (body?.addressId) {
+        if (!mongoose.isValidObjectId(body.addressId)) throw new ApiError(400, 'Invalid delivery address.');
+        const a = await Address.findOne({ _id: body.addressId, userId }).lean();
+        if (!a) throw new ApiError(400, 'Delivery address not found.');
+        return {
+            name: a.fullName || a.name || user?.name, email: user?.email, phone: a.phone || user?.phone,
+            address: a.address, city: a.city, state: a.state, zipCode: a.zipCode, country: a.country || 'India',
+        };
+    }
+    const s = body?.shippingAddress;
+    if (s && s.address && s.city && s.state && s.zipCode) {
+        return {
+            name: s.name || user?.name, email: s.email || user?.email, phone: s.phone || user?.phone,
+            address: s.address, city: s.city, state: s.state, zipCode: String(s.zipCode), country: s.country || 'India',
+        };
+    }
+    throw new ApiError(400, 'Please choose a delivery address.');
+};
+
+const paymentPayload = (order, razorpayOrder) => ({
+    order: {
+        _id: order._id, orderId: order.orderId, subtotal: order.subtotal, tax: order.tax, total: order.total,
+        taxBreakdown: order.taxBreakdown, placeOfSupply: order.placeOfSupply, paymentStatus: order.paymentStatus,
+        shippingAddress: order.shippingAddress, items: order.items,
+    },
+    razorpayOrder,
+});
+
+// @desc    B2B Buyer accepts the final sourcing proposal: creates the order (stock reserved, GST
+//          applied) and starts an online (Razorpay) payment. The request becomes "Confirmed" only
+//          after the payment is verified via POST /api/user/payments/verify.
+//          Calling it again while unpaid re-uses the same order and starts a fresh payment.
+// @route   POST /api/user/product-requests/:id/confirm   body: { addressId } | { shippingAddress }
 // @access  Private (B2B User/Admin)
 export const confirmProductRequestProposal = asyncHandler(async (req, res) => {
     const userId = req.user.id || req.user._id;
     const request = await ProductRequest.findOne({ requestId: req.params.id, userId });
+    if (!request) throw new ApiError(404, 'Product request not found or unauthorized.');
 
-    if (!request) {
-        throw new ApiError(404, 'Product request not found or unauthorized.');
+    // Already has an order from an earlier attempt?
+    if (request.associatedOrderId) {
+        const existing = await Order.findById(request.associatedOrderId);
+        if (existing?.paymentStatus === 'paid' || request.status === 'Confirmed') {
+            throw new ApiError(400, 'This proposal is already confirmed and paid.');
+        }
+        if (existing && !['cancelled', 'returned'].includes(String(existing.status).toLowerCase())) {
+            const rzp = await createRazorpayOrder(existing.total, { receipt: `rcpt_${existing.orderId}`, notes: { orderId: existing.orderId, requestId: request.requestId } });
+            existing.paymentDetails = { razorpayOrderId: rzp.id, amount: existing.total, status: 'created', gatewayName: 'Razorpay', paymentMethod: 'card' };
+            if (existing.paymentStatus === 'failed') existing.paymentStatus = 'pending';
+            await existing.save();
+            return res.status(200).json(new ApiResponse(200, { request, ...paymentPayload(existing, rzp) }, 'Complete the payment to confirm your order.'));
+        }
     }
 
     if (request.status !== 'Final Proposal') {
         throw new ApiError(400, 'Request is not in Final Proposal state.');
     }
 
-    // 1. Re-validate latest stock & pricing of selected source(s)
-    const { default: Product } = await import('../../../models/Product.model.js');
-    const { default: Order } = await import('../../../models/Order.model.js');
-    const { generateOrderId } = await import('../../../utils/generateOrderId.js');
+    const shippingAddress = await resolveShippingAddress(userId, req.body);
+    const buyerState = resolveBuyerState(shippingAddress);
 
-    const proposal = request.selectedFulfillment;
-    const orderItems = [];
+    const proposal = request.selectedFulfillment || {};
+    const nameMatch = { $regex: new RegExp(escapeRegex(request.productName), 'i') };
 
-    // Check PLE Shop fulfillment if quantity > 0
+    // 1. Resolve the source products + prices (stock is re-checked atomically in the transaction)
+    const lines = [];
     if (proposal.pleQuantity > 0) {
-        const { ManagedShop } = await import('../../../models/ManagedShop.model.js');
         const pleShop = await ManagedShop.findOne({ name: 'PLE Shop' }) || await ManagedShop.findOne({ status: 'active' });
-        const pleProduct = pleShop ? await Product.findOne({ shopId: pleShop._id, name: { $regex: new RegExp(request.productName, 'i') }, isActive: true }) : null;
-
+        const pleProduct = pleShop
+            ? await Product.findOne({ shopId: pleShop._id, name: nameMatch, isActive: true }).populate('categoryId').populate('shopId', 'name logo gst address warehouse')
+            : null;
         if (!pleProduct || pleProduct.stockQuantity < proposal.pleQuantity) {
             throw new ApiError(400, 'Fulfillment failed. PLE Shop stock has changed and is now insufficient.');
         }
-
-        // Deduct PLE Shop stock
-        pleProduct.stockQuantity -= proposal.pleQuantity;
-        if (pleProduct.stockQuantity === 0) pleProduct.stock = 'out_of_stock';
-        await pleProduct.save();
-
-        orderItems.push({
-            productId: pleProduct._id,
-            name: pleProduct.name,
-            image: pleProduct.image || request.image,
-            price: proposal.finalPrice,
-            quantity: proposal.pleQuantity
-        });
+        lines.push({ product: pleProduct, sellerId: pleShop._id, sellerName: pleShop.name || 'PLE Shop', seller: pleProduct.shopId, isShop: true, quantity: Number(proposal.pleQuantity), price: Number(proposal.finalPrice) });
     }
-
-    // Check Vendor fulfillments
-    if (proposal.vendors && proposal.vendors.length > 0) {
-        for (const v of proposal.vendors) {
-            const vProduct = await Product.findOne({
-                vendorId: v.vendorId,
-                name: { $regex: new RegExp(request.productName, 'i') },
-                isActive: true
-            });
-
-            if (!vProduct || vProduct.stockQuantity < v.quantity) {
-                throw new ApiError(400, 'Fulfillment failed. Sourcing vendor stock is insufficient.');
-            }
-
-            // Deduct Vendor stock
-            vProduct.stockQuantity -= v.quantity;
-            if (vProduct.stockQuantity === 0) vProduct.stock = 'out_of_stock';
-            await vProduct.save();
-
-            orderItems.push({
-                productId: vProduct._id,
-                vendorId: v.vendorId,
-                name: vProduct.name,
-                image: vProduct.image || request.image,
-                price: v.price || proposal.finalPrice,
-                quantity: v.quantity
-            });
+    for (const v of proposal.vendors || []) {
+        const vProduct = await Product.findOne({ vendorId: v.vendorId, name: nameMatch, isActive: true })
+            .populate('categoryId').populate('vendorId', SELLER_GST_FIELDS);
+        if (!vProduct || vProduct.stockQuantity < v.quantity) {
+            throw new ApiError(400, 'Fulfillment failed. Sourcing vendor stock is insufficient.');
         }
+        lines.push({ product: vProduct, sellerId: v.vendorId, sellerName: vProduct.vendorId?.storeName || vProduct.vendorId?.name || 'Vendor', seller: vProduct.vendorId, isShop: false, quantity: Number(v.quantity), price: Number(v.price || proposal.finalPrice) });
     }
+    if (!lines.length) throw new ApiError(400, 'This proposal has nothing to order.');
+    if (lines.some((l) => !(l.price > 0) || !(l.quantity > 0))) throw new ApiError(400, 'This proposal has an invalid price or quantity. Please contact support.');
 
-    // 2. Create the Order
-    const subtotal = orderItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-    const order = await Order.create({
-        orderId: generateOrderId(),
-        userId,
-        items: orderItems,
-        subtotal,
-        total: subtotal,
-        paymentMethod: 'wallet', // Standard B2B wallet payment
-        paymentStatus: 'pending',
-        status: 'pending',
-        requestProductId: request._id,
-        orderType: 'product_request'
+    // 2. Price lines (quoted prices are exclusive of GST) + place-of-supply split
+    const vendorMap = new Map();
+    const items = lines.map((l) => {
+        const gstRate = resolveProductGST(l.product, l.product.categoryId, l.isShop ? null : l.seller);
+        const { taxableAmount, gstAmount } = calculateItemGST(l.price, l.quantity, gstRate, 0, false);
+        const sellerState = resolveSellerState(l.seller);
+        const supplyType = determineSupplyType(sellerState, buyerState);
+        const item = {
+            productId: l.product._id, vendorId: l.sellerId, name: l.product.name, image: l.product.image || request.image,
+            price: round2(l.price), quantity: l.quantity, gstMode: l.product.gstMode || 'category', gstRate, gstAmount, taxableAmount, taxIncluded: false,
+        };
+        applyGSTSplit(item, supplyType);
+        const key = String(l.sellerId);
+        if (!vendorMap.has(key)) {
+            vendorMap.set(key, { vendorId: l.sellerId, vendorName: l.sellerName, items: [], subtotal: 0, shipping: 0, tax: 0, discount: 0, status: 'pending', sellerState: sellerState?.name, sellerStateCode: sellerState?.code, supplyType });
+        }
+        const g = vendorMap.get(key);
+        g.items.push(item);
+        g.subtotal = round2(g.subtotal + l.price * l.quantity);
+        g.tax = round2(g.tax + gstAmount);
+        return item;
     });
+    const vendorItems = [...vendorMap.values()].map((g) => ({ ...g, ...(({ cgst, sgst, igst }) => ({ cgst, sgst, igst }))(summarizeGST(g.items)) }));
+    const subtotal = round2(items.reduce((a, it) => a + it.price * it.quantity, 0));
+    const tax = round2(items.reduce((a, it) => a + it.gstAmount, 0));
+    const total = round2(subtotal + tax);
 
-    request.status = 'Confirmed';
-    request.associatedOrderId = order._id;
+    // 3. Start the online payment first: if the gateway is down, no stock is reserved.
+    const orderId = generateOrderId();
+    const rzp = await createRazorpayOrder(total, { receipt: `rcpt_${orderId}`, notes: { orderId, requestId: request.requestId } });
 
-    request.timeline.push({
-        status: 'Confirmed',
-        comment: `Proposal accepted. Order ${order.orderId} created successfully.`
-    });
-
-    request.auditLog.push({
-        action: 'Confirmed Sourcing',
-        performedBy: userId,
-        performerType: 'User',
-        reason: `Buyer accepted proposal. Standard order created.`
-    });
-
-    await request.save();
-
-    // Automatically generate invoice and send customer invoice email idempotently
+    // 4. Reserve stock + create the order atomically
+    const session = await mongoose.startSession();
+    let order;
     try {
-        const { generateInvoiceForOrder, sendOrderInvoiceEmail } = await import('../../../services/invoice.service.js');
-        const inv = await generateInvoiceForOrder(order._id);
-        if (inv) {
-            await sendOrderInvoiceEmail(order._id, { invoice: inv });
-        }
-    } catch (invErr) {
-        console.error("Automatic invoice / email generation error on product request proposal:", invErr?.message);
+        await session.withTransaction(async () => {
+            for (const l of lines) {
+                const updated = await Product.findOneAndUpdate(
+                    { _id: l.product._id, stockQuantity: { $gte: l.quantity } },
+                    { $inc: { stockQuantity: -l.quantity } },
+                    { new: true, session }
+                );
+                if (!updated) throw new ApiError(400, `Fulfillment failed. Stock for ${l.product.name} has changed and is now insufficient.`);
+                if (updated.stockQuantity <= 0 && updated.stock !== 'out_of_stock') {
+                    await Product.updateOne({ _id: updated._id }, { $set: { stock: 'out_of_stock' } }, { session });
+                }
+            }
+            [order] = await Order.create([{
+                orderId,
+                userId,
+                items,
+                vendorItems,
+                shippingAddress,
+                paymentMethod: 'card',
+                paymentStatus: 'pending',
+                paymentDetails: { razorpayOrderId: rzp.id, amount: total, status: 'created', gatewayName: 'Razorpay', paymentMethod: 'card' },
+                subtotal,
+                shipping: 0,
+                tax,
+                taxBreakdown: summarizeGST(items),
+                placeOfSupply: buyerState ? { state: buyerState.name, code: buyerState.code } : undefined,
+                discount: 0,
+                total,
+                status: 'pending',
+                estimatedDelivery: proposal.estimatedDelivery || undefined,
+                requestProductId: request._id,
+                orderType: 'product_request',
+            }], { session });
+
+            request.associatedOrderId = order._id;
+            request.timeline.push({ status: 'Final Proposal', comment: `Proposal accepted. Order ${order.orderId} created for ₹${total} (incl. GST ₹${tax}); awaiting online payment.` });
+            request.auditLog.push({
+                action: 'Accepted Proposal',
+                performedBy: userId,
+                performerType: 'User',
+                reason: `Buyer accepted proposal; order ${order.orderId} awaiting payment.`,
+            });
+            await request.save({ session });
+        });
+    } finally {
+        await session.endSession();
     }
 
-    res.status(200).json(
-        new ApiResponse(200, { request, order }, 'Proposal accepted and order created')
-    );
+    res.status(201).json(new ApiResponse(201, { request, ...paymentPayload(order, rzp) }, 'Order created. Complete the payment to confirm.'));
 });
 
 // @desc    User approves vendor quotation (Vendor Window flow)

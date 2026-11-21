@@ -1,5 +1,3 @@
-import crypto from 'crypto';
-import Razorpay from 'razorpay';
 import Order from '../../../models/Order.model.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
@@ -10,6 +8,27 @@ import { getIO } from '../../../config/socket.js';
 import { generateInvoiceForOrder, sendOrderInvoiceEmail } from '../../../services/invoice.service.js';
 import { handleOrderStatusTransition } from '../../../services/orderStatus.service.js';
 import { sendAdminFinanceAlert } from '../../../services/adminNotification.service.js';
+import { createRazorpayOrder, isValidRazorpaySignature, fetchRazorpayPayment } from '../../../services/razorpay.service.js';
+import ProductRequest from '../../../models/ProductRequest.model.js';
+
+const ownsOrder = (order, user) => String(order?.userId || '') === String(user?.id || user?._id || '');
+
+// Source Now: the request is only "Confirmed" once its order is actually paid.
+const completeProductRequestAfterPayment = async (order) => {
+    if (order?.orderType !== 'product_request' || !order.requestProductId) return;
+    const request = await ProductRequest.findById(order.requestProductId);
+    if (!request || request.status === 'Confirmed') return;
+    request.status = 'Confirmed';
+    request.associatedOrderId = order._id;
+    request.timeline.push({ status: 'Confirmed', comment: `Payment received (₹${order.total}). Order ${order.orderId} confirmed.` });
+    request.auditLog.push({
+        action: 'Payment Received',
+        performedBy: order.userId,
+        performerType: 'User',
+        reason: `Online payment ${order.paymentDetails?.razorpayPaymentId || ''} verified for order ${order.orderId}.`,
+    });
+    await request.save();
+};
 
 // Verify Razorpay payment signature
 export const verifyPayment = asyncHandler(async (req, res) => {
@@ -21,16 +40,26 @@ export const verifyPayment = asyncHandler(async (req, res) => {
 
     // Find database Order
     const order = await Order.findOne({ orderId });
-    if (!order) {
+    if (!order || !ownsOrder(order, req.user)) {
         throw new ApiError(404, 'Order not found.');
     }
 
-    // Verify signature
-    const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET);
-    hmac.update(razorpay_order_id + "|" + razorpay_payment_id);
-    const generatedSignature = hmac.digest('hex');
+    // Already paid (e.g. double-submit / page refresh): succeed without re-processing.
+    if (order.paymentStatus === 'paid') {
+        if (order.paymentDetails?.razorpayPaymentId === razorpay_payment_id) {
+            return res.status(200).json(new ApiResponse(200, order, 'Payment already verified.'));
+        }
+        throw new ApiError(409, 'This order is already paid.');
+    }
 
-    if (generatedSignature !== razorpay_signature) {
+    // The payment must be for the gateway order we created for THIS order (prevents reusing a
+    // cheaper order's payment to mark an expensive one as paid).
+    const expectedRzpOrderId = order.paymentDetails?.razorpayOrderId;
+    if (!expectedRzpOrderId || expectedRzpOrderId !== razorpay_order_id) {
+        throw new ApiError(400, 'Payment does not belong to this order.');
+    }
+
+    if (!isValidRazorpaySignature(razorpay_order_id, razorpay_payment_id, razorpay_signature)) {
         order.paymentStatus = 'failed';
         if (order.paymentDetails) {
             order.paymentDetails.status = 'failed';
@@ -54,20 +83,14 @@ export const verifyPayment = asyncHandler(async (req, res) => {
     let bankName = undefined;
     let paymentMethod = 'card';
 
-    try {
-        const razorpayInstance = new Razorpay({
-            key_id: process.env.RAZORPAY_KEY_ID,
-            key_secret: process.env.RAZORPAY_KEY_SECRET,
-        });
-        const paymentInfo = await razorpayInstance.payments.fetch(razorpay_payment_id);
+    const paymentInfo = await fetchRazorpayPayment(razorpay_payment_id);
+    if (paymentInfo) {
         paymentMethod = paymentInfo.method || 'card';
         if (paymentInfo.card) {
             cardNetwork = paymentInfo.card.network || undefined;
             cardLast4 = paymentInfo.card.last4 || undefined;
         }
         bankName = paymentInfo.bank || undefined;
-    } catch (err) {
-        console.error('Failed to fetch payment details from Razorpay:', err);
     }
 
     // Update order status & payment details
@@ -83,10 +106,16 @@ export const verifyPayment = asyncHandler(async (req, res) => {
         gatewayName: 'Razorpay',
         paymentMethod,
         status: 'captured',
-        amount: order.total,
+        amount: order.paymentDetails?.amount ?? order.total,
     };
 
     await order.save();
+
+    try {
+        await completeProductRequestAfterPayment(order);
+    } catch (prErr) {
+        console.error('Failed to mark sourcing request confirmed after payment:', prErr?.message);
+    }
 
     // Trigger Notifications & Real-Time Socket updates (mimicking main order placement notification logic)
     try {
@@ -179,7 +208,7 @@ export const retryPayment = asyncHandler(async (req, res) => {
     }
 
     const order = await Order.findOne({ orderId });
-    if (!order) {
+    if (!order || !ownsOrder(order, req.user)) {
         throw new ApiError(404, 'Order not found.');
     }
 
@@ -187,37 +216,24 @@ export const retryPayment = asyncHandler(async (req, res) => {
     if (order.paymentStatus === 'paid') {
         throw new ApiError(400, 'Order is already paid.');
     }
-
-    try {
-        const razorpayInstance = new Razorpay({
-            key_id: process.env.RAZORPAY_KEY_ID,
-            key_secret: process.env.RAZORPAY_KEY_SECRET,
-        });
-
-        const rzpOrder = await razorpayInstance.orders.create({
-            amount: Math.round(order.total * 100), // in paise
-            currency: 'INR',
-            receipt: `rcpt_retry_${order.orderId}_${Date.now()}`
-        });
-
-        order.paymentDetails = {
-            razorpayOrderId: rzpOrder.id,
-            amount: order.total,
-            status: 'created',
-            gatewayName: 'Razorpay',
-            paymentMethod: 'card'
-        };
-
-        await order.save();
-
-        res.status(200).json(new ApiResponse(200, {
-            id: rzpOrder.id,
-            amount: rzpOrder.amount,
-            currency: 'INR',
-            key: process.env.RAZORPAY_KEY_ID
-        }, 'Retry order generated.'));
-    } catch (err) {
-        console.error('Razorpay retry order creation failed:', err);
-        throw new ApiError(500, 'Failed to generate retry gateway order. ' + err.message);
+    if (['cancelled', 'returned', 'refunded'].includes(String(order.status).toLowerCase())) {
+        throw new ApiError(400, 'This order is no longer payable.');
     }
+
+    const amount = order.paymentMethod === 'mixed'
+        ? Math.max(0, Number(order.total || 0) - Number(order.walletAmountUsed || 0))
+        : Number(order.total || 0);
+    const rzp = await createRazorpayOrder(amount, { receipt: `rcpt_retry_${order.orderId}`, notes: { orderId: order.orderId } });
+
+    order.paymentDetails = {
+        razorpayOrderId: rzp.id,
+        amount,
+        status: 'created',
+        gatewayName: 'Razorpay',
+        paymentMethod: 'card'
+    };
+    if (order.paymentStatus === 'failed') order.paymentStatus = 'pending';
+    await order.save();
+
+    res.status(200).json(new ApiResponse(200, rzp, 'Retry order generated.'));
 });

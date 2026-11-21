@@ -1,7 +1,7 @@
 import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
-import Razorpay from 'razorpay';
+import { createRazorpayOrder } from '../../../services/razorpay.service.js';
 import Order from '../../../models/Order.model.js';
 import Product from '../../../models/Product.model.js';
 import { isProductPubliclyApproved } from '../../../utils/productVisibility.js';
@@ -698,25 +698,8 @@ export const placeOrder = asyncHandler(async (req, res) => {
 
             if (finalPaymentMethod === 'card' || finalPaymentMethod === 'online' || finalPaymentMethod === 'razorpay' || (finalPaymentMethod === 'mixed' && remainingToPay > 0)) {
                 const amountToPayRzp = finalPaymentMethod === 'mixed' ? remainingToPay : total;
-                try {
-                    const razorpayInstance = new Razorpay({
-                        key_id: process.env.RAZORPAY_KEY_ID,
-                        key_secret: process.env.RAZORPAY_KEY_SECRET,
-                    });
-                    const rzpOrder = await razorpayInstance.orders.create({
-                        amount: Math.round(amountToPayRzp * 100), // in paise
-                        currency: 'INR',
-                        receipt: `rcpt_${Date.now()}`
-                    });
-                    razorpayOrderId = rzpOrder.id;
-                } catch (err) {
-                    console.error('Razorpay Order Creation Error:', err);
-                    const desc = err?.error?.description || err.message;
-                    if (desc?.includes('exceeds maximum amount') || err?.error?.code === 'BAD_REQUEST_ERROR') {
-                        throw new ApiError(400, `Payment gateway limit exceeded: Order amount of ₹${amountToPayRzp.toLocaleString('en-IN')} exceeds Razorpay's maximum transaction limit (₹5,00,000). Please reduce item quantity or split the order.`);
-                    }
-                    throw new ApiError(500, 'Failed to create payment gateway order: ' + desc);
-                }
+                const rzpOrder = await createRazorpayOrder(amountToPayRzp, { receipt: `rcpt_${Date.now()}` });
+                razorpayOrderId = rzpOrder.id;
             }
 
             let initialPaymentStatus = 'pending';
