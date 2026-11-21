@@ -15,6 +15,7 @@ import ChatTransactionProposal from '../../../models/ChatTransactionProposal.mod
 import { decryptMessage } from '../../../utils/chatEncryption.util.js';
 import { normalizeReportReason } from '../../../utils/chatReport.util.js';
 import { assertTextLength } from '../../../utils/chatLimits.js';
+import { receiptFields, stampDeliveryOnSend, markDeliveredFor, markSeenFor } from '../../../services/chatReceipts.service.js';
 
 const buildThreadSeedFromOrder = (order) => {
     const customerName =
@@ -46,6 +47,7 @@ const serializeMessage = (messageDoc) => ({
     sender: messageDoc.senderType,
     message: decryptMessage(messageDoc.message),
     time: messageDoc.createdAt,
+    ...receiptFields(messageDoc),
 });
 
 
@@ -102,6 +104,9 @@ export const getVendorChatThreads = asyncHandler(async (req, res) => {
 
     const threads = await VendorChatThread.find({ vendorId, hiddenForVendor: { $ne: true } }).sort({ lastActivity: -1 }).lean();
 
+    // The seller's app now has everything customers sent: delivered
+    await markDeliveredFor(threads, 'vendor');
+
     // Mask customer contact details in thread listing to prevent off-platform diversion
     const sanitized = threads.map(t => {
         const threadObj = { ...t };
@@ -130,6 +135,7 @@ export const getVendorChatMessages = asyncHandler(async (req, res) => {
     });
     if (!thread) throw new ApiError(404, 'Chat thread not found.');
 
+    await markDeliveredFor([thread], 'vendor');
     // Return only real messages. Never fabricate messages on behalf of either party.
     const messages = await VendorChatMessage.find({ threadId: thread._id }).sort({ createdAt: 1 });
 
@@ -259,6 +265,7 @@ export const sendVendorChatMessage = asyncHandler(async (req, res) => {
         senderId: req.user.id,
         message,
     });
+    await stampDeliveryOnSend(created, { thread, recipientId: thread.customerUserId });
 
     thread.lastMessage = message;
     thread.lastActivity = created.createdAt;
@@ -315,8 +322,9 @@ export const markVendorChatRead = asyncHandler(async (req, res) => {
         { new: true }
     );
     if (!thread) throw new ApiError(404, 'Chat thread not found.');
+    const seen = await markSeenFor(thread, 'vendor');
 
-    res.status(200).json(new ApiResponse(200, { unreadCount: 0 }, 'Chat marked as read.'));
+    res.status(200).json(new ApiResponse(200, { unreadCount: 0, seen }, 'Chat marked as read.'));
 });
 
 export const updateVendorChatStatus = asyncHandler(async (req, res) => {

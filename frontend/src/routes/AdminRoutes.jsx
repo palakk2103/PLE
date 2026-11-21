@@ -66,6 +66,8 @@ const CompanyManagement = lazy(() => import("../modules/Admin/pages/b2b/CompanyM
 const AgreementTemplateManagement = lazy(() => import("../modules/Admin/pages/b2b/AgreementTemplateManagement"));
 const AdminB2BEnquiries = lazy(() => import("../modules/Admin/pages/b2b-enquiries/AdminB2BEnquiries"));
 const AdminRFQDetail = lazy(() => import("../modules/Admin/pages/b2b-enquiries/AdminRFQDetail"));
+const AdminDirectRFQs = lazy(() => import("../modules/Admin/pages/b2b-enquiries/AdminDirectRFQs").then((m) => ({ default: m.AdminDirectRFQs })));
+const AdminDirectRFQDetail = lazy(() => import("../modules/Admin/pages/b2b-enquiries/AdminDirectRFQs").then((m) => ({ default: m.AdminDirectRFQDetail })));
 const AdminSellerResponses = lazy(() => import("../modules/Admin/pages/b2b-enquiries/AdminSellerResponses"));
 const AdminRFQDisputes = lazy(() => import("../modules/Admin/pages/b2b-enquiries/AdminRFQDisputes"));
 const AdminRFQSpamMonitor = lazy(() => import("../modules/Admin/pages/b2b-enquiries/AdminRFQSpamMonitor"));
@@ -263,6 +265,8 @@ export default function AdminRoutes() {
         <Route path="b2b-enquiries/seller-responses" element={<AdminSellerResponses />} />
         <Route path="b2b-enquiries/disputes" element={<AdminRFQDisputes />} />
         <Route path="b2b-enquiries/spam" element={<AdminRFQSpamMonitor />} />
+        <Route path="direct-rfqs" element={<AdminDirectRFQs />} />
+        <Route path="direct-rfqs/:id" element={<AdminDirectRFQDetail />} />
 
         <Route path="refurbished" element={<RefurbishedMarketplace />} />
         <Route path="refurbished/dashboard" element={<RefurbishedDashboard />} />

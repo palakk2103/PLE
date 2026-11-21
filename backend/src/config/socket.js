@@ -34,6 +34,7 @@ export const initSocket = (server) => {
                 const decoded = verifyAccessToken(token);
                 if (decoded && decoded.type !== '2fa_pending') {
                     socket.user = decoded; // { id, role, email }
+                    socket.data.user = decoded; // also visible to io.in(room).fetchSockets()
                 }
             }
         } catch {

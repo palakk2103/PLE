@@ -177,6 +177,7 @@ router.post('/product-requests/:id/extension/reject', ...customerAuth, productRe
 // Chat routes (protected)
 import * as customerChatController from '../controllers/customerChat.controller.js';
 router.post('/chat/vendor/initiate', ...customerAuth, customerChatController.initiateVendorChat);
+router.post('/chat/vendor/enquire', ...customerAuth, chatLimiter, customerChatController.startProductEnquiryChat);
 router.get('/chat/vendor/threads', ...customerAuth, customerChatController.getCustomerChatThreads);
 router.get('/chat/vendor/threads/:id/messages', ...customerAuth, customerChatController.getCustomerChatMessages);
 router.post('/chat/vendor/threads/:id/messages', ...customerAuth, chatLimiter, customerChatController.sendCustomerChatMessage);

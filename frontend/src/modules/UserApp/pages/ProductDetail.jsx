@@ -577,12 +577,30 @@ const MobileProductDetail = () => {
     setIsConsumerRfqOpen(true);
   };
 
-  const handleEnquiryClick = () => {
+  // "Enquire Now" opens a live chat with the seller about this product (one chat per product;
+  // an open one is resumed). Demo products without a real id still use the old enquiry form.
+  const [isStartingEnquiry, setIsStartingEnquiry] = useState(false);
+  const handleEnquiryClick = async () => {
     if (!isAuthenticated) {
       toast.error("Please sign in or create an account to send inquiries.");
       return;
     }
-    setIsEnquiryModalOpen(true);
+    if (!isMongoId(product?.id)) {
+      setIsEnquiryModalOpen(true);
+      return;
+    }
+    if (isStartingEnquiry) return;
+    setIsStartingEnquiry(true);
+    try {
+      const res = await api.post("/user/chat/vendor/enquire", { productId: product.id });
+      const threadId = res?.data?.thread?._id;
+      if (!threadId) throw new Error("Could not open the chat.");
+      navigate(`/chat/vendor/${threadId}`);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || "Could not start the chat. Please try again.");
+    } finally {
+      setIsStartingEnquiry(false);
+    }
   };
 
   const handleAddToCart = () => {
@@ -1366,10 +1384,12 @@ const MobileProductDetail = () => {
                       <>
                         <button
                           onClick={handleEnquiryClick}
-                          className="flex-1 py-4 bg-[#7B0A0A]/5 text-[#7B0A0A] hover:bg-[#7B0A0A]/10 border-2 border-[#7B0A0A]/20 dark:bg-red-950/40 dark:text-red-300 dark:border-red-500/40 dark:hover:bg-red-900/40 dark:hover:border-red-400 dark:hover:text-red-200 dark:shadow-[0_0_15px_rgba(239,68,68,0.1)] rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 text-sm"
+                          disabled={isStartingEnquiry}
+                          data-testid="enquire-now"
+                          className="flex-1 py-4 disabled:opacity-60 bg-[#7B0A0A]/5 text-[#7B0A0A] hover:bg-[#7B0A0A]/10 border-2 border-[#7B0A0A]/20 dark:bg-red-950/40 dark:text-red-300 dark:border-red-500/40 dark:hover:bg-red-900/40 dark:hover:border-red-400 dark:hover:text-red-200 dark:shadow-[0_0_15px_rgba(239,68,68,0.1)] rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 text-sm"
                         >
                           <FiFileText className="text-lg shrink-0" />
-                          <span className="truncate">Enquire Now</span>
+                          <span className="truncate">{isStartingEnquiry ? "Opening chat…" : "Enquire Now"}</span>
                         </button>
                         <button
                           onClick={() => setIsQuoteModalOpen(true)}
@@ -1623,7 +1643,8 @@ const MobileProductDetail = () => {
             <>
               <button
                 onClick={handleEnquiryClick}
-                className="h-12 w-12 shrink-0 bg-[#7B0A0A]/5 text-[#7B0A0A] border border-[#7B0A0A]/20 dark:bg-red-950/40 dark:text-red-300 dark:border-red-500/40 dark:hover:bg-red-900/40 dark:hover:border-red-400 dark:hover:text-red-200 rounded-xl font-semibold flex items-center justify-center transition-all duration-300 active:scale-95"
+                disabled={isStartingEnquiry}
+                className="h-12 w-12 shrink-0 disabled:opacity-60 bg-[#7B0A0A]/5 text-[#7B0A0A] border border-[#7B0A0A]/20 dark:bg-red-950/40 dark:text-red-300 dark:border-red-500/40 dark:hover:bg-red-900/40 dark:hover:border-red-400 dark:hover:text-red-200 rounded-xl font-semibold flex items-center justify-center transition-all duration-300 active:scale-95"
                 title="Enquire Now"
               >
                 <FiFileText className="text-xl" />

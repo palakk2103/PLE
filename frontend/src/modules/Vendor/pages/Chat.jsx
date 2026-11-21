@@ -26,6 +26,7 @@ import {
   getVendorChatMessages,
   sendVendorChatMessage,
   markVendorChatRead,
+  updateVendorChatStatus,
   reportVendorChat,
   toggleBlockVendorChat,
   toggleMuteVendorChat,
@@ -35,6 +36,8 @@ import {
 } from "../services/vendorService";
 import TransactionBox from "../../../shared/components/TransactionBox";
 import socketService from "../../../shared/utils/socket";
+import MessageTicks from "../../../shared/components/Chat/MessageTicks";
+import { useChatReceipts } from "../../../shared/hooks/useChatReceipts";
 
 const Chat = () => {
   const { vendor } = useVendorAuthStore();
@@ -111,6 +114,13 @@ const Chat = () => {
       }
     }
   }, [chats, targetThreadId, targetRequestId, selectedChat]);
+
+  // Ticks for the seller's own messages, and "seen" for the customer when this chat is open
+  const markSelectedRead = useCallback(
+    () => (selectedChat?._id ? markVendorChatRead(selectedChat._id) : Promise.resolve()),
+    [selectedChat?._id]
+  );
+  useChatReceipts({ threadId: selectedChat?._id, mySide: "vendor", setMessages, markRead: markSelectedRead, enabled: Boolean(selectedChat?._id) });
 
   useEffect(() => {
     if (!selectedChat?._id) {
@@ -213,7 +223,7 @@ const Chat = () => {
     setSelectedChat(chat);
     setChats((prev) =>
       prev.map((c) =>
-        c._id === chat._id ? { ...c, unreadCount: 0, status: "active" } : c
+        c._id === chat._id ? { ...c, unreadCount: 0 } : c
       )
     );
     try {
@@ -241,7 +251,8 @@ const Chat = () => {
       const created = (res?.data ?? res) || null;
 
       if (created) {
-        setMessages((prev) => [...prev, created]);
+        // The live socket event can arrive before this response: never add the same message twice
+        setMessages((prev) => (prev.some((m) => m.id === created.id || m._id === created.id) ? prev : [...prev, created]));
         setWarningBanner(null);
         setPreflightWarning(null);
       }
@@ -305,6 +316,26 @@ const Chat = () => {
       toast.success(newBlocked ? "Customer blocked." : "Customer unblocked.");
     } catch (err) {
       toast.error(err?.response?.data?.message || "Failed to update block status.");
+    } finally {
+      setSubmittingAction(false);
+    }
+  };
+
+  // End the chat (read-only, gets an end time) or re-open one the seller ended
+  const handleToggleEnded = async () => {
+    if (!selectedChat?._id) return;
+    const ended = selectedChat.status === "resolved" || selectedChat.status === "closed";
+    const next = ended ? "active" : "closed";
+    try {
+      setSubmittingAction(true);
+      setShowMenu(false);
+      await updateVendorChatStatus(selectedChat._id, next);
+      const patchThread = (c) => ({ ...c, status: next, closedBy: next === "closed" ? "vendor" : null, endedAt: next === "closed" ? new Date().toISOString() : null });
+      setSelectedChat((prev) => patchThread(prev));
+      setChats((prev) => prev.map((c) => (c._id === selectedChat._id ? patchThread(c) : c)));
+      toast.success(next === "closed" ? "Chat ended." : "Chat re-opened.");
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Could not update the chat.");
     } finally {
       setSubmittingAction(false);
     }
@@ -476,6 +507,8 @@ const Chat = () => {
                           <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
                             {chat.productRequestId ? (
                               <span className="text-indigo-600 font-semibold">📦 Req: {chat.productRequestId}</span>
+                            ) : chat.productName ? (
+                              <span className="text-primary-700 font-semibold">🛍️ Enquiry: {chat.productName}</span>
                             ) : chat.orderDisplayId ? (
                               `Order: ${chat.orderDisplayId}`
                             ) : (
@@ -535,6 +568,8 @@ const Chat = () => {
                       <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
                         {selectedChat.productRequestId ? (
                           <span className="text-indigo-600 font-semibold">📦 Product Request: {selectedChat.productRequestId}</span>
+                        ) : selectedChat.productName ? (
+                          <span className="text-primary-700 font-semibold">🛍️ Enquiry about {selectedChat.productName}</span>
                         ) : selectedChat.orderDisplayId ? (
                           `Order: ${selectedChat.orderDisplayId}`
                         ) : (
@@ -590,6 +625,16 @@ const Chat = () => {
                         </button>
                         <button
                           type="button"
+                          onClick={handleToggleEnded}
+                          disabled={submittingAction}
+                          className="w-full px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-white/5 flex items-center gap-2"
+                          data-testid="toggle-end-chat"
+                        >
+                          <FiLock className="text-gray-500" />
+                          <span>{selectedChat.status === "resolved" || selectedChat.status === "closed" ? "Re-open Chat" : "End Chat"}</span>
+                        </button>
+                        <button
+                          type="button"
                           onClick={handleToggleBlock}
                           disabled={submittingAction}
                           className="w-full px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-white/5 flex items-center gap-2 text-red-600"
@@ -642,7 +687,11 @@ const Chat = () => {
               {isLoadingMessages ? (
                 <div className="text-center text-gray-500">Loading messages...</div>
               ) : (
-                messages.map((msg) => (
+                messages.map((msg) => msg.sender === "system" ? (
+                  <div key={msg.id} className="text-center" data-testid="system-message">
+                    <span className="text-[11px] text-gray-500 bg-gray-100 dark:bg-white/10 dark:text-gray-300 px-3 py-1 rounded-full">{msg.message}</span>
+                  </div>
+                ) : (
                   <div
                     key={msg.id}
                     className={`flex ${
@@ -665,6 +714,7 @@ const Chat = () => {
                         }`}
                       >
                         {new Date(msg.time).toLocaleTimeString()}
+                        {msg.sender === "vendor" && <span className="ml-1.5"><MessageTicks status={msg.status} tone="onDark" /></span>}
                       </p>
                     </div>
                   </div>

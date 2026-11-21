@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   FiArrowLeft,
@@ -22,6 +22,8 @@ import PageTransition from "../../../shared/components/PageTransition";
 import TransactionBox from "../../../shared/components/TransactionBox";
 import api from "../../../shared/utils/api";
 import socketService from "../../../shared/utils/socket";
+import MessageTicks from "../../../shared/components/Chat/MessageTicks";
+import { useChatReceipts } from "../../../shared/hooks/useChatReceipts";
 import toast from "react-hot-toast";
 import { useB2bStore } from "../../../shared/store/b2bStore";
 import { getChatBlockMessage, preflightCheckMessage } from "../../../shared/utils/chatModerationMessages";
@@ -114,6 +116,14 @@ const CustomerVendorChat = () => {
       active = false;
     };
   }, [threadId, navigate]);
+
+  // Tell the seller we have read their messages (their ticks turn blue), now and whenever a new
+  // one arrives while this chat is open.
+  const markThreadRead = useCallback(() => api.patch(`/user/chat/vendor/threads/${threadId}/read`), [threadId]);
+  useChatReceipts({ threadId, mySide: "customer", setMessages, markRead: markThreadRead, enabled: !loading });
+  useEffect(() => {
+    if (!loading && threadId) markThreadRead().catch(() => {});
+  }, [loading, threadId, markThreadRead]);
 
   // Connect to Socket.io and join thread room
   useEffect(() => {
@@ -265,6 +275,27 @@ const CustomerVendorChat = () => {
     }
   };
 
+  // End the conversation (it becomes read-only and gets an end time), or re-open it
+  const handleToggleEnded = async () => {
+    const ending = !(thread?.status === "resolved" || thread?.status === "closed");
+    try {
+      setSubmittingAction(true);
+      setShowMenu(false);
+      await api.patch(`/user/chat/vendor/threads/${threadId}/status`, { status: ending ? "closed" : "active" });
+      setThread((prev) => ({
+        ...prev,
+        status: ending ? "closed" : "active",
+        closedBy: ending ? "customer" : null,
+        endedAt: ending ? new Date().toISOString() : null,
+      }));
+      toast.success(ending ? "Conversation ended." : "Conversation re-opened.");
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Could not update the conversation.");
+    } finally {
+      setSubmittingAction(false);
+    }
+  };
+
   const handleToggleMute = async () => {
     try {
       setSubmittingAction(true);
@@ -410,6 +441,18 @@ const CustomerVendorChat = () => {
                       {isMuted ? <FiBell className="text-gray-500" /> : <FiBellOff className="text-gray-500" />}
                       <span>{isMuted ? "Unmute Notifications" : "Mute Notifications"}</span>
                     </button>
+                    {!(isClosed && thread?.closedBy === "admin") && (
+                      <button
+                        type="button"
+                        onClick={handleToggleEnded}
+                        disabled={submittingAction}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
+                        data-testid="toggle-end-chat"
+                      >
+                        <FiLock className="text-gray-500" />
+                        <span>{isClosed ? "Re-open Conversation" : "End Conversation"}</span>
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={handleToggleBlock}
@@ -463,12 +506,33 @@ const CustomerVendorChat = () => {
             <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 pb-4">
               <div className="text-center py-2">
                 <span className="text-[10px] bg-gray-200 text-gray-600 px-3 py-1 rounded-full font-bold uppercase tracking-wider">
-                  Direct Store Inquiry Room
+                  {thread?.productName ? "Product Enquiry" : "Direct Store Inquiry Room"}
                 </span>
               </div>
 
+              {thread?.productName && (
+                <div className="mx-auto max-w-sm flex items-center gap-3 bg-white border border-gray-200 rounded-2xl p-2.5 shadow-xs" data-testid="enquiry-product-card">
+                  {thread.productImage ? (
+                    <img src={thread.productImage} alt="" className="w-12 h-12 rounded-xl object-cover bg-gray-50 flex-shrink-0" />
+                  ) : (
+                    <div className="w-12 h-12 rounded-xl bg-gray-100 flex-shrink-0" />
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">You are asking about</p>
+                    <p className="text-sm font-semibold text-gray-800 truncate">{thread.productName}</p>
+                  </div>
+                </div>
+              )}
+
               {messages.map((msg, idx) => {
                 const isCustomer = msg.sender === "customer";
+                if (msg.sender === "system") {
+                  return (
+                    <div key={msg.id || idx} className="text-center" data-testid="system-message">
+                      <span className="text-[11px] text-gray-500 bg-gray-100 px-3 py-1 rounded-full">{msg.message}</span>
+                    </div>
+                  );
+                }
                 return (
                   <div
                     key={msg.id || idx}
@@ -483,11 +547,12 @@ const CustomerVendorChat = () => {
                     >
                       <p className="whitespace-pre-wrap leading-relaxed">{msg.message}</p>
                     </div>
-                    <span className="text-[9px] text-gray-400 mt-1 px-1">
+                    <span className="text-[9px] text-gray-400 mt-1 px-1 flex items-center gap-1">
                       {new Date(msg.time).toLocaleTimeString([], {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
+                      {isCustomer && <MessageTicks status={msg.status} tone="onLight" />}
                     </span>
                   </div>
                 );

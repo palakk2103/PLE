@@ -8,12 +8,14 @@ import Vendor from '../../../models/Vendor.model.js';
 import Notification from '../../../models/Notification.model.js';
 import { getIO } from '../../../config/socket.js';
 import { decryptMessage } from '../../../utils/chatEncryption.util.js';
+import { receiptFields, stampDeliveryOnSend, markDeliveredFor, markSeenFor } from '../../../services/chatReceipts.service.js';
 
 const serializeMessage = (messageDoc) => ({
     id: messageDoc._id,
     sender: messageDoc.senderType,
     message: decryptMessage(messageDoc.message),
     time: messageDoc.createdAt,
+    ...receiptFields(messageDoc),
 });
 
 // The PLE Shop vendor is a system account operated by admins through these
@@ -42,7 +44,7 @@ const rotateLeakedPLEShopPassword = async (vendorId) => {
 };
 
 // Helper to get or create PLE Shop vendor
-const getPLEShopVendor = async () => {
+export const getPLEShopVendor = async () => {
     let vendor = await Vendor.findOne({ storeName: 'PLE Shop' });
     if (!vendor) {
         vendor = await Vendor.create({
@@ -74,6 +76,7 @@ export const getPLEShopThreads = asyncHandler(async (req, res) => {
     const activeVendor = await getTargetVendor(req);
     const threads = await VendorChatThread.find({ vendorId: activeVendor._id })
         .sort({ lastActivity: -1 });
+    await markDeliveredFor(threads, 'vendor');
 
     const decryptedThreads = threads.map((t) => {
         const threadObj = t.toObject ? t.toObject({ getters: true }) : { ...t };
@@ -99,6 +102,7 @@ export const getPLEShopMessages = asyncHandler(async (req, res) => {
     const activeVendor = await getTargetVendor(req);
     const thread = await findShopThread(req, activeVendor);
 
+    await markDeliveredFor([thread], 'vendor');
     const messages = await VendorChatMessage.find({ threadId: thread._id }).sort({ createdAt: 1 });
 
     res.status(200).json(new ApiResponse(200, messages.map(serializeMessage), 'Chat messages fetched.'));
@@ -119,6 +123,7 @@ export const sendPLEShopMessage = asyncHandler(async (req, res) => {
         senderId: senderId,
         message,
     });
+    await stampDeliveryOnSend(created, { thread, recipientId: thread.customerUserId });
 
     thread.lastMessage = message;
     thread.lastActivity = created.createdAt;
@@ -170,6 +175,7 @@ export const markPLEShopRead = asyncHandler(async (req, res) => {
 
     thread.unreadCount = 0; // admin is acting as this shop, so it is the shop's own unread counter
     await thread.save();
+    await markSeenFor(thread, 'vendor');
 
     res.status(200).json(new ApiResponse(200, thread, 'Chat marked as read.'));
 });

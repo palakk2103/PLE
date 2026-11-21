@@ -33,6 +33,14 @@ const vendorChatThreadSchema = new mongoose.Schema(
             get: decryptMessage,
         },
         lastActivity: { type: Date, default: Date.now, index: true },
+        // Conversation window: startedAt is set on creation, endedAt when the chat is resolved /
+        // closed / released (cleared again if it is re-opened). See the pre-save hook below.
+        startedAt: { type: Date, default: null },
+        endedAt: { type: Date, default: null },
+        // "Enquire Now" chats are about one product
+        productRef: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', default: null, index: true },
+        productName: { type: String, default: '' },
+        productImage: { type: String, default: '' },
         unreadCount: { type: Number, default: 0, min: 0 },          // unread for the VENDOR
         unreadCountCustomer: { type: Number, default: 0, min: 0 },  // unread for the CUSTOMER
         adminLastReadAt: { type: Date, default: null },
@@ -80,6 +88,17 @@ const vendorChatThreadSchema = new mongoose.Schema(
     }
 );
 
+
+// Keep startedAt / endedAt right no matter which code path changes the thread.
+vendorChatThreadSchema.pre('save', function (next) {
+    if (this.isNew && !this.startedAt) this.startedAt = new Date();
+    if (this.isNew || this.isModified('status') || this.isModified('isReleased')) {
+        const ended = this.isReleased === true || ['resolved', 'closed'].includes(this.status);
+        if (ended && !this.endedAt) this.endedAt = new Date();
+        if (!ended && this.endedAt) this.endedAt = null;
+    }
+    next();
+});
 
 vendorChatThreadSchema.index(
     { vendorId: 1, customerUserId: 1, orderRef: 1 }, 

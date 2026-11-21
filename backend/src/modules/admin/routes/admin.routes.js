@@ -1,3 +1,4 @@
+import * as directRfqMonitor from '../controllers/directRfq.controller.js';
 import { Router } from 'express';
 import * as authController from '../controllers/auth.controller.js';
 import * as twoFactorController from '../../../controllers/twoFactor.controller.js';
@@ -235,6 +236,15 @@ router.post('/consumer-rfq/:id/quote', ...adminAuth, crfqId, validate(crv.quoteS
 router.post('/consumer-rfq/:id/accept-offer', ...adminAuth, crfqId, validate(crv.noteSchema), adminConsumerRfq.acceptOffer);
 router.post('/consumer-rfq/:id/reject', ...adminAuth, crfqId, validate(crv.noteSchema), adminConsumerRfq.reject);
 router.post('/consumer-rfq/:id/message', ...adminAuth, crfqId, validate(crv.messageSchema), adminConsumerRfq.message);
+// Direct employee -> vendor RFQs: monitoring only. Every method except GET is refused (405).
+router.use('/direct-rfqs', ...adminAuth, (req, res, next) => {
+    if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
+    res.set('Allow', 'GET, HEAD, OPTIONS');
+    return res.status(405).json({ success: false, message: 'Direct RFQs are read-only for admins. Only the employee and the vendor can change them.' });
+});
+router.get('/direct-rfqs', directRfqMonitor.listDirectRFQs);
+router.get('/direct-rfqs/stats', directRfqMonitor.getDirectRFQStats);
+router.get('/direct-rfqs/:id', directRfqMonitor.getDirectRFQDetail);
 router.get('/rfq', ...adminAuth, adminRfqController.getAdminRFQs);
 router.get('/rfq/stats', ...adminAuth, adminRfqController.getRFQStats);
 router.get('/rfq/:id', ...adminAuth, adminRfqController.getAdminRFQDetail);

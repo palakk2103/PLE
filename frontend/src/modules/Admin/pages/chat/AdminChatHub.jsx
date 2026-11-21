@@ -22,6 +22,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import api from "../../../../shared/utils/api";
 import socketService from "../../../../shared/utils/socket";
 import toast from "react-hot-toast";
+import MessageTicks from "../../../../shared/components/Chat/MessageTicks";
+
+const fmtDuration = (ms) => {
+  if (ms == null) return "";
+  const mins = Math.floor(ms / 60000);
+  if (mins < 1) return "under a minute";
+  if (mins < 60) return `${mins} min`;
+  const h = Math.floor(mins / 60);
+  if (h < 48) return `${h} h ${mins % 60} min`;
+  return `${Math.floor(h / 24)} d ${h % 24} h`;
+};
+const fmtWhen = (d) => (d ? new Date(d).toLocaleString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "—");
 
 const CATEGORY_CONFIG = {
   all: {
@@ -69,7 +81,8 @@ const AdminChatHub = ({ category: defaultCategoryProp = "all" }) => {
   const [newMessage, setNewMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [statusCounts, setStatusCounts] = useState({ all: 0, active: 0, resolved: 0 });
+  const [enquiriesOnly, setEnquiriesOnly] = useState(false);
+  const [statusCounts, setStatusCounts] = useState({ all: 0, active: 0, resolved: 0, closed: 0 });
   const [stats, setStats] = useState({ all: 0, customer: 0, b2b: 0, vendor: 0, unreadTotal: 0 });
 
   const [loadingThreads, setLoadingThreads] = useState(true);
@@ -110,16 +123,20 @@ const AdminChatHub = ({ category: defaultCategoryProp = "all" }) => {
         params: {
           category: activeCategory,
           status: statusFilter !== "all" ? statusFilter : undefined,
+          kind: enquiriesOnly ? "enquiry" : undefined,
           search: searchQuery.trim() || undefined,
         },
       });
 
-      const payload = res?.data?.data?.threads || res?.data?.data || [];
+      // The api client already returns the response body, so the list is at res.data.threads
+      // (older builds wrapped it one level deeper; both shapes are accepted)
+      const body = res?.data?.threads ? res.data : res?.data?.data || {};
+      const payload = body.threads || (Array.isArray(body) ? body : []);
       const threadList = Array.isArray(payload) ? payload : [];
       setThreads(threadList);
 
-      if (res?.data?.data?.statusCounts) {
-        setStatusCounts(res.data.data.statusCounts);
+      if (body.statusCounts) {
+        setStatusCounts(body.statusCounts);
       }
 
       // Auto select first thread or target thread
@@ -138,7 +155,7 @@ const AdminChatHub = ({ category: defaultCategoryProp = "all" }) => {
     } finally {
       setLoadingThreads(false);
     }
-  }, [activeCategory, statusFilter, searchQuery, urlThreadId]);
+  }, [activeCategory, statusFilter, enquiriesOnly, searchQuery, urlThreadId]);
 
   useEffect(() => {
     fetchThreads();
@@ -155,8 +172,14 @@ const AdminChatHub = ({ category: defaultCategoryProp = "all" }) => {
       try {
         setLoadingMessages(true);
         const res = await api.get(`/admin/chat-hub/threads/${selectedThread._id}/messages`);
-        const payload = res?.data?.data?.messages || res?.data?.data || [];
+        const body = res?.data?.messages ? res.data : res?.data?.data || {};
+        const payload = body.messages || (Array.isArray(body) ? body : []);
         setMessages(Array.isArray(payload) ? payload : []);
+        // Keep the open chat's start / end / duration fresh
+        if (body.thread) {
+          const w = { startedAt: body.thread.startedAt, endedAt: body.thread.endedAt, endedBy: body.thread.endedBy, durationMs: body.thread.durationMs, isOngoing: body.thread.isOngoing };
+          setSelectedThread((cur) => (cur && cur._id === selectedThread._id ? { ...cur, ...w } : cur));
+        }
       } catch (err) {
         console.error("Failed to load messages:", err);
         toast.error("Failed to load message history.");
@@ -204,11 +227,29 @@ const AdminChatHub = ({ category: defaultCategoryProp = "all" }) => {
       );
     };
 
+    // The admin only observes: receipts come from the customer / seller opening the chat.
+    const applyReceipt = (level) => (p) => {
+      if (String(p?.threadId) !== String(selectedThread._id)) return;
+      // "by: vendor" = the seller read it -> the customer's messages; "by: customer" -> seller + admin messages
+      const mine = p.by === "vendor" ? ["customer"] : ["vendor", "admin"];
+      setMessages((prev) => prev.map((m) => {
+        if (!mine.includes(m.sender)) return m;
+        if (level === "seen") return m.status === "seen" ? m : { ...m, status: "seen", seenAt: p.at, deliveredAt: m.deliveredAt || p.at };
+        return m.status === "sent" || !m.status ? { ...m, status: "delivered", deliveredAt: p.at } : m;
+      }));
+    };
+    const onDelivered = applyReceipt("delivered");
+    const onSeen = applyReceipt("seen");
+
     socket.on("new_message", handleNewMessage);
+    socket.on("messages_delivered", onDelivered);
+    socket.on("messages_seen", onSeen);
 
     return () => {
       socket.emit("leave_chat_room", selectedThread._id);
       socket.off("new_message", handleNewMessage);
+      socket.off("messages_delivered", onDelivered);
+      socket.off("messages_seen", onSeen);
     };
   }, [selectedThread?._id]);
 
@@ -328,7 +369,7 @@ const AdminChatHub = ({ category: defaultCategoryProp = "all" }) => {
 
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-1 overflow-x-auto text-xs">
-                {["all", "active", "resolved"].map((st) => (
+                {["all", "active", "resolved", "closed"].map((st) => (
                   <button
                     key={st}
                     onClick={() => setStatusFilter(st)}
@@ -358,6 +399,19 @@ const AdminChatHub = ({ category: defaultCategoryProp = "all" }) => {
                 <FiRefreshCw className={`w-3.5 h-3.5 ${loadingThreads ? "animate-spin text-indigo-600" : ""}`} />
               </button>
             </div>
+            <button
+              type="button"
+              onClick={() => setEnquiriesOnly((v) => !v)}
+              className={`w-full text-xs rounded-lg px-2.5 py-1.5 border font-medium flex items-center justify-between transition-all ${
+                enquiriesOnly ? "bg-indigo-600 text-white border-indigo-600" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+              }`}
+              data-testid="enquiries-toggle"
+            >
+              <span>🛍️ Product enquiries only</span>
+              {typeof stats.enquiries === "number" && (
+                <span className={`text-[10px] font-semibold px-1.5 rounded-full ${enquiriesOnly ? "bg-indigo-500" : "bg-slate-200 text-slate-700"}`}>{stats.enquiries}</span>
+              )}
+            </button>
           </div>
 
           {/* Conversation List */}
@@ -468,11 +522,25 @@ const AdminChatHub = ({ category: defaultCategoryProp = "all" }) => {
                           RFQ: {thread.productRequestId}
                         </span>
                       )}
+
+                      {thread.productName && (
+                        <span className="text-[10px] font-medium px-1.5 py-0.2 bg-indigo-50 text-indigo-700 rounded border border-indigo-200 max-w-full truncate">
+                          🛍️ {thread.productName}
+                        </span>
+                      )}
                     </div>
 
                     {/* Last message snippet */}
                     <p className="text-xs text-slate-500 truncate mt-1">
                       {thread.lastMessage || "No messages yet"}
+                    </p>
+                    <p className="text-[10px] text-slate-400 mt-1" data-testid="thread-window">
+                      Started {fmtWhen(thread.startedAt)} ·{" "}
+                      {thread.isOngoing ? (
+                        <span className="text-emerald-600 font-semibold">Ongoing ({fmtDuration(thread.durationMs)})</span>
+                      ) : (
+                        <span>Ended {fmtWhen(thread.endedAt)} ({fmtDuration(thread.durationMs)})</span>
+                      )}
                     </p>
                   </div>
                 );
@@ -527,6 +595,22 @@ const AdminChatHub = ({ category: defaultCategoryProp = "all" }) => {
                           Order: <strong className="text-slate-700">#{selectedThread.orderDisplayId}</strong>
                         </span>
                       )}
+                      {selectedThread.productName && (
+                        <span>
+                          Product: <strong className="text-indigo-700">{selectedThread.productName}</strong>
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 text-[11px] text-slate-500 mt-0.5 flex-wrap" data-testid="chat-window-times">
+                      <span>Started: <strong className="text-slate-700">{fmtWhen(selectedThread.startedAt)}</strong></span>
+                      <span>
+                        {selectedThread.isOngoing ? (
+                          <strong className="text-emerald-600">Ongoing</strong>
+                        ) : (
+                          <>Ended: <strong className="text-slate-700">{fmtWhen(selectedThread.endedAt)}</strong>{selectedThread.endedBy ? ` by ${selectedThread.endedBy}` : ""}</>
+                        )}
+                      </span>
+                      <span>Duration: <strong className="text-slate-700">{fmtDuration(selectedThread.durationMs)}</strong></span>
                     </div>
                   </div>
                 </div>
@@ -559,6 +643,13 @@ const AdminChatHub = ({ category: defaultCategoryProp = "all" }) => {
                     const isVendor = msg.sender === "vendor";
                     const isCustomer = msg.sender === "customer";
                     const isSystem = msg.sender === "system" || msg.sender === "admin";
+                    if (msg.sender === "system") {
+                      return (
+                        <div key={msg.id || msg._id || idx} className="text-center">
+                          <span className="text-[11px] text-slate-500 bg-slate-100 px-3 py-1 rounded-full">{msg.message}</span>
+                        </div>
+                      );
+                    }
 
                     return (
                       <motion.div
@@ -579,8 +670,9 @@ const AdminChatHub = ({ category: defaultCategoryProp = "all" }) => {
                               Admin / Platform Notice
                             </span>
                             <p className="whitespace-pre-wrap">{msg.message}</p>
-                            <span className="text-[10px] text-amber-600/70 mt-1 block">
+                            <span className="text-[10px] text-amber-600/70 mt-1 flex items-center justify-center gap-1">
                               {msg.time ? new Date(msg.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
+                              {msg.sender === "admin" && <MessageTicks status={msg.status} tone="onLight" />}
                             </span>
                           </div>
                         ) : (
@@ -601,10 +693,11 @@ const AdminChatHub = ({ category: defaultCategoryProp = "all" }) => {
                             <p className="text-xs md:text-sm whitespace-pre-wrap leading-relaxed break-words">
                               {msg.message}
                             </p>
-                            <span className={`text-[10px] block text-right mt-1 ${
+                            <span className={`text-[10px] flex items-center justify-end gap-1 mt-1 ${
                               isCustomer ? "text-indigo-200" : "text-slate-400"
                             }`}>
                               {msg.time ? new Date(msg.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
+                              <MessageTicks status={msg.status} tone={isCustomer ? "onDark" : "onLight"} />
                             </span>
                           </div>
                         )}

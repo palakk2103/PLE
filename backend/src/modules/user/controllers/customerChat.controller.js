@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
@@ -6,6 +7,9 @@ import VendorChatMessage from '../../../models/VendorChatMessage.model.js';
 import Vendor from '../../../models/Vendor.model.js';
 import User from '../../../models/User.model.js';
 import Order from '../../../models/Order.model.js';
+import Product from '../../../models/Product.model.js';
+import { getPLEShopVendor } from '../../admin/controllers/pleShopChat.controller.js';
+import { receiptFields, stampDeliveryOnSend, markDeliveredFor, markSeenFor } from '../../../services/chatReceipts.service.js';
 import { getIO } from '../../../config/socket.js';
 import { moderateMessage, checkMultiMessageEvasion, MODERATION_ACTION } from '../../../services/chatModeration.service.js';
 import ChatViolation from '../../../models/ChatViolation.model.js';
@@ -21,6 +25,7 @@ const serializeMessage = (messageDoc) => ({
     sender: messageDoc.senderType,
     message: decryptMessage(messageDoc.message),
     time: messageDoc.createdAt,
+    ...receiptFields(messageDoc),
 });
 
 export const initiateVendorChat = asyncHandler(async (req, res) => {
@@ -38,6 +43,7 @@ export const initiateVendorChat = asyncHandler(async (req, res) => {
         customerUserId: req.user.id,
         orderRef: null,
         productRequestRef: null,
+        productRef: null,
         isReleased: { $ne: true },
     });
 
@@ -61,6 +67,9 @@ export const getCustomerChatThreads = asyncHandler(async (req, res) => {
         .populate('vendorId', 'name storeName storeLogo isVerified rating')
         .sort({ lastActivity: -1 });
 
+    // The customer's app now has everything the sellers sent: delivered
+    await markDeliveredFor(threads, 'customer');
+
     const decryptedThreads = threads.map((t) => {
         const threadObj = t.toObject ? t.toObject({ getters: true }) : { ...t };
         if (threadObj.lastMessage) {
@@ -82,6 +91,7 @@ export const getCustomerChatMessages = asyncHandler(async (req, res) => {
     });
     if (!thread) throw new ApiError(404, 'Chat thread not found.');
 
+    await markDeliveredFor([thread], 'customer');
     const messages = await VendorChatMessage.find({ threadId: thread._id }).sort({ createdAt: 1 });
 
     res.status(200).json(new ApiResponse(200, messages.map(serializeMessage), 'Chat messages fetched.'));
@@ -205,6 +215,7 @@ export const sendCustomerChatMessage = asyncHandler(async (req, res) => {
         senderId: req.user.id,
         message,
     });
+    await stampDeliveryOnSend(created, { thread, recipientId: thread.vendorId });
 
     thread.lastMessage = message;
     thread.lastActivity = created.createdAt;
@@ -257,8 +268,90 @@ export const markCustomerChatRead = asyncHandler(async (req, res) => {
 
     thread.unreadCountCustomer = 0;
     await thread.save();
+    const seen = await markSeenFor(thread, 'customer');
 
-    res.status(200).json(new ApiResponse(200, { unreadCount: 0 }, 'Chat marked as read.'));
+    res.status(200).json(new ApiResponse(200, { unreadCount: 0, seen }, 'Chat marked as read.'));
+});
+
+// @desc    "Enquire Now": open (or resume) a live chat with the seller about one product
+// @route   POST /api/user/chat/vendor/enquire   { productId }
+// One active chat per customer + product; a new one is started once the earlier one was closed.
+export const startProductEnquiryChat = asyncHandler(async (req, res) => {
+    const productId = String(req.body?.productId || '');
+    if (!mongoose.isValidObjectId(productId)) throw new ApiError(400, 'A valid product is required.');
+
+    const product = await Product.findById(productId).select('name image images vendorId shopId isActive').lean();
+    if (!product || product.isActive === false) throw new ApiError(404, 'Product not found.');
+
+    // Same rule as checkout: admin-managed shop products are answered by PLE Shop staff.
+    const vendor = product.shopId ? await getPLEShopVendor() : await Vendor.findById(product.vendorId);
+    if (!vendor || vendor.isDeleted || vendor.status !== 'approved') {
+        throw new ApiError(404, 'This seller is not available for chat.');
+    }
+
+    const latest = await VendorChatThread.findOne({
+        vendorId: vendor._id,
+        customerUserId: req.user.id,
+        productRef: product._id,
+        orderRef: null,
+        productRequestRef: null,
+    }).sort({ createdAt: -1 });
+
+    if (latest && (latest.isBlocked || latest.closedBy === 'admin')) {
+        throw new ApiError(403, latest.isBlocked
+            ? 'Chat with this seller is blocked. Unblock it from your chats to enquire again.'
+            : 'PLE support closed your earlier enquiry about this product. Please contact support.');
+    }
+
+    const isOpen = latest && !latest.isReleased && !['resolved', 'closed'].includes(latest.status);
+    if (isOpen) {
+        return res.status(200).json(new ApiResponse(200, { thread: latest, created: false }, 'Enquiry chat resumed.'));
+    }
+
+    const user = await User.findById(req.user.id).select('name email phone').lean();
+    const productImage = product.image || (Array.isArray(product.images) ? product.images[0] : '') || '';
+    const thread = await VendorChatThread.create({
+        vendorId: vendor._id,
+        customerUserId: req.user.id,
+        customerName: user?.name || req.user.name || 'Customer',
+        customerEmail: user?.email || req.user.email || '',
+        customerPhone: user?.phone || req.user.phone || '',
+        productRef: product._id,
+        productName: product.name,
+        productImage: typeof productImage === 'string' ? productImage : (productImage?.url || ''),
+        lastMessage: `Enquiry about ${product.name}`,
+        unreadCount: 1, // the seller has something new to open
+        status: 'active',
+    });
+    await VendorChatMessage.create({
+        threadId: thread._id,
+        senderType: 'system',
+        senderId: null,
+        message: `Enquiry about "${product.name}"`,
+    });
+
+    if (!vendor.isDeleted) {
+        try {
+            await Notification.create({
+                recipientId: vendor._id,
+                recipientType: 'vendor',
+                title: 'New product enquiry',
+                message: `${thread.customerName} wants to know about ${product.name}`,
+                type: 'chat',
+                data: { threadId: String(thread._id), productId: String(product._id) },
+            });
+            const io = getIO();
+            io?.to(`user_${vendor._id}`).emit('vendor_chat_notification', {
+                threadId: thread._id,
+                customerName: thread.customerName,
+                message: `New enquiry about ${product.name}`,
+            });
+        } catch (err) {
+            console.warn('Enquiry notification failed:', err.message);
+        }
+    }
+
+    res.status(201).json(new ApiResponse(201, { thread, created: true }, 'Enquiry chat started.'));
 });
 
 // @desc    Report a chat message or vendor

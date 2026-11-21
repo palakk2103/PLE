@@ -241,6 +241,10 @@
         "route": "/ple-ops-desk/b2b-enquiries/all?status=Vendor Negotiation"
       },
       {
+        "title": "Direct RFQ Monitor",
+        "route": "/ple-ops-desk/direct-rfqs"
+      },
+      {
         "title": "Vendor RFQs",
         "route": "/ple-ops-desk/b2b-enquiries/all?status=Sent To Vendors"
       },

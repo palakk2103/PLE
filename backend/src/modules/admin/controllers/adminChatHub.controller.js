@@ -11,6 +11,7 @@ import User from '../../../models/User.model.js';
 import Notification from '../../../models/Notification.model.js';
 import { getIO } from '../../../config/socket.js';
 import { decryptMessage, encryptMessage } from '../../../utils/chatEncryption.util.js';
+import { receiptFields, stampDeliveryOnSend, markDeliveredFor, markSeenFor } from '../../../services/chatReceipts.service.js';
 
 const escapeRegex = (str) => String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -35,6 +36,26 @@ const withLegacyAliases = (t) => {
     return t;
 };
 
+/**
+ * When the chat started and ended. Threads saved before start/end times existed fall back to
+ * createdAt, and to the last update for ones that are already closed.
+ */
+const withChatWindow = (t) => {
+    const startedAt = t.startedAt || t.createdAt || null;
+    const ended = t.isReleased === true || ['resolved', 'closed'].includes(t.status);
+    const endedAt = t.endedAt || (ended ? t.updatedAt || null : null);
+    const durationMs = startedAt ? Math.max(0, new Date(endedAt || Date.now()).getTime() - new Date(startedAt).getTime()) : null;
+    return {
+        ...t,
+        startedAt,
+        endedAt: ended ? endedAt : null,
+        endedBy: ended ? (t.closedBy || (t.isReleased ? 'vendor' : null)) : null,
+        durationMs,
+        isOngoing: !ended,
+        isProductEnquiry: Boolean(t.productRef),
+    };
+};
+
 const serializeMessage = (messageDoc) => ({
     id: messageDoc._id,
     sender: messageDoc.senderType,
@@ -42,6 +63,7 @@ const serializeMessage = (messageDoc) => ({
     message: decryptMessage(messageDoc.message),
     time: messageDoc.createdAt,
     createdAt: messageDoc.createdAt,
+    ...receiptFields(messageDoc),
 });
 
 /**
@@ -97,12 +119,13 @@ const classifyThread = (thread) => {
 export const getAdminChatStats = asyncHandler(async (req, res) => {
     const b2bIds = await getB2BUserIds();
 
-    const [all, b2b, unreadAgg, managedVendorThreadsCount, vendorIds] = await Promise.all([
+    const [all, b2b, unreadAgg, managedVendorThreadsCount, vendorIds, enquiries] = await Promise.all([
         VendorChatThread.countDocuments({}),
         VendorChatThread.countDocuments({ customerUserId: { $in: b2bIds } }),
         VendorChatThread.aggregate([{ $group: { _id: null, unread: { $sum: '$unreadCount' } } }]),
         AdminManagedVendorThread.countDocuments({}),
         VendorChatThread.distinct('vendorId'),
+        VendorChatThread.countDocuments({ productRef: { $ne: null } }),
     ]);
 
     res.status(200).json(
@@ -114,6 +137,7 @@ export const getAdminChatStats = asyncHandler(async (req, res) => {
                 b2b,
                 vendor: vendorIds.length, // number of sellers with conversations (was wrongly the total thread count)
                 managedVendor: managedVendorThreadsCount,
+                enquiries,
                 unreadTotal: unreadAgg[0]?.unread || 0,
             },
             'Chat hub stats fetched successfully.'
@@ -126,7 +150,7 @@ export const getAdminChatStats = asyncHandler(async (req, res) => {
  * Fetch conversation threads filtered by module category
  */
 export const getAdminChatThreads = asyncHandler(async (req, res) => {
-    const { category = 'all', vendorId, search = '', status, page = 1, limit = 50 } = req.query;
+    const { category = 'all', vendorId, search = '', status, kind, page = 1, limit = 50 } = req.query;
 
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
     const limitNum = Math.max(1, Math.min(100, parseInt(limit, 10) || 50));
@@ -139,8 +163,9 @@ export const getAdminChatThreads = asyncHandler(async (req, res) => {
     const term = String(search || '').trim();
     if (term) {
         const rx = new RegExp(escapeRegex(term), 'i'); // escaped: user input must never be a raw regex
-        base.$or = [{ customerName: rx }, { customerEmail: rx }, { orderDisplayId: rx }, { productRequestId: rx }];
+        base.$or = [{ customerName: rx }, { customerEmail: rx }, { orderDisplayId: rx }, { productRequestId: rx }, { productName: rx }];
     }
+    if (kind === 'enquiry') base.productRef = { $ne: null };
 
     if (category === 'b2b') {
         base.customerUserId = { $in: await getB2BUserIds() };
@@ -174,11 +199,11 @@ export const getAdminChatThreads = asyncHandler(async (req, res) => {
         VendorChatThread.countDocuments({ ...base, status: 'closed' }),
     ]);
 
-    const threads = rawThreads.map((t) => withLegacyAliases({
+    const threads = rawThreads.map((t) => withLegacyAliases(withChatWindow({
         ...t,
         lastMessage: t.lastMessage ? decryptMessage(t.lastMessage) : '',
         classification: classifyThread(t),
-    }));
+    })));
 
     res.status(200).json(
         new ApiResponse(
@@ -222,11 +247,11 @@ export const getAdminChatMessages = asyncHandler(async (req, res) => {
         .sort({ createdAt: 1 })
         .lean();
 
-    const threadObj = withLegacyAliases({
+    const threadObj = withLegacyAliases(withChatWindow({
         ...thread,
         lastMessage: thread.lastMessage ? decryptMessage(thread.lastMessage) : '',
         classification: classifyThread(thread),
-    });
+    }));
 
     res.status(200).json(
         new ApiResponse(
@@ -263,6 +288,7 @@ export const sendAdminChatMessage = asyncHandler(async (req, res) => {
         senderId: req.user.id,
         message,
     });
+    await stampDeliveryOnSend(created, { thread, recipientId: thread.customerUserId });
 
     thread.lastMessage = message;
     thread.lastActivity = created.createdAt;

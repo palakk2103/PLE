@@ -14,6 +14,7 @@ import Order from '../../../models/Order.model.js';
 import ReturnRequest from '../../../models/ReturnRequest.model.js';
 import WalletTransaction from '../../../models/WalletTransaction.model.js';
 import { getCompanyId } from './employee.controller.js';
+import { istDateRangeFilter } from '../../../utils/istDateRange.js';
 
 // Payment states that mean money actually moved (or will, for COD)
 const SETTLED_PAYMENT_STATUSES = ['paid', 'captured', 'success', 'authorized', 'refunded'];
@@ -32,24 +33,7 @@ const parsePaging = (query, defaultLimit = 20) => {
     return { page, limit, skip: (page - 1) * limit };
 };
 
-// A plain date (YYYY-MM-DD) means that whole calendar day in India time (IST), so the result
-// never depends on the server's timezone. A full timestamp is used exactly as given.
-const PLAIN_DATE = /^\d{4}-\d{2}-\d{2}$/;
-const parseFilterDate = (value, { endOfDay }, label) => {
-    const raw = String(value).trim();
-    const d = PLAIN_DATE.test(raw)
-        ? new Date(`${raw}T${endOfDay ? '23:59:59.999' : '00:00:00.000'}+05:30`)
-        : new Date(raw);
-    if (isNaN(d)) throw new ApiError(400, `Invalid "${label}" date.`);
-    return d;
-};
-
-const dateRangeFilter = ({ from, to }) => {
-    const range = {};
-    if (from) range.$gte = parseFilterDate(from, { endOfDay: false }, 'from');
-    if (to) range.$lte = parseFilterDate(to, { endOfDay: true }, 'to');
-    return Object.keys(range).length ? { createdAt: range } : {};
-};
+const dateRangeFilter = (query) => istDateRangeFilter(query);
 
 const escapeRegex = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
