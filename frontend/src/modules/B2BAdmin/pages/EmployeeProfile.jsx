@@ -478,7 +478,7 @@ const EmployeeProfile = () => {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard label="Net spend" icon={FiTrendingUp} value={money(s.netSpent)} hint={`${money(s.grossSpent)} gross · ${s.itemsPurchased} items`} />
-        <StatCard label="Orders" icon={FiShoppingBag} value={s.placedOrders} hint={`${s.deliveredOrders} delivered · ${s.cancelledOrders} cancelled`} />
+        <StatCard label="Orders placed" icon={FiShoppingBag} value={s.placedOrders} hint={`${s.deliveredOrders} delivered · ${s.cancelledOrders} cancelled (not counted)`} />
         <StatCard label="Returns" icon={FiRotateCcw} value={s.totalReturns} hint={`${money(s.refundedAmount)} refunded${s.pendingRefunds ? ` · ${s.pendingRefunds} pending` : ''}`} />
         <StatCard label="Wallet usage" icon={FiCreditCard} value={money(w.totalDebited)} hint={`${money(w.totalAllotted)} allotted · ${money(w.totalRefundedToWallet)} refunded back`} />
       </div>

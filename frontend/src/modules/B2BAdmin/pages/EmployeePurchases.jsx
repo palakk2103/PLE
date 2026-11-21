@@ -101,7 +101,7 @@ const EmployeePurchases = () => {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard label="Net spend" icon={FiTrendingUp} value={money(totals?.netSpent)} hint={`${money(totals?.grossSpent)} gross − ${money(totals?.refundedAmount)} refunded`} />
-        <StatCard label="Orders" icon={FiShoppingBag} value={totals?.placedOrders ?? 0} hint={`${totals?.cancelledOrders ?? 0} cancelled`} />
+        <StatCard label="Orders placed" icon={FiShoppingBag} value={totals?.placedOrders ?? 0} hint={`${totals?.cancelledOrders ?? 0} cancelled (not counted)`} />
         <StatCard label="Paid from wallets" icon={FiCreditCard} value={money(totals?.walletSpent)} hint={`${money(totals?.walletBalanceRemaining)} still in wallets`} />
         <StatCard label="Returns" icon={FiRotateCcw} value={totals?.totalReturns ?? 0} hint={`${money(totals?.refundedAmount)} refunded`} />
       </div>

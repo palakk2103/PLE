@@ -13,6 +13,7 @@ import {
     buildReturnIdentifiers,
     getInvoiceNumberMap,
     escapeRegex,
+    isOrderFullyReturned,
 } from '../../../utils/returnMapping.js';
 
 const normalizeReturnRequest = (requestDoc, invoiceMap = new Map()) => {
@@ -207,9 +208,11 @@ export const updateVendorReturnRequestStatus = asyncHandler(async (req, res) => 
                 const uniqueVendorIds = [
                     ...new Set(vendorGroups.map((group) => String(group?.vendorId || '')).filter(Boolean)),
                 ];
-                const isSingleVendorOrder = uniqueVendorIds.length <= 1;
 
-                if (status === 'approved' && isSingleVendorOrder && !['cancelled', 'returned'].includes(order.status)) {
+                // A partial return (e.g. 1 of 2 units) must not flip the whole order to "returned":
+                // the customer still holds the rest and may return it later.
+                if (status === 'approved' && !['cancelled', 'returned'].includes(order.status)
+                    && await isOrderFullyReturned(order)) {
                     order.status = 'returned';
                     await order.save();
                 }
@@ -257,7 +260,7 @@ export const updateVendorReturnRequestStatus = asyncHandler(async (req, res) => 
                     const allVendorsCompleted =
                         uniqueVendorIds.length > 0 && uniqueVendorIds.every((vendorId) => completedVendorSet.has(vendorId));
 
-                    if (allVendorsCompleted) {
+                    if (allVendorsCompleted && await isOrderFullyReturned(order)) {
                         if (order.status !== 'cancelled') {
                             order.status = 'returned';
                         }

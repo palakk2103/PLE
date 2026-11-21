@@ -32,20 +32,22 @@ const parsePaging = (query, defaultLimit = 20) => {
     return { page, limit, skip: (page - 1) * limit };
 };
 
+// A plain date (YYYY-MM-DD) means that whole calendar day in India time (IST), so the result
+// never depends on the server's timezone. A full timestamp is used exactly as given.
+const PLAIN_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const parseFilterDate = (value, { endOfDay }, label) => {
+    const raw = String(value).trim();
+    const d = PLAIN_DATE.test(raw)
+        ? new Date(`${raw}T${endOfDay ? '23:59:59.999' : '00:00:00.000'}+05:30`)
+        : new Date(raw);
+    if (isNaN(d)) throw new ApiError(400, `Invalid "${label}" date.`);
+    return d;
+};
+
 const dateRangeFilter = ({ from, to }) => {
     const range = {};
-    if (from) {
-        const d = new Date(from);
-        if (isNaN(d)) throw new ApiError(400, 'Invalid "from" date.');
-        range.$gte = d;
-    }
-    if (to) {
-        const d = new Date(to);
-        if (isNaN(d)) throw new ApiError(400, 'Invalid "to" date.');
-        // Treat a plain date (YYYY-MM-DD) as inclusive of the whole day
-        if (/^\d{4}-\d{2}-\d{2}$/.test(String(to))) d.setHours(23, 59, 59, 999);
-        range.$lte = d;
-    }
+    if (from) range.$gte = parseFilterDate(from, { endOfDay: false }, 'from');
+    if (to) range.$lte = parseFilterDate(to, { endOfDay: true }, 'to');
     return Object.keys(range).length ? { createdAt: range } : {};
 };
 
