@@ -1,3 +1,4 @@
+import * as bankAccountController from '../controllers/bankAccount.controller.js';
 import { Router } from 'express';
 import * as authController from '../controllers/auth.controller.js';
 import * as twoFactorController from '../../../controllers/twoFactor.controller.js';
@@ -170,6 +171,12 @@ router.get('/finance/transactions', ...strictVendorAuth, financeController.getTr
 router.get('/finance/withdrawals', ...strictVendorAuth, financeController.getWithdrawals);
 router.post('/finance/withdrawals', ...strictVendorAuth, financeController.createWithdrawal);
 router.get('/finance/bank-details', ...strictVendorAuth, financeController.getBankDetails);
+// Several payout accounts (one preferred)
+router.get('/bank-accounts', ...strictVendorAuth, bankAccountController.listBankAccounts);
+router.post('/bank-accounts', ...strictVendorAuth, bankAccountController.createBankAccount);
+router.put('/bank-accounts/:id', ...strictVendorAuth, bankAccountController.editBankAccount);
+router.patch('/bank-accounts/:id/preferred', ...strictVendorAuth, bankAccountController.makePreferredBankAccount);
+router.delete('/bank-accounts/:id', ...strictVendorAuth, bankAccountController.deleteBankAccount);
 router.put('/finance/bank-details', ...strictVendorAuth, financeController.updateBankDetails);
 
 // Return requests

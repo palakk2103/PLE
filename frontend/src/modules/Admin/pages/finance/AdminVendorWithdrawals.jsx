@@ -404,29 +404,37 @@ const AdminVendorWithdrawals = () => {
                   <h4 className="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-[11px]">
                     Verified Bank Payout Destination
                   </h4>
+                  {selectedWithdrawal?.bankDetailsSnapshot?.label && (
+                    <p className="text-[11px] text-gray-500">Account chosen by the vendor: <strong className="text-gray-700 dark:text-gray-200">{selectedWithdrawal.bankDetailsSnapshot.label}</strong> (the account that was preferred when this request was made)</p>
+                  )}
+                  {withdrawalDetail?.payoutAccountChangedRecently && (
+                    <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-300 text-amber-800 text-[11px] font-semibold" data-testid="recent-account-warning">
+                      ⚠ This payout account was added or changed shortly before this request. Confirm the details with the vendor before paying.
+                    </div>
+                  )}
                   <div className="grid grid-cols-2 gap-2 text-gray-600 dark:text-gray-300">
                     <div>
                       <span className="text-gray-400 block">Bank Name:</span>
                       <strong className="text-gray-800 dark:text-gray-100">
-                        {withdrawalDetail?.vendorBankDetails?.bankName || selectedWithdrawal?.bankDetailsSnapshot?.bankName || "—"}
+                        {selectedWithdrawal?.bankDetailsSnapshot?.bankName || withdrawalDetail?.vendorBankDetails?.bankName || "—"}
                       </strong>
                     </div>
                     <div>
                       <span className="text-gray-400 block">Account Holder:</span>
                       <strong className="text-gray-800 dark:text-gray-100">
-                        {withdrawalDetail?.vendorBankDetails?.accountName || selectedWithdrawal?.bankDetailsSnapshot?.accountName || "—"}
+                        {selectedWithdrawal?.bankDetailsSnapshot?.accountName || withdrawalDetail?.vendorBankDetails?.accountName || "—"}
                       </strong>
                     </div>
                     <div className="col-span-2">
                       <span className="text-gray-400 block mb-0.5">Account Number (Authorized Admin View):</span>
                       <div className="flex items-center gap-2">
                         <span className="font-mono font-bold text-sm text-purple-700 dark:text-purple-300 bg-purple-100/50 dark:bg-purple-900/30 px-2 py-0.5 rounded select-all">
-                          {withdrawalDetail?.vendorBankDetails?.accountNumber || selectedWithdrawal?.bankDetailsSnapshot?.accountNumber || selectedWithdrawal?.bankDetailsSnapshot?.maskedAccountNumber || "—"}
+                          {selectedWithdrawal?.bankDetailsSnapshot?.accountNumber || withdrawalDetail?.vendorBankDetails?.accountNumber || selectedWithdrawal?.bankDetailsSnapshot?.maskedAccountNumber || "—"}
                         </span>
-                        {(withdrawalDetail?.vendorBankDetails?.accountNumber || selectedWithdrawal?.bankDetailsSnapshot?.accountNumber) && (
+                        {(selectedWithdrawal?.bankDetailsSnapshot?.accountNumber || withdrawalDetail?.vendorBankDetails?.accountNumber) && (
                           <button
                             type="button"
-                            onClick={() => copyToClipboard(withdrawalDetail?.vendorBankDetails?.accountNumber || selectedWithdrawal?.bankDetailsSnapshot?.accountNumber, "Account Number")}
+                            onClick={() => copyToClipboard(selectedWithdrawal?.bankDetailsSnapshot?.accountNumber || withdrawalDetail?.vendorBankDetails?.accountNumber, "Account Number")}
                             title="Copy Account Number"
                             className="p-1 text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
                           >
@@ -439,12 +447,12 @@ const AdminVendorWithdrawals = () => {
                       <span className="text-gray-400 block mb-0.5">IFSC Code:</span>
                       <div className="flex items-center gap-1.5">
                         <span className="font-mono font-bold select-all">
-                          {withdrawalDetail?.vendorBankDetails?.ifscCode || selectedWithdrawal?.bankDetailsSnapshot?.ifscCode || "—"}
+                          {selectedWithdrawal?.bankDetailsSnapshot?.ifscCode || withdrawalDetail?.vendorBankDetails?.ifscCode || "—"}
                         </span>
-                        {(withdrawalDetail?.vendorBankDetails?.ifscCode || selectedWithdrawal?.bankDetailsSnapshot?.ifscCode) && (
+                        {(selectedWithdrawal?.bankDetailsSnapshot?.ifscCode || withdrawalDetail?.vendorBankDetails?.ifscCode) && (
                           <button
                             type="button"
-                            onClick={() => copyToClipboard(withdrawalDetail?.vendorBankDetails?.ifscCode || selectedWithdrawal?.bankDetailsSnapshot?.ifscCode, "IFSC Code")}
+                            onClick={() => copyToClipboard(selectedWithdrawal?.bankDetailsSnapshot?.ifscCode || withdrawalDetail?.vendorBankDetails?.ifscCode, "IFSC Code")}
                             title="Copy IFSC Code"
                             className="p-1 text-gray-400 hover:text-purple-600 transition-colors"
                           >
@@ -457,12 +465,12 @@ const AdminVendorWithdrawals = () => {
                       <span className="text-gray-400 block mb-0.5">UPI ID:</span>
                       <div className="flex items-center gap-1.5">
                         <span className="font-mono select-all">
-                          {withdrawalDetail?.vendorBankDetails?.upiId || selectedWithdrawal?.bankDetailsSnapshot?.upiId || "—"}
+                          {selectedWithdrawal?.bankDetailsSnapshot?.upiId || withdrawalDetail?.vendorBankDetails?.upiId || "—"}
                         </span>
-                        {(withdrawalDetail?.vendorBankDetails?.upiId || selectedWithdrawal?.bankDetailsSnapshot?.upiId) && (
+                        {(selectedWithdrawal?.bankDetailsSnapshot?.upiId || withdrawalDetail?.vendorBankDetails?.upiId) && (
                           <button
                             type="button"
-                            onClick={() => copyToClipboard(withdrawalDetail?.vendorBankDetails?.upiId || selectedWithdrawal?.bankDetailsSnapshot?.upiId, "UPI ID")}
+                            onClick={() => copyToClipboard(selectedWithdrawal?.bankDetailsSnapshot?.upiId || withdrawalDetail?.vendorBankDetails?.upiId, "UPI ID")}
                             title="Copy UPI ID"
                             className="p-1 text-gray-400 hover:text-purple-600 transition-colors"
                           >

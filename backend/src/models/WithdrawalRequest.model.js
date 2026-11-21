@@ -30,6 +30,10 @@ const withdrawalRequestSchema = new mongoose.Schema(
             index: true,
         },
         bankDetailsSnapshot: {
+            // Which of the vendor's saved accounts this payout was addressed to
+            bankAccountId: { type: mongoose.Schema.Types.ObjectId },
+            label: { type: String, default: '' },
+            accountUpdatedAt: { type: Date },
             accountName: { type: String, default: '' },
             accountNumber: { type: String, default: '' },
             maskedAccountNumber: { type: String, default: '' },

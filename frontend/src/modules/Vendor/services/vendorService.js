@@ -591,6 +591,13 @@ export const updateVendorFinanceBankDetails = (data) =>
 export const updateVendorBankDetails = (data) =>
     api.put('/vendor/auth/bank-details', data);
 
+// Several payout accounts (one preferred)
+export const getVendorBankAccounts = () => api.get('/vendor/bank-accounts');
+export const addVendorBankAccount = (data) => api.post('/vendor/bank-accounts', data);
+export const editVendorBankAccount = (id, data) => api.put(`/vendor/bank-accounts/${id}`, data);
+export const makeVendorBankAccountPreferred = (id) => api.patch(`/vendor/bank-accounts/${id}/preferred`);
+export const removeVendorBankAccount = (id) => api.delete(`/vendor/bank-accounts/${id}`);
+
 /**
  * Upload a single vendor image using multer + Cloudinary pipeline
  * @param {File} file

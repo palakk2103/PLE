@@ -1,3 +1,4 @@
+import VendorBankAccountsPanel from '../../components/vendors/VendorBankAccountsPanel';
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -1118,31 +1119,7 @@ const VendorDetail = () => {
 
                 {/* Bank Details Section */}
                 <div className="mt-6">
-                  <h3 className="font-bold text-gray-800 text-sm mb-3">Bank Details</h3>
-                  {vendor.bankDetails?.accountNumber ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-gray-50 p-6 rounded-xl border">
-                      <p className="text-sm"><strong className="text-gray-600">Account Holder:</strong> <span className="font-semibold text-gray-800">{vendor.bankDetails.accountName || 'N/A'}</span></p>
-                      <p className="text-sm"><strong className="text-gray-600">Bank Name:</strong> <span className="font-semibold text-gray-800">{vendor.bankDetails.bankName || 'N/A'}</span></p>
-                      <p className="text-sm"><strong className="text-gray-600">Account Number:</strong> <span className="font-semibold text-gray-800 font-mono">{vendor.bankDetails.accountNumber}</span></p>
-                      <p className="text-sm"><strong className="text-gray-600">IFSC Code:</strong> <span className="font-semibold text-gray-800 font-mono">{vendor.bankDetails.ifscCode || 'N/A'}</span></p>
-                      <p className="text-sm"><strong className="text-gray-600">Branch:</strong> <span className="font-semibold text-gray-800">{vendor.bankDetails.branchName || 'N/A'}</span></p>
-                      <p className="text-sm"><strong className="text-gray-600">Account Type:</strong> <span className="font-semibold text-gray-800">{vendor.bankDetails.accountType || 'N/A'}</span></p>
-                      <p className="text-sm"><strong className="text-gray-600">UPI ID:</strong> <span className="font-semibold text-gray-800">{vendor.bankDetails.upiId || 'N/A'}</span></p>
-                      <div className="flex items-center justify-between bg-white p-3 rounded-lg border md:col-span-2">
-                        <span className="text-xs font-semibold text-gray-700">
-                          {vendor.bankDetails.bankProofType === 'bank_statement' ? 'Bank Statement' : 'Cancelled Cheque'}
-                          {vendor.bankDetails.bankProofName ? ` — ${vendor.bankDetails.bankProofName}` : ''}
-                        </span>
-                        {vendor.bankDetails.bankProofUrl ? (
-                          <a href={vendor.bankDetails.bankProofUrl} target="_blank" rel="noreferrer" className="text-xs text-purple-600 hover:underline font-semibold">View File</a>
-                        ) : (
-                          <span className="text-xs text-red-500 font-semibold">Not Uploaded</span>
-                        )}
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-500 bg-gray-50 p-4 rounded-xl border">No bank details submitted.</p>
-                  )}
+                  <VendorBankAccountsPanel vendorId={vendor._id || vendor.id} legacy={vendor.bankDetails} />
                 </div>
 
                 {/* B2B Selling Authorization Section */}

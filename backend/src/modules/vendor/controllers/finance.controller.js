@@ -1,3 +1,4 @@
+import { applyLegacyUpdate } from '../../../services/vendorBankAccounts.service.js';
 import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
@@ -180,20 +181,12 @@ export const updateBankDetails = asyncHandler(async (req, res) => {
 
     const { accountName, accountNumber, bankName, ifscCode, upiId } = req.body;
 
+    // The vendor may now keep several accounts; this older call edits the preferred one
+    await applyLegacyUpdate(vendorId, { accountName, accountNumber, bankName, ifscCode, upiId });
     const vendor = await Vendor.findById(vendorId).select('+bankDetails');
     if (!vendor) throw new ApiError(404, 'Vendor not found.');
 
     if (!vendor.bankDetails) vendor.bankDetails = {};
-
-    if (accountName !== undefined) vendor.bankDetails.accountName = String(accountName).trim();
-    if (accountNumber !== undefined && String(accountNumber).trim()) {
-        vendor.bankDetails.accountNumber = String(accountNumber).trim();
-    }
-    if (bankName !== undefined) vendor.bankDetails.bankName = String(bankName).trim();
-    if (ifscCode !== undefined) vendor.bankDetails.ifscCode = String(ifscCode).trim().toUpperCase();
-    if (upiId !== undefined) vendor.bankDetails.upiId = String(upiId).trim();
-
-    await vendor.save();
 
     return res.status(200).json(
         new ApiResponse(

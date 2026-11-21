@@ -11,6 +11,7 @@ import { createNotification } from './notification.service.js';
 import { logActivity } from './auditLog.service.js';
 import ApiError from '../utils/ApiError.js';
 import { sendVendorSettlementNotification } from './vendorNotification.service.js';
+import { ensureBankAccounts, getPreferredAccount, snapshotForPayout, MAX_BANK_ACCOUNTS } from './vendorBankAccounts.service.js';
 
 const SETTINGS_KEY = 'vendor_payout_settings';
 const DEFAULT_PAYOUT_SETTINGS = {
@@ -335,12 +336,14 @@ export const getVendorWalletSummary = async (vendorId) => {
 
     const [wallet, vendorDoc, settings, pendingWithdrawalsCount] = await Promise.all([
         getOrCreateVendorWallet(vendorId),
-        Vendor.findById(vendorId).select('+bankDetails'),
+        Vendor.findById(vendorId).select('bankDetails bankAccounts createdAt'),
         getPayoutSettings(),
         WithdrawalRequest.countDocuments({ vendorId, status: { $in: ['pending', 'approved', 'processing'] } }),
     ]);
 
-    const bankDetails = vendorDoc?.bankDetails || {};
+    await ensureBankAccounts(vendorDoc);
+    // Payouts go to the preferred account (the old single bankDetails is its mirror)
+    const bankDetails = getPreferredAccount(vendorDoc) || vendorDoc?.bankDetails || {};
     const hasBankDetails = Boolean(
         (bankDetails.accountNumber && bankDetails.ifscCode) || bankDetails.upiId
     );
@@ -358,7 +361,11 @@ export const getVendorWalletSummary = async (vendorId) => {
             updatedAt: wallet.updatedAt,
         },
         bankDetailsConfigured: hasBankDetails,
+        bankAccountsCount: vendorDoc?.bankAccounts?.length || 0,
+        maxBankAccounts: MAX_BANK_ACCOUNTS,
         bankDetailsMasked: {
+            id: bankDetails._id ? String(bankDetails._id) : undefined,
+            label: bankDetails.label || '',
             accountName: bankDetails.accountName || '',
             maskedAccountNumber: maskAccountNumber(bankDetails.accountNumber),
             bankName: bankDetails.bankName || '',
@@ -407,15 +414,13 @@ export const requestWithdrawal = async (vendorId, amountInput, vendorNotes = '')
     }
 
     // Check bank details
-    const vendor = await Vendor.findById(vendorId).select('+bankDetails');
+    const vendor = await Vendor.findById(vendorId).select('bankDetails bankAccounts storeName createdAt');
     if (!vendor) throw new ApiError(404, 'Vendor not found.');
 
-    const bankDetails = vendor.bankDetails || {};
-    const hasValidBank = Boolean(
-        (bankDetails.accountNumber && bankDetails.ifscCode) || bankDetails.upiId
-    );
-    if (!hasValidBank) {
-        throw new ApiError(400, 'Please configure your bank details or UPI ID before requesting a withdrawal.');
+    await ensureBankAccounts(vendor);
+    const payoutSnapshot = snapshotForPayout(vendor);
+    if (!payoutSnapshot) {
+        throw new ApiError(400, 'Please add a bank account or UPI ID (and mark it preferred) before requesting a withdrawal.');
     }
 
     // Atomically reserve amount from available to reserved
@@ -447,15 +452,8 @@ export const requestWithdrawal = async (vendorId, amountInput, vendorNotes = '')
         requestedAmount: amount,
         eligibleAmountAtRequest: updatedWallet.available + amount,
         status: 'pending',
-        bankDetailsSnapshot: {
-            accountName: bankDetails.accountName || vendor.storeName || '',
-            accountNumber: bankDetails.accountNumber || '',
-            maskedAccountNumber: maskAccountNumber(bankDetails.accountNumber),
-            bankName: bankDetails.bankName || '',
-            ifscCode: bankDetails.ifscCode || '',
-            upiId: bankDetails.upiId || '',
-        },
-        paymentMethod: bankDetails.accountNumber ? 'bank_transfer' : 'upi',
+        bankDetailsSnapshot: payoutSnapshot,
+        paymentMethod: payoutSnapshot.accountNumber ? 'bank_transfer' : 'upi',
         vendorNotes: String(vendorNotes || '').trim(),
     });
 

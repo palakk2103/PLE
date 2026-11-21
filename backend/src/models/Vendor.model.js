@@ -84,6 +84,34 @@ const vendorSchema = new mongoose.Schema(
             bankProofName: { type: String, default: '' },
             bankProofUploadedAt: { type: Date },
         },
+        // Several payout accounts per vendor; exactly one is preferred and receives payouts.
+        // `bankDetails` above is kept as a mirror of the preferred account for older code.
+        bankAccounts: {
+            type: [
+                new mongoose.Schema(
+                    {
+                        label: { type: String, trim: true, default: '', maxlength: 60 },
+                        accountName: { type: String, trim: true, default: '' },
+                        accountNumber: { type: String, trim: true, default: '' },
+                        bankName: { type: String, trim: true, default: '' },
+                        ifscCode: { type: String, trim: true, uppercase: true, default: '' },
+                        upiId: { type: String, trim: true, default: '' },
+                        branchName: { type: String, trim: true, default: '' },
+                        accountType: { type: String, trim: true, default: '' },
+                        proofType: { type: String, enum: ['', 'bank_statement', 'cancelled_cheque'], default: '' },
+                        proofUrl: { type: String, default: '' },
+                        proofName: { type: String, default: '' },
+                        proofUploadedAt: { type: Date },
+                        isPreferred: { type: Boolean, default: false },
+                        // When money could last have been redirected here: created, payout details
+                        // edited, or made preferred. (Being demoted does not count.)
+                        changedAt: { type: Date, default: Date.now },
+                    },
+                    { timestamps: true }
+                ),
+            ],
+            default: [],
+        },
         documents: {
             gst: String,
             pan: String,

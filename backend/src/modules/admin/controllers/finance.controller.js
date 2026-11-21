@@ -1,3 +1,4 @@
+import { buildAccountsView, RECENT_CHANGE_MS } from '../../../services/vendorBankAccounts.service.js';
 import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
@@ -233,7 +234,7 @@ export const getWithdrawalById = asyncHandler(async (req, res) => {
 
     // Fetch vendor's current wallet and full bank details
     const [vendorWithBank, wallet, recentCommissions] = await Promise.all([
-        Vendor.findById(withdrawal.vendorId?._id || withdrawal.vendorId).select('+bankDetails').lean(),
+        Vendor.findById(withdrawal.vendorId?._id || withdrawal.vendorId).select('bankDetails bankAccounts').lean(),
         VendorWallet.findOne({ vendorId: withdrawal.vendorId?._id || withdrawal.vendorId }).lean(),
         Commission.find({ vendorId: withdrawal.vendorId?._id || withdrawal.vendorId })
             .sort({ createdAt: -1 })
@@ -247,6 +248,11 @@ export const getWithdrawalById = asyncHandler(async (req, res) => {
             {
                 withdrawal,
                 vendorBankDetails: vendorWithBank?.bankDetails || {},
+                vendorBankAccounts: await buildAccountsView({ _id: vendorWithBank?._id, bankAccounts: vendorWithBank?.bankAccounts || [] }, { reveal: true }),
+                payoutAccountChangedRecently: Boolean(
+                    withdrawal.bankDetailsSnapshot?.accountUpdatedAt
+                    && (new Date(withdrawal.createdAt) - new Date(withdrawal.bankDetailsSnapshot.accountUpdatedAt)) < RECENT_CHANGE_MS
+                ),
                 vendorWallet: wallet || {},
                 recentCommissions,
             },

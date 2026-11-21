@@ -1,3 +1,4 @@
+import { applyLegacyUpdate } from '../../../services/vendorBankAccounts.service.js';
 import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
@@ -591,20 +592,9 @@ export const updateBankDetails = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'At least one bank detail field is required.');
     }
 
-    const updates = {};
-    if (accountName !== undefined) updates['bankDetails.accountName'] = String(accountName).trim();
-    if (accountNumber !== undefined && String(accountNumber).trim()) {
-        updates['bankDetails.accountNumber'] = String(accountNumber).trim();
-    }
-    if (bankName !== undefined) updates['bankDetails.bankName'] = String(bankName).trim();
-    if (ifscCode !== undefined) updates['bankDetails.ifscCode'] = String(ifscCode).trim().toUpperCase();
-    if (upiId !== undefined) updates['bankDetails.upiId'] = String(upiId).trim();
-
-    const vendor = await Vendor.findByIdAndUpdate(
-        req.user.id,
-        { $set: updates },
-        { new: true, runValidators: true }
-    ).select('-password -otp -otpExpiry');
+    // The vendor may now keep several accounts; this older call edits the preferred one
+    await applyLegacyUpdate(req.user.id, { accountName, accountNumber, bankName, ifscCode, upiId });
+    const vendor = await Vendor.findById(req.user.id).select('-password -otp -otpExpiry');
 
     // Vendor Notification Items 70-72: Bank details updated
     if (vendor?.email) {
