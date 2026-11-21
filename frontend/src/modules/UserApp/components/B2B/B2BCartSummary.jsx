@@ -1,5 +1,6 @@
 import React from 'react';
 import { useBusinessBuyer } from '../../hooks/useBusinessBuyer';
+import { getProductById } from '../../data/catalogData';
 import { formatPrice } from '../../../../shared/utils/helpers';
 import { FiTrendingDown, FiPercent, FiClock, FiAlertCircle } from 'react-icons/fi';
 
@@ -26,7 +27,11 @@ export const B2BCartSummary = ({ cartItems, subtotal }) => {
     // Savings = Retail Price vs Wholesale Price
     // For fashion products, our mock wholesale is already calculated and inserted as price in cart line.
     // Let's assume the base retail price was about 25% higher
-    const estimatedRetailPrice = Math.round((item.price / 0.8) * 100) / 100;
+    // Use the product's real retail price when we have it; otherwise fall back to an estimate.
+    const catalogRetail = Number(getProductById(item.id)?.price);
+    const estimatedRetailPrice = catalogRetail > item.price
+      ? catalogRetail
+      : Math.round((item.price / 0.8) * 100) / 100;
     const itemSavings = (estimatedRetailPrice - item.price) * item.quantity;
     totalSavings += itemSavings;
 

@@ -395,6 +395,9 @@ router.patch('/managed-vendor-chat/threads/:threadId/read', ...adminAuth, adminM
 import * as chatModerationController from '../controllers/chatModeration.controller.js';
 router.get('/chat-moderation/violations', ...adminAuth, chatModerationController.getChatViolations);
 router.post('/chat-moderation/violations/:id/action', ...adminAuth, chatModerationController.takeViolationAction);
+router.get('/chat-moderation/stats', ...adminAuth, chatModerationController.getChatViolationStats);
+router.get('/chat-moderation/reports', ...adminAuth, chatModerationController.getChatReports);
+router.post('/chat-moderation/reports/:id/action', ...adminAuth, chatModerationController.takeReportAction);
 // ─── Admin Support & Ticket Routes ───────────────────────────────────────────
 router.get('/support/tickets', ...adminAuth, supportController.getAllTickets);
 router.get('/support/tickets/:id', ...adminAuth, supportController.getTicketById);

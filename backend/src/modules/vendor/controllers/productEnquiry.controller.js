@@ -3,6 +3,19 @@ import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
 import ProductEnquiry from '../../../models/ProductEnquiry.model.js';
 import Notification from '../../../models/Notification.model.js';
+import { moderateMessage, MODERATION_ACTION } from '../../../services/chatModeration.service.js';
+import { assertTextLength } from '../../../utils/chatLimits.js';
+
+// Same anti-diversion rules as chat: no phone numbers, UPI ids, emails, payment links or external contacts.
+const assertNoContactDetails = (...texts) => {
+    for (const text of texts) {
+        if (!text) continue;
+        const result = moderateMessage(String(text));
+        if (result.action === MODERATION_ACTION.BLOCK) {
+            throw new ApiError(422, result.userMessage || 'Message blocked: sharing contact or payment details is not allowed.');
+        }
+    }
+};
 
 // @desc    Get vendor's product enquiries
 // @route   GET /api/vendor/enquiries
@@ -48,6 +61,8 @@ export const replyToEnquiry = asyncHandler(async (req, res) => {
     if (!status && !responseText) {
         throw new ApiError(400, 'Please provide status or response text.');
     }
+    assertNoContactDetails(responseText);
+    assertTextLength(responseText);
 
     const vendorIdsToMatch = req.user.role === 'managed_vendor'
         ? [req.user.shopId, req.user.id].filter(Boolean)
@@ -59,7 +74,10 @@ export const replyToEnquiry = asyncHandler(async (req, res) => {
     }
 
     if (status) enquiry.status = status;
-    if (responseText) enquiry.sellerResponse = responseText;
+    if (responseText) {
+        enquiry.sellerResponse = responseText; // latest seller answer (kept for existing screens)
+        enquiry.messages.push({ senderType: 'vendor', senderId: req.user.id || req.user._id, message: responseText });
+    }
 
     const note = responseText 
         ? `Seller responded: "${responseText.substring(0, 40)}${responseText.length > 40 ? '...' : ''}"`

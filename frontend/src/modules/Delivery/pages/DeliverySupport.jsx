@@ -1,12 +1,32 @@
 import { useState, useEffect } from "react";
-import { FiSearch, FiEye, FiMessageSquare, FiSend, FiX, FiCheck } from "react-icons/fi";
+import { FiSearch, FiEye, FiMessageSquare, FiSend, FiX, FiCheck, FiPlus } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSupportStore } from "../../../shared/store/supportStore";
 import Badge from "../../../shared/components/Badge";
 import toast from "react-hot-toast";
 
 const DeliverySupport = () => {
-  const { tickets, isLoading, fetchTickets, addReply, updateTicketStatus } = useSupportStore();
+  const { tickets, isLoading, fetchTickets, addReply, updateTicketStatus, createTicket } = useSupportStore();
+
+  // New-ticket form
+  const [showNew, setShowNew] = useState(false);
+  const [newSubject, setNewSubject] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+  const [newCategory, setNewCategory] = useState("Delivery Issue");
+  const [creating, setCreating] = useState(false);
+
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    if (!newSubject.trim() || !newDescription.trim()) return;
+    setCreating(true);
+    const created = await createTicket({ subject: newSubject.trim(), description: newDescription.trim(), category: newCategory });
+    setCreating(false);
+    if (created) {
+      setShowNew(false);
+      setNewSubject("");
+      setNewDescription("");
+    }
+  };
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTicket, setSelectedTicket] = useState(null);
@@ -19,7 +39,8 @@ const DeliverySupport = () => {
     });
   }, [searchQuery, fetchTickets]);
 
-  const deliveryTickets = tickets.filter(t => t.category === "Delivery Issue");
+  // The server only returns this delivery partner's own tickets
+  const deliveryTickets = tickets;
 
   const handleViewTicket = async (ticketRow) => {
     setSelectedTicket(ticketRow);
@@ -67,9 +88,56 @@ const DeliverySupport = () => {
           <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">
             <FiMessageSquare className="text-primary-600" /> Delivery Support
           </h1>
-          <p className="text-xs text-gray-500">Respond to customer issues relating to delivery delays or address updates.</p>
+          <p className="text-xs text-gray-500">Raise a problem with PLE support (payouts, orders, app issues) and follow the replies.</p>
         </div>
+        <button
+          onClick={() => setShowNew(true)}
+          className="flex items-center gap-1 px-3 py-2 bg-primary-600 text-white rounded-xl text-xs font-semibold shadow-sm"
+        >
+          <FiPlus /> New ticket
+        </button>
       </div>
+
+      {showNew && (
+        <div className="fixed inset-0 bg-black/50 z-[10000] flex items-end sm:items-center justify-center p-4">
+          <form onSubmit={handleCreate} className="bg-white rounded-2xl p-5 w-full max-w-md space-y-3">
+            <h3 className="font-bold text-gray-800">Raise a support ticket</h3>
+            <input
+              value={newSubject}
+              onChange={(e) => setNewSubject(e.target.value)}
+              placeholder="Subject"
+              required
+              maxLength={200}
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs"
+            />
+            <select
+              value={newCategory}
+              onChange={(e) => setNewCategory(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs"
+            >
+              <option>Delivery Issue</option>
+              <option>Payout / Earnings</option>
+              <option>App / Technical</option>
+              <option>Other</option>
+            </select>
+            <textarea
+              value={newDescription}
+              onChange={(e) => setNewDescription(e.target.value)}
+              placeholder="Describe the problem"
+              required
+              rows={5}
+              maxLength={5000}
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs"
+            />
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setShowNew(false)} className="px-4 py-2 bg-gray-100 rounded-xl text-xs">Cancel</button>
+              <button type="submit" disabled={creating} className="px-4 py-2 bg-primary-600 text-white rounded-xl text-xs disabled:opacity-60">
+                {creating ? "Sending..." : "Send"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* Search */}
       <div className="relative">
@@ -89,7 +157,7 @@ const DeliverySupport = () => {
           <p className="text-center text-xs text-gray-500 animate-pulse py-6">Loading issues...</p>
         ) : deliveryTickets.length === 0 ? (
           <div className="bg-white rounded-2xl p-8 border border-dashed text-center">
-            <p className="text-xs text-gray-500">No delivery support tickets found.</p>
+            <p className="text-xs text-gray-500">You have not raised any support tickets yet.</p>
           </div>
         ) : (
           deliveryTickets.map((t) => (
@@ -107,7 +175,7 @@ const DeliverySupport = () => {
                 <p className="text-[11px] text-gray-500 line-clamp-2 mt-1">{t.description}</p>
               </div>
               <div className="flex justify-between items-center text-[10px] text-gray-400 pt-2 border-t">
-                <span>User: {t.customer?.name}</span>
+                <span>{t.category}</span>
                 <span>{new Date(t.createdAt).toLocaleDateString()}</span>
               </div>
             </div>

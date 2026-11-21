@@ -1,6 +1,7 @@
 import { useB2bStore } from "../../../shared/store/b2bStore";
 import { useAuthStore } from "../../../shared/store/authStore";
 import { getB2bProductSpecs } from "../data/b2bMockData";
+import { getProductById } from "../data/catalogData";
 
 export const useBusinessBuyer = () => {
   const userRole = useB2bStore((state) => state.userRole);
@@ -26,7 +27,30 @@ export const useBusinessBuyer = () => {
    * Get B2B specifications for a given product
    */
   const getWholesaleSpecs = (productId, retailPrice) => {
-    return getB2bProductSpecs(productId, retailPrice);
+    const specs = getB2bProductSpecs(productId, retailPrice);
+
+    // Use the vendor's real wholesale pricing when the product has it, so what the
+    // buyer sees is what the server charges (mirrors order.controller's B2B pricing:
+    // a matching quantity slab wins, otherwise b2bWholesalePrice).
+    const product = getProductById(productId);
+    const wholesale = Number(product?.b2bWholesalePrice);
+    const slabs = (product?.b2bBulkPricingSlabs || [])
+      .map((s) => ({ minQty: Number(s?.minQty), price: Number(s?.pricePerUnit) }))
+      .filter((s) => s.minQty > 0 && s.price > 0)
+      .sort((a, b) => a.minQty - b.minQty);
+
+    if (!(wholesale > 0) && slabs.length === 0) return specs;
+
+    const moq = specs.moq;
+    let basePrice = wholesale > 0 ? wholesale : Number(retailPrice) || 0;
+    const tiers = [];
+    for (const slab of slabs) {
+      if (slab.minQty <= moq) basePrice = slab.price; // slab already applies at MOQ
+      else tiers.push(slab);
+    }
+    tiers.unshift({ minQty: moq, price: basePrice });
+
+    return { ...specs, tiers, retailPrice: Number(retailPrice) || undefined };
   };
 
   /**

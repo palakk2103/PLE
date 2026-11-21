@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
@@ -15,6 +16,31 @@ const serializeMessage = (messageDoc) => ({
     time: messageDoc.createdAt,
 });
 
+// The PLE Shop vendor is a system account operated by admins through these
+// endpoints; nobody should be able to log into it. It gets an unguessable
+// random password that is never stored or returned anywhere.
+const randomSystemPassword = () => crypto.randomBytes(32).toString('base64url');
+
+// Older builds created this account with a publicly known password.
+const LEAKED_DEFAULT_PASSWORD = 'Password123!';
+let pleShopPasswordChecked = false;
+
+const rotateLeakedPLEShopPassword = async (vendorId) => {
+    if (pleShopPasswordChecked) return;
+    pleShopPasswordChecked = true;
+    try {
+        const withPassword = await Vendor.findById(vendorId).select('+password');
+        if (withPassword && await withPassword.comparePassword(LEAKED_DEFAULT_PASSWORD)) {
+            withPassword.password = randomSystemPassword();
+            await withPassword.save();
+            console.warn('[PLE Shop] Rotated leaked default password on system vendor account.');
+        }
+    } catch (err) {
+        pleShopPasswordChecked = false; // retry on next request
+        console.warn('[PLE Shop] Password rotation check failed:', err.message);
+    }
+};
+
 // Helper to get or create PLE Shop vendor
 const getPLEShopVendor = async () => {
     let vendor = await Vendor.findOne({ storeName: 'PLE Shop' });
@@ -22,11 +48,14 @@ const getPLEShopVendor = async () => {
         vendor = await Vendor.create({
             name: 'PLE Shop',
             email: 'admin_pleshop@example.com',
-            password: 'Password123!',
+            password: randomSystemPassword(),
             storeName: 'PLE Shop',
             status: 'approved',
             isActive: true,
         });
+        pleShopPasswordChecked = true;
+    } else {
+        await rotateLeakedPLEShopPassword(vendor._id);
     }
     return vendor;
 };
@@ -58,16 +87,17 @@ export const getPLEShopThreads = asyncHandler(async (req, res) => {
 });
 
 
-export const getPLEShopMessages = asyncHandler(async (req, res) => {
-    let thread = await VendorChatThread.findById(req.params.id);
-    if (!thread) {
-        const activeVendor = await getTargetVendor(req);
-        thread = await VendorChatThread.findOne({
-            _id: req.params.id,
-            vendorId: activeVendor._id,
-        });
-    }
+// A thread is only reachable through the shop it belongs to. Looking threads up by id alone let this
+// endpoint read and post into ANY vendor's customer chat while impersonating the selected shop.
+const findShopThread = async (req, activeVendor) => {
+    const thread = await VendorChatThread.findOne({ _id: req.params.id, vendorId: activeVendor._id });
     if (!thread) throw new ApiError(404, 'Chat thread not found.');
+    return thread;
+};
+
+export const getPLEShopMessages = asyncHandler(async (req, res) => {
+    const activeVendor = await getTargetVendor(req);
+    const thread = await findShopThread(req, activeVendor);
 
     const messages = await VendorChatMessage.find({ threadId: thread._id }).sort({ createdAt: 1 });
 
@@ -79,16 +109,9 @@ export const sendPLEShopMessage = asyncHandler(async (req, res) => {
     const message = String(req.body?.message || '').trim();
     if (!message) throw new ApiError(400, 'Message is required.');
 
-    let thread = await VendorChatThread.findById(req.params.id);
-    if (!thread) {
-        thread = await VendorChatThread.findOne({
-            _id: req.params.id,
-            vendorId: activeVendor._id,
-        });
-    }
-    if (!thread) throw new ApiError(404, 'Chat thread not found.');
+    const thread = await findShopThread(req, activeVendor);
 
-    const senderId = activeVendor?._id || thread.vendorId;
+    const senderId = activeVendor._id;
 
     const created = await VendorChatMessage.create({
         threadId: thread._id,
@@ -99,6 +122,7 @@ export const sendPLEShopMessage = asyncHandler(async (req, res) => {
 
     thread.lastMessage = message;
     thread.lastActivity = created.createdAt;
+    thread.unreadCountCustomer = (thread.unreadCountCustomer || 0) + 1;
     await thread.save();
 
     // Create in-app notification for the customer
@@ -141,18 +165,10 @@ export const sendPLEShopMessage = asyncHandler(async (req, res) => {
 });
 
 export const markPLEShopRead = asyncHandler(async (req, res) => {
-    let thread = await VendorChatThread.findById(req.params.id);
-    if (!thread) {
-        const activeVendor = await getTargetVendor(req);
-        thread = await VendorChatThread.findOne({
-            _id: req.params.id,
-            vendorId: activeVendor._id,
-        });
-    }
-    if (!thread) throw new ApiError(404, 'Chat thread not found.');
+    const activeVendor = await getTargetVendor(req);
+    const thread = await findShopThread(req, activeVendor);
 
-    thread.unreadCount = 0;
-    if (thread.status !== 'resolved') thread.status = 'active';
+    thread.unreadCount = 0; // admin is acting as this shop, so it is the shop's own unread counter
     await thread.save();
 
     res.status(200).json(new ApiResponse(200, thread, 'Chat marked as read.'));

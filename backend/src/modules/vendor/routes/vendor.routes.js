@@ -249,6 +249,15 @@ router.post('/product-requests/:id/chat/initiate', ...strictVendorAuth, chatCont
 
 // Managed Vendor Chat with Admin
 import * as managedVendorChatController from '../controllers/managedVendorChat.controller.js';
+// Support tickets to PLE
+import vendorSupport from '../controllers/vendorSupport.controller.js';
+router.get('/support/ticket-types', ...strictVendorAuth, vendorSupport.ticketTypes);
+router.get('/support/tickets', ...strictVendorAuth, vendorSupport.listMine);
+router.post('/support/tickets', ...strictVendorAuth, vendorSupport.create);
+router.get('/support/tickets/:id', ...strictVendorAuth, vendorSupport.detail);
+router.post('/support/tickets/:id/messages', ...strictVendorAuth, vendorSupport.reply);
+router.patch('/support/tickets/:id/status', ...strictVendorAuth, vendorSupport.setStatus);
+
 router.get('/admin-chat/thread', ...strictVendorAuth, managedVendorChatController.getManagedVendorThread);
 router.get('/admin-chat/messages', ...strictVendorAuth, managedVendorChatController.getManagedVendorMessages);
 router.post('/admin-chat/messages', ...strictVendorAuth, managedVendorChatController.sendManagedVendorMessage);

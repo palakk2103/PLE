@@ -256,7 +256,10 @@ export const getAllProducts = asyncHandler(async (req, res) => {
     if (vendorId) filter.vendorId = vendorId;
     if (categoryId) filter.categoryId = categoryId;
     if (status) filter.stock = status;
-    if (String(includeInactive) !== 'true') {
+    // Pending/rejected products are inactive until approved, so they must stay visible
+    // when the admin is reviewing by approval status.
+    const reviewingByApproval = ['pending', 'rejected', 'draft'].includes(String(approvalStatus || ''));
+    if (String(includeInactive) !== 'true' && !reviewingByApproval) {
         filter.isActive = { $ne: false };
     }
     if (String(b2bOnly) === 'true') {

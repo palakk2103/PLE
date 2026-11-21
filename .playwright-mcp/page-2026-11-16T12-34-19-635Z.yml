@@ -1,0 +1,139 @@
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - link [ref=e8] [cursor=pointer]:
+          - /url: /home
+          - img "OPLE Logo" [ref=e9]
+        - button "Menu" [ref=e10] [cursor=pointer]
+      - navigation [ref=e12]:
+        - link "Home" [ref=e13] [cursor=pointer]:
+          - /url: /home
+        - link "Other Shops Marketplace" [ref=e14] [cursor=pointer]:
+          - /url: /home?tab=marketplace
+          - generic [ref=e15]: Other Shops
+          - generic [ref=e16]: Marketplace
+        - link "Categories ▼" [ref=e17] [cursor=pointer]:
+          - /url: /categories
+          - generic [ref=e18]: Categories
+          - generic [ref=e19]: ▼
+        - link "Offers" [ref=e20] [cursor=pointer]:
+          - /url: /offers
+        - generic [ref=e21] [cursor=pointer]:
+          - generic [ref=e22]: Brands by PLE
+          - generic [ref=e23]: New
+          - generic [ref=e24]: ▼
+      - generic [ref=e25]:
+        - textbox "Search products, brands, categories..." [ref=e26]
+        - button [ref=e27] [cursor=pointer]
+      - generic [ref=e31]:
+        - button "RFQ" [ref=e32] [cursor=pointer]
+        - button "Cart" [ref=e38] [cursor=pointer]
+        - button "Theme" [ref=e43] [cursor=pointer]
+        - button [ref=e49] [cursor=pointer]
+  - main [ref=e52]:
+    - generic [ref=e53]:
+      - generic [ref=e55]:
+        - paragraph [ref=e56]: Found 0 product(s)
+        - generic [ref=e57]:
+          - combobox [ref=e58]:
+            - option "Newest"
+            - option "Oldest"
+            - 'option "Price: Low to High"'
+            - 'option "Price: High to Low"'
+            - option "Popular"
+            - option "Top Rated" [selected]
+          - generic [ref=e59]:
+            - button [ref=e60] [cursor=pointer]
+            - button [ref=e62] [cursor=pointer]
+          - button "Filters" [ref=e69] [cursor=pointer]
+      - generic [ref=e73]: Loading products...
+  - contentinfo [ref=e78]:
+    - generic [ref=e80]:
+      - generic [ref=e81]:
+        - link "PLE Logo TM" [ref=e82] [cursor=pointer]:
+          - /url: /home
+          - generic [ref=e83]:
+            - img "PLE Logo" [ref=e84]
+            - generic [ref=e85]: TM
+        - paragraph [ref=e86]: Your destination for electronics across consumer, business, and specialized sourcing needs — from everyday tech and accessories to enterprise procurement solutions.
+        - generic [ref=e87]:
+          - link [ref=e88] [cursor=pointer]:
+            - /url: https://www.facebook.com/share/1EaNrat2yr/
+          - link [ref=e91] [cursor=pointer]:
+            - /url: https://www.instagram.com/peoplesleagueofelectronics?igsh=MWdtbTNzajdqMGV4cQ==
+          - link [ref=e95] [cursor=pointer]:
+            - /url: https://x.com/PeoplesE9405
+          - link [ref=e98] [cursor=pointer]:
+            - /url: https://www.linkedin.com/company/ple-electronics
+      - generic [ref=e103]:
+        - heading "Quick Links" [level=3] [ref=e104]
+        - list [ref=e105]:
+          - listitem [ref=e106]:
+            - link "Home" [ref=e107] [cursor=pointer]:
+              - /url: /home
+          - listitem [ref=e108]:
+            - link "Categories" [ref=e109] [cursor=pointer]:
+              - /url: /categories
+          - listitem [ref=e110]:
+            - link "Offers" [ref=e111] [cursor=pointer]:
+              - /url: /offers
+          - listitem [ref=e112]:
+            - link "Refurbished" [ref=e113] [cursor=pointer]:
+              - /url: /refurbished-categories
+          - listitem [ref=e114]:
+            - link "My Profile" [ref=e115] [cursor=pointer]:
+              - /url: /profile
+          - listitem [ref=e116]:
+            - link "About Us" [ref=e117] [cursor=pointer]:
+              - /url: /about-us
+      - generic [ref=e118]:
+        - heading "Customer Support" [level=3] [ref=e119]
+        - list [ref=e120]:
+          - listitem [ref=e121]:
+            - link "Help & Support" [ref=e122] [cursor=pointer]:
+              - /url: /help-support
+          - listitem [ref=e123]:
+            - link "Privacy Policy" [ref=e124] [cursor=pointer]:
+              - /url: /privacy-policy
+          - listitem [ref=e125]:
+            - link "Terms & Conditions" [ref=e126] [cursor=pointer]:
+              - /url: /terms-conditions
+          - listitem [ref=e127]:
+            - link "Return Policy" [ref=e128] [cursor=pointer]:
+              - /url: /return-policy
+          - listitem [ref=e129]:
+            - link "Warranty Policy" [ref=e130] [cursor=pointer]:
+              - /url: /warranty-policy
+          - listitem [ref=e131]:
+            - link "Business Onboarding Policy" [ref=e132] [cursor=pointer]:
+              - /url: /business-onboarding-policy
+          - listitem [ref=e133]:
+            - link "Execution & Acceptance Policy" [ref=e134] [cursor=pointer]:
+              - /url: /execution-acceptance-policy
+          - listitem [ref=e135]:
+            - link "Shipping and Delivery Policy" [ref=e136] [cursor=pointer]:
+              - /url: /shipping-and-delivery-policy
+          - listitem [ref=e137]:
+            - link "User Agreement" [ref=e138] [cursor=pointer]:
+              - /url: /user-agreement
+      - generic [ref=e139]:
+        - generic [ref=e140]:
+          - heading "Subscribe to Newsletter" [level=3] [ref=e141]
+          - paragraph [ref=e142]: Be the first to hear about special offers, new arrivals, and events.
+          - generic [ref=e143]:
+            - textbox "Enter email address" [ref=e144]
+            - button [ref=e145] [cursor=pointer]
+        - generic [ref=e149]:
+          - generic [ref=e150]: support@plebusiness.com
+          - generic [ref=e155]: +91 9071149100
+          - generic [ref=e159]: SHOP NO.25, R S NO.1045/3, 2ND CROSS, UJWAL NAGAR, Belgaum Fort, Karnataka, India,590016
+    - generic [ref=e165]:
+      - generic [ref=e166]: © 2026 PLE Inc. All rights reserved.
+      - generic [ref=e167]:
+        - link "Privacy" [ref=e168] [cursor=pointer]:
+          - /url: /privacy-policy
+        - link "Terms" [ref=e169] [cursor=pointer]:
+          - /url: /terms-conditions
+        - link "Sitemap" [ref=e170] [cursor=pointer]:
+          - /url: /help-support

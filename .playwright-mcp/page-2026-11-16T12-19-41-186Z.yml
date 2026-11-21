@@ -1,0 +1,449 @@
+- generic [ref=f21e3]:
+  - complementary [ref=f21e5]:
+    - heading "B2B Admin" [level=2] [ref=f21e13]
+    - button "Back to B2B Store" [ref=f21e15] [cursor=pointer]
+    - navigation [ref=f21e25]:
+      - link "Dashboard" [ref=f21e26] [cursor=pointer]:
+        - /url: /b2b-dashboard/overview
+      - link "Employees" [ref=f21e31] [cursor=pointer]:
+        - /url: /b2b-dashboard/employees
+      - link "Employee Purchases" [ref=f21e38] [cursor=pointer]:
+        - /url: /b2b-dashboard/employee-purchases
+      - link "RFQs" [ref=f21e43] [cursor=pointer]:
+        - /url: /b2b-dashboard/rfqs
+      - link "Quotations" [ref=f21e48] [cursor=pointer]:
+        - /url: /b2b-dashboard/quotations
+      - link "Product Requests" [ref=f21e53] [cursor=pointer]:
+        - /url: /b2b-dashboard/product-requests
+      - link "RFQ Discussions" [ref=f21e58] [cursor=pointer]:
+        - /url: /b2b-dashboard/discussions
+      - link "Shop Chats" [ref=f21e62] [cursor=pointer]:
+        - /url: /b2b-dashboard/shop-chats
+      - link "Purchase Orders" [ref=f21e66] [cursor=pointer]:
+        - /url: /b2b-dashboard/purchase-orders
+      - link "Business Wallet" [ref=f21e70] [cursor=pointer]:
+        - /url: /wallet
+      - link "Company Profile" [ref=f21e74] [cursor=pointer]:
+        - /url: /b2b-dashboard/company-profile
+      - link "Legal Documents" [ref=f21e79] [cursor=pointer]:
+        - /url: /b2b-dashboard/legal-documents
+      - link "Admin Profile" [ref=f21e84] [cursor=pointer]:
+        - /url: /b2b-dashboard/admin-profile
+      - link "Support Desk" [ref=f21e89] [cursor=pointer]:
+        - /url: /b2b-dashboard/support
+      - link "Notifications" [ref=f21e94] [cursor=pointer]:
+        - /url: /b2b-dashboard/notifications
+      - link "Settings" [ref=f21e99] [cursor=pointer]:
+        - /url: /b2b-dashboard/settings
+    - button "Logout" [ref=f21e105] [cursor=pointer]
+  - generic [ref=f21e109]:
+    - banner [ref=f21e111]:
+      - textbox "Search..." [ref=f21e117]
+      - generic [ref=f21e118]:
+        - button "Back to B2B Store" [ref=f21e119] [cursor=pointer]
+        - button "Toggle theme" [ref=f21e123] [cursor=pointer]
+        - button [ref=f21e126] [cursor=pointer]
+        - generic [ref=f21e130] [cursor=pointer]:
+          - generic [ref=f21e131]: Z
+          - generic [ref=f21e132]:
+            - paragraph [ref=f21e133]: ZZ Test Co 1794654844
+            - paragraph [ref=f21e134]: B2B Admin
+    - main [ref=f21e135]:
+      - generic [ref=f21e136]:
+        - generic [ref=f21e137]:
+          - generic [ref=f21e138]:
+            - heading "Employee Purchases" [level=1] [ref=f21e139]
+            - paragraph [ref=f21e140]: What each employee has bought, returned and spent from their wallet.
+          - button "Export CSV" [ref=f21e141] [cursor=pointer]
+        - generic [ref=f21e145]:
+          - generic [ref=f21e146]:
+            - paragraph [ref=f21e148]: Net spend
+            - paragraph [ref=f21e152]: ₹2,51,147.44
+            - paragraph [ref=f21e153]: ₹2,62,094.52 gross − ₹10,947.08 refunded
+          - generic [ref=f21e154]:
+            - paragraph [ref=f21e156]: Orders
+            - paragraph [ref=f21e160]: "153"
+            - paragraph [ref=f21e161]: 39 cancelled
+          - generic [ref=f21e162]:
+            - paragraph [ref=f21e164]: Paid from wallets
+            - paragraph [ref=f21e167]: ₹1,17,462.94
+            - paragraph [ref=f21e168]: ₹63,112 still in wallets
+          - generic [ref=f21e169]:
+            - paragraph [ref=f21e171]: Returns
+            - paragraph [ref=f21e175]: "27"
+            - paragraph [ref=f21e176]: ₹10,947.08 refunded
+        - generic [ref=f21e177]:
+          - generic [ref=f21e178]:
+            - textbox "Search by name, email, department…" [ref=f21e183]
+            - generic [ref=f21e184]:
+              - generic [ref=f21e185]:
+                - text: From
+                - textbox "From" [ref=f21e186]
+              - generic [ref=f21e187]:
+                - text: To
+                - textbox "To" [ref=f21e188]
+              - combobox "Employee status" [ref=f21e189]:
+                - option "All employees" [selected]
+                - option "Active"
+                - option "Inactive"
+              - combobox "Sort" [ref=f21e190]:
+                - option "Net spend (high → low)" [selected]
+                - option "Net spend (low → high)"
+                - option "Orders (high → low)"
+                - option "Orders (low → high)"
+                - option "Last order (high → low)"
+                - option "Last order (low → high)"
+                - option "Name (Z–A)"
+                - option "Name (A–Z)"
+          - table [ref=f21e192]:
+            - rowgroup [ref=f21e193]:
+              - row [ref=f21e194]:
+                - columnheader "Employee" [ref=f21e195]
+                - columnheader "Orders" [ref=f21e196]
+                - columnheader "Net spend" [ref=f21e197]
+                - columnheader "From wallet" [ref=f21e198]
+                - columnheader "Returns / refunded" [ref=f21e199]
+                - columnheader "Wallet balance" [ref=f21e200]
+                - columnheader "Last order" [ref=f21e201]
+                - columnheader [ref=f21e202]
+            - rowgroup [ref=f21e203]:
+              - row [ref=f21e204] [cursor=pointer]:
+                - cell "SE Seed Employee 01 Sales · Staff" [ref=f21e205]:
+                  - generic [ref=f21e206]:
+                    - generic [ref=f21e207]: SE
+                    - generic [ref=f21e208]:
+                      - paragraph [ref=f21e209]: Seed Employee 01
+                      - paragraph [ref=f21e210]: Sales · Staff
+                - cell "28 7 cancelled" [ref=f21e211]:
+                  - text: "28"
+                  - generic [ref=f21e212]: 7 cancelled
+                - cell "₹39,671.6" [ref=f21e213]
+                - cell "₹13,078.1" [ref=f21e214]
+                - cell "4 ₹2,060.28 1 refund pending" [ref=f21e215]:
+                  - text: "4"
+                  - generic [ref=f21e216]: ₹2,060.28
+                  - generic [ref=f21e217]: 1 refund pending
+                - cell "₹83" [ref=f21e218]
+                - cell "08 Nov 2026" [ref=f21e219]
+                - cell [ref=f21e220]
+              - row [ref=f21e223] [cursor=pointer]:
+                - cell "SE Seed Employee 23 Ops · Staff" [ref=f21e224]:
+                  - generic [ref=f21e225]:
+                    - generic [ref=f21e226]: SE
+                    - generic [ref=f21e227]:
+                      - paragraph [ref=f21e228]: Seed Employee 23
+                      - paragraph [ref=f21e229]: Ops · Staff
+                - cell "9 1 cancelled" [ref=f21e230]:
+                  - text: "9"
+                  - generic [ref=f21e231]: 1 cancelled
+                - cell "₹17,397.92" [ref=f21e232]
+                - cell "₹9,197.28" [ref=f21e233]
+                - cell "0" [ref=f21e234]
+                - cell "₹806" [ref=f21e235]
+                - cell "10 Nov 2026" [ref=f21e236]
+                - cell [ref=f21e237]
+              - row [ref=f21e240] [cursor=pointer]:
+                - cell "SE Seed Employee 22 Ops · Staff" [ref=f21e241]:
+                  - generic [ref=f21e242]:
+                    - generic [ref=f21e243]: SE
+                    - generic [ref=f21e244]:
+                      - paragraph [ref=f21e245]: Seed Employee 22
+                      - paragraph [ref=f21e246]: Ops · Staff
+                - cell "9" [ref=f21e247]
+                - cell "₹15,712.88" [ref=f21e248]
+                - cell "₹12,458.6" [ref=f21e249]
+                - cell "1" [ref=f21e250]
+                - cell "₹3,285" [ref=f21e251]
+                - cell "15 Oct 2026" [ref=f21e252]
+                - cell [ref=f21e253]
+              - row [ref=f21e256] [cursor=pointer]:
+                - cell "SE Seed Employee 24 Finance · Staff" [ref=f21e257]:
+                  - generic [ref=f21e258]:
+                    - generic [ref=f21e259]: SE
+                    - generic [ref=f21e260]:
+                      - paragraph [ref=f21e261]: Seed Employee 24
+                      - paragraph [ref=f21e262]: Finance · Staff
+                - cell "8 2 cancelled" [ref=f21e263]:
+                  - text: "8"
+                  - generic [ref=f21e264]: 2 cancelled
+                - cell "₹15,612.58" [ref=f21e265]
+                - cell "₹2,437.88" [ref=f21e266]
+                - cell "2 1 refund pending" [ref=f21e267]:
+                  - text: "2"
+                  - generic [ref=f21e268]: 1 refund pending
+                - cell "₹3,837" [ref=f21e269]
+                - cell "05 Nov 2026" [ref=f21e270]
+                - cell [ref=f21e271]
+              - row [ref=f21e274] [cursor=pointer]:
+                - cell "SE Seed Employee 04 IT · Staff" [ref=f21e275]:
+                  - generic [ref=f21e276]:
+                    - generic [ref=f21e277]: SE
+                    - generic [ref=f21e278]:
+                      - paragraph [ref=f21e279]: Seed Employee 04
+                      - paragraph [ref=f21e280]: IT · Staff
+                - cell "6 1 cancelled" [ref=f21e281]:
+                  - text: "6"
+                  - generic [ref=f21e282]: 1 cancelled
+                - cell "₹15,104" [ref=f21e283]
+                - cell "₹11,026.2" [ref=f21e284]
+                - cell "0" [ref=f21e285]
+                - cell "₹2,742" [ref=f21e286]
+                - cell "16 Nov 2026" [ref=f21e287]
+                - cell [ref=f21e288]
+              - row [ref=f21e291] [cursor=pointer]:
+                - cell "SE Seed Employee 18 Ops · Staff" [ref=f21e292]:
+                  - generic [ref=f21e293]:
+                    - generic [ref=f21e294]: SE
+                    - generic [ref=f21e295]:
+                      - paragraph [ref=f21e296]: Seed Employee 18
+                      - paragraph [ref=f21e297]: Ops · Staff
+                - cell "8" [ref=f21e298]
+                - cell "₹14,449.1" [ref=f21e299]
+                - cell "₹3,609.42" [ref=f21e300]
+                - cell "3 ₹293.82 1 refund pending" [ref=f21e301]:
+                  - text: "3"
+                  - generic [ref=f21e302]: ₹293.82
+                  - generic [ref=f21e303]: 1 refund pending
+                - cell "₹4,811" [ref=f21e304]
+                - cell "14 Nov 2026" [ref=f21e305]
+                - cell [ref=f21e306]
+              - row [ref=f21e309] [cursor=pointer]:
+                - cell "SE Seed Employee 12 IT · Staff" [ref=f21e310]:
+                  - generic [ref=f21e311]:
+                    - generic [ref=f21e312]: SE
+                    - generic [ref=f21e313]:
+                      - paragraph [ref=f21e314]: Seed Employee 12
+                      - paragraph [ref=f21e315]: IT · Staff
+                - cell "6 3 cancelled" [ref=f21e316]:
+                  - text: "6"
+                  - generic [ref=f21e317]: 3 cancelled
+                - cell "₹12,830.14" [ref=f21e318]
+                - cell "₹15,095.74" [ref=f21e319]
+                - cell "1 ₹2,832" [ref=f21e320]:
+                  - text: "1"
+                  - generic [ref=f21e321]: ₹2,832
+                - cell "₹2,500" [ref=f21e322]
+                - cell "16 Nov 2026" [ref=f21e323]
+                - cell [ref=f21e324]
+              - row [ref=f21e327] [cursor=pointer]:
+                - cell "SE Seed Employee 15 Sales · Staff" [ref=f21e328]:
+                  - generic [ref=f21e329]:
+                    - generic [ref=f21e330]: SE
+                    - generic [ref=f21e331]:
+                      - paragraph [ref=f21e332]: Seed Employee 15
+                      - paragraph [ref=f21e333]: Sales · Staff
+                - cell "7 3 cancelled" [ref=f21e334]:
+                  - text: "7"
+                  - generic [ref=f21e335]: 3 cancelled
+                - cell "₹11,319.74" [ref=f21e336]
+                - cell "₹1,764.1" [ref=f21e337]
+                - cell "3 3 refund pending" [ref=f21e338]:
+                  - text: "3"
+                  - generic [ref=f21e339]: 3 refund pending
+                - cell "₹4,263" [ref=f21e340]
+                - cell "27 Oct 2026" [ref=f21e341]
+                - cell [ref=f21e342]
+              - row [ref=f21e345] [cursor=pointer]:
+                - cell "SE Seed Employee 05 Ops · Staff" [ref=f21e346]:
+                  - generic [ref=f21e347]:
+                    - generic [ref=f21e348]: SE
+                    - generic [ref=f21e349]:
+                      - paragraph [ref=f21e350]: Seed Employee 05
+                      - paragraph [ref=f21e351]: Ops · Staff
+                - cell "4 1 cancelled" [ref=f21e352]:
+                  - text: "4"
+                  - generic [ref=f21e353]: 1 cancelled
+                - cell "₹11,256.02" [ref=f21e354]
+                - cell "₹1,766.46" [ref=f21e355]
+                - cell "1" [ref=f21e356]
+                - cell "₹3,917" [ref=f21e357]
+                - cell "04 Nov 2026" [ref=f21e358]
+                - cell [ref=f21e359]
+              - row [ref=f21e362] [cursor=pointer]:
+                - cell "SE Seed Employee 03 Finance · Staff" [ref=f21e363]:
+                  - generic [ref=f21e364]:
+                    - generic [ref=f21e365]: SE
+                    - generic [ref=f21e366]:
+                      - paragraph [ref=f21e367]: Seed Employee 03
+                      - paragraph [ref=f21e368]: Finance · Staff
+                - cell "5" [ref=f21e369]
+                - cell "₹10,131.48" [ref=f21e370]
+                - cell "₹5,347.74" [ref=f21e371]
+                - cell "0" [ref=f21e372]
+                - cell "₹562" [ref=f21e373]
+                - cell "13 Nov 2026" [ref=f21e374]
+                - cell [ref=f21e375]
+              - row [ref=f21e378] [cursor=pointer]:
+                - cell "SE Seed Employee 10 IT · Staff" [ref=f21e379]:
+                  - generic [ref=f21e380]:
+                    - generic [ref=f21e381]: SE
+                    - generic [ref=f21e382]:
+                      - paragraph [ref=f21e383]: Seed Employee 10
+                      - paragraph [ref=f21e384]: IT · Staff
+                - cell "5" [ref=f21e385]
+                - cell "₹10,024.1" [ref=f21e386]
+                - cell "₹1,604" [ref=f21e387]
+                - cell "2 ₹2,355.28" [ref=f21e388]:
+                  - text: "2"
+                  - generic [ref=f21e389]: ₹2,355.28
+                - cell "₹4,764" [ref=f21e390]
+                - cell "06 Nov 2026" [ref=f21e391]
+                - cell [ref=f21e392]
+              - row [ref=f21e395] [cursor=pointer]:
+                - cell "SE Seed Employee 02 Ops · Staff" [ref=f21e396]:
+                  - generic [ref=f21e397]:
+                    - generic [ref=f21e398]: SE
+                    - generic [ref=f21e399]:
+                      - paragraph [ref=f21e400]: Seed Employee 02
+                      - paragraph [ref=f21e401]: Ops · Staff
+                - cell "5 1 cancelled" [ref=f21e402]:
+                  - text: "5"
+                  - generic [ref=f21e403]: 1 cancelled
+                - cell "₹9,843.56" [ref=f21e404]
+                - cell "₹4,598.46" [ref=f21e405]
+                - cell "0" [ref=f21e406]
+                - cell "₹3,175" [ref=f21e407]
+                - cell "07 Nov 2026" [ref=f21e408]
+                - cell [ref=f21e409]
+              - row [ref=f21e412] [cursor=pointer]:
+                - cell "SE Seed Employee 14 Ops · Staff Inactive" [ref=f21e413]:
+                  - generic [ref=f21e414]:
+                    - generic [ref=f21e415]: SE
+                    - generic [ref=f21e416]:
+                      - paragraph [ref=f21e417]: Seed Employee 14
+                      - paragraph [ref=f21e418]: Ops · Staff
+                    - generic [ref=f21e419]: Inactive
+                - cell "5 3 cancelled" [ref=f21e420]:
+                  - text: "5"
+                  - generic [ref=f21e421]: 3 cancelled
+                - cell "₹9,139.1" [ref=f21e422]
+                - cell "₹5,734" [ref=f21e423]
+                - cell "0" [ref=f21e424]
+                - cell "₹777" [ref=f21e425]
+                - cell "14 Nov 2026" [ref=f21e426]
+                - cell [ref=f21e427]
+              - row [ref=f21e430] [cursor=pointer]:
+                - cell "TE Test Employee Procurement · Lead Buyer" [ref=f21e431]:
+                  - generic [ref=f21e432]:
+                    - generic [ref=f21e433]: TE
+                    - generic [ref=f21e434]:
+                      - paragraph [ref=f21e435]: Test Employee
+                      - paragraph [ref=f21e436]: Procurement · Lead Buyer
+                - cell "5 1 cancelled" [ref=f21e437]:
+                  - text: "5"
+                  - generic [ref=f21e438]: 1 cancelled
+                - cell "₹8,998.46" [ref=f21e439]
+                - cell "₹4,154" [ref=f21e440]
+                - cell "3 ₹1,264" [ref=f21e441]:
+                  - text: "3"
+                  - generic [ref=f21e442]: ₹1,264
+                - cell "₹1,186" [ref=f21e443]
+                - cell "16 Nov 2026" [ref=f21e444]
+                - cell [ref=f21e445]
+              - row [ref=f21e448] [cursor=pointer]:
+                - cell "SE Seed Employee 16 IT · Staff" [ref=f21e449]:
+                  - generic [ref=f21e450]:
+                    - generic [ref=f21e451]: SE
+                    - generic [ref=f21e452]:
+                      - paragraph [ref=f21e453]: Seed Employee 16
+                      - paragraph [ref=f21e454]: IT · Staff
+                - cell "9 3 cancelled" [ref=f21e455]:
+                  - text: "9"
+                  - generic [ref=f21e456]: 3 cancelled
+                - cell "₹8,728.46" [ref=f21e457]
+                - cell "₹2,626.68" [ref=f21e458]
+                - cell "2 ₹377.6 1 refund pending" [ref=f21e459]:
+                  - text: "2"
+                  - generic [ref=f21e460]: ₹377.6
+                  - generic [ref=f21e461]: 1 refund pending
+                - cell "₹35" [ref=f21e462]
+                - cell "12 Nov 2026" [ref=f21e463]
+                - cell [ref=f21e464]
+              - row [ref=f21e467] [cursor=pointer]:
+                - cell "SE Seed Employee 17 IT · Staff" [ref=f21e468]:
+                  - generic [ref=f21e469]:
+                    - generic [ref=f21e470]: SE
+                    - generic [ref=f21e471]:
+                      - paragraph [ref=f21e472]: Seed Employee 17
+                      - paragraph [ref=f21e473]: IT · Staff
+                - cell "9 2 cancelled" [ref=f21e474]:
+                  - text: "9"
+                  - generic [ref=f21e475]: 2 cancelled
+                - cell "₹8,205.72" [ref=f21e476]
+                - cell "₹5,234.84" [ref=f21e477]
+                - cell "3 2 refund pending" [ref=f21e478]:
+                  - text: "3"
+                  - generic [ref=f21e479]: 2 refund pending
+                - cell "₹1,458" [ref=f21e480]
+                - cell "10 Nov 2026" [ref=f21e481]
+                - cell [ref=f21e482]
+              - row [ref=f21e485] [cursor=pointer]:
+                - cell "SE Seed Employee 09 IT · Staff" [ref=f21e486]:
+                  - generic [ref=f21e487]:
+                    - generic [ref=f21e488]: SE
+                    - generic [ref=f21e489]:
+                      - paragraph [ref=f21e490]: Seed Employee 09
+                      - paragraph [ref=f21e491]: IT · Staff
+                - cell "5 4 cancelled" [ref=f21e492]:
+                  - text: "5"
+                  - generic [ref=f21e493]: 4 cancelled
+                - cell "₹7,419.84" [ref=f21e494]
+                - cell "₹3,888.1" [ref=f21e495]
+                - cell "0" [ref=f21e496]
+                - cell "₹4,798" [ref=f21e497]
+                - cell "02 Nov 2026" [ref=f21e498]
+                - cell [ref=f21e499]
+              - row [ref=f21e502] [cursor=pointer]:
+                - cell "SE Seed Employee 13 IT · Staff" [ref=f21e503]:
+                  - generic [ref=f21e504]:
+                    - generic [ref=f21e505]: SE
+                    - generic [ref=f21e506]:
+                      - paragraph [ref=f21e507]: Seed Employee 13
+                      - paragraph [ref=f21e508]: IT · Staff
+                - cell "3 1 cancelled" [ref=f21e509]:
+                  - text: "3"
+                  - generic [ref=f21e510]: 1 cancelled
+                - cell "₹6,251.64" [ref=f21e511]
+                - cell "₹2,832" [ref=f21e512]
+                - cell "0" [ref=f21e513]
+                - cell "₹2,117" [ref=f21e514]
+                - cell "27 Oct 2026" [ref=f21e515]
+                - cell [ref=f21e516]
+              - row [ref=f21e519] [cursor=pointer]:
+                - cell "SE Seed Employee 19 Sales · Staff" [ref=f21e520]:
+                  - generic [ref=f21e521]:
+                    - generic [ref=f21e522]: SE
+                    - generic [ref=f21e523]:
+                      - paragraph [ref=f21e524]: Seed Employee 19
+                      - paragraph [ref=f21e525]: Sales · Staff
+                - cell "2" [ref=f21e526]
+                - cell "₹4,835.64" [ref=f21e527]
+                - cell "₹4,248" [ref=f21e528]
+                - cell "0" [ref=f21e529]
+                - cell "₹3,899" [ref=f21e530]
+                - cell "24 Sept 2026" [ref=f21e531]
+                - cell [ref=f21e532]
+              - row [ref=f21e535] [cursor=pointer]:
+                - cell "SE Seed Employee 21 Finance · Staff Inactive" [ref=f21e536]:
+                  - generic [ref=f21e537]:
+                    - generic [ref=f21e538]: SE
+                    - generic [ref=f21e539]:
+                      - paragraph [ref=f21e540]: Seed Employee 21
+                      - paragraph [ref=f21e541]: Finance · Staff
+                    - generic [ref=f21e542]: Inactive
+                - cell "5 2 cancelled" [ref=f21e543]:
+                  - text: "5"
+                  - generic [ref=f21e544]: 2 cancelled
+                - cell "₹4,479.28" [ref=f21e545]
+                - cell "₹2,144.46" [ref=f21e546]
+                - cell "2 ₹1,764.1" [ref=f21e547]:
+                  - text: "2"
+                  - generic [ref=f21e548]: ₹1,764.1
+                - cell "₹2,734" [ref=f21e549]
+                - cell "12 Nov 2026" [ref=f21e550]
+                - cell [ref=f21e551]
+          - generic [ref=f21e554]:
+            - generic [ref=f21e555]: Page 1 of 2 · 26 records
+            - generic [ref=f21e556]:
+              - button "Prev" [disabled] [ref=f21e557]
+              - button "Next" [ref=f21e558] [cursor=pointer]

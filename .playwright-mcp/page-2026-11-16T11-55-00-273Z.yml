@@ -1,0 +1,152 @@
+- generic [ref=f7e3]:
+  - complementary [ref=f7e5]:
+    - heading "B2B Admin" [level=2] [ref=f7e13]
+    - button "Back to B2B Store" [ref=f7e15] [cursor=pointer]
+    - navigation [ref=f7e25]:
+      - link "Dashboard" [ref=f7e26] [cursor=pointer]:
+        - /url: /b2b-dashboard/overview
+      - link "Employees" [ref=f7e31] [cursor=pointer]:
+        - /url: /b2b-dashboard/employees
+      - link "Employee Purchases" [ref=f7e38] [cursor=pointer]:
+        - /url: /b2b-dashboard/employee-purchases
+      - link "RFQs" [ref=f7e43] [cursor=pointer]:
+        - /url: /b2b-dashboard/rfqs
+      - link "Quotations" [ref=f7e48] [cursor=pointer]:
+        - /url: /b2b-dashboard/quotations
+      - link "Product Requests" [ref=f7e53] [cursor=pointer]:
+        - /url: /b2b-dashboard/product-requests
+      - link "RFQ Discussions" [ref=f7e58] [cursor=pointer]:
+        - /url: /b2b-dashboard/discussions
+      - link "Shop Chats" [ref=f7e62] [cursor=pointer]:
+        - /url: /b2b-dashboard/shop-chats
+      - link "Purchase Orders" [ref=f7e66] [cursor=pointer]:
+        - /url: /b2b-dashboard/purchase-orders
+      - link "Business Wallet" [ref=f7e70] [cursor=pointer]:
+        - /url: /wallet
+      - link "Company Profile" [ref=f7e74] [cursor=pointer]:
+        - /url: /b2b-dashboard/company-profile
+      - link "Legal Documents" [ref=f7e79] [cursor=pointer]:
+        - /url: /b2b-dashboard/legal-documents
+      - link "Admin Profile" [ref=f7e84] [cursor=pointer]:
+        - /url: /b2b-dashboard/admin-profile
+      - link "Support Desk" [ref=f7e89] [cursor=pointer]:
+        - /url: /b2b-dashboard/support
+      - link "Notifications" [ref=f7e94] [cursor=pointer]:
+        - /url: /b2b-dashboard/notifications
+      - link "Settings" [ref=f7e99] [cursor=pointer]:
+        - /url: /b2b-dashboard/settings
+    - button "Logout" [ref=f7e105] [cursor=pointer]
+  - generic [ref=f7e109]:
+    - banner [ref=f7e111]:
+      - textbox "Search..." [ref=f7e117]
+      - generic [ref=f7e118]:
+        - button "Back to B2B Store" [ref=f7e119] [cursor=pointer]
+        - button "Toggle theme" [ref=f7e123] [cursor=pointer]
+        - button [ref=f7e130] [cursor=pointer]
+        - generic [ref=f7e134] [cursor=pointer]:
+          - generic [ref=f7e135]: Z
+          - generic [ref=f7e136]:
+            - paragraph [ref=f7e137]: ZZ Test Co 1794654844
+            - paragraph [ref=f7e138]: B2B Admin
+    - main [ref=f7e139]:
+      - generic [ref=f7e140]:
+        - button "Back" [ref=f7e141] [cursor=pointer]
+        - generic [ref=f7e144]:
+          - generic [ref=f7e145]:
+            - generic [ref=f7e146]: TE
+            - generic [ref=f7e147]:
+              - generic [ref=f7e148]:
+                - heading "Test Employee" [level=1] [ref=f7e149]
+                - generic [ref=f7e150]: Active
+              - generic [ref=f7e151]:
+                - generic [ref=f7e152]: zzemp-1794654844@example.com
+                - generic [ref=f7e157]: "9876500009"
+                - generic [ref=f7e160]: Senior Buyer · Procurement
+              - paragraph [ref=f7e164]: "Member since 14 Nov 2026 · Role: Staff"
+          - generic [ref=f7e165]:
+            - paragraph [ref=f7e166]: Wallet balance
+            - paragraph [ref=f7e167]: ₹1,176
+            - paragraph [ref=f7e168]: "Spending limit: Unlimited"
+        - generic [ref=f7e169]:
+          - generic [ref=f7e170]:
+            - paragraph [ref=f7e172]: Net spend
+            - paragraph [ref=f7e176]: ₹624
+            - paragraph [ref=f7e177]: ₹944 gross · 5 items
+          - generic [ref=f7e178]:
+            - paragraph [ref=f7e180]: Orders
+            - paragraph [ref=f7e184]: "1"
+            - paragraph [ref=f7e185]: 0 delivered · 1 cancelled
+          - generic [ref=f7e186]:
+            - paragraph [ref=f7e188]: Returns
+            - paragraph [ref=f7e192]: "1"
+            - paragraph [ref=f7e193]: ₹320 refunded
+          - generic [ref=f7e194]:
+            - paragraph [ref=f7e196]: Wallet usage
+            - paragraph [ref=f7e199]: ₹1,888
+            - paragraph [ref=f7e200]: ₹1,700 allotted · ₹1,264 refunded back
+        - generic [ref=f7e201]:
+          - tablist [ref=f7e202]:
+            - tab "Orders" [selected] [ref=f7e203] [cursor=pointer]
+            - tab "Returns & Refunds" [ref=f7e207] [cursor=pointer]
+            - tab "Wallet History" [ref=f7e211] [cursor=pointer]
+          - generic [ref=f7e214]:
+            - textbox "Order ID…" [ref=f7e215]
+            - combobox "Order status" [ref=f7e216]:
+              - option "All statuses" [selected]
+              - option "Pending"
+              - option "Processing"
+              - option "Shipped"
+              - option "Out For Delivery"
+              - option "Delivered"
+              - option "Cancelled"
+              - option "Returned"
+            - combobox "Payment method" [ref=f7e217]:
+              - option "All payment methods" [selected]
+              - option "Wallet"
+              - option "Card"
+              - option "Upi"
+              - option "Bank"
+              - option "Cod"
+              - option "Mixed"
+            - generic [ref=f7e218]:
+              - text: From
+              - textbox "From" [ref=f7e219]
+            - generic [ref=f7e220]:
+              - text: To
+              - textbox "To" [ref=f7e221]
+          - table [ref=f7e223]:
+            - rowgroup [ref=f7e224]:
+              - row [ref=f7e225]:
+                - columnheader "Order" [ref=f7e226]
+                - columnheader "Products" [ref=f7e227]
+                - columnheader "Status" [ref=f7e228]
+                - columnheader "Payment" [ref=f7e229]
+                - columnheader "Total" [ref=f7e230]
+            - rowgroup [ref=f7e231]:
+              - row [ref=f7e232] [cursor=pointer]:
+                - cell [ref=f7e233]:
+                  - paragraph [ref=f7e234]: ORD-1794656799335-DKY0
+                  - paragraph [ref=f7e235]: 14 Nov 2026, 05:16 pm
+                - cell "USB Wired Optical Mouse × 5 @ ₹160" [ref=f7e236]:
+                  - paragraph [ref=f7e237]:
+                    - text: USB Wired Optical Mouse
+                    - generic [ref=f7e238]: × 5 @ ₹160
+                - cell "Returned" [ref=f7e239]
+                - cell "Wallet Paid" [ref=f7e241]:
+                  - paragraph [ref=f7e242]: Wallet
+                  - generic [ref=f7e243]: Paid
+                - cell "₹944" [ref=f7e244]
+              - row [ref=f7e245] [cursor=pointer]:
+                - cell [ref=f7e246]:
+                  - paragraph [ref=f7e247]: ORD-1794656140822-U7KY
+                  - paragraph [ref=f7e248]: 14 Nov 2026, 05:05 pm
+                - cell "USB Wired Optical Mouse × 5 @ ₹160" [ref=f7e249]:
+                  - paragraph [ref=f7e250]:
+                    - text: USB Wired Optical Mouse
+                    - generic [ref=f7e251]: × 5 @ ₹160
+                - cell "Cancelled" [ref=f7e252]
+                - cell "Wallet Refunded" [ref=f7e254]:
+                  - paragraph [ref=f7e255]: Wallet
+                  - generic [ref=f7e256]: Refunded
+                - cell "₹944" [ref=f7e257]
+          - paragraph [ref=f7e258]: 2 records

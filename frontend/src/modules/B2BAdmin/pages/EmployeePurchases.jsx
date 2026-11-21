@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { FiSearch, FiShoppingBag, FiCreditCard, FiRotateCcw, FiTrendingUp, FiChevronRight, FiDownload } from 'react-icons/fi';
@@ -20,6 +20,7 @@ const EmployeePurchases = () => {
   const [page, setPage] = useState(1);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Debounce the search box
   useEffect(() => {
@@ -27,16 +28,25 @@ const EmployeePurchases = () => {
     return () => clearTimeout(t);
   }, [search]);
 
+  // Only the most recent request may update the screen, so a slow earlier response
+  // can never overwrite the result of a newer filter.
+  const latestRequest = useRef(0);
+
   const load = useCallback(async () => {
+    const requestId = ++latestRequest.current;
     setLoading(true);
     try {
       const params = Object.fromEntries(Object.entries({ ...filters, page, limit: 20 }).filter(([, v]) => v !== ''));
       const res = await getEmployeePurchaseSummary(params);
-      setData(res.data);
+      if (requestId === latestRequest.current) { setData(res.data); setError(null); }
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to load employee purchases');
+      if (requestId === latestRequest.current) {
+        const message = err.response?.data?.message || 'Could not load employee purchases. Please try again.';
+        setError(message);
+        toast.error(message);
+      }
     } finally {
-      setLoading(false);
+      if (requestId === latestRequest.current) setLoading(false);
     }
   }, [filters, page]);
 
@@ -68,7 +78,7 @@ const EmployeePurchases = () => {
         { label: 'Net Spend', accessor: (r) => r.stats.netSpent },
         { label: 'Wallet Balance', accessor: (r) => r.employee.b2bWalletBalance || 0 },
         { label: 'Last Order', accessor: (r) => (r.stats.lastOrderAt ? new Date(r.stats.lastOrderAt).toISOString().slice(0, 10) : '') },
-      ], `employee-purchases-${new Date().toISOString().slice(0, 10)}`);
+      ], 'employee-purchases'); // generateCSV appends the date itself
     } catch {
       toast.error('Export failed');
     }
@@ -139,7 +149,12 @@ const EmployeePurchases = () => {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading && !rows.length && <EmptyRow colSpan={8}>Loading…</EmptyRow>}
-              {!loading && !rows.length && <EmptyRow colSpan={8}>No employees match these filters.</EmptyRow>}
+              {!loading && error && (
+                <EmptyRow colSpan={8}>
+                  {error} <button onClick={load} className="ml-1 text-[#D71920] font-medium hover:underline">Retry</button>
+                </EmptyRow>
+              )}
+              {!loading && !error && !rows.length && <EmptyRow colSpan={8}>No employees match these filters.</EmptyRow>}
               {rows.map(({ employee: e, stats: s }) => (
                 <tr key={e._id} onClick={() => navigate(`/b2b-dashboard/employees/${e._id}`)} className="hover:bg-gray-50 cursor-pointer">
                   <td className="px-4 py-3">

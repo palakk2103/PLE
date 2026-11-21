@@ -96,6 +96,8 @@ export const useOrderStore = create(
               quantity: Number(item.quantity || 1),
               price: Number(item.price || 0),
               variant: item.variant || undefined,
+              // price negotiated in chat: server prices the line from this accepted offer
+              proposalId: item.proposalId || undefined,
             })),
             shippingAddress: orderData.shippingAddress,
             paymentMethod: orderData.paymentMethod,

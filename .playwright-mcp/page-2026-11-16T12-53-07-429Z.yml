@@ -1,0 +1,174 @@
+- generic [ref=e1684]:
+  - banner [ref=e1685]:
+    - generic [ref=e1686]:
+      - generic [ref=e1687]:
+        - link "PLE Logo TM" [ref=e1688] [cursor=pointer]:
+          - /url: /home
+          - generic [ref=e1689]:
+            - img "PLE Logo" [ref=e1690]
+            - generic [ref=e1691]: TM
+        - button "Menu" [ref=e1692] [cursor=pointer]
+      - navigation [ref=e1694]:
+        - link "Home" [ref=e1695] [cursor=pointer]:
+          - /url: /home
+        - link "Categories" [ref=e1696] [cursor=pointer]:
+          - /url: /categories
+        - link "Offers" [ref=e1702] [cursor=pointer]:
+          - /url: /offers
+        - link "✨ Festive Season Mega Sale" [ref=e1703] [cursor=pointer]:
+          - /url: /festival-campaign
+          - generic [ref=e1704]: ✨
+          - generic [ref=e1705]: Festive Season Mega Sale
+        - link "Refurbished" [ref=e1706] [cursor=pointer]:
+          - /url: /refurbished-categories
+      - generic [ref=e1710]:
+        - textbox [ref=e1714]
+        - generic: Search pr
+      - generic [ref=e1715]:
+        - button "View Cart" [ref=e1716] [cursor=pointer]
+        - button "Switch to Dark Mode" [ref=e1720] [cursor=pointer]
+        - link "Login" [ref=e1724] [cursor=pointer]:
+          - /url: /login
+  - main [ref=e1725]:
+    - generic [ref=e1726]:
+      - generic [ref=e1728]:
+        - paragraph [ref=e1729]: Found 2 product(s)
+        - generic [ref=e1730]:
+          - combobox [ref=e1731]:
+            - option "Newest"
+            - option "Oldest"
+            - 'option "Price: Low to High"'
+            - 'option "Price: High to Low"'
+            - option "Popular"
+            - option "Top Rated" [selected]
+          - generic [ref=e1732]:
+            - button [ref=e1733] [cursor=pointer]
+            - button [ref=e1735] [cursor=pointer]
+          - button "Filters" [ref=e1742] [cursor=pointer]
+      - generic [ref=e1747]:
+        - generic [ref=e1749] [cursor=pointer]:
+          - generic [ref=e1750]:
+            - button [ref=e1752]
+            - link "40% OFF Wireless Headphones (Refurbished Grade A)" [ref=e1755]:
+              - /url: /product/6ada3975fdcdfc1795747492
+              - generic [ref=e1756]:
+                - generic [ref=e1757]: 40% OFF
+                - img "Wireless Headphones (Refurbished Grade A)" [ref=e1759]
+          - generic [ref=e1760]:
+            - link [ref=e1761]:
+              - /url: /product/6ada3975fdcdfc1795747492
+              - heading "Wireless Headphones (Refurbished Grade A)" [level=3] [ref=e1762]
+            - paragraph [ref=e1763]: Piece
+            - generic [ref=e1764]: 🚚 Standard 2-4 Days
+            - generic [ref=e1766]:
+              - generic [ref=e1767]: ₹2,999
+              - generic [ref=e1768]: ₹4,999
+              - generic [ref=e1769]: (Save ₹2,000)
+            - button "Add to Cart" [ref=e1770]
+        - generic [ref=e1777] [cursor=pointer]:
+          - generic [ref=e1778]:
+            - button [ref=e1780]
+            - link "25% OFF headphone" [ref=e1783]:
+              - /url: /product/6a743d5d6310d92f7dc29296
+              - generic [ref=e1784]:
+                - generic [ref=e1785]: 25% OFF
+                - img "headphone" [ref=e1787]
+          - generic [ref=e1788]:
+            - link [ref=e1789]:
+              - /url: /product/6a743d5d6310d92f7dc29296
+              - heading "headphone" [level=3] [ref=e1790]
+            - paragraph [ref=e1791]: "1"
+            - generic [ref=e1792]: 🚚 Standard 2-4 Days
+            - generic [ref=e1794]:
+              - generic [ref=e1795]: ₹899
+              - generic [ref=e1796]: ₹1,200
+            - button "Add to Cart" [ref=e1797]
+  - contentinfo [ref=e1803]:
+    - generic [ref=e1805]:
+      - generic [ref=e1806]:
+        - link "PLE Logo TM" [ref=e1807] [cursor=pointer]:
+          - /url: /home
+          - generic [ref=e1808]:
+            - img "PLE Logo" [ref=e1809]
+            - generic [ref=e1810]: TM
+        - paragraph [ref=e1811]: Your destination for electronics across consumer, business, and specialized sourcing needs — from everyday tech and accessories to enterprise procurement solutions.
+        - generic [ref=e1812]:
+          - link [ref=e1813] [cursor=pointer]:
+            - /url: https://www.facebook.com/share/1EaNrat2yr/
+          - link [ref=e1816] [cursor=pointer]:
+            - /url: https://www.instagram.com/peoplesleagueofelectronics?igsh=MWdtbTNzajdqMGV4cQ==
+          - link [ref=e1820] [cursor=pointer]:
+            - /url: https://x.com/PeoplesE9405
+          - link [ref=e1823] [cursor=pointer]:
+            - /url: https://www.linkedin.com/company/ple-electronics
+      - generic [ref=e1828]:
+        - heading "Quick Links" [level=3] [ref=e1829]
+        - list [ref=e1830]:
+          - listitem [ref=e1831]:
+            - link "Home" [ref=e1832] [cursor=pointer]:
+              - /url: /home
+          - listitem [ref=e1833]:
+            - link "Categories" [ref=e1834] [cursor=pointer]:
+              - /url: /categories
+          - listitem [ref=e1835]:
+            - link "Offers" [ref=e1836] [cursor=pointer]:
+              - /url: /offers
+          - listitem [ref=e1837]:
+            - link "Refurbished" [ref=e1838] [cursor=pointer]:
+              - /url: /refurbished-categories
+          - listitem [ref=e1839]:
+            - link "My Profile" [ref=e1840] [cursor=pointer]:
+              - /url: /profile
+          - listitem [ref=e1841]:
+            - link "About Us" [ref=e1842] [cursor=pointer]:
+              - /url: /about-us
+      - generic [ref=e1843]:
+        - heading "Customer Support" [level=3] [ref=e1844]
+        - list [ref=e1845]:
+          - listitem [ref=e1846]:
+            - link "Help & Support" [ref=e1847] [cursor=pointer]:
+              - /url: /help-support
+          - listitem [ref=e1848]:
+            - link "Privacy Policy" [ref=e1849] [cursor=pointer]:
+              - /url: /privacy-policy
+          - listitem [ref=e1850]:
+            - link "Terms & Conditions" [ref=e1851] [cursor=pointer]:
+              - /url: /terms-conditions
+          - listitem [ref=e1852]:
+            - link "Return Policy" [ref=e1853] [cursor=pointer]:
+              - /url: /return-policy
+          - listitem [ref=e1854]:
+            - link "Warranty Policy" [ref=e1855] [cursor=pointer]:
+              - /url: /warranty-policy
+          - listitem [ref=e1856]:
+            - link "Business Onboarding Policy" [ref=e1857] [cursor=pointer]:
+              - /url: /business-onboarding-policy
+          - listitem [ref=e1858]:
+            - link "Execution & Acceptance Policy" [ref=e1859] [cursor=pointer]:
+              - /url: /execution-acceptance-policy
+          - listitem [ref=e1860]:
+            - link "Shipping and Delivery Policy" [ref=e1861] [cursor=pointer]:
+              - /url: /shipping-and-delivery-policy
+          - listitem [ref=e1862]:
+            - link "User Agreement" [ref=e1863] [cursor=pointer]:
+              - /url: /user-agreement
+      - generic [ref=e1864]:
+        - generic [ref=e1865]:
+          - heading "Subscribe to Newsletter" [level=3] [ref=e1866]
+          - paragraph [ref=e1867]: Be the first to hear about special offers, new arrivals, and events.
+          - generic [ref=e1868]:
+            - textbox "Enter email address" [ref=e1869]
+            - button [ref=e1870] [cursor=pointer]
+        - generic [ref=e1874]:
+          - generic [ref=e1875]: support@peoplesleagueofelectronics.com
+          - generic [ref=e1880]: +91 9071149300
+          - generic [ref=e1884]: SHOP NO.25, R S NO.1045/3, 2ND CROSS, UJWAL NAGAR, Belgaum Fort, Karnataka, India,590016
+    - generic [ref=e1890]:
+      - generic [ref=e1891]: © 2026 PLE Inc. All rights reserved.
+      - generic [ref=e1892]:
+        - link "Privacy" [ref=e1893] [cursor=pointer]:
+          - /url: /privacy-policy
+        - link "Terms" [ref=e1894] [cursor=pointer]:
+          - /url: /terms-conditions
+        - link "Sitemap" [ref=e1895] [cursor=pointer]:
+          - /url: /help-support

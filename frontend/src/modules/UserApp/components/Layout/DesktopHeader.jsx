@@ -41,7 +41,6 @@ const DesktopHeader = () => {
     const toggleCart = useUIStore((state) => state.toggleCart);
     const quotations = useB2bStore((state) => state.quotations || []);
     const [liveRfqCount, setLiveRfqCount] = useState(0);
-
     const fetchRfqCount = useCallback(async () => {
         if (!isAuthenticated) {
             setLiveRfqCount(0);
@@ -200,15 +199,8 @@ const DesktopHeader = () => {
                     </nav>
 
                     {/* Search Bar */}
-                    <div className="flex-1 min-w-[160px] max-w-xs xl:max-w-sm relative flex items-center bg-zinc-900 border border-zinc-800 rounded-lg pl-3 pr-10 py-2">
-                        <input
-                            type="text"
-                            placeholder="Search products, brands, categories..."
-                            className="w-full bg-transparent text-xs text-white focus:outline-none placeholder-zinc-550"
-                        />
-                        <button className="absolute right-1 top-1 bottom-1 px-3 bg-[#1A1A1A] hover:bg-zinc-800 text-zinc-350 rounded flex items-center justify-center transition-colors">
-                            <FiSearch className="text-sm text-white" />
-                        </button>
+                    <div className="flex-1 min-w-[160px] max-w-xs xl:max-w-sm">
+                        <SearchBar variant="dark" />
                     </div>
 
                     {/* Actions */}

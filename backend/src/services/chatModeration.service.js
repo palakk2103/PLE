@@ -53,33 +53,70 @@ const USER_MESSAGES = {
 // NORMALIZATION
 // ─────────────────────────────────────────────────────────────
 
-// Mapping for English and Hindi spoken digit words to prevent spelled-out bypasses
-const WORD_DIGIT_MAP = {
-    'zero': '0', 'shunya': '0', 'sunya': '0',
-    'one': '1', 'ek': '1',
-    'two': '2', 'do': '2',
-    'three': '3', 'teen': '3',
-    'four': '4', 'char': '4', 'chaar': '4',
-    'five': '5', 'panch': '5', 'paanch': '5',
-    'six': '6', 'chhe': '6', 'che': '6', 'chhah': '6',
-    'seven': '7', 'saat': '7', 'sat': '7',
-    'eight': '8', 'aath': '8', 'ath': '8',
-    'nine': '9', 'nau': '9',
-};
+// ── Spoken digit words (English, Hinglish, Devanagari) ─────────
+// Longest words first so greedy segmentation of run-together words ("nineeight") works.
+const DIGIT_WORDS = [
+    ['shunya', '0'], ['sunya', '0'], ['sifar', '0'], ['zero', '0'], ['शून्य', '0'], ['जीरो', '0'],
+    ['three', '3'], ['seven', '7'], ['eight', '8'], ['paanch', '5'], ['chaar', '4'], ['chhah', '6'],
+    ['four', '4'], ['five', '5'], ['nine', '9'], ['panch', '5'], ['teen', '3'], ['saat', '7'], ['aath', '8'],
+    ['chhe', '6'], ['one', '1'], ['two', '2'], ['six', '6'], ['char', '4'], ['nau', '9'], ['che', '6'],
+    ['sat', '7'], ['ath', '8'], ['ek', '1'], ['do', '2'], ['oh', '0'],
+    ['पाँच', '5'], ['पांच', '5'], ['तीन', '3'], ['चार', '4'], ['सात', '7'], ['आठ', '8'], ['छह', '6'], ['छः', '6'], ['छे', '6'],
+    ['एक', '1'], ['दो', '2'], ['नौ', '9'],
+].sort((a, b) => b[0].length - a[0].length);
 
-function convertSpelledOutDigits(text) {
-    const tokens = text.split(/[\s,._\-]+/);
-    let digitWordCount = 0;
-    for (const t of tokens) {
-        if (WORD_DIGIT_MAP[t.toLowerCase()] || /^\d+$/.test(t)) {
-            digitWordCount++;
+const TEEN_WORDS = { ten: '10', eleven: '11', twelve: '12', thirteen: '13', fourteen: '14', fifteen: '15', sixteen: '16', seventeen: '17', eighteen: '18', nineteen: '19' };
+const TENS_WORDS = { twenty: '2', thirty: '3', forty: '4', fourty: '4', fifty: '5', sixty: '6', seventy: '7', eighty: '8', ninety: '9' };
+
+const DOUBLE_WORDS = new Set(['double', 'dubble', 'dabal', 'डबल']);
+const TRIPLE_WORDS = new Set(['triple', 'tripple', 'ट्रिपल']);
+
+function segmentDigitWords(token) {
+    const memo = new Map();
+    const go = (i) => {
+        if (i === token.length) return '';
+        if (memo.has(i)) return memo.get(i);
+        let res = null;
+        for (const [word, digit] of DIGIT_WORDS) {
+            if (token.startsWith(word, i)) {
+                const rest = go(i + word.length);
+                if (rest !== null) { res = digit + rest; break; }
+            }
         }
-    }
-    // If user has spelled out 7 or more digits, convert to numeric string for evaluation
-    if (digitWordCount >= 7) {
-        return tokens.map(t => WORD_DIGIT_MAP[t.toLowerCase()] || t).join(' ');
-    }
-    return text;
+        memo.set(i, res);
+        return res;
+    };
+    return go(0);
+}
+
+/**
+ * Detection-only view: turns spoken digits into numerals.
+ *   "nine eight seven…" / "nau aath saat…" / "नौ आठ सात…" / "nineeightseven…" / "double nine eight…"
+ * The converted text is never stored or shown, only inspected.
+ */
+function spelledToDigits(text) {
+    const converted = text.replace(/[\p{L}\p{M}]+/gu, (tok) => {
+        if (tok.length > 60) return tok;
+        if (DOUBLE_WORDS.has(tok)) return '\u0001';
+        if (TRIPLE_WORDS.has(tok)) return '\u0002';
+        if (TEEN_WORDS[tok]) return TEEN_WORDS[tok];
+        if (TENS_WORDS[tok]) return '\u0003' + TENS_WORDS[tok];
+        const digits = segmentDigitWords(tok);
+        return digits === null ? tok : digits;
+    });
+    return converted
+        .replace(/\u0001\s*(\d)/g, '$1$1')
+        .replace(/\u0002\s*(\d)/g, '$1$1$1')
+        .replace(/\u0003(\d)\s*([1-9])(?!\d)/g, '$1$2') // "ninety eight" -> 98
+        .replace(/\u0003(\d)/g, '$10')                    // "ninety" -> 90
+        .replace(/[\u0001\u0002\u0003]/g, '');
+}
+
+// Letters people use in place of digits: 98765432l0, 987654321o
+function leetDigits(text) {
+    return text
+        .replace(/(?<=\d)o|o(?=\d)/g, '0')
+        .replace(/(?<=\d)[li|]|[li|](?=\d)/g, '1');
 }
 
 // Unicode and special digit mappings (Hindi numerals, circled numbers, etc.)
@@ -99,149 +136,139 @@ const UNICODE_DIGIT_MAP = {
     '５': '5', '６': '6', '７': '7', '８': '8', '９': '9',
 };
 
+// Every Unicode "decimal digit" (Arabic-Indic, Bengali, Gujarati, Tamil, Thai, bold/double-struck math digits…)
+// → ASCII 0-9. Digit sets are contiguous runs of 10 starting at zero.
+const ND_DIGITS = (() => {
+    const map = new Map();
+    let prev = -2, idx = 0;
+    for (let cp = 0x30; cp <= 0x1FBFF; cp++) {
+        if (!/\p{Nd}/u.test(String.fromCodePoint(cp))) continue;
+        idx = cp === prev + 1 ? (idx + 1) % 10 : 0;
+        map.set(cp, String(idx));
+        prev = cp;
+    }
+    return map;
+})();
+
+// Invisible / formatting characters that attackers hide inside numbers
+// (zero-width, soft hyphen, word joiner, variation selectors, keycap enclosing mark, filler chars)
+const INVISIBLE_RE = /[\p{Cf}\u00ad\u034f\u115f\u1160\u17b4\u17b5\u180b-\u180e\ufe00-\ufe0f\u20e3\u3164\uffa0]/gu;
+
 /**
  * Normalize text for detection:
- * - Lowercase
- * - Normalize unicode (NFKC)
- * - Map Devanagari & circled digits to ASCII digits
- * - Convert (at) / [at] / " at " obfuscation
- * - Convert (dot) / [dot] / " dot " obfuscation
+ * - Lowercase, NFKC (fullwidth, bold, superscript, circled → plain)
+ * - Strip invisible characters
+ * - Map digits of every script to ASCII
+ * - Convert (at) / [at] / " at " / "at the rate" and (dot) obfuscation
  * - Convert 'o'/'O' surrounded by digits to '0'
- * - Collapse zero-width chars
  */
 export function normalizeText(text) {
     if (typeof text !== 'string') return '';
     let norm = text
         .normalize('NFKC')
         .toLowerCase()
-        .replace(/\u200b|\u200c|\u200d|\ufeff/g, ''); // zero-width chars
+        .replace(INVISIBLE_RE, '');
 
-    // Map Devanagari and circled numbers to 0-9
+    norm = norm.replace(/\p{Nd}/gu, (ch) => ND_DIGITS.get(ch.codePointAt(0)) ?? ch);
     norm = norm.replace(/[\u0966-\u096F\u2460-\u2468\u24EA\u2474-\u247C\uFF10-\uFF19]/g, (ch) => UNICODE_DIGIT_MAP[ch] || ch);
 
-    // Replace (at), [at], " at " with @
+    // "at the rate" / "attherate" are spoken forms of '@'
+    norm = norm.replace(/\bat\s*the\s*rate(?:\s*of)?\b|\battherate\b|\bat\s*rate\b/gi, '@');
+
     norm = norm
         .replace(/\(at\)|\[at\]|\{at\}|\bat\b(?=\s*\w+[\s.]+\w+)/gi, '@')
         .replace(/\(dot\)|\[dot\]|\{dot\}|\bdot\b(?=\s*\w+)/gi, '.');
 
-    // Replace letter 'o' between digits (e.g. "98765o4321" -> "9876504321")
     norm = norm.replace(/(\d)[oO](\d)/g, '$10$2');
     return norm;
-}
-
-/**
- * Strip separators (spaces, dashes, dots, commas, slashes) between digits.
- * Used specifically for phone-number detection.
- * Example: "98765 43210" → "9876543210"
- * Example: "9 8 7 6 5 4 3 2 1 0" → "9876543210"
- * Example: "9...8---7...6...5...4...3...2...1...0" -> "9876543210"
- */
-function collapseDigitSeparators(text) {
-    const chars = new Set([' ', '\t', '\n', '\r', '-', '_', '.', ',', '/', '\\', '|', '*', '~', '(', ')', '+', '=', ':', ';', '!', '#', '^', '%', '&', '<', '>', '`', '"', "'"]);
-    let res = '';
-    for (let i = 0; i < text.length; i++) {
-        const c = text[i];
-        if (chars.has(c)) {
-            let prevIsDigit = false;
-            for (let j = res.length - 1; j >= 0; j--) {
-                if (/\d/.test(res[j])) { prevIsDigit = true; break; }
-                if (!chars.has(res[j])) break;
-            }
-            let nextIsDigit = false;
-            for (let k = i + 1; k < text.length; k++) {
-                if (/\d/.test(text[k])) { nextIsDigit = true; break; }
-                if (!chars.has(text[k])) break;
-            }
-            if (prevIsDigit && nextIsDigit) {
-                continue; // strip separator between adjacent digits
-            }
-        }
-        res += c;
-    }
-    return res;
 }
 
 // ─────────────────────────────────────────────────────────────
 // PHONE NUMBER DETECTION
 // ─────────────────────────────────────────────────────────────
 
-/**
- * Context indicators that a number is a genuine product attribute (price, quantity, weight, dimensions).
- * Note: 'no.' or 'number' is strictly excluded from whitelist to prevent bypasses like 'my no 9876543210'.
- */
+// Platform order ids look like ORD-1763312345678-AB12 – long, but never a phone number.
+const ORDER_ID_RE = /\bord-\d{13}-[a-z0-9]{4}\b/gi;
+// Plain calendar dates / clock times are not phone numbers either.
+const DATE_RE = /\b(?:0?[1-9]|[12]\d|3[01])[\/\-.](?:0?[1-9]|1[0-2])[\/\-.](?:20\d{2}|\d{2})\b/g;
+const TIME_RE = /\b(?:[01]?\d|2[0-3]):[0-5]\d(?::[0-5]\d)?\b/g;
+
+// Context hints used only by the fragmented-digit-stream check across messages.
 const PRODUCT_CONTEXT_BEFORE = /(?:₹|rs\.?|inr|usd|\$|qty|quantity|kg|gram|gm|litre|ltr|ml|piece|pcs|pack|packet|set|box|boxes|unit|units|pincode|pin\s*code|discount)\s*$/i;
 const PRODUCT_CONTEXT_AFTER  = /^\s*(?:kg|gram|gm|litre|ltr|ml|piece|pcs|pack|packet|set|box|boxes|unit|units|%|rs\.?|₹|inr|days|day|hours|hrs)/i;
 const CONTACT_CONTEXT_BEFORE = /(?:phone|ph|mob|mobile|contact|call|whatsapp|wa|cell|telephone|msg|sms|dm|dial|number|mera\s*no|apna\s*no|no\.?|num\.?)\s*:?\s*$/i;
 
+// Words people put between digit groups to dodge filters: "98 and 76 and 54…", "first part 98765 / second part 43210"
+const FILLER_WORDS = new Set([
+    'and', 'aur', 'then', 'phir', 'plus', 'dash', 'space', 'hyphen', 'comma', 'dot', 'point', 'next',
+    'part', 'first', 'second', 'last', 'rest', 'baaki', 'pehle', 'remaining', 'digits', 'digit',
+    'number', 'ok', 'okay', 'the', 'are', 'is', 'my', 'of', 'hai', 'hain', 'ya', 'or', 'followed', 'by',
+]);
+
+function isLinkingGap(gap) {
+    if (gap.length > 40) return false;
+    if (!/[\p{L}\p{M}]/u.test(gap)) return true; // only spaces / punctuation / symbols / emoji / currency signs
+    const words = gap.split(/[^\p{L}\p{M}]+/u).filter(Boolean);
+    return words.length <= 5 && words.every((w) => FILLER_WORDS.has(w));
+}
+
 /**
- * Detects Indian mobile numbers, landline numbers & formatted contact numbers:
- * - 10 digits starting with 6-9
- * - Optional +91 / 91 / 0 prefix
- * - Spelled out numbers (nine eight seven six five four three two one zero)
- * - Handles spaces, dashes, commas, slashes between digits
- * - Distinguishes between contact numbers and product quantities/prices
+ * Detection view of a message: all digit scripts → ASCII, spoken digits → numerals,
+ * letter-for-digit tricks resolved, known-harmless ids/dates/times removed.
+ */
+function buildDigitView(text) {
+    let v = normalizeText(text);
+    v = v.replace(ORDER_ID_RE, ' ').replace(DATE_RE, ' ').replace(TIME_RE, ' ');
+    return leetDigits(spelledToDigits(v));
+}
+
+/** Runs of digits joined across separators/filler words: "98 and 76-54 • 32 10" → "9876543210". */
+function digitChains(view) {
+    const groups = [...view.matchAll(/\d+/g)];
+    const chains = [];
+    let cur = null;
+    for (const g of groups) {
+        if (cur && isLinkingGap(view.slice(cur.end, g.index))) {
+            cur.digits += g[0];
+            cur.end = g.index + g[0].length;
+            continue;
+        }
+        if (cur) chains.push(cur.digits);
+        cur = { digits: g[0], end: g.index + g[0].length };
+    }
+    if (cur) chains.push(cur.digits);
+    return chains;
+}
+
+/**
+ * Detects Indian mobile numbers & landlines however they are written:
+ * - any separators / emoji / invisible characters / filler words between digits
+ * - digits of any script, spoken digits (English / Hindi / Devanagari), "double nine"
+ * - written as a price, quantity, pincode, "order #…" – a 10-digit mobile is NEVER a legitimate
+ *   amount (it would be >= Rs 600 crore), so context no longer exempts it.
+ * Normal prices (Rs 200, Rs 1,49,999), quantities, dates and platform order ids are not affected.
  */
 export function detectPhoneNumber(text) {
-    let norm = normalizeText(text);
-    // Also test spelled-out digits if present
-    norm = convertSpelledOutDigits(norm);
-    const collapsed = collapseDigitSeparators(norm);
+    const view = buildDigitView(text);
 
-    // Pattern: optional (+91 or 91 or 0) + 10 digits starting with [6-9]
-    const phonePattern = /(?:(?:\+91|91|0))?([6-9]\d{9})(?!\d)/g;
-
-    let match;
-    while ((match = phonePattern.exec(collapsed)) !== null) {
-        const fullMatch = match[0];
-        const digitSeq = match[1];
-        const matchStart = match.index;
-        const matchEnd   = match.index + fullMatch.length;
-
-        const before = collapsed.slice(0, matchStart).trim();
-        const after  = collapsed.slice(matchEnd).trim();
-
-        // 1. If preceded by an explicit contact keyword (e.g., 'call', 'ph no:', 'whatsapp'), always block
-        if (CONTACT_CONTEXT_BEFORE.test(before)) {
-            return true;
-        }
-
-        // 2. Skip if surrounded by genuine product-context tokens (e.g. ₹9876543210 or 9876543210 pcs)
-        if (PRODUCT_CONTEXT_BEFORE.test(before)) continue;
-        if (PRODUCT_CONTEXT_AFTER.test(after))  continue;
-
-        // 3. Skip if this is inside an order/hash identifier context
-        if (/[#\/]/.test(before.slice(-2))) continue;
-
-        // 4. Valid standalone 10-digit mobile number
-        if (digitSeq.length === 10) {
-            return true;
-        }
+    for (const chain of digitChains(view)) {
+        // 10-digit mobile (optionally prefixed by 91 / 0 / +91)
+        if (chain.length >= 10 && /[6-9]\d{9}$/.test(chain)) return true;
+        // Landline: 0 + STD code + number
+        if (/^0[1-9]\d{8,11}$/.test(chain)) return true;
     }
 
-    // 5. Landline / STD code pattern: 0 + 2-4 digit STD code + 6-8 digit number (e.g. 011-23456789)
-    const landlinePattern = /\b(0[1-9]\d{1,3}\d{6,8})\b/g;
-    let landlineMatch;
-    while ((landlineMatch = landlinePattern.exec(collapsed)) !== null) {
-        const matchStart = landlineMatch.index;
-        const before = collapsed.slice(0, matchStart).trim();
-        if (PRODUCT_CONTEXT_BEFORE.test(before)) continue;
-        return true;
-    }
-
-    // 6. Digits mixed with letters (e.g. "98abc76543210" or "98xx76543210")
-    // Detects when user injects alphabetic noise into a 10-digit mobile number
+    // Digits mixed with letters (e.g. "98abc76543210" or "98xx76543210")
+    const norm = normalizeText(text);
     const mixedPattern = /\b([a-z0-9_-]{10,25})\b/gi;
     let mixedMatch;
     while ((mixedMatch = mixedPattern.exec(norm)) !== null) {
         const rawToken = mixedMatch[1];
-        // Exclude system identifiers, orders, RFQs, SKUs
         if (/^(?:ord|sku|inv|po|pr|item|ref|req|tr|order|rfq)[-_0-9]/i.test(rawToken)) continue;
         const digitsOnly = rawToken.replace(/\D/g, '');
         if (digitsOnly.length === 10 && /^[6-9]\d{9}$/.test(digitsOnly)) {
             const letterCount = rawToken.replace(/[^a-z]/gi, '').length;
-            if (letterCount > 0 && letterCount <= 6) {
-                return true;
-            }
+            if (letterCount > 0 && letterCount <= 6) return true;
         }
     }
 
@@ -264,6 +291,12 @@ const UPI_HANDLES = [
     'pnb', 'centralbank', 'cbi', 'ubi', 'unionbank', 'idbi', 'federal',
     'mahb', 'jkb', 'aubank', 'abfspay', 'tapicici', 'jupiteraxis',
     'sliceaxis', 'icicibank', 'hsbc', 'sc', 'yesbank',
+    'pthdfc', 'ptsbi', 'ptaxis', 'pty', 'airtel', 'airtelpaymentsbank', 'jio', 'kmbl', 'kotakbank', 'idfcbank', 'idfcfirst',
+    'naviaxis', 'navi', 'freecharge', 'boi', 'cnrb', 'canarabank', 'ikwik', 'postbank', 'ippb', 'dbs', 'equitas',
+    'ezeepay', 'fam', 'yapl', 'tmb', 'uboi', 'allbank', 'okbizaxis', 'lime', 'rajgovhdfcbank', 'dlb', 'kvb', 'kbl',
+    'sib', 'csb', 'cub', 'karb', 'tjsb', 'nsdl', 'bandhan', 'au', 'ucobank', 'psb', 'mahabank', 'indianbank',
+    'iob', 'obc', 'uco', 'vijb', 'rbl', 'sbin', 'yespay', 'pingpay', 'axisb', 'axisgo', 'timecosmos', 'cosmos',
+    'apay', 'amazonpay', 'gpay', 'phonepe', 'bhim', 'wahdfcbank', 'waicici', 'wasbi', 'ibl', 'okpay',
 ];
 
 const UPI_HANDLE_REGEX = new RegExp(
@@ -275,15 +308,33 @@ const UPI_HANDLE_REGEX = new RegExp(
  * Detects UPI IDs (e.g., "abc@ybl", "name@okaxis").
  * Handles obfuscation: "abc @ ybl", "abc(at)ybl", "abc at ybl", "abc dot bank at ybl"
  */
+// "UPI ID: x", "my gpay id is x", "paytm number" – someone is sharing/asking for a payment id
+const PAYMENT_ID_INTENT = /\b(?:upi|gpay|google\s*pay|googlepay|phone\s*pe|phonepe|phonepay|paytm|bhim|amazon\s*pay)\s*(?:id|number|no\.?|handle|address|qr(?:\s*code)?|link|scanner)\b/i;
+const GENERIC_UPI_HANDLE = /[a-z0-9._\-]{2,}@[a-z][a-z0-9]{1,24}(?![a-z0-9]*\.[a-z])/i;
+const UPI_HASH_HANDLE = new RegExp(`[a-z0-9._\\-]{2,}[#$&*+=](?:${UPI_HANDLES.join('|')})\\b`, 'i');
+
+/**
+ * Detects UPI IDs (e.g., "abc@ybl", "name@okaxis") however they are written:
+ * - any "name@handle" that is not an e-mail address (no .com) – so new/unknown PSP handles are caught too
+ * - obfuscation: "abc @ ybl", "abc(at)ybl", "abc at the rate ybl", "abc @ y b l", "abc#ybl"
+ * - "UPI ID: …", "gpay number …" style phrases
+ */
 export function detectUPI(text) {
     let norm = normalizeText(text);
+
+    // Generic "name@word" typed without spaces (and not an e-mail): block regardless of the handle.
+    if (GENERIC_UPI_HANDLE.test(norm)) return true;
+    if (UPI_HASH_HANDLE.test(norm)) return true;
+    if (PAYMENT_ID_INTENT.test(norm)) return true;
+
     // Convert "user at ybl" -> "user@ybl"
     norm = norm.replace(/([a-z0-9._-]+)\s*(?:\(at\)|\[at\]|\{at\}|\bat\b)\s*([a-z0-9._-]+)/gi, '$1@$2');
     norm = norm.replace(/([a-z0-9._-]+)\s*(?:\(dot\)|\[dot\]|\{dot\}|\bdot\b)\s*([a-z0-9._-]+)/gi, '$1.$2');
 
-    // Also check collapsed form (e.g., "abc @ ybl" → "abc@ybl")
-    const noSpaceAroundAt = norm.replace(/\s*@\s*/g, '@');
-    return UPI_HANDLE_REGEX.test(noSpaceAroundAt);
+    // "abc @ ybl" -> "abc@ybl", and "abc @ y b l" -> "abc@ybl"
+    let collapsed = norm.replace(/\s*@\s*/g, '@');
+    collapsed = collapsed.replace(/@((?:[a-z]\s){1,8}[a-z])(?![a-z0-9])/g, (m, g) => '@' + g.replace(/\s/g, ''));
+    return UPI_HANDLE_REGEX.test(collapsed);
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -359,8 +410,10 @@ const EMAIL_PATTERN = /[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}/i;
 
 export function detectEmail(text) {
     const norm = normalizeText(text);
-    const noSpaceAroundAt = norm.replace(/\s*@\s*/g, '@');
-    return EMAIL_PATTERN.test(noSpaceAroundAt);
+    const tight = norm
+        .replace(/\s*@\s*/g, '@')
+        .replace(/\s*\.\s*(com|in|net|org|co|io|me|biz|info|xyz|app|shop|store|online|email)\b/g, '.$1');
+    return EMAIL_PATTERN.test(tight);
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -404,7 +457,13 @@ const CONTACT_ACTION_PHRASES = [
     /\bconnect\s+(?:on|karo|karna)\b/i,
     /\b(?:shift|move|continue)\s+(?:to|on|par)\b/i,
     /\bbahar\s+(?:baat|contact)\b/i,
+    /\bdm\s*(?:karo|kar|me|mein)\b/i,
+    /\bfollow\s*(?:kar|karo|karke|karna)\b/i,
+    /\binbox\s*(?:me|mein|karo|kar)\b/i,
 ];
+
+const PLATFORM_WORD = /\b(?:telegram|whatsapp|watsapp|whats\s*app|instagram|insta|facebook|fb|snapchat|skype|viber|signal|discord)\b/i;
+const PLATFORM_HANDLE_HINT = /(?:@[a-z0-9._]{3,}|\b(?:id|handle|username|user\s*name|profile|page|channel|group|link)\b)/i;
 
 const RAW_CONTACT_LINK_PATTERNS = [
     /wa\.me\//i,
@@ -428,6 +487,9 @@ export function detectExternalContact(text) {
     if (RAW_CONTACT_LINK_PATTERNS.some(p => p.test(norm))) {
         return true;
     }
+
+    // 2. A platform named together with a handle / id / profile ("telegram @shop", "insta id ramesh.store")
+    if (PLATFORM_WORD.test(norm) && PLATFORM_HANDLE_HINT.test(norm)) return true;
 
     const hasPlatformKeyword = CONTACT_PLATFORM_KEYWORDS.some(kw => norm.includes(kw));
     if (!hasPlatformKeyword) return false;
@@ -468,10 +530,20 @@ const PAYMENT_ACTION_PHRASES = [
     /\bmere\s+(?:account|upi)\s+mein\b/i,
     /\bqr\s+(?:scan|code)\s+(?:kar|karke)\b/i,
     /\bscan\s+(?:and|&|karke)\s+pay\b/i,
+    // Taking the deal off-platform: "order cancel karo, COD pe bhej dunga"
+    /\bcancel\b.{0,40}\b(?:cash|cod|direct|offline|bahar|outside)\b/i,
+    /\b(?:cash|cod|direct|offline)\b.{0,40}\bcancel\b/i,
+    /\bcash\s*(?:de\s*dena|de\s*do|dena|dijiye)\b/i,
 ];
+
+// A payment app named together with an instruction to pay/send ("gpay kar do 500", "phonepe pe bhej do")
+const PAYMENT_APP_RE = /\b(?:gpay|google\s*pay|googlepay|phone\s*pe|phonepe|phonepay|paytm|bhim(?:\s*upi)?|amazon\s*pay|amazonpay)\b/i;
+const PAYMENT_SEND_RE = /\b(?:kar\s*do|karo|karna|kar\s*dena|bhej(?:o|na|\s*do|\s*dena)?|send|transfer|pay|payment|de\s*do|dena)\b/i;
 
 export function detectExternalPayment(text) {
     const norm = normalizeText(text);
+
+    if (PAYMENT_APP_RE.test(norm) && PAYMENT_SEND_RE.test(norm)) return true;
 
     const hasPaymentApp = PAYMENT_APP_KEYWORDS.some(kw => norm.includes(kw));
     const hasPaymentAction = PAYMENT_ACTION_PHRASES.some(p => p.test(norm));

@@ -8,6 +8,8 @@ import AdminManagedVendorMessage from '../../../models/AdminManagedVendorMessage
 import Admin from '../../../models/Admin.model.js';
 import { getIO } from '../../../config/socket.js';
 import { decryptMessage } from '../../../utils/chatEncryption.util.js';
+import { createNotification } from '../../../services/notification.service.js';
+import { assertTextLength, sanitizeAttachments } from '../../../utils/chatLimits.js';
 
 const serializeMessage = (msg) => ({
     id: msg._id,
@@ -109,6 +111,8 @@ export const sendManagedVendorMessage = asyncHandler(async (req, res) => {
     if (!message || !message.trim()) {
         throw new ApiError(400, 'Message body cannot be empty.');
     }
+    assertTextLength(message);
+    const safeAttachments = sanitizeAttachments(attachments);
 
     const vendor = await findVendorProfile(vendorId);
     if (!vendor) {
@@ -140,7 +144,7 @@ export const sendManagedVendorMessage = asyncHandler(async (req, res) => {
         senderId: vendorId,
         senderName: senderDisplayName,
         message: message.trim(),
-        attachments: attachments || [],
+        attachments: safeAttachments,
     });
 
     thread.lastMessage = message.trim();
@@ -150,6 +154,16 @@ export const sendManagedVendorMessage = asyncHandler(async (req, res) => {
     await thread.save();
 
     const payload = serializeMessage(created);
+
+    try {
+        await createNotification({
+            recipientType: 'admin',
+            title: 'New vendor message', message: `${senderDisplayName}: ${message.trim().length > 60 ? `${message.trim().substring(0, 60)}...` : message.trim()}`,
+            type: 'chat', data: { threadId: String(thread._id) },
+        });
+    } catch (nErr) {
+        console.warn('Vendor->admin notification failed:', nErr.message);
+    }
 
     try {
         const io = getIO();

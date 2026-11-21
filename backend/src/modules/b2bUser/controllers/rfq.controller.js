@@ -11,6 +11,8 @@ import Product from '../../../models/Product.model.js';
 import DirectRFQ from '../../../models/DirectRFQ.model.js';
 import Category from '../../../models/Category.model.js';
 import { createNotification } from '../../../services/notification.service.js';
+import { rfqForViewer } from '../../../utils/rfqVisibility.js';
+import { assertTextLength, sanitizeAttachments } from '../../../utils/chatLimits.js';
 import {
     uploadLocalFileToCloudinaryAndCleanup,
     cleanupLocalFiles
@@ -44,7 +46,7 @@ const generatePoId = () => {
 
 // GET /api/b2b-user/admin/vendors
 export const getVendorsForSourcing = asyncHandler(async (req, res) => {
-    const vendors = await Vendor.find({ status: 'approved' }).lean().select('name storeName email phone companyName');
+    const vendors = await Vendor.find({ status: 'approved' }).lean().select('name storeName companyName');
     
     // Attach categories each vendor sells in
     const vendorsWithCategories = await Promise.all(vendors.map(async (vendor) => {
@@ -65,13 +67,13 @@ export const getRFQs = asyncHandler(async (req, res) => {
     }
     const rfqs = await RFQ.find(filter)
         .populate('productId', 'name image price')
-        .populate('assignedVendorIds', 'storeName name email phone')
+        .populate('assignedVendorIds', 'storeName name')
         .populate('createdByEmployeeId', 'name email')
         .populate('createdByAdminId', 'name email')
         .sort({ createdAt: -1 });
 
     const processedRfqs = rfqs.map(rfq => {
-        const rfqObj = rfq.toObject();
+        const rfqObj = rfqForViewer(rfq, 'b2b');
         if (['Awaiting B2B Approval', 'Vendor Selected', 'Approved', 'Purchase Order Generated', 'Completed'].includes(rfqObj.status)) {
             rfqObj.quotations = rfqObj.quotations.filter(q => q.status === 'Selected');
         } else {
@@ -113,7 +115,7 @@ export const getRFQDetail = asyncHandler(async (req, res) => {
     }
     const rfq = await RFQ.findOne(filter)
         .populate('productId', 'name image price unit stockQuantity')
-        .populate('assignedVendorIds', 'storeName name email phone')
+        .populate('assignedVendorIds', 'storeName name')
         .populate('createdByEmployeeId', 'name email')
         .populate('createdByAdminId', 'name email');
 
@@ -121,7 +123,7 @@ export const getRFQDetail = asyncHandler(async (req, res) => {
         throw new ApiError(404, 'RFQ not found.');
     }
 
-    const rfqObj = rfq.toObject();
+    const rfqObj = rfqForViewer(rfq, 'b2b');
     if (['Awaiting B2B Approval', 'Vendor Selected', 'Approved', 'Purchase Order Generated', 'Completed'].includes(rfqObj.status)) {
         rfqObj.quotations = rfqObj.quotations.filter(q => q.status === 'Selected');
     } else {
@@ -368,6 +370,8 @@ export const sendDiscussionMessage = asyncHandler(async (req, res) => {
     if (!message) {
         throw new ApiError(400, 'Message body is required.');
     }
+    assertTextLength(message);
+    const safeAttachments = sanitizeAttachments(attachments);
 
     // Resolve sender name
     let senderName = 'B2B User';
@@ -381,7 +385,7 @@ export const sendDiscussionMessage = asyncHandler(async (req, res) => {
         senderType: req.user.role === 'b2bAdmin' ? 'b2bAdmin' : 'b2bEmployee',
         senderName,
         message,
-        attachments: attachments || [],
+        attachments: safeAttachments,
         isInternalNote: !!isInternalNote
     });
 
@@ -402,7 +406,8 @@ export const sendDiscussionMessage = asyncHandler(async (req, res) => {
 
     // Emit socket event
     const io = getIO();
-    io.to(`rfq_${rfq._id}`).emit('new_internal_message', { rfqId: rfq._id, message: savedMessage });
+    // A note private to the buyer's team must not be broadcast to PLE admins
+    io.to(isInternalNote ? `rfq_${rfq._id}_b2b` : `rfq_${rfq._id}`).emit('new_internal_message', { rfqId: rfq._id, message: savedMessage });
 
     res.status(200).json(new ApiResponse(200, savedMessage, 'Message sent successfully.'));
 });
@@ -708,6 +713,12 @@ export const requestRenegotiation = asyncHandler(async (req, res) => {
 });
 
 // GET /api/b2b-user/admin/purchase-orders
+const hideVendorContact = (po) => {
+    const obj = po && typeof po.toObject === 'function' ? po.toObject() : po;
+    if (obj?.vendorDetails) obj.vendorDetails = { ...obj.vendorDetails, email: undefined, phone: undefined };
+    return obj;
+};
+
 export const getPurchaseOrders = asyncHandler(async (req, res) => {
     const companyId = await getCompanyId(req);
     const company = await B2BCompany.findById(companyId);
@@ -807,7 +818,7 @@ export const getPurchaseOrders = asyncHandler(async (req, res) => {
         .populate('rfqId', 'rfqId')
         .sort({ createdAt: -1 });
 
-    res.status(200).json(new ApiResponse(200, pos, 'Purchase Orders fetched successfully.'));
+    res.status(200).json(new ApiResponse(200, pos.map(hideVendorContact), 'Purchase Orders fetched successfully.'));
 });
 
 // GET /api/b2b-user/admin/purchase-orders/:id
@@ -827,7 +838,7 @@ export const getPurchaseOrderDetail = asyncHandler(async (req, res) => {
         throw new ApiError(404, 'Purchase Order not found.');
     }
 
-    res.status(200).json(new ApiResponse(200, po, 'Purchase Order details fetched successfully.'));
+    res.status(200).json(new ApiResponse(200, hideVendorContact(po), 'Purchase Order details fetched successfully.'));
 });
 
 // PATCH /api/b2b-user/admin/purchase-orders/:id/pay

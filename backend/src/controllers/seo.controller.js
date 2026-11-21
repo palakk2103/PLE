@@ -1,4 +1,5 @@
 import Product from '../models/Product.model.js';
+import { publicApprovalFilter } from '../utils/productVisibility.js';
 import Category from '../models/Category.model.js';
 
 export const getRobotsTxt = (req, res) => {
@@ -81,7 +82,7 @@ export const getSitemapXml = async (req, res) => {
         // Add Products (Only approved & active products)
         const products = await Product.find({ 
             isActive: true, 
-            approvalStatus: { $ne: 'pending' },
+            ...publicApprovalFilter(),
             brandApprovalStatus: { $ne: 'pending' }
         }).select('_id updatedAt');
         

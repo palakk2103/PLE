@@ -3,6 +3,8 @@ import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
 import SupportTicket from '../../../models/SupportTicket.model.js';
 import TicketType from '../../../models/TicketType.model.js';
+import { notifyAdmins } from '../../../services/supportTicket.service.js';
+import { assertTextLength, MAX_LONG_TEXT_LENGTH } from '../../../utils/chatLimits.js';
 
 /**
  * Helper to generate a unique ticket number
@@ -66,6 +68,8 @@ export const createTicket = asyncHandler(async (req, res) => {
 
     if (!trimmedSubject) throw new ApiError(400, 'Subject is required');
     if (!trimmedDesc) throw new ApiError(400, 'Description is required');
+    assertTextLength(trimmedSubject, 'Subject', 200);
+    assertTextLength(trimmedDesc, 'Description', MAX_LONG_TEXT_LENGTH);
 
     const ticketNumber = await generateTicketNumber();
 
@@ -97,6 +101,8 @@ export const createTicket = asyncHandler(async (req, res) => {
             }
         ]
     });
+
+    await notifyAdmins(newTicket, 'New support ticket', `${req.user.name || 'A customer'} raised ${ticketNumber}: ${trimmedSubject}`);
 
     const normalized = {
         ...newTicket._doc,
@@ -162,6 +168,7 @@ export const addTicketReply = asyncHandler(async (req, res) => {
     if (!trimmed && !attachment) {
         throw new ApiError(400, 'Message or attachment is required');
     }
+    assertTextLength(trimmed, 'Message', MAX_LONG_TEXT_LENGTH);
 
     let ticket = null;
     if (id && /^[0-9a-fA-F]{24}$/.test(id)) {
@@ -203,6 +210,8 @@ export const addTicketReply = asyncHandler(async (req, res) => {
     }
 
     await ticket.save();
+
+    await notifyAdmins(ticket, 'Support ticket reply', `${req.user.name || 'A customer'} replied on ${ticket.ticketNumber}`);
 
     const normalized = {
         ...ticket._doc,

@@ -1,0 +1,126 @@
+- generic [ref=f6e3]:
+  - complementary [ref=f6e5]:
+    - heading "B2B Admin" [level=2] [ref=f6e13]
+    - button "Back to B2B Store" [ref=f6e15] [cursor=pointer]
+    - navigation [ref=f6e25]:
+      - link "Dashboard" [ref=f6e26] [cursor=pointer]:
+        - /url: /b2b-dashboard/overview
+      - link "Employees" [ref=f6e31] [cursor=pointer]:
+        - /url: /b2b-dashboard/employees
+      - link "Employee Purchases" [ref=f6e38] [cursor=pointer]:
+        - /url: /b2b-dashboard/employee-purchases
+      - link "RFQs" [ref=f6e43] [cursor=pointer]:
+        - /url: /b2b-dashboard/rfqs
+      - link "Quotations" [ref=f6e48] [cursor=pointer]:
+        - /url: /b2b-dashboard/quotations
+      - link "Product Requests" [ref=f6e53] [cursor=pointer]:
+        - /url: /b2b-dashboard/product-requests
+      - link "RFQ Discussions" [ref=f6e58] [cursor=pointer]:
+        - /url: /b2b-dashboard/discussions
+      - link "Shop Chats" [ref=f6e62] [cursor=pointer]:
+        - /url: /b2b-dashboard/shop-chats
+      - link "Purchase Orders" [ref=f6e66] [cursor=pointer]:
+        - /url: /b2b-dashboard/purchase-orders
+      - link "Business Wallet" [ref=f6e70] [cursor=pointer]:
+        - /url: /wallet
+      - link "Company Profile" [ref=f6e74] [cursor=pointer]:
+        - /url: /b2b-dashboard/company-profile
+      - link "Legal Documents" [ref=f6e79] [cursor=pointer]:
+        - /url: /b2b-dashboard/legal-documents
+      - link "Admin Profile" [ref=f6e84] [cursor=pointer]:
+        - /url: /b2b-dashboard/admin-profile
+      - link "Support Desk" [ref=f6e89] [cursor=pointer]:
+        - /url: /b2b-dashboard/support
+      - link "Notifications" [ref=f6e94] [cursor=pointer]:
+        - /url: /b2b-dashboard/notifications
+      - link "Settings" [ref=f6e99] [cursor=pointer]:
+        - /url: /b2b-dashboard/settings
+    - button "Logout" [ref=f6e105] [cursor=pointer]
+  - generic [ref=f6e109]:
+    - banner [ref=f6e111]:
+      - textbox "Search..." [ref=f6e117]
+      - generic [ref=f6e118]:
+        - button "Back to B2B Store" [ref=f6e119] [cursor=pointer]
+        - button "Toggle theme" [ref=f6e123] [cursor=pointer]
+        - button [ref=f6e126] [cursor=pointer]
+        - generic [ref=f6e130] [cursor=pointer]:
+          - generic [ref=f6e131]: Z
+          - generic [ref=f6e132]:
+            - paragraph [ref=f6e133]: ZZ Test Co 1794654844
+            - paragraph [ref=f6e134]: B2B Admin
+    - main [ref=f6e135]:
+      - generic [ref=f6e136]:
+        - button "Back" [ref=f6e137] [cursor=pointer]
+        - generic [ref=f6e140]:
+          - generic [ref=f6e141]:
+            - generic [ref=f6e142]: SE
+            - generic [ref=f6e143]:
+              - generic [ref=f6e144]:
+                - heading "Second Employee" [level=1] [ref=f6e145]
+                - generic [ref=f6e146]: Active
+              - generic [ref=f6e147]:
+                - generic [ref=f6e148]: zzemp2-1794654844@example.test
+                - generic [ref=f6e153]: IT
+              - paragraph [ref=f6e157]: "Member since 14 Nov 2026 · Role: Staff"
+          - generic [ref=f6e158]:
+            - paragraph [ref=f6e159]: Wallet balance
+            - paragraph [ref=f6e160]: ₹50
+            - paragraph [ref=f6e161]: "Spending limit: Unlimited"
+        - generic [ref=f6e162]:
+          - generic [ref=f6e163]:
+            - paragraph [ref=f6e165]: Net spend
+            - paragraph [ref=f6e169]: ₹0
+            - paragraph [ref=f6e170]: ₹0 gross · 0 items
+          - generic [ref=f6e171]:
+            - paragraph [ref=f6e173]: Orders
+            - paragraph [ref=f6e177]: "0"
+            - paragraph [ref=f6e178]: 0 delivered · 0 cancelled
+          - generic [ref=f6e179]:
+            - paragraph [ref=f6e181]: Returns
+            - paragraph [ref=f6e185]: "0"
+            - paragraph [ref=f6e186]: ₹0 refunded
+          - generic [ref=f6e187]:
+            - paragraph [ref=f6e189]: Wallet usage
+            - paragraph [ref=f6e192]: ₹0
+            - paragraph [ref=f6e193]: ₹50 allotted · ₹0 refunded back
+        - generic [ref=f6e194]:
+          - tablist [ref=f6e195]:
+            - tab "Orders" [selected] [ref=f6e196] [cursor=pointer]
+            - tab "Returns & Refunds" [ref=f6e200] [cursor=pointer]
+            - tab "Wallet History" [ref=f6e204] [cursor=pointer]
+          - generic [ref=f6e207]:
+            - textbox "Order ID…" [ref=f6e208]
+            - combobox "Order status" [ref=f6e209]:
+              - option "All statuses" [selected]
+              - option "Pending"
+              - option "Processing"
+              - option "Shipped"
+              - option "Out For Delivery"
+              - option "Delivered"
+              - option "Cancelled"
+              - option "Returned"
+            - combobox "Payment method" [ref=f6e210]:
+              - option "All payment methods" [selected]
+              - option "Wallet"
+              - option "Card"
+              - option "Upi"
+              - option "Bank"
+              - option "Cod"
+              - option "Mixed"
+            - generic [ref=f6e211]:
+              - text: From
+              - textbox "From" [ref=f6e212]
+            - generic [ref=f6e213]:
+              - text: To
+              - textbox "To" [ref=f6e214]
+          - table [ref=f6e216]:
+            - rowgroup [ref=f6e217]:
+              - row [ref=f6e218]:
+                - columnheader "Order" [ref=f6e219]
+                - columnheader "Products" [ref=f6e220]
+                - columnheader "Status" [ref=f6e221]
+                - columnheader "Payment" [ref=f6e222]
+                - columnheader "Total" [ref=f6e223]
+            - rowgroup [ref=f6e224]:
+              - row [ref=f6e225]:
+                - cell "No orders found." [ref=f6e226]

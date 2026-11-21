@@ -4,7 +4,11 @@ import ApiError from '../../../utils/ApiError.js';
 import Razorpay from 'razorpay';
 import Order from '../../../models/Order.model.js';
 import Product from '../../../models/Product.model.js';
+import { isProductPubliclyApproved } from '../../../utils/productVisibility.js';
 import Coupon from '../../../models/Coupon.model.js';
+import ChatTransactionProposal from '../../../models/ChatTransactionProposal.model.js';
+import VendorChatThread from '../../../models/VendorChatThread.model.js';
+import VendorChatMessage from '../../../models/VendorChatMessage.model.js';
 import Commission from '../../../models/Commission.model.js';
 import ReturnRequest from '../../../models/ReturnRequest.model.js';
 import Admin from '../../../models/Admin.model.js';
@@ -20,6 +24,7 @@ import {
     enrichReturnItems,
     buildReturnIdentifiers,
     getInvoiceNumberMap,
+    lineRefundParts,
 } from '../../../utils/returnMapping.js';
 import { User } from '../../../models/User.model.js';
 import Wallet from '../../../models/Wallet.model.js';
@@ -225,6 +230,36 @@ const resolveOrderItemVariantKey = (product, orderItem) => {
 };
 
 // POST /api/user/orders
+const round2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+
+/**
+ * Checkout of a price negotiated in chat. The client only says WHICH accepted offer it is buying
+ * (item.proposalId); price, quantity, discount, tax and delivery all come from the stored offer, so a
+ * customer can never pick their own price and a vendor can never change it after acceptance.
+ * Returns the offer, or null for a normal cart.
+ */
+const resolveProposalCheckout = async ({ items, userId, couponCode, loyaltyPointsToRedeem }) => {
+    if (!items.some((i) => i.proposalId)) return null;
+    if (items.length !== 1) {
+        throw new ApiError(400, 'A negotiated offer must be checked out on its own, without other items.');
+    }
+    if (!userId) throw new ApiError(401, 'Please sign in to buy a negotiated offer.');
+    if (couponCode || Number(loyaltyPointsToRedeem) > 0) {
+        throw new ApiError(400, 'Coupons and loyalty points cannot be combined with a negotiated offer.');
+    }
+    const { proposalId, productId } = items[0];
+    if (!mongoose.isValidObjectId(proposalId)) throw new ApiError(400, 'Invalid offer reference.');
+
+    const proposal = await ChatTransactionProposal.findOne({ _id: proposalId, customerUserId: userId });
+    if (!proposal) throw new ApiError(404, 'Offer not found.');
+    if (proposal.status === 'converted_to_order') throw new ApiError(409, 'This offer has already been ordered.');
+    if (proposal.status !== 'accepted') throw new ApiError(400, 'Only an accepted offer can be purchased.');
+    if (!proposal.productId || String(proposal.productId) !== String(productId)) {
+        throw new ApiError(400, 'This offer is not linked to this product. Please ask the seller to send it again with a product selected.');
+    }
+    return proposal;
+};
+
 export const placeOrder = asyncHandler(async (req, res) => {
     const { items, shippingAddress, paymentMethod, couponCode, shippingOption, loyaltyPointsToRedeem = 0, walletAmountToUse = 0 } = req.body;
     const normalizedPaymentMethod = paymentMethod === 'cash' ? 'cod' : paymentMethod;
@@ -261,17 +296,27 @@ export const placeOrder = asyncHandler(async (req, res) => {
         }
     }
 
+    // 0. Price negotiated in chat? (null for a normal cart)
+    const proposalCtx = await resolveProposalCheckout({ items, userId, couponCode, loyaltyPointsToRedeem });
+
     // 1. Validate items and calculate subtotal
     let subtotal = 0;
     const enrichedItems = [];
     const vendorMap = {};
 
     for (const item of items) {
+        if (proposalCtx) item.quantity = proposalCtx.quantity; // quantity is part of the agreed offer
         const product = await Product.findById(item.productId)
             .populate('vendorId', 'commissionRate storeName shippingEnabled defaultShippingRate freeShippingThreshold categoryGstRates defaultGstRate')
             .populate('shopId', 'name logo')
             .populate('categoryId', 'name gstRate parentId');
         if (!product) throw new ApiError(404, `Product not found: ${item.productId}`);
+        if (!isProductPubliclyApproved(product) || product.isActive === false) {
+            throw new ApiError(400, `${product.name} is not available for purchase.`);
+        }
+        if (proposalCtx && String(product.vendorId?._id || product.vendorId || '') !== String(proposalCtx.vendorId)) {
+            throw new ApiError(400, 'This offer was made by a different seller than the product owner.');
+        }
         if (product.stock === 'out_of_stock') throw new ApiError(400, `${product.name} is out of stock.`);
         if (product.stockQuantity < item.quantity) throw new ApiError(400, `Only ${product.stockQuantity} units of ${product.name} available.`);
 
@@ -292,6 +337,12 @@ export const placeOrder = asyncHandler(async (req, res) => {
             }
             itemPrice = b2bPrice;
         }
+        // Negotiated offer: the agreed price per unit (after the agreed discount) replaces catalogue pricing.
+        let proposalNetTotal = null;
+        if (proposalCtx) {
+            proposalNetTotal = round2(proposalCtx.unitPrice * proposalCtx.quantity - (proposalCtx.discount || 0));
+            itemPrice = proposalNetTotal / proposalCtx.quantity;
+        }
         const variantStockValue = variantKey ? Number(product?.variants?.stockMap?.get?.(variantKey) ?? product?.variants?.stockMap?.[variantKey]) : null;
         if (hasVariantAxes && variantKey && Number.isFinite(variantStockValue) && variantStockValue < item.quantity) {
             throw new ApiError(400, `Only ${variantStockValue} units available for selected variant of ${product.name}.`);
@@ -300,8 +351,14 @@ export const placeOrder = asyncHandler(async (req, res) => {
         subtotal += itemSubtotal;
 
         // Resolve seller-controlled GST for this product/category
-        const itemGstRate = resolveProductGST(product, product.categoryId, product.vendorId);
-        const { taxableAmount, gstAmount } = calculateItemGST(itemPrice, item.quantity, itemGstRate, 0, product.taxIncluded);
+        let itemGstRate = resolveProductGST(product, product.categoryId, product.vendorId);
+        let { taxableAmount, gstAmount } = calculateItemGST(itemPrice, item.quantity, itemGstRate, 0, product.taxIncluded);
+        if (proposalCtx) {
+            // The offer's tax is part of the amount the customer agreed to pay (added on top of the agreed price).
+            gstAmount = round2(proposalCtx.tax || 0);
+            taxableAmount = proposalNetTotal;
+            itemGstRate = proposalNetTotal > 0 ? round2((gstAmount / proposalNetTotal) * 100) : 0;
+        }
 
         const variantImage =
             variantKey
@@ -339,7 +396,8 @@ export const placeOrder = asyncHandler(async (req, res) => {
             gstRate: itemGstRate,
             gstAmount,
             taxableAmount,
-            taxIncluded: !!product.taxIncluded,
+            taxIncluded: proposalCtx ? false : !!product.taxIncluded,
+            ...(proposalCtx ? { proposalId: proposalCtx._id, proposalReference: proposalCtx.proposalReference } : {}),
         };
         enrichedItems.push(enriched);
 
@@ -395,7 +453,7 @@ export const placeOrder = asyncHandler(async (req, res) => {
         freeShippingThreshold: vendorGroup.freeShippingThreshold,
         items: vendorGroup.items,
     }));
-    const {
+    let {
         totalShipping: shipping,
         shippingByVendor,
         isCodAvailable,
@@ -407,6 +465,12 @@ export const placeOrder = asyncHandler(async (req, res) => {
         paymentMethod: normalizedPaymentMethod,
         couponType: appliedCoupon?.type || null,
     });
+
+    if (proposalCtx) {
+        // Delivery charge is part of the agreed final amount.
+        shipping = round2(proposalCtx.deliveryCharge || 0);
+        shippingByVendor = { [String(proposalCtx.vendorId)]: shipping };
+    }
 
     const isCodOrder = ['cod', 'cash'].includes(String(normalizedPaymentMethod).toLowerCase());
     if (isCodOrder && isCodAvailable === false) {
@@ -470,6 +534,22 @@ export const placeOrder = asyncHandler(async (req, res) => {
                     order = existingOrder;
                     idempotentReplay = true;
                     return;
+                }
+            }
+
+            // Claim the negotiated offer atomically: one offer can only ever become one order.
+            if (proposalCtx) {
+                const claimed = await ChatTransactionProposal.findOneAndUpdate(
+                    { _id: proposalCtx._id, customerUserId: userId, status: 'accepted' },
+                    {
+                        $set: { status: 'converted_to_order' },
+                        $push: { history: { action: 'CONVERTED_TO_ORDER', actionBy: userId, actionByRole: 'customer', timestamp: new Date(), note: 'Customer placed an order from this offer.' } },
+                    },
+                    { session, new: true }
+                );
+                if (!claimed) throw new ApiError(409, 'This offer has already been ordered or is no longer valid.');
+                if (round2(total) !== round2(claimed.finalAmount)) {
+                    throw new ApiError(409, 'The order total does not match the agreed offer amount.');
                 }
             }
 
@@ -632,6 +712,9 @@ export const placeOrder = asyncHandler(async (req, res) => {
                 idempotencyScope: idempotencyKey ? idempotencyScope : undefined,
             }], { session });
             order = createdOrder;
+            if (proposalCtx) {
+                await ChatTransactionProposal.updateOne({ _id: proposalCtx._id }, { $set: { orderRef: createdOrder._id } }, { session });
+            }
             // Link the wallet debit back to the order so wallet history shows which order it paid for
             if (walletTxId) {
                 await WalletTransaction.updateOne(
@@ -827,6 +910,26 @@ export const placeOrder = asyncHandler(async (req, res) => {
         }
     } finally {
         await session.endSession();
+    }
+
+    if (proposalCtx && order && !idempotentReplay) {
+        try {
+            const thread = await VendorChatThread.findById(proposalCtx.threadId);
+            if (thread) {
+                const note = await VendorChatMessage.create({
+                    threadId: thread._id, senderType: 'system', senderId: null,
+                    message: `[Order Placed] Buyer placed order ${order.orderId} for "${proposalCtx.productName}" at the agreed amount of ₹${proposalCtx.finalAmount}.`,
+                });
+                thread.lastActivity = new Date();
+                thread.lastMessage = `[Order Placed] ${order.orderId}`;
+                await thread.save();
+                const io = getIO();
+                io.to(`chat_${thread._id}`).emit('new_message', { id: note._id, sender: 'system', message: note.message, time: note.createdAt });
+                io.to(`chat_${thread._id}`).emit('transaction_proposal_updated', { ...proposalCtx.toObject(), status: 'converted_to_order', orderRef: order._id });
+            }
+        } catch (chatErr) {
+            console.warn('Could not post order notice to chat:', chatErr.message);
+        }
     }
 
     const responseStatus = idempotentReplay ? 200 : 201;
@@ -1226,6 +1329,7 @@ export const createReturnRequest = asyncHandler(async (req, res) => {
                         price: orderItem.price,
                         image: orderItem.image,
                         quantity: requestedQty,
+                        gstAmount: lineRefundParts(orderItem, requestedQty).gst,
                         reason: String(inputItem?.reason || fallbackReason).trim(),
                     };
                 });
@@ -1240,6 +1344,7 @@ export const createReturnRequest = asyncHandler(async (req, res) => {
                         price: item.price,
                         image: item.image,
                         quantity: remainingFor(item),
+                        gstAmount: lineRefundParts(item, remainingFor(item)).gst,
                         reason: fallbackReason,
                     }));
                 if (normalizedItems.length === 0) {
@@ -1247,8 +1352,9 @@ export const createReturnRequest = asyncHandler(async (req, res) => {
                 }
             }
 
+            // Refund what the buyer actually paid for these units: price + the GST charged on them.
             const refundAmount = normalizedItems.reduce(
-                (sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0),
+                (sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0) + Number(item.gstAmount || 0),
                 0
             );
 
@@ -1333,7 +1439,7 @@ export const createReturnRequest = asyncHandler(async (req, res) => {
 
     const populated = await ReturnRequest.findById(request._id)
         .populate('orderId', 'orderId total items createdAt')
-        .populate('vendorId', 'storeName email');
+        .populate('vendorId', 'storeName');
 
     const invoiceMap = await getInvoiceNumberMap([order._id]);
     res.status(201).json(new ApiResponse(201, normalizeReturnRequest(populated, invoiceMap), 'Return request submitted successfully.'));
@@ -1350,7 +1456,7 @@ export const getUserReturnRequests = asyncHandler(async (req, res) => {
     const [requests, total] = await Promise.all([
         ReturnRequest.find(filter)
             .populate('orderId', 'orderId total items createdAt')
-            .populate('vendorId', 'storeName email')
+            .populate('vendorId', 'storeName')
             .sort({ createdAt: -1 })
             .skip((numericPage - 1) * numericLimit)
             .limit(numericLimit),
@@ -1374,7 +1480,7 @@ export const getUserReturnRequests = asyncHandler(async (req, res) => {
 export const getUserReturnRequestById = asyncHandler(async (req, res) => {
     const request = await ReturnRequest.findOne({ _id: req.params.id, userId: req.user.id })
         .populate('orderId', 'orderId total items createdAt')
-        .populate('vendorId', 'storeName email');
+        .populate('vendorId', 'storeName');
     if (!request) throw new ApiError(404, 'Return request not found.');
     const invoiceMap = await getInvoiceNumberMap([request.orderId?._id || request.orderId]);
     res.status(200).json(new ApiResponse(200, normalizeReturnRequest(request, invoiceMap), 'Return request fetched.'));

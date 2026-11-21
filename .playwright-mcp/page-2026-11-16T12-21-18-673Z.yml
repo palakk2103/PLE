@@ -1,0 +1,262 @@
+- generic [ref=f25e2]:
+  - generic [ref=f25e3]:
+    - complementary [ref=f25e5]:
+      - heading "B2B Admin" [level=2] [ref=f25e13]
+      - button "Back to B2B Store" [ref=f25e15] [cursor=pointer]
+      - navigation [ref=f25e25]:
+        - link "Dashboard" [ref=f25e26] [cursor=pointer]:
+          - /url: /b2b-dashboard/overview
+        - link "Employees" [ref=f25e31] [cursor=pointer]:
+          - /url: /b2b-dashboard/employees
+        - link "Employee Purchases" [ref=f25e38] [cursor=pointer]:
+          - /url: /b2b-dashboard/employee-purchases
+        - link "RFQs" [ref=f25e43] [cursor=pointer]:
+          - /url: /b2b-dashboard/rfqs
+        - link "Quotations" [ref=f25e48] [cursor=pointer]:
+          - /url: /b2b-dashboard/quotations
+        - link "Product Requests" [ref=f25e53] [cursor=pointer]:
+          - /url: /b2b-dashboard/product-requests
+        - link "RFQ Discussions" [ref=f25e58] [cursor=pointer]:
+          - /url: /b2b-dashboard/discussions
+        - link "Shop Chats" [ref=f25e62] [cursor=pointer]:
+          - /url: /b2b-dashboard/shop-chats
+        - link "Purchase Orders" [ref=f25e66] [cursor=pointer]:
+          - /url: /b2b-dashboard/purchase-orders
+        - link "Business Wallet" [ref=f25e70] [cursor=pointer]:
+          - /url: /wallet
+        - link "Company Profile" [ref=f25e74] [cursor=pointer]:
+          - /url: /b2b-dashboard/company-profile
+        - link "Legal Documents" [ref=f25e79] [cursor=pointer]:
+          - /url: /b2b-dashboard/legal-documents
+        - link "Admin Profile" [ref=f25e84] [cursor=pointer]:
+          - /url: /b2b-dashboard/admin-profile
+        - link "Support Desk" [ref=f25e89] [cursor=pointer]:
+          - /url: /b2b-dashboard/support
+        - link "Notifications" [ref=f25e94] [cursor=pointer]:
+          - /url: /b2b-dashboard/notifications
+        - link "Settings" [ref=f25e99] [cursor=pointer]:
+          - /url: /b2b-dashboard/settings
+      - button "Logout" [ref=f25e105] [cursor=pointer]
+    - generic [ref=f25e109]:
+      - banner [ref=f25e111]:
+        - textbox "Search..." [ref=f25e117]
+        - generic [ref=f25e118]:
+          - button "Back to B2B Store" [ref=f25e119] [cursor=pointer]
+          - button "Toggle theme" [ref=f25e123] [cursor=pointer]
+          - button [ref=f25e126] [cursor=pointer]
+          - generic [ref=f25e130] [cursor=pointer]:
+            - generic [ref=f25e131]: Z
+            - generic [ref=f25e132]:
+              - paragraph [ref=f25e133]: ZZ Test Co 1794654844
+              - paragraph [ref=f25e134]: B2B Admin
+      - main [ref=f25e135]:
+        - generic [ref=f25e136]:
+          - generic [ref=f25e137]:
+            - generic [ref=f25e138]:
+              - heading "Employee Management" [level=1] [ref=f25e139]
+              - paragraph [ref=f25e140]: Manage your company's employees and their access.
+            - button "Add Employee" [ref=f25e141] [cursor=pointer]
+          - generic [ref=f25e143]:
+            - textbox "Search employees by name, email, or department..." [ref=f25e149]
+            - generic [ref=f25e150]:
+              - table [ref=f25e152]:
+                - rowgroup [ref=f25e153]:
+                  - row [ref=f25e154]:
+                    - columnheader "Employee Name" [ref=f25e155] [cursor=pointer]
+                    - columnheader "Department" [ref=f25e157] [cursor=pointer]
+                    - columnheader "Designation" [ref=f25e159] [cursor=pointer]
+                    - columnheader "Allotted Wallet" [ref=f25e161] [cursor=pointer]
+                    - columnheader "Spending Limit" [ref=f25e163] [cursor=pointer]
+                    - columnheader "Status" [ref=f25e165] [cursor=pointer]
+                    - columnheader "Actions" [ref=f25e167]
+                - rowgroup [ref=f25e169]:
+                  - row [ref=f25e491]:
+                    - cell "SE Second Employee zzemp2-1794654844@example.test" [ref=f25e171]:
+                      - generic [ref=f25e172]:
+                        - generic [ref=f25e173]: SE
+                        - generic [ref=f25e174]:
+                          - paragraph [ref=f25e175]: Second Employee
+                          - paragraph [ref=f25e176]: zzemp2-1794654844@example.test
+                    - cell "IT" [ref=f25e177]
+                    - cell "-" [ref=f25e178]
+                    - cell "₹50" [ref=f25e179]
+                    - cell "Unlimited" [ref=f25e181]
+                    - cell "Active" [ref=f25e492]
+                    - cell [ref=f25e183]:
+                      - generic [ref=f25e184]:
+                        - button "View Purchases" [ref=f25e185] [cursor=pointer]
+                        - button "Allot Funds" [ref=f25e189] [cursor=pointer]
+                        - button "Edit" [ref=f25e192] [cursor=pointer]
+                        - button "Deactivate" [active] [ref=f25e493] [cursor=pointer]
+                  - row [ref=f25e200]:
+                    - cell "TE Test Employee zzemp-1794654844@example.com" [ref=f25e201]:
+                      - generic [ref=f25e202]:
+                        - generic [ref=f25e203]: TE
+                        - generic [ref=f25e204]:
+                          - paragraph [ref=f25e205]: Test Employee
+                          - paragraph [ref=f25e206]: zzemp-1794654844@example.com
+                    - cell "Procurement" [ref=f25e207]
+                    - cell "Lead Buyer" [ref=f25e208]
+                    - cell "₹1,186" [ref=f25e209]
+                    - cell "Unlimited" [ref=f25e211]
+                    - cell "Active" [ref=f25e212]
+                    - cell [ref=f25e213]:
+                      - generic [ref=f25e214]:
+                        - button "View Purchases" [ref=f25e215] [cursor=pointer]
+                        - button "Allot Funds" [ref=f25e219] [cursor=pointer]
+                        - button "Edit" [ref=f25e222] [cursor=pointer]
+                        - button "Deactivate" [ref=f25e225] [cursor=pointer]
+                  - row [ref=f25e231]:
+                    - cell "SE Seed Employee 24 zzseed-24@example.test" [ref=f25e232]:
+                      - generic [ref=f25e233]:
+                        - generic [ref=f25e234]: SE
+                        - generic [ref=f25e235]:
+                          - paragraph [ref=f25e236]: Seed Employee 24
+                          - paragraph [ref=f25e237]: zzseed-24@example.test
+                    - cell "Finance" [ref=f25e238]
+                    - cell "Staff" [ref=f25e239]
+                    - cell "₹3,837" [ref=f25e240]
+                    - cell "Unlimited" [ref=f25e242]
+                    - cell "Active" [ref=f25e243]
+                    - cell [ref=f25e244]:
+                      - generic [ref=f25e245]:
+                        - button "View Purchases" [ref=f25e246] [cursor=pointer]
+                        - button "Allot Funds" [ref=f25e250] [cursor=pointer]
+                        - button "Edit" [ref=f25e253] [cursor=pointer]
+                        - button "Deactivate" [ref=f25e256] [cursor=pointer]
+                  - row [ref=f25e262]:
+                    - cell "SE Seed Employee 23 zzseed-23@example.test" [ref=f25e263]:
+                      - generic [ref=f25e264]:
+                        - generic [ref=f25e265]: SE
+                        - generic [ref=f25e266]:
+                          - paragraph [ref=f25e267]: Seed Employee 23
+                          - paragraph [ref=f25e268]: zzseed-23@example.test
+                    - cell "Ops" [ref=f25e269]
+                    - cell "Staff" [ref=f25e270]
+                    - cell "₹806" [ref=f25e271]
+                    - cell "Unlimited" [ref=f25e273]
+                    - cell "Active" [ref=f25e274]
+                    - cell [ref=f25e275]:
+                      - generic [ref=f25e276]:
+                        - button "View Purchases" [ref=f25e277] [cursor=pointer]
+                        - button "Allot Funds" [ref=f25e281] [cursor=pointer]
+                        - button "Edit" [ref=f25e284] [cursor=pointer]
+                        - button "Deactivate" [ref=f25e287] [cursor=pointer]
+                  - row [ref=f25e293]:
+                    - cell "SE Seed Employee 22 zzseed-22@example.test" [ref=f25e294]:
+                      - generic [ref=f25e295]:
+                        - generic [ref=f25e296]: SE
+                        - generic [ref=f25e297]:
+                          - paragraph [ref=f25e298]: Seed Employee 22
+                          - paragraph [ref=f25e299]: zzseed-22@example.test
+                    - cell "Ops" [ref=f25e300]
+                    - cell "Staff" [ref=f25e301]
+                    - cell "₹3,285" [ref=f25e302]
+                    - cell "Unlimited" [ref=f25e304]
+                    - cell "Active" [ref=f25e305]
+                    - cell [ref=f25e306]:
+                      - generic [ref=f25e307]:
+                        - button "View Purchases" [ref=f25e308] [cursor=pointer]
+                        - button "Allot Funds" [ref=f25e312] [cursor=pointer]
+                        - button "Edit" [ref=f25e315] [cursor=pointer]
+                        - button "Deactivate" [ref=f25e318] [cursor=pointer]
+                  - row [ref=f25e324]:
+                    - cell "SE Seed Employee 21 zzseed-21@example.test" [ref=f25e325]:
+                      - generic [ref=f25e326]:
+                        - generic [ref=f25e327]: SE
+                        - generic [ref=f25e328]:
+                          - paragraph [ref=f25e329]: Seed Employee 21
+                          - paragraph [ref=f25e330]: zzseed-21@example.test
+                    - cell "Finance" [ref=f25e331]
+                    - cell "Staff" [ref=f25e332]
+                    - cell "₹2,734" [ref=f25e333]
+                    - cell "Unlimited" [ref=f25e335]
+                    - cell "Inactive" [ref=f25e336]
+                    - cell [ref=f25e337]:
+                      - generic [ref=f25e338]:
+                        - button "View Purchases" [ref=f25e339] [cursor=pointer]
+                        - button "Allot Funds" [ref=f25e343] [cursor=pointer]
+                        - button "Edit" [ref=f25e346] [cursor=pointer]
+                        - button "Reactivate" [ref=f25e349] [cursor=pointer]
+                  - row [ref=f25e354]:
+                    - cell "SE Seed Employee 20 zzseed-20@example.test" [ref=f25e355]:
+                      - generic [ref=f25e356]:
+                        - generic [ref=f25e357]: SE
+                        - generic [ref=f25e358]:
+                          - paragraph [ref=f25e359]: Seed Employee 20
+                          - paragraph [ref=f25e360]: zzseed-20@example.test
+                    - cell "IT" [ref=f25e361]
+                    - cell "Staff" [ref=f25e362]
+                    - cell "₹1,606" [ref=f25e363]
+                    - cell "Unlimited" [ref=f25e365]
+                    - cell "Active" [ref=f25e366]
+                    - cell [ref=f25e367]:
+                      - generic [ref=f25e368]:
+                        - button "View Purchases" [ref=f25e369] [cursor=pointer]
+                        - button "Allot Funds" [ref=f25e373] [cursor=pointer]
+                        - button "Edit" [ref=f25e376] [cursor=pointer]
+                        - button "Deactivate" [ref=f25e379] [cursor=pointer]
+                  - row [ref=f25e385]:
+                    - cell "SE Seed Employee 19 zzseed-19@example.test" [ref=f25e386]:
+                      - generic [ref=f25e387]:
+                        - generic [ref=f25e388]: SE
+                        - generic [ref=f25e389]:
+                          - paragraph [ref=f25e390]: Seed Employee 19
+                          - paragraph [ref=f25e391]: zzseed-19@example.test
+                    - cell "Sales" [ref=f25e392]
+                    - cell "Staff" [ref=f25e393]
+                    - cell "₹3,899" [ref=f25e394]
+                    - cell "Unlimited" [ref=f25e396]
+                    - cell "Active" [ref=f25e397]
+                    - cell [ref=f25e398]:
+                      - generic [ref=f25e399]:
+                        - button "View Purchases" [ref=f25e400] [cursor=pointer]
+                        - button "Allot Funds" [ref=f25e404] [cursor=pointer]
+                        - button "Edit" [ref=f25e407] [cursor=pointer]
+                        - button "Deactivate" [ref=f25e410] [cursor=pointer]
+                  - row [ref=f25e416]:
+                    - cell "SE Seed Employee 18 zzseed-18@example.test" [ref=f25e417]:
+                      - generic [ref=f25e418]:
+                        - generic [ref=f25e419]: SE
+                        - generic [ref=f25e420]:
+                          - paragraph [ref=f25e421]: Seed Employee 18
+                          - paragraph [ref=f25e422]: zzseed-18@example.test
+                    - cell "Ops" [ref=f25e423]
+                    - cell "Staff" [ref=f25e424]
+                    - cell "₹4,811" [ref=f25e425]
+                    - cell "Unlimited" [ref=f25e427]
+                    - cell "Active" [ref=f25e428]
+                    - cell [ref=f25e429]:
+                      - generic [ref=f25e430]:
+                        - button "View Purchases" [ref=f25e431] [cursor=pointer]
+                        - button "Allot Funds" [ref=f25e435] [cursor=pointer]
+                        - button "Edit" [ref=f25e438] [cursor=pointer]
+                        - button "Deactivate" [ref=f25e441] [cursor=pointer]
+                  - row [ref=f25e447]:
+                    - cell "SE Seed Employee 17 zzseed-17@example.test" [ref=f25e448]:
+                      - generic [ref=f25e449]:
+                        - generic [ref=f25e450]: SE
+                        - generic [ref=f25e451]:
+                          - paragraph [ref=f25e452]: Seed Employee 17
+                          - paragraph [ref=f25e453]: zzseed-17@example.test
+                    - cell "IT" [ref=f25e454]
+                    - cell "Staff" [ref=f25e455]
+                    - cell "₹1,458" [ref=f25e456]
+                    - cell "Unlimited" [ref=f25e458]
+                    - cell "Active" [ref=f25e459]
+                    - cell [ref=f25e460]:
+                      - generic [ref=f25e461]:
+                        - button "View Purchases" [ref=f25e462] [cursor=pointer]
+                        - button "Allot Funds" [ref=f25e466] [cursor=pointer]
+                        - button "Edit" [ref=f25e469] [cursor=pointer]
+                        - button "Deactivate" [ref=f25e472] [cursor=pointer]
+              - generic [ref=f25e478]:
+                - generic [ref=f25e479]: Showing 1 to 10 of 26 results
+                - generic [ref=f25e480]:
+                  - button [disabled]
+                  - generic [ref=f25e481]:
+                    - button "1" [ref=f25e482] [cursor=pointer]
+                    - button "2" [ref=f25e484] [cursor=pointer]
+                    - button "3" [ref=f25e486] [cursor=pointer]
+                  - button [ref=f25e488] [cursor=pointer]
+  - status [ref=f25e504]: Employee updated successfully

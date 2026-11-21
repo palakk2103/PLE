@@ -1,0 +1,184 @@
+- generic [ref=f2e1655]:
+  - banner [ref=f2e1656]:
+    - generic [ref=f2e1657]:
+      - generic [ref=f2e1658]:
+        - link [ref=f2e1659] [cursor=pointer]:
+          - /url: /home
+          - img "OPLE Logo" [ref=f2e1660]
+        - button "Menu" [ref=f2e1661] [cursor=pointer]
+      - navigation [ref=f2e1663]:
+        - link "Home" [ref=f2e1664] [cursor=pointer]:
+          - /url: /home
+        - link "Other Shops Marketplace" [ref=f2e1665] [cursor=pointer]:
+          - /url: /home?tab=marketplace
+          - generic [ref=f2e1666]: Other Shops
+          - generic [ref=f2e1667]: Marketplace
+        - link "Categories ▼" [ref=f2e1668] [cursor=pointer]:
+          - /url: /categories
+          - generic [ref=f2e1669]: Categories
+          - generic [ref=f2e1670]: ▼
+        - link "Offers" [ref=f2e1671] [cursor=pointer]:
+          - /url: /offers
+        - generic [ref=f2e1672] [cursor=pointer]:
+          - generic [ref=f2e1673]: Brands by PLE
+          - generic [ref=f2e1674]: New
+          - generic [ref=f2e1675]: ▼
+      - generic [ref=f2e1676]:
+        - textbox "Search products, brands, categories..." [ref=f2e1677]
+        - button "Search" [ref=f2e1678] [cursor=pointer]
+      - generic [ref=f2e1682]:
+        - button "RFQ" [ref=f2e1683] [cursor=pointer]
+        - button "Cart" [ref=f2e1689] [cursor=pointer]
+        - button "Theme" [ref=f2e1694] [cursor=pointer]
+        - button [ref=f2e1700] [cursor=pointer]:
+          - generic [ref=f2e1703]:
+            - paragraph [ref=f2e1704]: info
+            - paragraph [ref=f2e1705]: Business Account
+  - main [ref=f2e1706]:
+    - generic [ref=f2e1707]:
+      - generic [ref=f2e1709]:
+        - paragraph [ref=f2e1710]: Found 2 product(s)
+        - generic [ref=f2e1711]:
+          - combobox [ref=f2e1712]:
+            - option "Newest"
+            - option "Oldest"
+            - 'option "Price: Low to High"'
+            - 'option "Price: High to Low"'
+            - option "Popular"
+            - option "Top Rated" [selected]
+          - generic [ref=f2e1713]:
+            - button [ref=f2e1714] [cursor=pointer]
+            - button [ref=f2e1716] [cursor=pointer]
+          - button "Filters" [ref=f2e1723] [cursor=pointer]
+      - generic [ref=f2e1728]:
+        - generic [ref=f2e1730] [cursor=pointer]:
+          - generic [ref=f2e1731]:
+            - button [ref=f2e1733]
+            - link "40% OFF Wireless Headphones (Refurbished Grade A)" [ref=f2e1736]:
+              - /url: /product/6ada3975fdcdfc1795747492
+              - generic [ref=f2e1737]:
+                - generic [ref=f2e1738]: 40% OFF
+                - img "Wireless Headphones (Refurbished Grade A)" [ref=f2e1740]
+          - generic [ref=f2e1741]:
+            - link [ref=f2e1742]:
+              - /url: /product/6ada3975fdcdfc1795747492
+              - heading "Wireless Headphones (Refurbished Grade A)" [level=3] [ref=f2e1743]
+            - paragraph [ref=f2e1744]: Piece
+            - generic [ref=f2e1745]: Fast Bulk Cargo
+            - generic [ref=f2e1748]:
+              - generic [ref=f2e1749]:
+                - generic [ref=f2e1750]: "Bulk Price:"
+                - generic [ref=f2e1751]: ₹2,399.2
+                - generic [ref=f2e1752]: /Piece
+              - generic [ref=f2e1753]: "MOQ: 5 Pieces"
+            - button "Order Bulk" [ref=f2e1757]
+        - generic [ref=f2e1762] [cursor=pointer]:
+          - generic [ref=f2e1763]:
+            - button [ref=f2e1765]
+            - link "25% OFF headphone" [ref=f2e1768]:
+              - /url: /product/6a743d5d6310d92f7dc29296
+              - generic [ref=f2e1769]:
+                - generic [ref=f2e1770]: 25% OFF
+                - img "headphone" [ref=f2e1772]
+          - generic [ref=f2e1773]:
+            - link [ref=f2e1774]:
+              - /url: /product/6a743d5d6310d92f7dc29296
+              - heading "headphone" [level=3] [ref=f2e1775]
+            - paragraph [ref=f2e1776]: "1"
+            - generic [ref=f2e1777]: Fast Bulk Cargo
+            - generic [ref=f2e1780]:
+              - generic [ref=f2e1781]:
+                - generic [ref=f2e1782]: "Bulk Price:"
+                - generic [ref=f2e1783]: ₹719.2
+                - generic [ref=f2e1784]: /1
+              - generic [ref=f2e1785]: "MOQ: 5 1s"
+            - button "Order Bulk" [ref=f2e1789]
+  - contentinfo [ref=f2e1793]:
+    - generic [ref=f2e1795]:
+      - generic [ref=f2e1796]:
+        - link "PLE Logo TM" [ref=f2e1797] [cursor=pointer]:
+          - /url: /home
+          - generic [ref=f2e1798]:
+            - img "PLE Logo" [ref=f2e1799]
+            - generic [ref=f2e1800]: TM
+        - paragraph [ref=f2e1801]: Your destination for electronics across consumer, business, and specialized sourcing needs — from everyday tech and accessories to enterprise procurement solutions.
+        - generic [ref=f2e1802]:
+          - link [ref=f2e1803] [cursor=pointer]:
+            - /url: https://www.facebook.com/share/1EaNrat2yr/
+          - link [ref=f2e1806] [cursor=pointer]:
+            - /url: https://www.instagram.com/peoplesleagueofelectronics?igsh=MWdtbTNzajdqMGV4cQ==
+          - link [ref=f2e1810] [cursor=pointer]:
+            - /url: https://x.com/PeoplesE9405
+          - link [ref=f2e1813] [cursor=pointer]:
+            - /url: https://www.linkedin.com/company/ple-electronics
+      - generic [ref=f2e1818]:
+        - heading "Quick Links" [level=3] [ref=f2e1819]
+        - list [ref=f2e1820]:
+          - listitem [ref=f2e1821]:
+            - link "Home" [ref=f2e1822] [cursor=pointer]:
+              - /url: /home
+          - listitem [ref=f2e1823]:
+            - link "Categories" [ref=f2e1824] [cursor=pointer]:
+              - /url: /categories
+          - listitem [ref=f2e1825]:
+            - link "Offers" [ref=f2e1826] [cursor=pointer]:
+              - /url: /offers
+          - listitem [ref=f2e1827]:
+            - link "Refurbished" [ref=f2e1828] [cursor=pointer]:
+              - /url: /refurbished-categories
+          - listitem [ref=f2e1829]:
+            - link "My Profile" [ref=f2e1830] [cursor=pointer]:
+              - /url: /profile
+          - listitem [ref=f2e1831]:
+            - link "About Us" [ref=f2e1832] [cursor=pointer]:
+              - /url: /about-us
+      - generic [ref=f2e1833]:
+        - heading "Customer Support" [level=3] [ref=f2e1834]
+        - list [ref=f2e1835]:
+          - listitem [ref=f2e1836]:
+            - link "Help & Support" [ref=f2e1837] [cursor=pointer]:
+              - /url: /help-support
+          - listitem [ref=f2e1838]:
+            - link "Privacy Policy" [ref=f2e1839] [cursor=pointer]:
+              - /url: /privacy-policy
+          - listitem [ref=f2e1840]:
+            - link "Terms & Conditions" [ref=f2e1841] [cursor=pointer]:
+              - /url: /terms-conditions
+          - listitem [ref=f2e1842]:
+            - link "Return Policy" [ref=f2e1843] [cursor=pointer]:
+              - /url: /return-policy
+          - listitem [ref=f2e1844]:
+            - link "Warranty Policy" [ref=f2e1845] [cursor=pointer]:
+              - /url: /warranty-policy
+          - listitem [ref=f2e1846]:
+            - link "Business Onboarding Policy" [ref=f2e1847] [cursor=pointer]:
+              - /url: /business-onboarding-policy
+          - listitem [ref=f2e1848]:
+            - link "Execution & Acceptance Policy" [ref=f2e1849] [cursor=pointer]:
+              - /url: /execution-acceptance-policy
+          - listitem [ref=f2e1850]:
+            - link "Shipping and Delivery Policy" [ref=f2e1851] [cursor=pointer]:
+              - /url: /shipping-and-delivery-policy
+          - listitem [ref=f2e1852]:
+            - link "User Agreement" [ref=f2e1853] [cursor=pointer]:
+              - /url: /user-agreement
+      - generic [ref=f2e1854]:
+        - generic [ref=f2e1855]:
+          - heading "Subscribe to Newsletter" [level=3] [ref=f2e1856]
+          - paragraph [ref=f2e1857]: Be the first to hear about special offers, new arrivals, and events.
+          - generic [ref=f2e1858]:
+            - textbox "Enter email address" [ref=f2e1859]
+            - button [ref=f2e1860] [cursor=pointer]
+        - generic [ref=f2e1864]:
+          - generic [ref=f2e1865]: support@plebusiness.com
+          - generic [ref=f2e1870]: +91 9071149100
+          - generic [ref=f2e1874]: SHOP NO.25, R S NO.1045/3, 2ND CROSS, UJWAL NAGAR, Belgaum Fort, Karnataka, India,590016
+    - generic [ref=f2e1880]:
+      - generic [ref=f2e1881]: © 2026 PLE Inc. All rights reserved.
+      - generic [ref=f2e1882]:
+        - link "Privacy" [ref=f2e1883] [cursor=pointer]:
+          - /url: /privacy-policy
+        - link "Terms" [ref=f2e1884] [cursor=pointer]:
+          - /url: /terms-conditions
+        - link "Sitemap" [ref=f2e1885] [cursor=pointer]:
+          - /url: /help-support

@@ -5,8 +5,22 @@ import { ApiResponse } from '../../../utils/ApiResponse.js';
 import { asyncHandler } from '../../../utils/asyncHandler.js';
 import { getIO } from '../../../config/socket.js';
 import crypto from 'crypto';
-import { moderateMessage, MODERATION_ACTION } from '../../../services/chatModeration.service.js';
+import { moderateMessage, checkMultiMessageEvasion, validateMonetaryOffer, MODERATION_ACTION } from '../../../services/chatModeration.service.js';
 import ChatViolation from '../../../models/ChatViolation.model.js';
+import { createNotification } from '../../../services/notification.service.js';
+import { assertTextLength } from '../../../utils/chatLimits.js';
+
+/**
+ * Who may read / write a Direct RFQ: the employee who created it, or a B2B admin of the SAME company.
+ * (A B2B admin of another company, or a colleague employee, must not see the negotiation.)
+ */
+const canAccessDirectRfq = (drfq, user, requester) => {
+    const creatorId = String(drfq.employeeId?._id || drfq.employeeId || '');
+    if (creatorId && creatorId === String(user.id)) return true;
+    const sameCompany = !!(requester?.companyId && drfq.companyId)
+        && String(requester.companyId) === String(drfq.companyId);
+    return sameCompany && user.role === 'b2bAdmin';
+};
 
 const generateId = () => `DRFQ-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
 
@@ -39,7 +53,7 @@ export const createDirectRFQ = asyncHandler(async (req, res) => {
 export const getEmployeeDirectRFQs = asyncHandler(async (req, res) => {
     const employeeId = req.user.id;
     const drfqs = await DirectRFQ.find({ employeeId })
-        .populate('vendorId', 'name storeName email')
+        .populate('vendorId', 'name storeName')
         .populate('employeeId', 'name email');
     res.status(200).json(new ApiResponse(200, drfqs, "Fetched Direct RFQs"));
 });
@@ -47,20 +61,13 @@ export const getEmployeeDirectRFQs = asyncHandler(async (req, res) => {
 export const getDirectRFQDetail = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const drfq = await DirectRFQ.findById(id)
-        .populate('vendorId', 'name storeName email')
+        .populate('vendorId', 'name storeName')
         .populate('employeeId', 'name email');
     if (!drfq) throw new ApiError(404, "Not found");
 
     // Server-side authorization check (IDOR Protection)
-    const employee = await User.findById(req.user.id);
-    const isCreator = drfq.employeeId?._id 
-        ? drfq.employeeId._id.toString() === req.user.id 
-        : drfq.employeeId?.toString() === req.user.id;
-    const isSameCompany = (employee?.companyId && drfq.companyId) && 
-        (employee.companyId.toString() === drfq.companyId.toString());
-    const isAdmin = req.user.role === 'admin' || req.user.role === 'b2bAdmin';
-
-    if (!isCreator && !isSameCompany && !isAdmin) {
+    const requester = await User.findById(req.user.id).select('companyId');
+    if (!canAccessDirectRfq(drfq, req.user, requester)) {
         throw new ApiError(403, "You do not have permission to access this Direct RFQ.");
     }
 
@@ -77,18 +84,28 @@ export const sendDirectMessage = asyncHandler(async (req, res) => {
     if (!drfq) throw new ApiError(404, "Not found");
 
     // Server-side authorization check (IDOR Protection)
-    const isCreator = drfq.employeeId?.toString() === req.user.id;
-    const isSameCompany = (employee.companyId && drfq.companyId) && 
-        (employee.companyId.toString() === drfq.companyId.toString());
-    const isAdmin = req.user.role === 'admin' || req.user.role === 'b2bAdmin';
-
-    if (!isCreator && !isSameCompany && !isAdmin) {
+    if (!canAccessDirectRfq(drfq, req.user, employee)) {
         throw new ApiError(403, "You do not have permission to send messages in this Direct RFQ.");
     }
 
     // Lifecycle check: prevent sending messages in terminal RFQ states
     if (['PO Generated', 'Rejected'].includes(drfq.status)) {
         throw new ApiError(400, `This Direct RFQ is closed (${drfq.status}). New messages cannot be sent.`);
+    }
+    assertTextLength(message);
+
+    // A price that has been locked for approval can no longer be changed by either side.
+    const PRICE_LOCKED = ['Vendor Accepted', 'Pending Admin Approval'];
+    const hasOffer = priceOffer !== undefined && priceOffer !== null && priceOffer !== '';
+    const latestOfferFrom = (senderType) => {
+        const m = [...(drfq.messages || [])].reverse().find((x) => x.senderType === senderType && Number.isFinite(x.priceOffer));
+        return m ? m.priceOffer : undefined;
+    };
+    if (action === 'accept' && drfq.status === 'Pending Admin Approval') {
+        throw new ApiError(400, 'The price is already locked and waiting for B2B Admin approval.');
+    }
+    if (action !== 'accept' && hasOffer && PRICE_LOCKED.includes(drfq.status)) {
+        throw new ApiError(400, 'The price is locked, so a new price offer cannot be made.');
     }
 
     // ── Monetary Proposal Validation ──────────────────────────
@@ -133,7 +150,8 @@ export const sendDirectMessage = asyncHandler(async (req, res) => {
 
         // Multi-message evasion check
         const recentEmployeeMsgs = (drfq.messages || [])
-            .filter(m => m.senderId?.toString() === req.user.id && (Date.now() - new Date(m.createdAt).getTime() < 90000))
+            .filter(m => m.senderId?.toString() === req.user.id && (Date.now() - new Date(m.createdAt).getTime() < 24 * 60 * 60 * 1000))
+            .slice(-10)
             .map(m => m.message);
         const evasionResult = checkMultiMessageEvasion(message, recentEmployeeMsgs);
         if (evasionResult.action === MODERATION_ACTION.BLOCK) {
@@ -147,24 +165,42 @@ export const sendDirectMessage = asyncHandler(async (req, res) => {
     }
     // ── End Moderation ────────────────────────────────────────
 
+    // Build the final text BEFORE saving so the stored message is exactly what both sides see.
+    let finalText = message;
+    if (action === 'accept') {
+        // You can only lock a price the vendor has actually offered/accepted - never one you made up.
+        const vendorPrice = drfq.status === 'Vendor Accepted' ? drfq.finalAgreedPrice : latestOfferFrom('Vendor');
+        if (!Number.isFinite(vendorPrice)) {
+            throw new ApiError(400, 'The vendor has not offered a price yet. You can only accept a price the vendor has offered.');
+        }
+        drfq.status = 'Pending Admin Approval';
+        drfq.finalAgreedPrice = vendorPrice;
+        finalText = `[SYSTEM] Employee locked price at ₹${drfq.finalAgreedPrice} and sent for B2B Admin approval.`;
+    }
     const newMsg = {
         senderId: req.user.id,
         senderType: 'Employee',
         senderName: employee.name,
-        message,
+        message: finalText,
         priceOffer: (priceOffer !== undefined && priceOffer !== null && priceOffer !== '') ? Number(priceOffer) : undefined,
     };
     drfq.messages.push(newMsg);
 
-    if (action === 'accept') {
-        drfq.status = 'Pending Admin Approval';
-        drfq.finalAgreedPrice = priceOffer || drfq.targetPrice;
-        newMsg.message = `[SYSTEM] Employee locked price at ₹${drfq.finalAgreedPrice} and sent for B2B Admin approval.`;
-    }
-
     await drfq.save();
 
     // Emit socket event
+    // Saved notification for the vendor (they may be offline); the live event below only reaches open screens
+    try {
+        await createNotification({
+            recipientId: drfq.vendorId, recipientType: 'vendor',
+            title: action === 'accept' ? 'Direct RFQ price locked' : 'New Direct RFQ message',
+            message: `${employee.name} ${action === 'accept' ? 'accepted your price on' : 'sent a message on'} ${drfq.directRfqId}.`,
+            type: 'system', data: { rfqId: drfq.directRfqId, id: String(drfq._id) },
+        });
+    } catch (nErr) {
+        console.warn('Direct RFQ notification failed:', nErr.message);
+    }
+
     const io = getIO();
     io.to(`rfq_${id}`).emit('new_message', { rfqId: id, message: newMsg });
 

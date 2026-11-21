@@ -1,0 +1,14 @@
+- generic [ref=f1e71]:
+  - button "Back to selection" [ref=f1e72] [cursor=pointer]: Back
+  - generic [ref=f1e75]:
+    - img "PLE Logo" [ref=f1e77]
+    - heading "Welcome to Retail Store" [level=1] [ref=f1e78]
+    - paragraph [ref=f1e79]: Sign in to your account
+    - generic [ref=f1e80]:
+      - generic [ref=f1e81]: View your wish list
+      - generic [ref=f1e86]: Find & reorder past purchases
+      - generic [ref=f1e91]: Track your active deliveries
+    - generic [ref=f1e96]:
+      - button "Already a customer? Sign in" [ref=f1e97] [cursor=pointer]
+      - button "New to PLE? Create an account" [ref=f1e98] [cursor=pointer]
+      - button "Skip sign in" [ref=f1e99] [cursor=pointer]

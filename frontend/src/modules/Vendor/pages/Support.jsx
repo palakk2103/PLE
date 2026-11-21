@@ -21,6 +21,7 @@ import {
 import { useNavigate, Link } from "react-router-dom";
 import PageTransition from "../../../shared/components/PageTransition";
 import toast from "react-hot-toast";
+import api from "../../../shared/utils/api";
 
 const CONTACT_INFO = {
   name: "Mohmmad Jain kankudti",
@@ -95,26 +96,24 @@ const VendorSupport = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.message) {
       toast.error("Please fill in all required fields.");
       return;
     }
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      // Creates a real support ticket linked to your seller account
+      await api.post("/support/contact", { ...formData, subject: formData.category });
       setSubmitted(true);
       toast.success("Support ticket created. Our seller desk will reach out promptly!");
-      setFormData({
-        name: "",
-        storeName: "",
-        email: "",
-        phone: "",
-        category: "Payouts & Settlements",
-        message: "",
-      });
-    }, 800);
+      setFormData({ name: "", storeName: "", email: "", phone: "", category: "Payouts & Settlements", message: "" });
+    } catch (error) {
+      toast.error(error?.response?.data?.message || error?.message || "Could not send your message. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

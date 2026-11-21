@@ -102,10 +102,10 @@ export const useB2BAdminStore = create(
     try {
       await api.deleteEmployee(id);
       await get().fetchEmployees();
-      toast.success('Employee deleted successfully');
+      toast.success('Employee deactivated. Their purchase history is kept.');
       return true;
     } catch (err) {
-      const msg = err.response?.data?.message || 'Failed to delete employee';
+      const msg = err.response?.data?.message || 'Failed to deactivate employee';
       set({ error: msg });
       toast.error(msg);
       return false;

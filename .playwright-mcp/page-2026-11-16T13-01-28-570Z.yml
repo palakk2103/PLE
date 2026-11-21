@@ -1,0 +1,164 @@
+- generic [ref=f7e2293]:
+  - banner [ref=f7e2294]:
+    - generic [ref=f7e2295]:
+      - generic [ref=f7e2296]:
+        - link [ref=f7e2297] [cursor=pointer]:
+          - /url: /home
+          - img "OPLE Logo" [ref=f7e2298]
+        - button "Menu" [ref=f7e2299] [cursor=pointer]
+      - navigation [ref=f7e2301]:
+        - link "Home" [ref=f7e2302] [cursor=pointer]:
+          - /url: /home
+        - link "Other Shops Marketplace" [ref=f7e2303] [cursor=pointer]:
+          - /url: /home?tab=marketplace
+          - generic [ref=f7e2304]: Other Shops
+          - generic [ref=f7e2305]: Marketplace
+        - link "Categories ▼" [ref=f7e2306] [cursor=pointer]:
+          - /url: /categories
+          - generic [ref=f7e2307]: Categories
+          - generic [ref=f7e2308]: ▼
+        - link "Offers" [ref=f7e2309] [cursor=pointer]:
+          - /url: /offers
+        - generic [ref=f7e2310] [cursor=pointer]:
+          - generic [ref=f7e2311]: Brands by PLE
+          - generic [ref=f7e2312]: New
+          - generic [ref=f7e2313]: ▼
+      - generic [ref=f7e2317]:
+        - textbox [ref=f7e2321]
+        - generic: Search products
+      - generic [ref=f7e2322]:
+        - button "3 RFQ" [ref=f7e2323] [cursor=pointer]:
+          - generic [ref=f7e2324]: "3"
+          - generic [ref=f7e2329]: RFQ
+        - button "Cart" [ref=f7e2330] [cursor=pointer]
+        - button "Theme" [ref=f7e2335] [cursor=pointer]
+        - button [ref=f7e2341] [cursor=pointer]:
+          - generic [ref=f7e2344]:
+            - paragraph [ref=f7e2345]: palak
+            - paragraph [ref=f7e2346]: Business Account
+  - main [ref=f7e2347]:
+    - generic [ref=f7e2348]:
+      - generic [ref=f7e2350]:
+        - paragraph [ref=f7e2351]: Found 1 product(s)
+        - generic [ref=f7e2352]:
+          - combobox [ref=f7e2353]:
+            - option "Newest"
+            - option "Oldest"
+            - 'option "Price: Low to High"'
+            - 'option "Price: High to Low"'
+            - option "Popular"
+            - option "Top Rated" [selected]
+          - generic [ref=f7e2354]:
+            - button [ref=f7e2355] [cursor=pointer]
+            - button [ref=f7e2357] [cursor=pointer]
+          - button "Filters" [ref=f7e2364] [cursor=pointer]
+      - generic [ref=f7e2371] [cursor=pointer]:
+        - generic [ref=f7e2372]:
+          - button [ref=f7e2374]
+          - link "24% OFF 600VA Line-Interactive UPS" [ref=f7e2377]:
+            - /url: /product/6ada3975fdcdfc17957474bc
+            - generic [ref=f7e2378]:
+              - generic [ref=f7e2379]: 24% OFF
+              - img "600VA Line-Interactive UPS" [ref=f7e2381]
+        - generic [ref=f7e2382]:
+          - link [ref=f7e2383]:
+            - /url: /product/6ada3975fdcdfc17957474bc
+            - heading "600VA Line-Interactive UPS" [level=3] [ref=f7e2384]
+          - paragraph [ref=f7e2385]: Piece
+          - generic [ref=f7e2386]: Fast Bulk Cargo
+          - generic [ref=f7e2389]:
+            - generic [ref=f7e2390]:
+              - generic [ref=f7e2391]: "Bulk Price:"
+              - generic [ref=f7e2392]: ₹3,150
+              - generic [ref=f7e2393]: /Piece
+            - generic [ref=f7e2394]: "MOQ: 5 Pieces"
+          - button "Order Bulk" [ref=f7e2398]
+  - contentinfo [ref=f7e2402]:
+    - generic [ref=f7e2404]:
+      - generic [ref=f7e2405]:
+        - link "PLE Logo TM" [ref=f7e2406] [cursor=pointer]:
+          - /url: /home
+          - generic [ref=f7e2407]:
+            - img "PLE Logo" [ref=f7e2408]
+            - generic [ref=f7e2409]: TM
+        - paragraph [ref=f7e2410]: Your destination for electronics across consumer, business, and specialized sourcing needs — from everyday tech and accessories to enterprise procurement solutions.
+        - generic [ref=f7e2411]:
+          - link [ref=f7e2412] [cursor=pointer]:
+            - /url: https://www.facebook.com/share/1EaNrat2yr/
+          - link [ref=f7e2415] [cursor=pointer]:
+            - /url: https://www.instagram.com/peoplesleagueofelectronics?igsh=MWdtbTNzajdqMGV4cQ==
+          - link [ref=f7e2419] [cursor=pointer]:
+            - /url: https://x.com/PeoplesE9405
+          - link [ref=f7e2422] [cursor=pointer]:
+            - /url: https://www.linkedin.com/company/ple-electronics
+      - generic [ref=f7e2427]:
+        - heading "Quick Links" [level=3] [ref=f7e2428]
+        - list [ref=f7e2429]:
+          - listitem [ref=f7e2430]:
+            - link "Home" [ref=f7e2431] [cursor=pointer]:
+              - /url: /home
+          - listitem [ref=f7e2432]:
+            - link "Categories" [ref=f7e2433] [cursor=pointer]:
+              - /url: /categories
+          - listitem [ref=f7e2434]:
+            - link "Offers" [ref=f7e2435] [cursor=pointer]:
+              - /url: /offers
+          - listitem [ref=f7e2436]:
+            - link "Refurbished" [ref=f7e2437] [cursor=pointer]:
+              - /url: /refurbished-categories
+          - listitem [ref=f7e2438]:
+            - link "My Profile" [ref=f7e2439] [cursor=pointer]:
+              - /url: /profile
+          - listitem [ref=f7e2440]:
+            - link "About Us" [ref=f7e2441] [cursor=pointer]:
+              - /url: /about-us
+      - generic [ref=f7e2442]:
+        - heading "Customer Support" [level=3] [ref=f7e2443]
+        - list [ref=f7e2444]:
+          - listitem [ref=f7e2445]:
+            - link "Help & Support" [ref=f7e2446] [cursor=pointer]:
+              - /url: /help-support
+          - listitem [ref=f7e2447]:
+            - link "Privacy Policy" [ref=f7e2448] [cursor=pointer]:
+              - /url: /privacy-policy
+          - listitem [ref=f7e2449]:
+            - link "Terms & Conditions" [ref=f7e2450] [cursor=pointer]:
+              - /url: /terms-conditions
+          - listitem [ref=f7e2451]:
+            - link "Return Policy" [ref=f7e2452] [cursor=pointer]:
+              - /url: /return-policy
+          - listitem [ref=f7e2453]:
+            - link "Warranty Policy" [ref=f7e2454] [cursor=pointer]:
+              - /url: /warranty-policy
+          - listitem [ref=f7e2455]:
+            - link "Business Onboarding Policy" [ref=f7e2456] [cursor=pointer]:
+              - /url: /business-onboarding-policy
+          - listitem [ref=f7e2457]:
+            - link "Execution & Acceptance Policy" [ref=f7e2458] [cursor=pointer]:
+              - /url: /execution-acceptance-policy
+          - listitem [ref=f7e2459]:
+            - link "Shipping and Delivery Policy" [ref=f7e2460] [cursor=pointer]:
+              - /url: /shipping-and-delivery-policy
+          - listitem [ref=f7e2461]:
+            - link "User Agreement" [ref=f7e2462] [cursor=pointer]:
+              - /url: /user-agreement
+      - generic [ref=f7e2463]:
+        - generic [ref=f7e2464]:
+          - heading "Subscribe to Newsletter" [level=3] [ref=f7e2465]
+          - paragraph [ref=f7e2466]: Be the first to hear about special offers, new arrivals, and events.
+          - generic [ref=f7e2467]:
+            - textbox "Enter email address" [ref=f7e2468]
+            - button [ref=f7e2469] [cursor=pointer]
+        - generic [ref=f7e2473]:
+          - generic [ref=f7e2474]: support@plebusiness.com
+          - generic [ref=f7e2479]: +91 9071149100
+          - generic [ref=f7e2483]: SHOP NO.25, R S NO.1045/3, 2ND CROSS, UJWAL NAGAR, Belgaum Fort, Karnataka, India,590016
+    - generic [ref=f7e2489]:
+      - generic [ref=f7e2490]: © 2026 PLE Inc. All rights reserved.
+      - generic [ref=f7e2491]:
+        - link "Privacy" [ref=f7e2492] [cursor=pointer]:
+          - /url: /privacy-policy
+        - link "Terms" [ref=f7e2493] [cursor=pointer]:
+          - /url: /terms-conditions
+        - link "Sitemap" [ref=f7e2494] [cursor=pointer]:
+          - /url: /help-support

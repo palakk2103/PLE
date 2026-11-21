@@ -10,6 +10,23 @@ import { slugify } from '../../../utils/slugify.js';
 import { sanitizeSpecifications } from '../../../services/productSpecs.service.js';
 import { notifyBackInStockWishlistUsers } from '../../../services/customerNotification.service.js';
 import { sendVendorStockAlertEmail } from '../../../services/vendorNotification.service.js';
+import { createNotification } from '../../../services/notification.service.js';
+import { VENDOR_PROTECTED_PRODUCT_FIELDS } from '../../../utils/productVisibility.js';
+
+const stripProtectedFields = (body = {}) => {
+    const clean = { ...body };
+    for (const key of VENDOR_PROTECTED_PRODUCT_FIELDS) delete clean[key];
+    return clean;
+};
+
+const notifyAdminsOfPendingProduct = (product, sellerName, isResubmission = false) =>
+    createNotification({
+        recipientType: 'admin',
+        title: isResubmission ? 'Product Resubmitted for Approval' : 'New Product Awaiting Approval',
+        message: `${sellerName || 'A seller'} ${isResubmission ? 'resubmitted' : 'submitted'} "${product.name}" for review.`,
+        type: 'system',
+        data: { productId: String(product._id), productName: product.name, status: 'pending' },
+    }).catch((err) => console.error('[ProductApproval] Admin notification error:', err.message));
 
 const checkB2BPermission = async (vendorId, salesChannel) => {
     if (salesChannel === 'B2B' || salesChannel === 'BOTH') {
@@ -434,8 +451,10 @@ export const createProduct = asyncHandler(async (req, res) => {
         isCustomBrand,
         customBrandName: inputCustomBrandName,
         brandId: inputBrandId,
-        ...rest
+        ...unsafeRest
     } = req.body;
+    // Sellers can never self-approve or self-publish; approval state is controlled by admin only.
+    const { isActive: _ignoredIsActive, ...rest } = stripProtectedFields(unsafeRest);
 
     if (!name) throw new ApiError(400, 'Product name is required.');
     const slug = slugify(name) + '-' + Date.now();
@@ -482,9 +501,10 @@ export const createProduct = asyncHandler(async (req, res) => {
     const { brandId: resolvedBrandId, brandApprovalStatus, customBrandName, needsBrandReview } =
         await resolveBrandForVendorProduct(req.user, inputBrandId, inputCustomBrandName, isCustomBrand);
 
-    const shouldBePending = isManaged || needsBrandReview || needsCategoryReview;
+    // Every seller-created product must be reviewed by an admin before customers can see it.
+    const shouldBePending = true;
 
-    const reasons = [];
+    const reasons = ['Admin approval required for new seller product'];
     if (needsCategoryReview) reasons.push(`Custom category request: "${customCategoryName}"`);
     if (needsBrandReview) reasons.push(`Custom brand request: "${customBrandName}"`);
     if (isManaged) reasons.push('Managed vendor submission');
@@ -513,7 +533,7 @@ export const createProduct = asyncHandler(async (req, res) => {
             userType: isManaged ? 'managed_vendor' : 'vendor',
             timestamp: new Date(),
             reason: reasons.length > 0
-                ? `Product submitted for review with ${reasons.join(', ')}`
+                ? `Product submitted for review: ${reasons.join(', ')}`
                 : 'Product created',
         }],
         salesChannel: targetSalesChannel,
@@ -564,7 +584,9 @@ export const createProduct = asyncHandler(async (req, res) => {
         await product.save();
     }
 
-    res.status(201).json(new ApiResponse(201, product, 'Product created.'));
+    notifyAdminsOfPendingProduct(product, req.user.storeName || req.user.name);
+
+    res.status(201).json(new ApiResponse(201, product, 'Product submitted for admin approval. It will be visible to customers once approved.'));
 });
 
 // PUT /api/vendor/products/:id
@@ -612,9 +634,14 @@ export const updateProduct = asyncHandler(async (req, res) => {
         brandId: _brId,
         isCustomBrand: _isCustBr,
         customBrandName: _custBrName,
-        ...otherFields
+        ...unsafeOtherFields
     } = req.body;
 
+    const otherFields = stripProtectedFields(unsafeOtherFields);
+    // A seller may only toggle visibility on a product that admin has already approved.
+    if (product.approvalStatus !== 'approved') delete otherFields.isActive;
+
+    const wasRejected = product.approvalStatus === 'rejected';
     Object.assign(product, otherFields);
 
     if (
@@ -658,9 +685,13 @@ export const updateProduct = asyncHandler(async (req, res) => {
         }
     }
 
+    // Editing a rejected product resubmits it for admin review.
+    if (wasRejected) reviewNeeded = true;
+
     if (reviewNeeded) {
         product.approvalStatus = 'pending';
         product.isActive = false;
+        product.rejectionReason = undefined;
     }
 
     if (Object.prototype.hasOwnProperty.call(req.body, 'faqs')) {
@@ -706,6 +737,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
     const updateReasons = [];
     if (categoryReviewNeeded) updateReasons.push(`custom category request: "${product.customCategoryName}"`);
     if (brandReviewNeeded) updateReasons.push(`custom brand request: "${product.customBrandName}"`);
+    if (wasRejected) updateReasons.push('resubmission after rejection');
 
     product.updatedBy = req.user.id;
     product.auditLog.push({
@@ -719,7 +751,14 @@ export const updateProduct = asyncHandler(async (req, res) => {
     });
 
     await product.save();
-    res.status(200).json(new ApiResponse(200, product, 'Product updated.'));
+    if (reviewNeeded) {
+        notifyAdminsOfPendingProduct(product, req.user.storeName || req.user.name, wasRejected);
+    }
+    res.status(200).json(new ApiResponse(
+        200,
+        product,
+        reviewNeeded ? 'Product updated and sent for admin approval.' : 'Product updated.'
+    ));
 });
 
 // DELETE /api/vendor/products/:id
@@ -894,8 +933,9 @@ export const createBulkProducts = asyncHandler(async (req, res) => {
                 shopId: isManaged ? req.user.shopId : undefined,
                 vendorUserId: isManaged ? req.user.id : undefined,
                 createdBy: req.user.id,
-                approvalStatus: isManaged ? 'pending' : 'approved',
-                isActive: !isManaged,
+                // All seller products require admin approval before going live.
+                approvalStatus: 'pending',
+                isActive: false,
                 stockQuantity,
                 lowStockThreshold: Number(item.lowStockThreshold || 10),
                 minimumOrderQuantity: item.minimumOrderQuantity ? Math.max(1, Number(item.minimumOrderQuantity)) : 1,
@@ -946,7 +986,7 @@ export const createBulkProducts = asyncHandler(async (req, res) => {
                     userId: req.user.id,
                     userType: isManaged ? 'managed_vendor' : 'vendor',
                     timestamp: new Date(),
-                    reason: 'Bulk product created'
+                    reason: 'Bulk product created — awaiting admin approval'
                 }],
             };
 
@@ -963,6 +1003,16 @@ export const createBulkProducts = asyncHandler(async (req, res) => {
                 message: err.message || `Error processing row #${rowNum}`,
             });
         }
+    }
+
+    if (createdProducts.length > 0) {
+        createNotification({
+            recipientType: 'admin',
+            title: 'Bulk Products Awaiting Approval',
+            message: `${req.user.storeName || req.user.name || 'A seller'} uploaded ${createdProducts.length} product(s) for review.`,
+            type: 'system',
+            data: { count: String(createdProducts.length), status: 'pending' },
+        }).catch((err) => console.error('[ProductApproval] Admin notification error:', err.message));
     }
 
     res.status(200).json(

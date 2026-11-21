@@ -165,6 +165,9 @@ export const submitVendorCounterOffer = asyncHandler(async (req, res) => {
     }
 
     const nextRound = (negotiation.currentOffer?.round || 0) + 1;
+    if (nextRound > 10) {
+        throw new ApiError(400, 'Negotiation limit reached (10 rounds). Please accept or reject the current offer.');
+    }
     const newOffer = {
         round: nextRound,
         price: numericPrice,

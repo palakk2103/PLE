@@ -33,7 +33,10 @@ const vendorChatThreadSchema = new mongoose.Schema(
             get: decryptMessage,
         },
         lastActivity: { type: Date, default: Date.now, index: true },
-        unreadCount: { type: Number, default: 0, min: 0 },
+        unreadCount: { type: Number, default: 0, min: 0 },          // unread for the VENDOR
+        unreadCountCustomer: { type: Number, default: 0, min: 0 },  // unread for the CUSTOMER
+        adminLastReadAt: { type: Date, default: null },
+        closedBy: { type: String, enum: ['customer', 'vendor', 'admin', null], default: null },
         status: {
             type: String,
             enum: ['active', 'resolved', 'closed'],

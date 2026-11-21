@@ -14,6 +14,14 @@ const LiveChat = () => {
     });
   }, [fetchTickets]);
 
+  // Pick up new customer messages without a manual reload
+  useEffect(() => {
+    const timer = setInterval(() => {
+      fetchTickets({ limit: 200, silent: true });
+    }, 10000);
+    return () => clearInterval(timer);
+  }, [fetchTickets]);
+
   const chats = useMemo(() => {
     return (tickets || [])
       .filter((ticket) => ['open', 'in_progress', 'waiting_for_user'].includes(ticket.status))

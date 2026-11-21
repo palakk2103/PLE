@@ -9,12 +9,42 @@ import {
     cleanupLocalFiles
 } from '../../../services/upload.service.js';
 import { getIO } from '../../../config/socket.js';
+import { assertTextLength } from '../../../utils/chatLimits.js';
 import User from '../../../models/User.model.js';
 import { sendRfqResponseCustomerEmail } from '../../../services/customerNotification.service.js';
 import {
     sendRfqVendorResponseReceivedEmail,
     sendRfqMultipleQuotesAvailableEmail
 } from '../../../services/sourcingNotification.service.js';
+
+/**
+ * Vendor-safe view of a managed RFQ. A vendor must only ever see its own
+ * quotation and its own negotiation thread with PLE admin – never competing
+ * vendors' bids, the B2B buyer <-> PLE admin discussion (incl. internal notes),
+ * or audit entries that quote other vendors' messages.
+ */
+const NEGOTIATION_HISTORY_ACTIONS = new Set(['Admin Negotiation Message Sent', 'Vendor Negotiation Message Sent']);
+
+export const toVendorRfqView = (rfqDoc, vendorId) => {
+    if (!rfqDoc) return rfqDoc;
+    const rfq = typeof rfqDoc.toObject === 'function' ? rfqDoc.toObject() : { ...rfqDoc };
+    const me = String(vendorId);
+
+    const myQuotes = (rfq.quotations || []).filter((q) => String(q.vendorId?._id || q.vendorId) === me);
+    const myNames = new Set(myQuotes.map((q) => q.vendorName).filter(Boolean));
+
+    rfq.quotations = myQuotes;
+    rfq.assignedVendorIds = (rfq.assignedVendorIds || []).filter((v) => String(v?._id || v) === me);
+    rfq.negotiationMessages = [];
+    rfq.approvalHistory = (rfq.approvalHistory || []).filter((h) => {
+        if (!NEGOTIATION_HISTORY_ACTIONS.has(h.action)) return true;
+        if (String(h.updatedBy) === me) return true; // this vendor's own message
+        // Admin -> vendor messages are logged as `... sent message to vendor <name>: "..."`
+        return [...myNames].some((name) => String(h.notes || '').includes(`to vendor ${name}:`));
+    });
+    delete rfq.timeline; // legacy buyer/seller/admin price timeline
+    return rfq;
+};
 
 // GET /api/vendor/rfq
 export const getVendorRFQs = asyncHandler(async (req, res) => {
@@ -23,7 +53,7 @@ export const getVendorRFQs = asyncHandler(async (req, res) => {
         .populate('productId', 'name image price')
         .sort({ createdAt: -1 });
 
-    res.status(200).json(new ApiResponse(200, rfqs, 'Vendor RFQs fetched successfully.'));
+    res.status(200).json(new ApiResponse(200, rfqs.map((r) => toVendorRfqView(r, req.user.id)), 'Vendor RFQs fetched successfully.'));
 });
 
 // POST /api/vendor/rfq/:id/quote
@@ -127,7 +157,7 @@ export const vendorSendQuote = asyncHandler(async (req, res) => {
         }).catch(() => null);
     }
 
-    res.status(200).json(new ApiResponse(200, rfq, 'Quotation submitted successfully.'));
+    res.status(200).json(new ApiResponse(200, toVendorRfqView(rfq, req.user.id), 'Quotation submitted successfully.'));
 });
 
 // POST /api/vendor/rfq/:id/reject
@@ -180,7 +210,7 @@ export const vendorRejectRFQ = asyncHandler(async (req, res) => {
         data: { rfqId: rfq.rfqId, id: String(rfq._id) }
     });
 
-    res.status(200).json(new ApiResponse(200, rfq, 'RFQ invitation declined successfully.'));
+    res.status(200).json(new ApiResponse(200, toVendorRfqView(rfq, req.user.id), 'RFQ invitation declined successfully.'));
 });
 
 // POST /api/vendor/rfq/upload
@@ -210,6 +240,7 @@ export const sendVendorNegotiationMessage = asyncHandler(async (req, res) => {
     if (!message) {
         throw new ApiError(400, 'Message text is required.');
     }
+    assertTextLength(message);
 
     const rfq = await RFQ.findOne({ _id: req.params.id, assignedVendorIds: req.user.id });
     if (!rfq) {
@@ -263,7 +294,9 @@ export const sendVendorNegotiationMessage = asyncHandler(async (req, res) => {
 
     // Emit socket event for vendor-admin chat
     const io = getIO();
-    io.to(`rfq_${rfq._id}`).emit('new_vendor_message', { rfqId: rfq._id, vendorId: req.user.id, message: savedMessage });
+    // Only the admins and this vendor's own private line - never other vendors or the B2B buyer.
+    io.to([`rfq_${rfq._id}_admin`, `rfq_${rfq._id}_vendor_${req.user.id}`])
+        .emit('new_vendor_message', { rfqId: rfq._id, vendorId: req.user.id, message: savedMessage });
 
     res.status(200).json(new ApiResponse(200, savedMessage, 'Negotiation message sent successfully.'));
 });

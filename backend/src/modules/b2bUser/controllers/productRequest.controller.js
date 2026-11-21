@@ -49,66 +49,36 @@ export const createProductRequest = asyncHandler(async (req, res) => {
             throw new ApiError(400, 'Please provide targetEntityType and targetEntityId for shop-specific requests.');
         }
 
-        const mongoose = (await import('mongoose')).default;
-        const isValidObjectId = mongoose.Types.ObjectId.isValid(targetEntityId);
+        // Never create vendor accounts or shops from a customer request: the
+        // target id comes from the URL and is fully user-controlled.
+        if (!['Vendor', 'ManagedShop'].includes(targetEntityType)) {
+            throw new ApiError(400, 'Invalid target entity type.');
+        }
 
-        if (!isValidObjectId) {
-            // Mock ID from frontend vendors.js (e.g. "1" or "2"). Fallback to first available in DB, or auto-create if empty.
-            if (targetEntityType === 'Vendor') {
-                let fallbackVendor = await Vendor.findOne({});
-                if (!fallbackVendor) {
-                    // Auto-create default vendor for in-memory database test flows
-                    fallbackVendor = await Vendor.create({
-                        name: 'Default Mock Vendor',
-                        email: 'mockvendor@example.com',
-                        password: 'Password123!',
-                        storeName: 'Default Mock Vendor',
-                        status: 'approved',
-                        isActive: true
-                    });
-                }
-                finalTargetId = fallbackVendor._id;
-            } else if (targetEntityType === 'ManagedShop') {
-                let fallbackShop = await ManagedShop.findOne({});
-                if (!fallbackShop) {
-                    fallbackShop = await ManagedShop.create({
-                        name: 'Default Mock Shop',
-                        status: 'active'
-                    });
-                }
-                finalTargetId = fallbackShop._id;
+        if (!mongoose.Types.ObjectId.isValid(targetEntityId)) {
+            // Legacy mock ids from the frontend (e.g. "1"): map to an existing record only.
+            const fallback = targetEntityType === 'Vendor'
+                ? (await Vendor.findOne({ storeName: 'PLE Shop', status: 'approved' })) || (await Vendor.findOne({ status: 'approved' }))
+                : await ManagedShop.findOne({ status: 'active' });
+            if (!fallback) {
+                throw new ApiError(404, 'Selected shop was not found.');
+            }
+            finalTargetId = fallback._id;
+        } else if (targetEntityType === 'Vendor') {
+            const vendor = await Vendor.findById(targetEntityId);
+            if (!vendor) {
+                throw new ApiError(404, 'Selected vendor was not found.');
+            }
+            if (vendor.status !== 'approved' && vendor.status !== 'pending') {
+                throw new ApiError(400, 'Selected vendor is not active.');
             }
         } else {
-            if (targetEntityType === 'Vendor') {
-                let vendor = await Vendor.findById(targetEntityId);
-                if (!vendor) {
-                    vendor = await Vendor.create({
-                        _id: targetEntityId,
-                        name: 'PLE Shop',
-                        email: `mock_${targetEntityId}@example.com`,
-                        password: 'Password123!',
-                        storeName: 'PLE Shop',
-                        status: 'approved',
-                        isActive: true
-                    });
-                }
-                if (vendor.status !== 'approved' && vendor.status !== 'pending') {
-                    throw new ApiError(400, 'Selected vendor is not active.');
-                }
-            } else if (targetEntityType === 'ManagedShop') {
-                let shop = await ManagedShop.findById(targetEntityId);
-                if (!shop) {
-                    shop = await ManagedShop.create({
-                        _id: targetEntityId,
-                        name: 'PLE Shop',
-                        status: 'active'
-                    });
-                }
-                if (shop.status !== 'active') {
-                    throw new ApiError(400, 'Selected shop is inactive.');
-                }
-            } else {
-                throw new ApiError(400, 'Invalid target entity type.');
+            const shop = await ManagedShop.findById(targetEntityId);
+            if (!shop) {
+                throw new ApiError(404, 'Selected shop was not found.');
+            }
+            if (shop.status !== 'active') {
+                throw new ApiError(400, 'Selected shop is inactive.');
             }
         }
     }

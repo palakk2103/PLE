@@ -151,7 +151,7 @@ export const getBuyerRFQs = asyncHandler(async (req, res) => {
 export const getRFQDetail = asyncHandler(async (req, res) => {
     const rfq = await RFQ.findOne({ _id: req.params.id, buyerId: req.user.id, rfqType: { $ne: 'consumer' } })
         .populate('productId', 'name image price unit stockQuantity')
-        .populate('sellerId', 'storeName name email')
+        .populate('sellerId', 'storeName name')
         .populate('buyerId', 'name companyName email phone');
 
     if (!rfq) {
@@ -375,7 +375,14 @@ export const buyerAcceptQuote = asyncHandler(async (req, res) => {
         console.error("Automatic invoice / email generation error on RFQ order:", invErr?.message);
     }
 
-    res.status(200).json(new ApiResponse(200, { rfq, order: order[0] }, 'RFQ accepted and converted to order successfully.'));
+    // The seller was fully populated for commission/email use above; never hand its
+    // contact, bank or identity fields back to the buyer.
+    const rfqOut = typeof rfq.toObject === 'function' ? rfq.toObject() : { ...rfq };
+    if (rfqOut.sellerId && typeof rfqOut.sellerId === 'object') {
+        const { _id, storeName, name, storeLogo } = rfqOut.sellerId;
+        rfqOut.sellerId = { _id, storeName, name, storeLogo };
+    }
+    res.status(200).json(new ApiResponse(200, { rfq: rfqOut, order: order[0] }, 'RFQ accepted and converted to order successfully.'));
 });
 
 // POST /api/user/rfq/:id/reject

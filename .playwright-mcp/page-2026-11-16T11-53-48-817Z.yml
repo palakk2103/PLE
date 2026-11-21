@@ -1,0 +1,142 @@
+- generic [ref=f4e3]:
+  - complementary [ref=f4e5]:
+    - heading "B2B Admin" [level=2] [ref=f4e13]
+    - button "Back to B2B Store" [ref=f4e15] [cursor=pointer]
+    - navigation [ref=f4e25]:
+      - link "Dashboard" [ref=f4e26] [cursor=pointer]:
+        - /url: /b2b-dashboard/overview
+      - link "Employees" [ref=f4e31] [cursor=pointer]:
+        - /url: /b2b-dashboard/employees
+      - link "Employee Purchases" [ref=f4e38] [cursor=pointer]:
+        - /url: /b2b-dashboard/employee-purchases
+      - link "RFQs" [ref=f4e43] [cursor=pointer]:
+        - /url: /b2b-dashboard/rfqs
+      - link "Quotations" [ref=f4e48] [cursor=pointer]:
+        - /url: /b2b-dashboard/quotations
+      - link "Product Requests" [ref=f4e53] [cursor=pointer]:
+        - /url: /b2b-dashboard/product-requests
+      - link "RFQ Discussions" [ref=f4e58] [cursor=pointer]:
+        - /url: /b2b-dashboard/discussions
+      - link "Shop Chats" [ref=f4e62] [cursor=pointer]:
+        - /url: /b2b-dashboard/shop-chats
+      - link "Purchase Orders" [ref=f4e66] [cursor=pointer]:
+        - /url: /b2b-dashboard/purchase-orders
+      - link "Business Wallet" [ref=f4e70] [cursor=pointer]:
+        - /url: /wallet
+      - link "Company Profile" [ref=f4e74] [cursor=pointer]:
+        - /url: /b2b-dashboard/company-profile
+      - link "Legal Documents" [ref=f4e79] [cursor=pointer]:
+        - /url: /b2b-dashboard/legal-documents
+      - link "Admin Profile" [ref=f4e84] [cursor=pointer]:
+        - /url: /b2b-dashboard/admin-profile
+      - link "Support Desk" [ref=f4e89] [cursor=pointer]:
+        - /url: /b2b-dashboard/support
+      - link "Notifications" [ref=f4e94] [cursor=pointer]:
+        - /url: /b2b-dashboard/notifications
+      - link "Settings" [ref=f4e99] [cursor=pointer]:
+        - /url: /b2b-dashboard/settings
+    - button "Logout" [ref=f4e105] [cursor=pointer]
+  - generic [ref=f4e109]:
+    - banner [ref=f4e111]:
+      - textbox "Search..." [ref=f4e117]
+      - generic [ref=f4e118]:
+        - button "Back to B2B Store" [ref=f4e119] [cursor=pointer]
+        - button "Toggle theme" [ref=f4e123] [cursor=pointer]
+        - button [ref=f4e126] [cursor=pointer]
+        - generic [ref=f4e130] [cursor=pointer]:
+          - generic [ref=f4e131]: Z
+          - generic [ref=f4e132]:
+            - paragraph [ref=f4e133]: ZZ Test Co 1794654844
+            - paragraph [ref=f4e134]: B2B Admin
+    - main [ref=f4e135]:
+      - generic [ref=f4e136]:
+        - generic [ref=f4e137]:
+          - generic [ref=f4e138]:
+            - heading "Employee Purchases" [level=1] [ref=f4e139]
+            - paragraph [ref=f4e140]: What each employee has bought, returned and spent from their wallet.
+          - button "Export CSV" [ref=f4e141] [cursor=pointer]
+        - generic [ref=f4e145]:
+          - generic [ref=f4e146]:
+            - paragraph [ref=f4e148]: Net spend
+            - paragraph [ref=f4e152]: ₹624
+            - paragraph [ref=f4e153]: ₹944 gross − ₹320 refunded
+          - generic [ref=f4e154]:
+            - paragraph [ref=f4e156]: Orders
+            - paragraph [ref=f4e160]: "1"
+            - paragraph [ref=f4e161]: 1 cancelled
+          - generic [ref=f4e162]:
+            - paragraph [ref=f4e164]: Paid from wallets
+            - paragraph [ref=f4e167]: ₹944
+            - paragraph [ref=f4e168]: ₹1,226 still in wallets
+          - generic [ref=f4e169]:
+            - paragraph [ref=f4e171]: Returns
+            - paragraph [ref=f4e175]: "1"
+            - paragraph [ref=f4e176]: ₹320 refunded
+        - generic [ref=f4e177]:
+          - generic [ref=f4e178]:
+            - textbox "Search by name, email, department…" [ref=f4e183]
+            - generic [ref=f4e184]:
+              - generic [ref=f4e185]:
+                - text: From
+                - textbox "From" [ref=f4e186]
+              - generic [ref=f4e187]:
+                - text: To
+                - textbox "To" [ref=f4e188]
+              - combobox "Employee status" [ref=f4e189]:
+                - option "All employees" [selected]
+                - option "Active"
+                - option "Inactive"
+              - combobox "Sort" [ref=f4e190]:
+                - option "Net spend (high → low)" [selected]
+                - option "Net spend (low → high)"
+                - option "Orders (high → low)"
+                - option "Orders (low → high)"
+                - option "Last order (high → low)"
+                - option "Last order (low → high)"
+                - option "Name (Z–A)"
+                - option "Name (A–Z)"
+          - table [ref=f4e192]:
+            - rowgroup [ref=f4e193]:
+              - row [ref=f4e194]:
+                - columnheader "Employee" [ref=f4e195]
+                - columnheader "Orders" [ref=f4e196]
+                - columnheader "Net spend" [ref=f4e197]
+                - columnheader "From wallet" [ref=f4e198]
+                - columnheader "Returns / refunded" [ref=f4e199]
+                - columnheader "Wallet balance" [ref=f4e200]
+                - columnheader "Last order" [ref=f4e201]
+                - columnheader [ref=f4e202]
+            - rowgroup [ref=f4e203]:
+              - row [ref=f4e245] [cursor=pointer]:
+                - cell "TE Test Employee Procurement · Senior Buyer" [ref=f4e205]:
+                  - generic [ref=f4e206]:
+                    - generic [ref=f4e207]: TE
+                    - generic [ref=f4e208]:
+                      - paragraph [ref=f4e209]: Test Employee
+                      - paragraph [ref=f4e210]: Procurement · Senior Buyer
+                - cell "1 1 cancelled" [ref=f4e246]:
+                  - text: "1"
+                  - generic [ref=f4e247]: 1 cancelled
+                - cell "₹624" [ref=f4e248]
+                - cell "₹944" [ref=f4e249]
+                - cell "1 ₹320" [ref=f4e250]:
+                  - text: "1"
+                  - generic [ref=f4e251]: ₹320
+                - cell "₹1,176" [ref=f4e217]
+                - cell "14 Nov 2026" [ref=f4e252]
+                - cell [ref=f4e219]
+              - row [ref=f4e222] [cursor=pointer]:
+                - cell "SE Second Employee IT" [ref=f4e223]:
+                  - generic [ref=f4e224]:
+                    - generic [ref=f4e225]: SE
+                    - generic [ref=f4e226]:
+                      - paragraph [ref=f4e227]: Second Employee
+                      - paragraph [ref=f4e228]: IT
+                - cell "0" [ref=f4e229]
+                - cell "₹0" [ref=f4e230]
+                - cell "₹0" [ref=f4e231]
+                - cell "0" [ref=f4e232]
+                - cell "₹50" [ref=f4e233]
+                - cell "—" [ref=f4e234]
+                - cell [ref=f4e235]
+          - paragraph [ref=f4e238]: 2 records

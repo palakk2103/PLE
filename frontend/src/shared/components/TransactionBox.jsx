@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import api from "../utils/api";
 import {
   FiFileText,
   FiCheckCircle,
@@ -36,6 +37,25 @@ export const TransactionBox = ({
 
   // Proposal creation form state (for seller)
   const [formName, setFormName] = useState("");
+  // The offer must be tied to a real catalogue product, otherwise the buyer cannot check it out.
+  const [formProductId, setFormProductId] = useState("");
+  const [vendorProducts, setVendorProducts] = useState([]);
+
+  useEffect(() => {
+    if (!isVendor || !showProposeModal) return undefined;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await api.get("/vendor/products?limit=100");
+        const body = res?.data?.data ?? res?.data ?? res;
+        const list = Array.isArray(body) ? body : body?.products || [];
+        if (!cancelled) setVendorProducts(list);
+      } catch {
+        if (!cancelled) setVendorProducts([]);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [isVendor, showProposeModal]);
   const [formVariant, setFormVariant] = useState("");
   const [formQty, setFormQty] = useState(1);
   const [formUnitPrice, setFormUnitPrice] = useState("");
@@ -46,6 +66,7 @@ export const TransactionBox = ({
 
   const handleOpenPropose = () => {
     if (proposal) {
+      setFormProductId(proposal.productId || "");
       setFormName(proposal.productName || "");
       setFormVariant(proposal.productVariant || "");
       setFormQty(proposal.quantity || 1);
@@ -55,6 +76,7 @@ export const TransactionBox = ({
       setFormDelivery(proposal.deliveryCharge || "");
       setFormNotes(proposal.notes || "");
     } else {
+      setFormProductId("");
       setFormName("");
       setFormVariant("");
       setFormQty(1);
@@ -69,10 +91,11 @@ export const TransactionBox = ({
 
   const handleProposeSubmit = (e) => {
     e.preventDefault();
-    if (!formName.trim() || !formUnitPrice || Number(formUnitPrice) <= 0) return;
+    if (!formProductId || !formName.trim() || !formUnitPrice || Number(formUnitPrice) <= 0) return;
 
     if (onPropose) {
       onPropose({
+        productId: formProductId,
         productName: formName.trim(),
         productVariant: formVariant.trim(),
         quantity: Math.max(1, parseInt(formQty, 10) || 1),
@@ -437,16 +460,29 @@ export const TransactionBox = ({
               <form onSubmit={handleProposeSubmit} className="space-y-3">
                 <div>
                   <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
-                    Product / Item Name *
+                    Product from your catalogue *
                   </label>
-                  <input
-                    type="text"
+                  <select
                     required
-                    value={formName}
-                    onChange={(e) => setFormName(e.target.value)}
-                    placeholder="e.g. Cotton Formal Shirt"
+                    value={formProductId}
+                    onChange={(e) => {
+                      const picked = vendorProducts.find((pr) => String(pr._id || pr.id) === e.target.value);
+                      setFormProductId(e.target.value);
+                      if (picked) {
+                        setFormName(picked.name || "");
+                        if (!formUnitPrice && picked.price) setFormUnitPrice(String(picked.price));
+                      }
+                    }}
                     className="w-full bg-[#12141C] border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-red-500"
-                  />
+                  >
+                    <option value="">Select the product this offer is for…</option>
+                    {vendorProducts.map((pr) => (
+                      <option key={pr._id || pr.id} value={pr._id || pr.id}>{pr.name}</option>
+                    ))}
+                  </select>
+                  <p className="text-[10px] text-zinc-500 mt-1">
+                    The buyer pays through the platform at exactly the amount you agree here.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">

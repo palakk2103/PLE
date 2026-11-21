@@ -3,6 +3,7 @@ import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
 import Wishlist from '../../../models/Wishlist.model.js';
 import Product from '../../../models/Product.model.js';
+import { publicApprovalFilter } from '../../../utils/productVisibility.js';
 import mongoose from 'mongoose';
 
 const wishlistPopulate = 'items.productId';
@@ -23,7 +24,7 @@ export const addToWishlist = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'Invalid product id.');
     }
 
-    const product = await Product.findOne({ _id: normalizedProductId, isActive: true }).select('_id');
+    const product = await Product.findOne({ _id: normalizedProductId, isActive: true, ...publicApprovalFilter() }).select('_id');
     if (!product) {
         throw new ApiError(404, 'Product not found.');
     }

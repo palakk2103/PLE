@@ -7,6 +7,8 @@ import AdminManagedVendorThread from '../../../models/AdminManagedVendorThread.m
 import AdminManagedVendorMessage from '../../../models/AdminManagedVendorMessage.model.js';
 import { getIO } from '../../../config/socket.js';
 import { decryptMessage } from '../../../utils/chatEncryption.util.js';
+import { createNotification } from '../../../services/notification.service.js';
+import { assertTextLength, sanitizeAttachments } from '../../../utils/chatLimits.js';
 
 const serializeMessage = (msg) => ({
     id: msg._id,
@@ -23,64 +25,81 @@ const serializeMessage = (msg) => ({
 
 /**
  * Get all managed vendor threads for Admin, plus any managed vendors without an existing thread.
+ *
+ * The inbox is SHARED: every admin sees every vendor conversation (one thread per vendor).
+ * Previously the list was filtered by the logged-in admin's id, so other admins never saw a
+ * vendor's messages, and every reload tried to re-create threads that already existed under a
+ * different admin, which hit the unique index and returned HTTP 409.
  */
 export const getAdminManagedVendorThreads = asyncHandler(async (req, res) => {
     const adminId = req.user.id;
 
-    // Fetch existing threads
-    const threads = await AdminManagedVendorThread.find({ adminId })
-        .populate('managedVendorId', 'name username email companyName phone status shopId')
-        .sort({ lastActivity: -1 })
+    // Make sure every managed vendor has exactly one thread (idempotent, race-safe upsert).
+    const managedVendors = await ManagedVendorUser.find({})
+        .select('createdBy shopId createdAt')
         .lean();
-
-    // Enrich any threads where managedVendorId belongs to standard Vendor model
-    for (const t of threads) {
-        if (!t.managedVendorId || !t.managedVendorId.name) {
-            const rawId = t.managedVendorId?._id || t.managedVendorId;
-            if (rawId) {
-                const v = await Vendor.findById(rawId).select('name storeName email phone status').lean();
-                if (v) {
-                    t.managedVendorId = {
-                        _id: v._id,
-                        name: v.storeName || v.name,
-                        username: v.name,
-                        email: v.email,
-                        companyName: v.storeName || v.name,
-                        phone: v.phone || '',
-                        status: v.status || 'approved'
-                    };
-                }
+    if (managedVendors.length) {
+        const existing = new Set(
+            (await AdminManagedVendorThread.find({}).select('managedVendorId').lean())
+                .map((t) => String(t.managedVendorId))
+        );
+        const missing = managedVendors.filter((mv) => !existing.has(String(mv._id)));
+        if (missing.length) {
+            try {
+                await AdminManagedVendorThread.bulkWrite(
+                    missing.map((mv) => ({
+                        updateOne: {
+                            filter: { managedVendorId: mv._id },
+                            update: {
+                                $setOnInsert: {
+                                    adminId: mv.createdBy || adminId,
+                                    managedVendorId: mv._id,
+                                    shopId: mv.shopId || null,
+                                    lastMessage: 'Chat initialized',
+                                    lastSenderType: 'admin',
+                                    lastActivity: mv.createdAt || new Date(),
+                                },
+                            },
+                            upsert: true,
+                        },
+                    })),
+                    { ordered: false }
+                );
+            } catch (err) {
+                // A concurrent request created the same thread first: harmless.
+                if (err?.code !== 11000 && !err?.writeErrors?.every?.((e) => e.code === 11000)) throw err;
             }
         }
     }
 
-    // Fetch all active managed vendors created by this admin or in system
-    const managedVendors = await ManagedVendorUser.find({})
-        .select('name username email companyName phone status shopId createdBy')
+    // All threads, any admin (shared inbox)
+    const threads = await AdminManagedVendorThread.find({})
+        .populate('managedVendorId', 'name username email companyName phone status shopId')
+        .sort({ lastActivity: -1 })
         .lean();
 
-    const existingVendorIds = new Set(threads.map((t) => String(t.managedVendorId?._id || t.managedVendorId)));
-
-    // For any vendor without thread, automatically seed/ensure thread exists or provide in list
-    const unseededVendors = managedVendors.filter((mv) => !existingVendorIds.has(String(mv._id)));
-
-    for (const vendor of unseededVendors) {
-        const newThread = await AdminManagedVendorThread.create({
-            adminId: vendor.createdBy || adminId,
-            managedVendorId: vendor._id,
-            shopId: vendor.shopId || null,
-            lastMessage: 'Chat initialized',
-            lastSenderType: 'admin',
-            lastActivity: vendor.createdAt || new Date(),
-        });
-        const populatedThread = await AdminManagedVendorThread.findById(newThread._id)
-            .populate('managedVendorId', 'name username email companyName phone status shopId')
-            .lean();
-        threads.push(populatedThread);
+    // Threads of standard (third-party) vendors: the populate above finds no ManagedVendorUser, enrich from Vendor
+    const unresolved = threads.filter((t) => !t.managedVendorId || !t.managedVendorId.name);
+    if (unresolved.length) {
+        const ids = unresolved.map((t) => t.managedVendorId?._id || t.managedVendorId).filter(Boolean);
+        const vendors = await Vendor.find({ _id: { $in: ids } }).select('name storeName email phone status').lean();
+        const byId = new Map(vendors.map((v) => [String(v._id), v]));
+        for (const t of unresolved) {
+            const rawId = String(t.managedVendorId?._id || t.managedVendorId || '');
+            const v = byId.get(rawId);
+            if (v) {
+                t.managedVendorId = {
+                    _id: v._id,
+                    name: v.storeName || v.name,
+                    username: v.name,
+                    email: v.email,
+                    companyName: v.storeName || v.name,
+                    phone: v.phone || '',
+                    status: v.status || 'approved',
+                };
+            }
+        }
     }
-
-    // Sort by lastActivity desc
-    threads.sort((a, b) => new Date(b.lastActivity) - new Date(a.lastActivity));
 
     threads.forEach((t) => {
         if (t.lastMessage) {
@@ -176,6 +195,8 @@ export const sendAdminManagedVendorMessage = asyncHandler(async (req, res) => {
     if (!message || !message.trim()) {
         throw new ApiError(400, 'Message body cannot be empty.');
     }
+    assertTextLength(message);
+    const safeAttachments = sanitizeAttachments(attachments);
 
     const thread = await AdminManagedVendorThread.findById(threadId);
     if (!thread) {
@@ -188,7 +209,7 @@ export const sendAdminManagedVendorMessage = asyncHandler(async (req, res) => {
         senderId: adminId,
         senderName: req.user.name || 'Admin',
         message: message.trim(),
-        attachments: attachments || [],
+        attachments: safeAttachments,
     });
 
     thread.lastMessage = message.trim();
@@ -198,6 +219,17 @@ export const sendAdminManagedVendorMessage = asyncHandler(async (req, res) => {
     await thread.save();
 
     const payload = serializeMessage(created);
+
+    // Saved notification so an offline vendor still finds out
+    try {
+        await createNotification({
+            recipientId: thread.managedVendorId, recipientType: 'vendor',
+            title: 'New message from PLE Admin', message: message.trim().length > 60 ? `${message.trim().substring(0, 60)}...` : message.trim(),
+            type: 'chat', data: { threadId: String(thread._id) },
+        });
+    } catch (nErr) {
+        console.warn('Admin->vendor notification failed:', nErr.message);
+    }
 
     try {
         const io = getIO();
