@@ -141,6 +141,8 @@ const MobileCheckout = () => {
   const [isCodAvailable, setIsCodAvailable] = useState(true);
   const [isServiceable, setIsServiceable] = useState(true);
   const [courierBreakdown, setCourierBreakdown] = useState(null);
+  // Server-decided place of supply per product: INTRA_STATE (CGST+SGST) / INTER_STATE (IGST) / UNKNOWN
+  const [gstSupply, setGstSupply] = useState(null);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [selectedUpiApp, setSelectedUpiApp] = useState("gpay"); // "gpay" | "phonepe" | "paytm"
@@ -325,6 +327,7 @@ const MobileCheckout = () => {
   const gstBreakdown = useMemo(() => {
     let totalTaxSum = 0;
     const slabs = {};
+    const split = { cgst: 0, sgst: 0, igst: 0, unsplit: 0 };
     const tot = getTotal();
     const coupDisc = appliedCoupon ? appliedDiscount : 0;
     const discountRatio = tot > 0 ? Math.min(1, coupDisc / tot) : 0;
@@ -342,6 +345,16 @@ const MobileCheckout = () => {
       const itemTax = (netTaxable * effectiveGstRate) / 100;
       totalTaxSum += itemTax;
 
+      const supplyType = gstSupply?.byProduct?.[String(item.id)]?.supplyType;
+      if (supplyType === "INTRA_STATE") {
+        split.cgst += itemTax / 2;
+        split.sgst += itemTax / 2;
+      } else if (supplyType === "INTER_STATE") {
+        split.igst += itemTax;
+      } else {
+        split.unsplit += itemTax;
+      }
+
       const rateKey = `${effectiveGstRate}%`;
       if (!slabs[rateKey]) {
         slabs[rateKey] = {
@@ -356,11 +369,19 @@ const MobileCheckout = () => {
       slabs[rateKey].count += itemQty;
     });
 
+    const r2 = (n) => Math.round(n * 100) / 100;
     return {
       totalTax: parseFloat(totalTaxSum.toFixed(2)),
-      slabs: Object.values(slabs).sort((a, b) => b.rate - a.rate)
+      slabs: Object.values(slabs).sort((a, b) => b.rate - a.rate),
+      split: {
+        cgst: r2(split.cgst),
+        sgst: r2(split.sgst),
+        igst: r2(split.igst),
+        unsplit: r2(split.unsplit),
+        placeOfSupply: gstSupply?.placeOfSupply || null,
+      },
     };
-  }, [items, liveGstRates, appliedCoupon, appliedDiscount]);
+  }, [items, liveGstRates, appliedCoupon, appliedDiscount, gstSupply]);
 
   const total = getTotal();
   const shipping = proposalCheckout
@@ -442,6 +463,7 @@ const MobileCheckout = () => {
           if (payload?.courierInfo) {
             setCourierBreakdown(payload.courierInfo);
           }
+          setGstSupply(payload?.gst || null);
         }
       } catch (err) {
         if (err?.name === "CanceledError" || err?.name === "AbortError") {
@@ -1570,6 +1592,7 @@ const MobileCheckout = () => {
                         courierBreakdown={courierBreakdown}
                         liveGstRates={liveGstRates}
                         gstSlabs={gstBreakdown.slabs}
+                        gstSplit={proposalCheckout ? null : gstBreakdown.split}
                       />
                     </div>
                   </motion.div>
@@ -1594,6 +1617,7 @@ const MobileCheckout = () => {
                       courierBreakdown={courierBreakdown}
                       liveGstRates={liveGstRates}
                       gstSlabs={gstBreakdown.slabs}
+                      gstSplit={proposalCheckout ? null : gstBreakdown.split}
                     />
                     <div className="p-4 border-t border-gray-100 bg-gray-50">
                       <button

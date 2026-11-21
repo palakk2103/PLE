@@ -15,6 +15,11 @@ const orderItemSchema = new mongoose.Schema({
     gstAmount: { type: Number, default: 0 },
     taxableAmount: { type: Number, default: 0 },
     taxIncluded: { type: Boolean, default: false },
+    // Place-of-supply split of gstAmount (INTRA_STATE -> CGST+SGST, INTER_STATE -> IGST)
+    supplyType: { type: String, enum: ['INTRA_STATE', 'INTER_STATE', 'UNKNOWN'] },
+    cgstAmount: { type: Number, default: 0 },
+    sgstAmount: { type: Number, default: 0 },
+    igstAmount: { type: Number, default: 0 },
     // Set when this line was bought at a price negotiated in chat
     proposalId: { type: mongoose.Schema.Types.ObjectId, ref: 'ChatTransactionProposal' },
     proposalReference: String,
@@ -28,6 +33,12 @@ const vendorItemGroupSchema = new mongoose.Schema({
     shipping: Number,
     tax: Number,
     discount: Number,
+    sellerState: String,
+    sellerStateCode: String,
+    supplyType: { type: String, enum: ['INTRA_STATE', 'INTER_STATE', 'UNKNOWN'] },
+    cgst: { type: Number, default: 0 },
+    sgst: { type: Number, default: 0 },
+    igst: { type: Number, default: 0 },
     status: {
         type: String,
         enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
@@ -82,6 +93,14 @@ const orderSchema = new mongoose.Schema(
         subtotal: { type: Number, default: 0 },
         shipping: { type: Number, default: 0 },
         tax: { type: Number, default: 0 },
+        // Order-level GST split (sum of item splits). `tax` remains the authoritative total.
+        taxBreakdown: {
+            cgst: { type: Number, default: 0 },
+            sgst: { type: Number, default: 0 },
+            igst: { type: Number, default: 0 },
+            unsplit: { type: Number, default: 0 },
+        },
+        placeOfSupply: { state: String, code: String },
         discount: { type: Number, default: 0 },
         total: { type: Number, default: 0 },
         couponCode: { type: String },

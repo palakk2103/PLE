@@ -1,3 +1,5 @@
+import { stateFromGstin, normalizeState, stateFromAddressText } from './gstStates.js';
+
 /**
  * Centralized GST resolution logic according to Seller-Controlled GST System rules.
  * Hierarchy:
@@ -60,6 +62,85 @@ export const resolveProductGST = (product, category = null, vendor = null) => {
 
     // 6. Platform default fallback
     return 18;
+};
+
+// ─── Place of supply: CGST + SGST (intra-state) vs IGST (inter-state) ───────────
+
+export const SUPPLY_TYPE = Object.freeze({
+    INTRA: 'INTRA_STATE',   // CGST + SGST
+    INTER: 'INTER_STATE',   // IGST
+    UNKNOWN: 'UNKNOWN',     // seller or buyer state could not be determined
+});
+
+const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
+
+/**
+ * Seller's registered state. The GSTIN prefix is authoritative (it IS the state of registration);
+ * explicit state fields and address text are fallbacks. Works for Vendor and ManagedShop documents.
+ * PLATFORM_GST_STATE (env) is the last resort for admin-owned stock with no data.
+ */
+export const resolveSellerState = (seller) => {
+    if (seller) {
+        for (const g of [seller.gstNumber, seller.documents?.gst, seller.b2bSellingGstNumber, seller.gst]) {
+            const s = stateFromGstin(g);
+            if (s) return { ...s, source: 'gstin' };
+        }
+        for (const st of [seller.state, seller.address?.state, seller.b2bSellingState]) {
+            const s = normalizeState(st);
+            if (s) return { ...s, source: 'state' };
+        }
+        for (const txt of [seller.businessAddress, typeof seller.address === 'string' ? seller.address : '', seller.warehouse]) {
+            const s = stateFromAddressText(txt);
+            if (s) return { ...s, source: 'address' };
+        }
+    }
+    const platform = normalizeState(process.env.PLATFORM_GST_STATE);
+    return platform ? { ...platform, source: 'platform_default' } : null;
+};
+
+/** Buyer's place of supply = the delivery address state. */
+export const resolveBuyerState = (shippingAddress) => {
+    if (!shippingAddress) return null;
+    return normalizeState(shippingAddress.state) || stateFromAddressText(shippingAddress.address);
+};
+
+export const determineSupplyType = (sellerState, buyerState) => {
+    if (!sellerState?.code || !buyerState?.code) return SUPPLY_TYPE.UNKNOWN;
+    return sellerState.code === buyerState.code ? SUPPLY_TYPE.INTRA : SUPPLY_TYPE.INTER;
+};
+
+/**
+ * Splits an already-computed GST amount. The total never changes — only how it is labelled.
+ * CGST + SGST always add back to exactly gstAmount (any odd paisa goes to SGST).
+ */
+export const splitGST = (gstAmount, supplyType) => {
+    const total = round2(gstAmount);
+    if (supplyType === SUPPLY_TYPE.INTRA) {
+        const cgstAmount = round2(total / 2);
+        return { cgstAmount, sgstAmount: round2(total - cgstAmount), igstAmount: 0 };
+    }
+    if (supplyType === SUPPLY_TYPE.INTER) {
+        return { cgstAmount: 0, sgstAmount: 0, igstAmount: total };
+    }
+    return { cgstAmount: 0, sgstAmount: 0, igstAmount: 0 };
+};
+
+/** Adds the split fields to one line item (mutates & returns it). */
+export const applyGSTSplit = (item, supplyType) => {
+    Object.assign(item, { supplyType }, splitGST(item.gstAmount, supplyType));
+    return item;
+};
+
+/** Totals across items: { cgst, sgst, igst, unsplit } — unsplit = GST on lines with UNKNOWN supply. */
+export const summarizeGST = (items = []) => {
+    const out = { cgst: 0, sgst: 0, igst: 0, unsplit: 0 };
+    for (const it of items) {
+        out.cgst += Number(it.cgstAmount) || 0;
+        out.sgst += Number(it.sgstAmount) || 0;
+        out.igst += Number(it.igstAmount) || 0;
+        if (!it.supplyType || it.supplyType === SUPPLY_TYPE.UNKNOWN) out.unsplit += Number(it.gstAmount) || 0;
+    }
+    return { cgst: round2(out.cgst), sgst: round2(out.sgst), igst: round2(out.igst), unsplit: round2(out.unsplit) };
 };
 
 /**

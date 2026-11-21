@@ -35,7 +35,15 @@ import { createNotification } from '../../../services/notification.service.js';
 import { calculateVendorShippingForGroups } from '../../../services/vendorShipping.service.js';
 import { getIO } from '../../../config/socket.js';
 import { sendNotificationToUser } from '../../../utils/pushNotificationHelper.js';
-import { resolveProductGST, calculateItemGST } from '../../../utils/gstUtils.js';
+import {
+    resolveProductGST,
+    calculateItemGST,
+    resolveSellerState,
+    resolveBuyerState,
+    determineSupplyType,
+    applyGSTSplit,
+    summarizeGST,
+} from '../../../utils/gstUtils.js';
 import { generateInvoiceForOrder, sendOrderInvoiceEmail } from '../../../services/invoice.service.js';
 import { handleOrderStatusTransition } from '../../../services/orderStatus.service.js';
 import { sendReturnRequestSubmittedNotification } from '../../../services/customerNotification.service.js';
@@ -303,12 +311,14 @@ export const placeOrder = asyncHandler(async (req, res) => {
     let subtotal = 0;
     const enrichedItems = [];
     const vendorMap = {};
+    // Place of supply = delivery state; decides CGST+SGST vs IGST per seller.
+    const buyerState = resolveBuyerState(shippingAddress);
 
     for (const item of items) {
         if (proposalCtx) item.quantity = proposalCtx.quantity; // quantity is part of the agreed offer
         const product = await Product.findById(item.productId)
-            .populate('vendorId', 'commissionRate storeName shippingEnabled defaultShippingRate freeShippingThreshold categoryGstRates defaultGstRate')
-            .populate('shopId', 'name logo')
+            .populate('vendorId', 'commissionRate storeName shippingEnabled defaultShippingRate freeShippingThreshold categoryGstRates defaultGstRate gstNumber documents.gst b2bSellingGstNumber b2bSellingState state address businessAddress')
+            .populate('shopId', 'name logo gst address warehouse')
             .populate('categoryId', 'name gstRate parentId');
         if (!product) throw new ApiError(404, `Product not found: ${item.productId}`);
         if (!isProductPubliclyApproved(product) || product.isActive === false) {
@@ -399,6 +409,9 @@ export const placeOrder = asyncHandler(async (req, res) => {
             taxIncluded: proposalCtx ? false : !!product.taxIncluded,
             ...(proposalCtx ? { proposalId: proposalCtx._id, proposalReference: proposalCtx.proposalReference } : {}),
         };
+        const sellerState = resolveSellerState(isManagedShop ? product.shopId : product.vendorId);
+        const supplyType = determineSupplyType(sellerState, buyerState);
+        applyGSTSplit(enriched, supplyType);
         enrichedItems.push(enriched);
 
         // Group by vendor
@@ -416,6 +429,9 @@ export const placeOrder = asyncHandler(async (req, res) => {
                 subtotal: 0,
                 supplySubtotal: 0,
                 tax: 0,
+                sellerState: sellerState?.name,
+                sellerStateCode: sellerState?.code,
+                supplyType,
             };
         }
         vendorMap[vid].items.push(enriched);
@@ -518,7 +534,12 @@ export const placeOrder = asyncHandler(async (req, res) => {
         tax: parseFloat((v.tax || 0).toFixed(2)),
         discount: 0,
         status: 'pending',
+        sellerState: v.sellerState,
+        sellerStateCode: v.sellerStateCode,
+        supplyType: v.supplyType,
+        ...(({ cgst, sgst, igst }) => ({ cgst, sgst, igst }))(summarizeGST(v.items)),
     }));
+    const taxBreakdown = summarizeGST(enrichedItems);
 
     // 6-9. Transactional order creation to avoid partial writes.
     let order = null;
@@ -696,6 +717,8 @@ export const placeOrder = asyncHandler(async (req, res) => {
                 subtotal,
                 shipping,
                 tax,
+                taxBreakdown,
+                placeOfSupply: buyerState ? { state: buyerState.name, code: buyerState.code } : undefined,
                 discount: couponDiscount + loyaltyDiscount,
                 total,
                 couponCode: couponCode?.toUpperCase(),

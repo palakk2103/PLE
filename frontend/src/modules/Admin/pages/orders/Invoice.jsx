@@ -60,6 +60,7 @@ const Invoice = () => {
             status: invData.status,
             financialSummary: invData.financialSummary,
             sellerBreakdown: invData.sellerBreakdown,
+            placeOfSupply: invData.placeOfSupply,
           });
         } else {
           const response = await getOrderById(id);
@@ -481,6 +482,34 @@ const Invoice = () => {
               <div className="flex justify-between text-sm text-gray-700">
                 <span>Tax:</span>
                 <span className="font-semibold">{formatPrice(tax)}</span>
+              </div>
+            )}
+            {(() => {
+              const fs = order.financialSummary || {};
+              const tb = order.taxBreakdown || {};
+              const rows = [
+                ['CGST', fs.cgst ?? tb.cgst],
+                ['SGST', fs.sgst ?? tb.sgst],
+                ['IGST', fs.igst ?? tb.igst],
+              ].filter(([, v]) => Number(v) > 0);
+              if (!rows.length) return null;
+              const unsplit = Number(fs.unsplitGst ?? tb.unsplit) || 0;
+              if (unsplit > 0) rows.push(['GST', unsplit]);
+              return (
+                <div className="pl-3 space-y-0.5" data-testid="invoice-gst-split">
+                  {rows.map(([label, v]) => (
+                    <div key={label} className="flex justify-between text-xs text-gray-500">
+                      <span>{label}:</span>
+                      <span>{formatPrice(v)}</span>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+            {order.placeOfSupply?.state && (
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>Place of Supply:</span>
+                <span>{order.placeOfSupply.state} ({order.placeOfSupply.code})</span>
               </div>
             )}
             {shipping > 0 && (

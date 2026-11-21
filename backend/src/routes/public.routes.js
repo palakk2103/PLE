@@ -31,6 +31,7 @@ import rateLimit from 'express-rate-limit';
 import SupportTicket from '../models/SupportTicket.model.js';
 import { generateTicketNumber, notifyAdmins } from '../services/supportTicket.service.js';
 import { assertTextLength } from '../utils/chatLimits.js';
+import { resolveSellerState, resolveBuyerState, determineSupplyType } from '../utils/gstUtils.js';
 
 const router = Router();
 
@@ -846,8 +847,8 @@ router.post('/shipping/estimate', asyncHandler(async (req, res) => {
     }
 
     const products = await Product.find({ _id: { $in: productIds }, isActive: true, ...publicApprovalFilter() })
-        .populate('vendorId', 'shippingEnabled defaultShippingRate freeShippingThreshold pincode address')
-        .populate('shopId', 'name logo warehouse address')
+        .populate('vendorId', 'shippingEnabled defaultShippingRate freeShippingThreshold pincode address gstNumber documents.gst b2bSellingGstNumber b2bSellingState state businessAddress')
+        .populate('shopId', 'name logo warehouse address gst')
         .select('_id vendorId shopId price variants.prices')
         .lean();
 
@@ -893,6 +894,17 @@ router.post('/shipping/estimate', asyncHandler(async (req, res) => {
         couponType,
     });
 
+    // CGST+SGST vs IGST for each product, decided by seller state vs delivery state.
+    const buyerState = resolveBuyerState(shippingAddress);
+    const supplyByProduct = {};
+    for (const product of products) {
+        const sellerState = resolveSellerState(product.shopId || product.vendorId);
+        supplyByProduct[String(product._id)] = {
+            supplyType: determineSupplyType(sellerState, buyerState),
+            sellerState: sellerState?.name || null,
+        };
+    }
+
     res.status(200).json(
         new ApiResponse(200, {
             shipping: totalShipping,
@@ -900,6 +912,10 @@ router.post('/shipping/estimate', asyncHandler(async (req, res) => {
             isCodAvailable,
             isServiceable,
             courierInfo,
+            gst: {
+                placeOfSupply: buyerState ? { state: buyerState.name, code: buyerState.code } : null,
+                byProduct: supplyByProduct,
+            },
             paymentMethod: ['cod', 'cash'].includes(paymentMethod.toLowerCase()) ? 'cod' : 'prepaid'
         }, 'Shipping estimate calculated.')
     );

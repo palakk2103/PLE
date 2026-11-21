@@ -723,7 +723,12 @@ const Cart = () => {
                           <div className="mt-2 p-2.5 rounded-xl bg-gray-50 dark:bg-zinc-800/60 border border-gray-200/60 dark:border-zinc-700/50 space-y-1.5 text-xs">
                             <div className="flex items-center justify-between font-bold text-gray-700 dark:text-zinc-300">
                               <span>Configured GST Slabs</span>
-                              <span className="text-[10px] text-gray-400 uppercase tracking-wider">CGST + SGST</span>
+                              <span
+                                className="text-[10px] text-gray-400 uppercase tracking-wider"
+                                title="CGST + SGST if the seller is in your delivery state, otherwise IGST. Finalised at checkout."
+                              >
+                                CGST+SGST / IGST
+                              </span>
                             </div>
                             {gstBreakdown.slabs.map((slab) => (
                               <div key={slab.rate} className="flex items-center justify-between text-[11px] text-gray-600 dark:text-zinc-400">

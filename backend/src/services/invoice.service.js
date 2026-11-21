@@ -11,6 +11,85 @@ import PDFDocument from 'pdfkit';
 import mongoose from 'mongoose';
 import { sendInvoiceEmail } from './email.service.js';
 import { resolveCustomerContact } from './orderStatus.service.js';
+import ManagedShop from '../models/ManagedShop.model.js';
+import {
+    SUPPLY_TYPE,
+    resolveSellerState,
+    resolveBuyerState,
+    determineSupplyType,
+    splitGST,
+    summarizeGST,
+} from '../utils/gstUtils.js';
+import { normalizeState } from '../utils/gstStates.js';
+
+const idOf = (v) => (v?._id || v)?.toString();
+
+/**
+ * Loads every seller on the order (third-party Vendors and admin-managed shops) and the buyer's
+ * place of supply, so each invoice line can be labelled CGST+SGST or IGST.
+ */
+const loadGstContext = async (order, sellerIds, session = null) => {
+    const vendors = sellerIds.length ? await Vendor.find({ _id: { $in: sellerIds } }).session(session).lean() : [];
+    const vendorMap = new Map(vendors.map((v) => [v._id.toString(), v]));
+    const missing = sellerIds.filter((id) => !vendorMap.has(id));
+    const shops = missing.length ? await ManagedShop.find({ _id: { $in: missing } }).session(session).lean() : [];
+    const shopMap = new Map(shops.map((s) => [s._id.toString(), s]));
+
+    const buyerState = normalizeState(order.placeOfSupply?.code) || resolveBuyerState(order.shippingAddress);
+    const sellerStates = new Map();
+    for (const id of sellerIds) {
+        sellerStates.set(id, resolveSellerState(vendorMap.get(id) || shopMap.get(id)));
+    }
+    return { vendorMap, shopMap, buyerState, sellerStates };
+};
+
+/** Split for one line: prefer what was stored at checkout, otherwise derive it now. */
+const lineSplit = (item, gstAmount, ctx) => {
+    if (item.supplyType && item.supplyType !== SUPPLY_TYPE.UNKNOWN) {
+        return {
+            supplyType: item.supplyType,
+            cgstAmount: item.cgstAmount || 0,
+            sgstAmount: item.sgstAmount || 0,
+            igstAmount: item.igstAmount || 0,
+        };
+    }
+    const supplyType = determineSupplyType(ctx.sellerStates.get(idOf(item.vendorId)), ctx.buyerState);
+    return { supplyType, ...splitGST(gstAmount, supplyType) };
+};
+
+/** Adds split fields to invoice lines + seller rows + summary. Mutates and returns the inputs. */
+const applyInvoiceGst = ({ items, sellerBreakdown, financialSummary }, ctx) => {
+    for (const it of items) Object.assign(it, lineSplit(it, it.gstAmount, ctx));
+    for (const sb of sellerBreakdown) {
+        const vid = idOf(sb.vendorId);
+        const own = items.filter((it) => idOf(it.vendorId) === vid);
+        const st = ctx.sellerStates.get(vid);
+        const sum = summarizeGST(own);
+        Object.assign(sb, {
+            cgst: sum.cgst,
+            sgst: sum.sgst,
+            igst: sum.igst,
+            supplyType: own[0]?.supplyType || determineSupplyType(st, ctx.buyerState),
+            sellerStateCode: st?.code || '',
+        });
+        if (!sb.sellerAddress) sb.sellerAddress = {};
+        if (!sb.sellerAddress.state && st?.name) sb.sellerAddress.state = st.name;
+        const shop = ctx.shopMap.get(vid);
+        if (shop) {
+            if (!sb.sellerGst) sb.sellerGst = shop.gst || '';
+            if (!sb.storeName || sb.storeName === 'Vendor Store') sb.storeName = shop.name;
+            if (!sb.sellerAddress.street) sb.sellerAddress.street = shop.address || '';
+        }
+    }
+    const total = summarizeGST(items);
+    Object.assign(financialSummary, { cgst: total.cgst, sgst: total.sgst, igst: total.igst, unsplitGst: total.unsplit });
+    return { items, sellerBreakdown, financialSummary };
+};
+
+/** True when an existing invoice predates the CGST/SGST/IGST split (or could not be split then). */
+const needsGstBackfill = (invoice) =>
+    (invoice.items || []).length > 0 &&
+    (invoice.items || []).every((it) => !it.supplyType || it.supplyType === SUPPLY_TYPE.UNKNOWN);
 
 /**
  * Generate a unique, formatted invoice number.
@@ -86,6 +165,24 @@ export const generateInvoiceForOrder = async (orderId, session = null) => {
             else if (order.userId?.role === 'b2bAdmin' || order.userId?.role === 'b2bEmployee' || !!order.userId?.companyId) backfilledType = 'b2b';
             if (backfilledType && existingInvoice.orderType !== backfilledType) {
                 existingInvoice.orderType = backfilledType;
+                isModified = true;
+            }
+        }
+        // Lazy backfill of the CGST/SGST/IGST split for invoices issued before it existed.
+        if (needsGstBackfill(existingInvoice)) {
+            const sellerIds = [...new Set([
+                ...existingInvoice.items.map((it) => idOf(it.vendorId)),
+                ...existingInvoice.sellerBreakdown.map((sb) => idOf(sb.vendorId)),
+            ].filter(Boolean))];
+            const ctx = await loadGstContext(order, sellerIds, session);
+            // Only persist when the split could actually be determined, so unresolvable
+            // invoices are not rewritten on every read.
+            if (ctx.buyerState && sellerIds.some((id) => ctx.sellerStates.get(id))) {
+                applyInvoiceGst(existingInvoice, ctx);
+                existingInvoice.placeOfSupply = { state: ctx.buyerState.name, code: ctx.buyerState.code };
+                existingInvoice.markModified('items');
+                existingInvoice.markModified('sellerBreakdown');
+                existingInvoice.markModified('financialSummary');
                 isModified = true;
             }
         }
@@ -238,8 +335,9 @@ export const generateInvoiceForOrder = async (orderId, session = null) => {
     ];
 
     // Query vendors to get current store info & documents
-    const vendors = vendorIds.length > 0 ? await Vendor.find({ _id: { $in: vendorIds } }).session(session).lean() : [];
-    const vendorMap = new Map(vendors.map((v) => [v._id.toString(), v]));
+    // (also loads admin-managed shops and resolves seller/buyer states for the GST split)
+    const gstCtx = await loadGstContext(order, vendorIds, session);
+    const { vendorMap } = gstCtx;
 
     // Query commission records created for this order
     const commissions = await Commission.find({ orderId: order._id }).session(session).lean();
@@ -277,11 +375,11 @@ export const generateInvoiceForOrder = async (orderId, session = null) => {
                 sellerAddress: {
                     street: vendorDoc?.address?.street || '',
                     city: vendorDoc?.address?.city || '',
-                    state: vendorDoc?.address?.state || '',
+                    state: vendorDoc?.address?.state || vendorDoc?.state || '',
                     zipCode: vendorDoc?.address?.zipCode || '',
                     country: vendorDoc?.address?.country || 'India',
                 },
-                sellerGst: vendorDoc?.documents?.gst || '',
+                sellerGst: vendorDoc?.gstNumber || vendorDoc?.documents?.gst || '',
                 subtotal,
                 shipping,
                 tax,
@@ -320,11 +418,11 @@ export const generateInvoiceForOrder = async (orderId, session = null) => {
                 sellerAddress: {
                     street: vendorDoc?.address?.street || '',
                     city: vendorDoc?.address?.city || '',
-                    state: vendorDoc?.address?.state || '',
+                    state: vendorDoc?.address?.state || vendorDoc?.state || '',
                     zipCode: vendorDoc?.address?.zipCode || '',
                     country: vendorDoc?.address?.country || 'India',
                 },
-                sellerGst: vendorDoc?.documents?.gst || '',
+                sellerGst: vendorDoc?.gstNumber || vendorDoc?.documents?.gst || '',
                 subtotal,
                 shipping,
                 tax,
@@ -379,6 +477,12 @@ export const generateInvoiceForOrder = async (orderId, session = null) => {
         totalSellerEarnings: parseFloat(totalSellerEarnings.toFixed(2)),
     };
 
+    // 6b. CGST + SGST (same state) vs IGST (different state) per line, seller and in total
+    applyInvoiceGst({ items: invoiceItems, sellerBreakdown, financialSummary }, gstCtx);
+    const placeOfSupply = gstCtx.buyerState
+        ? { state: gstCtx.buyerState.name, code: gstCtx.buyerState.code }
+        : undefined;
+
     // 7. Payment details
     const payment = {
         method: order.paymentMethod || 'cod',
@@ -425,6 +529,7 @@ export const generateInvoiceForOrder = async (orderId, session = null) => {
                 b2bDetails,
                 billingAddress: order.shippingAddress || {},
                 shippingAddress: order.shippingAddress || {},
+                placeOfSupply,
                 items: invoiceItems,
                 sellerBreakdown,
                 financialSummary,
@@ -468,6 +573,9 @@ export const getInvoiceWithRoleProjection = async (orderIdOrInvoiceNum, user) =>
         } catch (err) {
             console.warn('Lazy invoice generation note:', err.message);
         }
+        // Lost a race with the background generation that runs right after checkout
+        // (duplicate invoice key) — the invoice exists now, so read it again.
+        if (!invoice) invoice = await Invoice.findOne({ $or: filter }).lean();
     }
 
     if (!invoice) {
@@ -521,6 +629,7 @@ export const getInvoiceWithRoleProjection = async (orderIdOrInvoiceNum, user) =>
                 name: invoice.customer?.name,
             },
             shippingAddress: invoice.shippingAddress,
+            placeOfSupply: invoice.placeOfSupply,
             items: vendorItems,
             sellerInfo: {
                 storeName: matchedSeller.storeName,
@@ -528,6 +637,10 @@ export const getInvoiceWithRoleProjection = async (orderIdOrInvoiceNum, user) =>
                 subtotal: matchedSeller.subtotal,
                 shipping: matchedSeller.shipping,
                 tax: matchedSeller.tax,
+                supplyType: matchedSeller.supplyType,
+                cgst: matchedSeller.cgst,
+                sgst: matchedSeller.sgst,
+                igst: matchedSeller.igst,
                 discount: matchedSeller.discount,
                 total: matchedSeller.total,
                 commissionRate: matchedSeller.commissionRate,
@@ -571,6 +684,10 @@ export const getInvoiceWithRoleProjection = async (orderIdOrInvoiceNum, user) =>
             sellerCity: sb.sellerAddress?.city || '',
             sellerState: sb.sellerAddress?.state || '',
             sellerGst: sb.sellerGst || '',
+            supplyType: sb.supplyType || 'UNKNOWN',
+            cgst: sb.cgst || 0,
+            sgst: sb.sgst || 0,
+            igst: sb.igst || 0,
         }));
 
         return {
@@ -586,12 +703,17 @@ export const getInvoiceWithRoleProjection = async (orderIdOrInvoiceNum, user) =>
             b2bDetails: invoice.b2bDetails,
             billingAddress: invoice.billingAddress,
             shippingAddress: invoice.shippingAddress,
+            placeOfSupply: invoice.placeOfSupply,
             items: invoice.items,
             sellers: sanitizedSellerBreakdown,
             financialSummary: {
                 subtotal: invoice.financialSummary?.subtotal,
                 shipping: invoice.financialSummary?.shipping,
                 tax: invoice.financialSummary?.tax,
+                cgst: invoice.financialSummary?.cgst || 0,
+                sgst: invoice.financialSummary?.sgst || 0,
+                igst: invoice.financialSummary?.igst || 0,
+                unsplitGst: invoice.financialSummary?.unsplitGst || 0,
                 discount: invoice.financialSummary?.discount,
                 couponCode: invoice.financialSummary?.couponCode,
                 couponDiscount: invoice.financialSummary?.couponDiscount,
@@ -689,6 +811,12 @@ export const renderInvoicePdf = (doc, invoice, role = 'customer', vendorId = nul
         doc.font('Helvetica').fillColor('#0f172a').text(String(invoice.payment.transactionId).slice(0, 22), 410, currentY + 85);
     }
 
+    const pos = invoice.placeOfSupply;
+    doc.font('Helvetica').fillColor(secondaryColor).text(`Place of Supply:`, 310, currentY + 98);
+    doc.font('Helvetica-Bold').fillColor('#0f172a').text(
+        pos?.state ? `${pos.state} (${pos.code})` : 'N/A', 410, currentY + 98, { width: 140 }
+    );
+
     // Contextual Order Type Banner (if B2B, Product Request, or RFQ)
     currentY = 232;
     let bannerHeight = 0;
@@ -751,18 +879,30 @@ export const renderInvoicePdf = (doc, invoice, role = 'customer', vendorId = nul
     itemsToRender.forEach((item, index) => {
         const itemTotal = item.totalAmount || (item.price * item.quantity);
         const gst = item.gstAmount || 0;
+        const rate = Number(item.gstRate ?? 18);
+        const half = Math.round((rate / 2) * 100) / 100;
+        let splitLine = '';
+        if (item.supplyType === 'INTRA_STATE') {
+            splitLine = `CGST @${half}%: Rs. ${Number(item.cgstAmount || 0).toFixed(2)}  |  SGST @${half}%: Rs. ${Number(item.sgstAmount || 0).toFixed(2)}`;
+        } else if (item.supplyType === 'INTER_STATE') {
+            splitLine = `IGST @${rate}%: Rs. ${Number(item.igstAmount || 0).toFixed(2)}`;
+        }
+        const rowH = splitLine ? 30 : 22;
 
-        doc.strokeColor('#e2e8f0').rect(40, currentY, 515, 22).stroke();
+        doc.strokeColor('#e2e8f0').rect(40, currentY, 515, rowH).stroke();
         doc.fillColor('#1e293b').fontSize(8).font('Helvetica');
         doc.text(String(index + 1), 45, currentY + 6, { width: 20 });
         doc.text(String(item.name || 'Item').slice(0, 36), 70, currentY + 6, { width: 190 });
-        doc.text(`${item.gstRate ?? 18}%`, 270, currentY + 6, { width: 40, align: 'center' });
+        doc.text(`${rate}%`, 270, currentY + 6, { width: 40, align: 'center' });
         doc.text(String(item.quantity || 1), 320, currentY + 6, { width: 30, align: 'center' });
         doc.text(Number(item.price || 0).toFixed(2), 360, currentY + 6, { width: 55, align: 'right' });
         doc.text(Number(gst).toFixed(2), 425, currentY + 6, { width: 55, align: 'right' });
         doc.font('Helvetica-Bold').text(Number(itemTotal).toFixed(2), 490, currentY + 6, { width: 60, align: 'right' });
+        if (splitLine) {
+            doc.font('Helvetica').fontSize(6.5).fillColor(secondaryColor).text(splitLine, 70, currentY + 18, { width: 400 });
+        }
 
-        currentY += 22;
+        currentY += rowH;
     });
 
     // Summary Box (Right aligned)
@@ -770,23 +910,41 @@ export const renderInvoicePdf = (doc, invoice, role = 'customer', vendorId = nul
     const summaryX = 330;
     const summaryWidth = 225;
 
-    doc.rect(summaryX, currentY, summaryWidth, 100).fill('#f8fafc');
-    doc.strokeColor(borderColor).rect(summaryX, currentY, summaryWidth, 100).stroke();
-
     const renderSummaryRow = (label, val, y, isBold = false) => {
         doc.font(isBold ? 'Helvetica-Bold' : 'Helvetica').fontSize(8.5);
         doc.fillColor(isBold ? primaryColor : secondaryColor).text(label, summaryX + 10, y);
         doc.text(`Rs. ${Number(val || 0).toFixed(2)}`, summaryX + 100, y, { width: 110, align: 'right' });
     };
 
-    const fin = invoice.financialSummary || {};
-    renderSummaryRow('Items Subtotal:', fin.subtotal, currentY + 8);
-    renderSummaryRow('Discount:', fin.discount ? -fin.discount : 0, currentY + 22);
-    renderSummaryRow('Total Tax (GST):', fin.tax, currentY + 36);
-    renderSummaryRow('Shipping / Delivery:', fin.shipping, currentY + 50);
+    // Vendor-scoped invoices carry their figures in sellerInfo rather than financialSummary.
+    const si = invoice.sellerInfo;
+    const fin = invoice.financialSummary || (si ? {
+        subtotal: si.subtotal, discount: si.discount, tax: si.tax, shipping: si.shipping, grandTotal: si.total,
+        cgst: si.cgst, sgst: si.sgst, igst: si.igst,
+        unsplitGst: Math.max(0, (si.tax || 0) - (si.cgst || 0) - (si.sgst || 0) - (si.igst || 0)),
+    } : {});
 
-    doc.strokeColor(borderColor).moveTo(summaryX + 5, currentY + 66).lineTo(summaryX + summaryWidth - 5, currentY + 66).stroke();
-    renderSummaryRow('Grand Total:', fin.grandTotal, currentY + 74, true);
+    // Tax rows: CGST/SGST and/or IGST when known; any GST that could not be split stays as "GST".
+    const taxRows = [];
+    if (fin.cgst) taxRows.push(['CGST:', fin.cgst]);
+    if (fin.sgst) taxRows.push(['SGST:', fin.sgst]);
+    if (fin.igst) taxRows.push(['IGST:', fin.igst]);
+    if (taxRows.length === 0) taxRows.push(['GST:', fin.tax]);
+    else if ((fin.unsplitGst || 0) > 0.004) taxRows.push(['GST (unsplit):', fin.unsplitGst]);
+
+    const rows = [
+        ['Items Subtotal:', fin.subtotal],
+        ['Discount:', fin.discount ? -fin.discount : 0],
+        ...taxRows,
+        ['Shipping / Delivery:', fin.shipping],
+    ];
+    const boxH = 8 + rows.length * 14 + 34;
+    doc.rect(summaryX, currentY, summaryWidth, boxH).fill('#f8fafc');
+    doc.strokeColor(borderColor).rect(summaryX, currentY, summaryWidth, boxH).stroke();
+    rows.forEach(([label, val], i) => renderSummaryRow(label, val, currentY + 8 + i * 14));
+    const lineY = currentY + 8 + rows.length * 14 + 2;
+    doc.strokeColor(borderColor).moveTo(summaryX + 5, lineY).lineTo(summaryX + summaryWidth - 5, lineY).stroke();
+    renderSummaryRow('Grand Total:', fin.grandTotal, lineY + 8, true);
 
     // Left Bottom Box: Role-specific notes / Internal financial settlement info
     if (role === 'admin') {

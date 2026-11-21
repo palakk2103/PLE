@@ -15,7 +15,8 @@ const OrderSummary = ({
   paymentMethod = 'card',
   courierBreakdown = null,
   liveGstRates = {},
-  gstSlabs = []
+  gstSlabs = [],
+  gstSplit = null
 }) => {
   return (
     <div className="glass-card rounded-xl p-4">
@@ -135,7 +136,12 @@ const OrderSummary = ({
             <div className="p-2 rounded-xl bg-gray-50 border border-gray-200/60 space-y-1 text-xs">
               <div className="flex items-center justify-between font-bold text-gray-700 text-[11px]">
                 <span>Configured GST Slabs</span>
-                <span className="text-[10px] text-gray-400 uppercase tracking-wider">CGST + SGST</span>
+                <span className="text-[10px] text-gray-400 uppercase tracking-wider">
+                  {gstSplit?.igst > 0 && (gstSplit?.cgst > 0) ? "CGST + SGST / IGST"
+                    : gstSplit?.igst > 0 ? "IGST"
+                    : gstSplit?.cgst > 0 ? "CGST + SGST"
+                    : "GST"}
+                </span>
               </div>
               {gstSlabs.map((slab) => (
                 <div key={slab.rate} className="flex items-center justify-between text-[11px] text-gray-600">
@@ -143,6 +149,33 @@ const OrderSummary = ({
                   <span className="font-semibold text-gray-800">{formatPrice(slab.taxAmount)}</span>
                 </div>
               ))}
+              {gstSplit && (gstSplit.cgst > 0 || gstSplit.igst > 0) && (
+                <div className="pt-1.5 mt-1 border-t border-gray-200/70 space-y-1" data-testid="gst-split">
+                  {gstSplit.cgst > 0 && (
+                    <div className="flex justify-between text-[11px] text-gray-600">
+                      <span>CGST</span><span className="font-semibold text-gray-800">{formatPrice(gstSplit.cgst)}</span>
+                    </div>
+                  )}
+                  {gstSplit.sgst > 0 && (
+                    <div className="flex justify-between text-[11px] text-gray-600">
+                      <span>SGST</span><span className="font-semibold text-gray-800">{formatPrice(gstSplit.sgst)}</span>
+                    </div>
+                  )}
+                  {gstSplit.igst > 0 && (
+                    <div className="flex justify-between text-[11px] text-gray-600">
+                      <span>IGST</span><span className="font-semibold text-gray-800">{formatPrice(gstSplit.igst)}</span>
+                    </div>
+                  )}
+                  {gstSplit.unsplit > 0 && (
+                    <div className="flex justify-between text-[11px] text-gray-600">
+                      <span>GST</span><span className="font-semibold text-gray-800">{formatPrice(gstSplit.unsplit)}</span>
+                    </div>
+                  )}
+                  {gstSplit.placeOfSupply?.state && (
+                    <p className="text-[10px] text-gray-400">Place of supply: {gstSplit.placeOfSupply.state}</p>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>

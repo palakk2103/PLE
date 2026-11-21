@@ -585,6 +585,22 @@ const MobileOrderDetail = () => {
                     <span>Tax</span>
                     <span>{formatPrice(order.tax)}</span>
                   </div>
+                  {(order.taxBreakdown?.cgst > 0 || order.taxBreakdown?.igst > 0) && (
+                    <div className="pl-3 space-y-0.5 text-xs text-gray-500" data-testid="order-gst-split">
+                      {order.taxBreakdown.cgst > 0 && (
+                        <div className="flex justify-between"><span>CGST</span><span>{formatPrice(order.taxBreakdown.cgst)}</span></div>
+                      )}
+                      {order.taxBreakdown.sgst > 0 && (
+                        <div className="flex justify-between"><span>SGST</span><span>{formatPrice(order.taxBreakdown.sgst)}</span></div>
+                      )}
+                      {order.taxBreakdown.igst > 0 && (
+                        <div className="flex justify-between"><span>IGST</span><span>{formatPrice(order.taxBreakdown.igst)}</span></div>
+                      )}
+                      {order.taxBreakdown.unsplit > 0 && (
+                        <div className="flex justify-between"><span>GST</span><span>{formatPrice(order.taxBreakdown.unsplit)}</span></div>
+                      )}
+                    </div>
+                  )}
                   <div className="flex justify-between text-lg font-bold text-gray-800 pt-2 border-t border-gray-200">
                     <span>Total</span>
                     <span className="text-[#7B0A0A]">{formatPrice(order.total)}</span>
