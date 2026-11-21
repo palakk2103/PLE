@@ -457,7 +457,32 @@ export const placeOrder = asyncHandler(async (req, res) => {
         } else if (coupon.type === 'fixed') {
             couponDiscount = coupon.value;
         }
+        couponDiscount = round2(Math.min(Math.max(0, couponDiscount), subtotal));
         appliedCoupon = coupon;
+    }
+
+    // 2b. GST is charged on the value after the coupon (Sec. 15(3) CGST Act: a discount shown
+    // on the invoice reduces the taxable value). Spread the coupon over lines in proportion to
+    // their value (last line takes the rounding remainder), then recompute each line's GST.
+    if (couponDiscount > 0 && subtotal > 0) {
+        let allocated = 0;
+        enrichedItems.forEach((it, idx) => {
+            const lineValue = it.price * it.quantity;
+            const share = idx === enrichedItems.length - 1
+                ? round2(couponDiscount - allocated)
+                : round2((couponDiscount * lineValue) / subtotal);
+            allocated = round2(allocated + share);
+            const lineDiscount = Math.min(lineValue, Math.max(0, share));
+            const { taxableAmount: t, gstAmount: g } = calculateItemGST(it.price, it.quantity, it.gstRate, lineDiscount, it.taxIncluded);
+            it.discount = lineDiscount;
+            it.taxableAmount = t;
+            it.gstAmount = g;
+            applyGSTSplit(it, it.supplyType);
+        });
+        Object.values(vendorMap).forEach((v) => {
+            v.tax = round2(v.items.reduce((s, it) => s + (it.gstAmount || 0), 0));
+            v.discount = round2(v.items.reduce((s, it) => s + (it.discount || 0), 0));
+        });
     }
 
     // 3. Calculate shipping
@@ -532,7 +557,7 @@ export const placeOrder = asyncHandler(async (req, res) => {
         subtotal: v.subtotal,
         shipping: Number(shippingByVendor[String(v.vendorId)] || 0),
         tax: parseFloat((v.tax || 0).toFixed(2)),
-        discount: 0,
+        discount: v.discount || 0,
         status: 'pending',
         sellerState: v.sellerState,
         sellerStateCode: v.sellerStateCode,

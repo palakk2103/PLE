@@ -15,6 +15,8 @@ const orderItemSchema = new mongoose.Schema({
     gstAmount: { type: Number, default: 0 },
     taxableAmount: { type: Number, default: 0 },
     taxIncluded: { type: Boolean, default: false },
+    // This line's share of the order coupon; GST is charged on (price x qty - discount)
+    discount: { type: Number, default: 0 },
     // Place-of-supply split of gstAmount (INTRA_STATE -> CGST+SGST, INTER_STATE -> IGST)
     supplyType: { type: String, enum: ['INTRA_STATE', 'INTER_STATE', 'UNKNOWN'] },
     cgstAmount: { type: Number, default: 0 },

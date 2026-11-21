@@ -34,7 +34,7 @@ await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const BASE = `http://127.0.0.1:${server.address().port}/api`;
 
 const M = {};
-for (const n of ['User', 'Vendor', 'ManagedShop', 'Product', 'Order', 'Invoice']) M[n] = (await imp(`models/${n}.model.js`)).default;
+for (const n of ['User', 'Vendor', 'ManagedShop', 'Product', 'Order', 'Invoice', 'Coupon']) M[n] = (await imp(`models/${n}.model.js`)).default;
 
 let pass = 0, fail = 0;
 const check = (name, cond, actual) => {
@@ -70,8 +70,8 @@ const P_SHOP = await mkProduct('Shop Phone', { shopId: SHOP, listingType: 'admin
 
 const T = signAccessToken({ id: String(CUST), role: 'customer', name: 'Gst Buyer', email: 'gstbuyer@example.com' });
 const addr = (state) => ({ name: 'Gst Buyer', email: 'gstbuyer@example.com', phone: '9000000000', address: '1 Test Street', city: 'X', state, zipCode: '560001', country: 'India' });
-const order = async (productIds, state) => {
-    const r = await api(T, 'POST', '/user/orders', { items: productIds.map((productId) => ({ productId: String(productId), quantity: 1 })), shippingAddress: addr(state), paymentMethod: 'cod' });
+const order = async (productIds, state, couponCode) => {
+    const r = await api(T, 'POST', '/user/orders', { items: productIds.map((productId) => ({ productId: String(productId), quantity: 1 })), shippingAddress: addr(state), paymentMethod: 'cod', ...(couponCode ? { couponCode } : {}) });
     if (r.status >= 300) return { error: `${r.status} ${r.body?.message} ${JSON.stringify(r.body?.errors || '')}` };
     return M.Order.findOne({ userId: CUST }).sort({ createdAt: -1, _id: -1 }).lean();
 };
@@ -160,6 +160,45 @@ console.log('In-memory DB ready.\n');
     check('Estimate: MH product INTER', g?.byProduct?.[String(P_MH)]?.supplyType === 'INTER_STATE', g?.byProduct?.[String(P_MH)]);
     const r2 = await api(null, 'POST', '/shipping/estimate', { items: [{ productId: String(P_KA), quantity: 1 }], shippingAddress: {} });
     check('Estimate: no address -> UNKNOWN (no crash)', r2.data?.gst?.byProduct?.[String(P_KA)]?.supplyType === 'UNKNOWN', r2.data?.gst);
+}
+
+// 7. Coupon: GST is charged on the value AFTER the coupon (Sec. 15(3) CGST Act)
+{
+    await M.Coupon.create({ code: 'TENOFF', type: 'percentage', value: 10, isActive: true });
+    await M.Coupon.create({ code: 'BIGFLAT', type: 'fixed', value: 5000, isActive: true });
+    await M.Coupon.create({ code: 'ODD', type: 'fixed', value: 100, isActive: true });
+
+    // KA (intra) Rs.1000 + MH (inter) Rs.1000, buyer in Karnataka, 10% coupon = Rs.200 -> Rs.100 per line
+    const o = await order([P_KA, P_MH], 'Karnataka', 'TENOFF');
+    check('Coupon: order placed', !!o?.items, o?.error || o?.orderId);
+    const ka = o?.items?.find((i) => String(i.productId) === String(P_KA));
+    const mh = o?.items?.find((i) => String(i.productId) === String(P_MH));
+    check('Coupon: discount spread per line (100 + 100)', ka?.discount === 100 && mh?.discount === 100, [ka?.discount, mh?.discount]);
+    check('Coupon: taxable value is post-coupon (900)', ka?.taxableAmount === 900 && mh?.taxableAmount === 900, [ka?.taxableAmount, mh?.taxableAmount]);
+    check('Coupon: GST 162 per line (18% of 900)', ka?.gstAmount === 162 && mh?.gstAmount === 162, [ka?.gstAmount, mh?.gstAmount]);
+    check('Coupon: split follows reduced GST (CGST 81 / SGST 81 / IGST 162)', ka?.cgstAmount === 81 && ka?.sgstAmount === 81 && mh?.igstAmount === 162, [ka?.cgstAmount, ka?.sgstAmount, mh?.igstAmount]);
+    check('Coupon: order tax 324 and taxBreakdown agrees', o?.tax === 324 && o?.taxBreakdown?.cgst + o?.taxBreakdown?.sgst + o?.taxBreakdown?.igst === 324, [o?.tax, o?.taxBreakdown]);
+    check('Coupon: total = 2000 - 200 + 324 = 2124', o?.total === 2124, o?.total);
+    const vKA = o?.vendorItems?.find((v) => String(v.vendorId) === String(V_KA));
+    check('Coupon: vendor group carries its coupon share + reduced tax', vKA?.discount === 100 && vKA?.tax === 162, [vKA?.discount, vKA?.tax]);
+    const inv = await api(T, 'GET', `/user/orders/${o.orderId}/invoice`);
+    const fs = inv.data?.financialSummary;
+    check('Coupon: invoice tax 324, discount 200, total 2124', fs?.tax === 324 && fs?.discount === 200 && fs?.grandTotal === 2124, fs && { tax: fs.tax, discount: fs.discount, grandTotal: fs.grandTotal });
+    const pdf = await api(T, 'GET', `/user/orders/${o.orderId}/invoice/pdf`, null, true);
+    check('Coupon: invoice PDF renders', pdf.status === 200 && pdf.buf.slice(0, 4).toString() === '%PDF', `${pdf.status} ${pdf.buf.length} bytes`);
+
+    // Rs.100 fixed over 3 lines -> 33.33 + 33.33 + 33.34 (rounding remainder on the last line)
+    const o3 = await order([P_KA, P_MH, P_NONE], 'Karnataka', 'ODD');
+    const shares = (o3?.items || []).map((i) => i.discount);
+    check('Coupon: Rs.100 over 3 lines sums exactly', Math.round(shares.reduce((x, y) => x + y, 0) * 100) === 10000 && shares[2] === 33.34, shares);
+
+    // Fixed coupon bigger than the cart is capped at the goods value
+    const o2 = await order([P_KA], 'Karnataka', 'BIGFLAT');
+    check('Coupon: oversized fixed coupon capped at subtotal, GST 0', o2?.items?.[0]?.discount === 1000 && o2?.tax === 0 && o2?.total === 0, [o2?.items?.[0]?.discount, o2?.tax, o2?.total, o2?.error]);
+
+    // No coupon -> unchanged behaviour
+    const o4 = await order([P_KA], 'Karnataka');
+    check('No coupon: GST still on full price (180), discount 0', o4?.tax === 180 && (o4?.items?.[0]?.discount || 0) === 0, [o4?.tax, o4?.items?.[0]?.discount]);
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);
