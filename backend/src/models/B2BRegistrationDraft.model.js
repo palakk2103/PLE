@@ -15,6 +15,10 @@ const draftSchema = new mongoose.Schema(
         otpExpiresAt: { type: Date, select: false },
         otpAttempts: { type: Number, default: 0, select: false },
         otpSentAt: { type: Date, select: false },
+        // Emailed "resume your registration" link: sha256 of a single-use token
+        resumeLinkHash: { type: String, select: false },
+        resumeLinkExpiresAt: { type: Date, select: false },
+        resumeLinkSentAt: { type: Date, select: false },
         expiresAt: { type: Date, required: true }
     },
     { timestamps: true }

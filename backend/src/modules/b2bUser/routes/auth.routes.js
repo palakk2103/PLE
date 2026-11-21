@@ -1,6 +1,6 @@
 import express from 'express';
 import { registerB2BUser, loginB2BUser, logoutB2BUser, uploadB2BAgreement, uploadB2BRegistrationDocument, uploadB2BRegistrationDoc } from '../controllers/auth.controller.js';
-import { saveDraft, requestDraftOtp, verifyDraftOtp, loadDraft, discardDraft } from '../controllers/registrationDraft.controller.js';
+import { saveDraft, requestDraftOtp, verifyDraftOtp, loadDraft, discardDraft, sendDraftResumeLink, resumeDraftFromLink } from '../controllers/registrationDraft.controller.js';
 import * as twoFactorController from '../../../controllers/twoFactor.controller.js';
 import { authenticate } from '../../../middlewares/authenticate.js';
 import { otpLimiter } from '../../../middlewares/rateLimiter.js';
@@ -21,6 +21,8 @@ router.post('/draft/request-otp', otpLimiter, requestDraftOtp);
 router.post('/draft/verify-otp', verifyDraftOtp);
 router.post('/draft/load', loadDraft);
 router.post('/draft/discard', discardDraft);
+router.post('/draft/send-link', otpLimiter, sendDraftResumeLink);
+router.post('/draft/resume-link', otpLimiter, resumeDraftFromLink);
 
 // 2FA routes
 router.get('/2fa/status', authenticate, twoFactorController.get2FAStatus);

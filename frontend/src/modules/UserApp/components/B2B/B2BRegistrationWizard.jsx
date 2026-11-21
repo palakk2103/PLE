@@ -205,17 +205,55 @@ const B2BRegistrationWizard = () => {
     try { localStorage.setItem(SESSION_KEY, JSON.stringify({ email: draft.email, token })); } catch { /* ignore */ }
   };
 
-  // Same-browser resume using the saved ownership token.
+  // Resume from the emailed link (?resume=<token>&email=<email>). Takes priority over the
+  // same-browser session; the token is removed from the address bar straight away.
+  // Read once on mount; the URL is cleaned with history.replaceState (not a router navigation)
+  // so the wizard is not remounted while the draft is loading.
+  const [{ linkToken, linkEmail }] = useState(() => {
+    const p = new URLSearchParams(window.location.search);
+    return { linkToken: p.get('resume'), linkEmail: p.get('email') };
+  });
+  const linkHandled = useRef(false); // the link is single-use: never submit it twice (e.g. StrictMode)
   useEffect(() => {
+    if (!linkToken || !linkEmail || linkHandled.current) return;
+    linkHandled.current = true;
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('resume');
+      url.searchParams.delete('email');
+      window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
+    } catch { /* ignore */ }
+    api.post('/b2b-user/auth/draft/resume-link', { email: linkEmail, token: linkToken })
+      .then((res) => {
+        applyDraft(res.data, res.data.draftToken);
+        toast.success(`Welcome back! Continuing your registration at step ${res.data.currentStep || 1}. Re-enter passwords and secret keys when you get to them.`);
+      })
+      .catch((err) => {
+        // Link used/expired: if this browser already holds the draft, just restore it.
+        if (restoreSession()) return;
+        toast.error(err?.response?.data?.message || 'This link is invalid or has expired.');
+        setResume((r) => ({ ...r, open: true, email: linkEmail }));
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Same-browser resume using the saved ownership token. Returns false if there is none.
+  function restoreSession() {
     let session = null;
     try { session = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch { /* ignore */ }
-    if (!session?.email || !session?.token) return;
+    if (!session?.email || !session?.token) return false;
     api.post('/b2b-user/auth/draft/load', { email: session.email, draftToken: session.token })
       .then((res) => {
         applyDraft(res.data, session.token);
         toast.success('Your saved registration was restored.');
       })
       .catch(() => { try { localStorage.removeItem(SESSION_KEY); } catch { /* ignore */ } });
+    return true;
+  }
+  useEffect(() => {
+    if (linkToken && linkEmail) return;
+    restoreSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /* ---------------- validation ---------------- */
@@ -372,7 +410,9 @@ const B2BRegistrationWizard = () => {
       setDraftToken(token);
       setLastSaved(d.updatedAt);
       try { localStorage.setItem(SESSION_KEY, JSON.stringify({ email: form.businessEmail.trim().toLowerCase(), token })); } catch { /* ignore */ }
-      toast.success('Draft saved. Passwords and secret keys are not stored - re-enter them when you resume.');
+      toast.success(d.resumeLinkSent
+        ? `Draft saved. We emailed a link to ${form.businessEmail.trim()} so you can continue later from any device. Passwords and secret keys are not stored.`
+        : 'Draft saved. Passwords and secret keys are not stored - re-enter them when you resume.', { duration: 6000 });
     } catch (err) {
       const status = err?.response?.status;
       const msg = err?.response?.data?.message || err?.message || 'Could not save draft.';
@@ -392,6 +432,16 @@ const B2BRegistrationWizard = () => {
       setResume((r) => ({ ...r, sent: true, busy: false, msg: res?.message || 'Code sent if a draft exists.' }));
     } catch (err) {
       setResume((r) => ({ ...r, busy: false, msg: err?.response?.data?.message || 'Could not send code.' }));
+    }
+  };
+
+  const requestLink = async () => {
+    setResume((r) => ({ ...r, busy: true, msg: '' }));
+    try {
+      const res = await api.post('/b2b-user/auth/draft/send-link', { email: resume.email });
+      setResume((r) => ({ ...r, busy: false, linkSent: true, msg: res?.message || 'If a saved registration exists, we emailed you a link.' }));
+    } catch (err) {
+      setResume((r) => ({ ...r, busy: false, msg: err?.response?.data?.message || 'Could not send the link.' }));
     }
   };
 
@@ -523,9 +573,14 @@ const B2BRegistrationWizard = () => {
         <div className="p-3 border border-gray-200 dark:border-zinc-800 rounded-xl space-y-2 bg-gray-50 dark:bg-zinc-900" data-testid="resume-panel">
           <input type="email" value={resume.email} onChange={(e) => setResume((r) => ({ ...r, email: e.target.value }))} placeholder="Company email used for the draft" className={inputCls(false)} data-testid="resume-email" />
           {!resume.sent ? (
-            <button type="button" disabled={resume.busy || !EMAIL_REGEX.test(resume.email)} onClick={requestOtp} className={`${btnPrimary} w-full`} data-testid="resume-send">
-              {resume.busy ? 'Sending...' : 'Send verification code'}
-            </button>
+            <div className="flex gap-2">
+              <button type="button" disabled={resume.busy || !EMAIL_REGEX.test(resume.email)} onClick={requestOtp} className={`${btnPrimary} flex-1`} data-testid="resume-send">
+                {resume.busy ? 'Sending...' : 'Send verification code'}
+              </button>
+              <button type="button" disabled={resume.busy || !EMAIL_REGEX.test(resume.email)} onClick={requestLink} className={`${btnSecondary} flex-1`} data-testid="resume-send-link">
+                Email me a link
+              </button>
+            </div>
           ) : (
             <>
               <input type="text" inputMode="numeric" maxLength={6} value={resume.otp} onChange={(e) => setResume((r) => ({ ...r, otp: e.target.value.replace(/\D/g, '') }))} placeholder="6-digit code" className={inputCls(false)} data-testid="resume-otp" />
