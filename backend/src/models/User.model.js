@@ -21,7 +21,11 @@ const userSchema = new mongoose.Schema(
         firstName: { type: String, trim: true },
         lastName: { type: String, trim: true },
         b2bWalletBalance: { type: Number, default: 0 },
-        b2bSpendingLimit: { type: Number, default: 0 },
+        // Spending limits set by the company admin (0 = no limit). b2bSpendingLimit has always been
+        // shown to admins as the MONTHLY limit, so it keeps that meaning.
+        b2bSpendingLimit: { type: Number, default: 0, min: 0 }, // per calendar month (India time)
+        b2bPerOrderSpendingLimit: { type: Number, default: 0, min: 0 }, // max total of one order
+        b2bSpendCheckedAt: { type: Date }, // touched inside order transactions to serialise limit checks
 
         isVerified: { type: Boolean, default: false },
         isActive: { type: Boolean, default: true },

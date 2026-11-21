@@ -2,6 +2,7 @@ import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
 import { createRazorpayOrder } from '../../../services/razorpay.service.js';
+import { assertWithinSpendingLimits } from '../../../services/b2bSpendingLimit.service.js';
 import Order from '../../../models/Order.model.js';
 import Product from '../../../models/Product.model.js';
 import { isProductPubliclyApproved } from '../../../utils/productVisibility.js';
@@ -599,6 +600,9 @@ export const placeOrder = asyncHandler(async (req, res) => {
                 }
             }
 
+            // B2B employee per-order / monthly spending limits (any payment method)
+            await assertWithinSpendingLimits({ userId, role: req.user?.role, amount: total, session });
+
             // Wallet Payment Validation & Deduction
             const isB2B = req.user?.role === 'b2bAdmin' || req.user?.role === 'b2bEmployee';
             let walletTxId = null;
@@ -621,9 +625,6 @@ export const placeOrder = asyncHandler(async (req, res) => {
                     }
                     if (employeeUser.b2bWalletBalance < reqWalletAmount) {
                         throw new ApiError(400, `Insufficient employee wallet balance. Available: ₹${employeeUser.b2bWalletBalance}`);
-                    }
-                    if (employeeUser.b2bSpendingLimit && employeeUser.b2bSpendingLimit < reqWalletAmount) {
-                        throw new ApiError(400, `Payment exceeds employee spending limit of ₹${employeeUser.b2bSpendingLimit}`);
                     }
 
                     // Deduct from employee user model

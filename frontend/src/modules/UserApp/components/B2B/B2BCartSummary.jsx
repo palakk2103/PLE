@@ -29,9 +29,8 @@ export const B2BCartSummary = ({ cartItems, subtotal }) => {
     // Let's assume the base retail price was about 25% higher
     // Use the product's real retail price when we have it; otherwise fall back to an estimate.
     const catalogRetail = Number(getProductById(item.id)?.price);
-    const estimatedRetailPrice = catalogRetail > item.price
-      ? catalogRetail
-      : Math.round((item.price / 0.8) * 100) / 100;
+    // No invented savings: only count a real difference from the catalogue price.
+    const estimatedRetailPrice = catalogRetail > item.price ? catalogRetail : item.price;
     const itemSavings = (estimatedRetailPrice - item.price) * item.quantity;
     totalSavings += itemSavings;
 

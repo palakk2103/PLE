@@ -246,7 +246,7 @@ const Wallet = () => {
 
               {isEmployee && (
                 <div className="mt-4 text-red-100/90 border-t border-white/10 pt-3 flex justify-between">
-                  <span>Spending Limit: ₹{(user?.b2bSpendingLimit ?? 0).toLocaleString("en-IN")}</span>
+                  <span>Monthly Limit: {Number(user?.b2bSpendingLimit) > 0 ? `₹${Number(user.b2bSpendingLimit).toLocaleString("en-IN")}` : "Unlimited"}</span>
                   <span>Contact admin to request balance allotment.</span>
                 </div>
               )}

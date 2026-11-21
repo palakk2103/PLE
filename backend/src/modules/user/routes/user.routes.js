@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { getSpendingSummary } from '../../../services/b2bSpendingLimit.service.js';
+import ApiResponse from '../../../utils/ApiResponse.js';
 import * as authController from '../controllers/auth.controller.js';
 import * as addressController from '../controllers/address.controller.js';
 import * as wishlistController from '../controllers/wishlist.controller.js';
@@ -107,6 +109,12 @@ router.get('/invoices/:id', ...customerAuth, invoiceController.getUserInvoice);
 router.get('/invoices/:id/pdf', ...customerAuth, invoiceController.downloadUserInvoicePdf);
 
 // Payment routes
+router.get('/spending-limits', ...customerAuth, async (req, res, next) => {
+    try {
+        const summary = await getSpendingSummary(req.user.id);
+        res.status(200).json(new ApiResponse(200, summary, 'Spending limits.'));
+    } catch (err) { next(err); }
+});
 router.post('/payments/verify', ...customerAuth, paymentController.verifyPayment);
 router.post('/payments/retry', ...customerAuth, paymentController.retryPayment);
 

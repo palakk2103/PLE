@@ -22,6 +22,7 @@ import {
     summarizeGST,
 } from '../../../utils/gstUtils.js';
 import { createRazorpayOrder } from '../../../services/razorpay.service.js';
+import { assertWithinSpendingLimits } from '../../../services/b2bSpendingLimit.service.js';
 import { moderateMessage, MODERATION_ACTION } from '../../../services/chatModeration.service.js';
 import { sendProductRequestReceivedEmail } from '../../../services/customerNotification.service.js';
 import {
@@ -381,6 +382,9 @@ export const confirmProductRequestProposal = asyncHandler(async (req, res) => {
     const tax = round2(items.reduce((a, it) => a + it.gstAmount, 0));
     const total = round2(subtotal + tax);
 
+    // Employee spending limits: fail fast before starting a payment (re-checked in the transaction).
+    await assertWithinSpendingLimits({ userId, role: req.user.role, amount: total });
+
     // 3. Start the online payment first: if the gateway is down, no stock is reserved.
     const orderId = generateOrderId();
     const rzp = await createRazorpayOrder(total, { receipt: `rcpt_${orderId}`, notes: { orderId, requestId: request.requestId } });
@@ -390,6 +394,7 @@ export const confirmProductRequestProposal = asyncHandler(async (req, res) => {
     let order;
     try {
         await session.withTransaction(async () => {
+            await assertWithinSpendingLimits({ userId, role: req.user.role, amount: total, session });
             for (const l of lines) {
                 const updated = await Product.findOneAndUpdate(
                     { _id: l.product._id, stockQuantity: { $gte: l.quantity } },

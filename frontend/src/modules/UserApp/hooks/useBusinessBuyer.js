@@ -39,9 +39,15 @@ export const useBusinessBuyer = () => {
       .filter((s) => s.minQty > 0 && s.price > 0)
       .sort((a, b) => a.minQty - b.minQty);
 
-    if (!(wholesale > 0) && slabs.length === 0) return specs;
+    // Only real product data: no placeholder discounts or MOQs the server would not honour
+    // (the old fallback showed 20-40% "bulk" prices that checkout never charged).
+    const realMoq = Math.max(1, Number(product?.b2bMinOrderQty) || 1);
+    if (!(wholesale > 0) && slabs.length === 0) {
+      const price = Number(retailPrice) || 0;
+      return { ...specs, moq: realMoq, tiers: [{ minQty: realMoq, price }], retailPrice: price || undefined };
+    }
 
-    const moq = specs.moq;
+    const moq = realMoq;
     let basePrice = wholesale > 0 ? wholesale : Number(retailPrice) || 0;
     const tiers = [];
     for (const slab of slabs) {

@@ -28,6 +28,7 @@ export const createRazorpayOrder = async (amount, { receipt, notes } = {}) => {
         throw new ApiError(400, `Online payment limit exceeded: ₹${rupees.toLocaleString('en-IN')} is above Razorpay's ₹5,00,000 per-transaction limit. Please contact support to split this order.`);
     }
     try {
+        // getClient() is inside the try: missing keys make the SDK throw synchronously.
         const rzpOrder = await getClient().orders.create({
             amount: Math.round(rupees * 100),
             currency: 'INR',

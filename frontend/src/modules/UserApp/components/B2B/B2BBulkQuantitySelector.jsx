@@ -59,7 +59,7 @@ export const B2BBulkQuantitySelector = ({ product, quantity, onChange }) => {
                   {formatPrice(tier.price)}
                 </span>
                 <span className="text-[8px] text-primary-600 font-bold bg-primary-100/50 px-1 rounded mt-1">
-                  Save {Math.round(((product.price - tier.price) / product.price) * 100)}%
+                  {tier.price < product.price ? `Save ${Math.round(((product.price - tier.price) / product.price) * 100)}%` : 'Standard price'}
                 </span>
               </button>
             );

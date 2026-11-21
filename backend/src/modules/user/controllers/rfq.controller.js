@@ -1,4 +1,5 @@
 import asyncHandler from '../../../utils/asyncHandler.js';
+import { assertWithinSpendingLimits } from '../../../services/b2bSpendingLimit.service.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
 import RFQ from '../../../models/RFQ.model.js';
@@ -265,6 +266,7 @@ export const buyerAcceptQuote = asyncHandler(async (req, res) => {
     let order = null;
     try {
         await session.withTransaction(async () => {
+            await assertWithinSpendingLimits({ userId: req.user.id, role: req.user.role, amount: total, session });
             order = await Order.create([{
                 orderId: generateOrderId(),
                 userId: req.user.id,

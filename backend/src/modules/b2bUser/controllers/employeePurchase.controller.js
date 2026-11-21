@@ -4,6 +4,7 @@
  * Every query is scoped to the admin's own company (companyId), and every
  * employee-specific endpoint first verifies the employee belongs to that company.
  */
+import { getSpendingSummary } from '../../../services/b2bSpendingLimit.service.js';
 import mongoose from 'mongoose';
 import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
@@ -21,7 +22,7 @@ const COD_METHODS = ['cod', 'cash'];
 // Fields never exposed to the company admin
 const ORDER_HIDDEN_FIELDS = '-paymentDetails.razorpaySignature -idempotencyKey -idempotencyScope -emailNotifications -deletedBy';
 
-const EMPLOYEE_PUBLIC_FIELDS = 'name firstName lastName email phone avatar designation department address b2bRole b2bWalletBalance b2bSpendingLimit isActive createdAt';
+const EMPLOYEE_PUBLIC_FIELDS = 'name firstName lastName email phone avatar designation department address b2bRole b2bWalletBalance b2bSpendingLimit b2bPerOrderSpendingLimit isActive createdAt';
 
 const toObjectId = (id) => new mongoose.Types.ObjectId(String(id));
 
@@ -231,10 +232,13 @@ export const getEmployeeOverview = asyncHandler(async (req, res) => {
     }
     for (const k of ['totalAllotted', 'totalRefundedToWallet', 'totalDebited']) wallet[k] = Math.round(wallet[k] * 100) / 100;
 
+    const spending = await getSpendingSummary({ ...(employee.toObject ? employee.toObject() : employee), role: 'b2bEmployee' });
+
     res.status(200).json(new ApiResponse(200, {
         employee,
         stats: statsFor(employee._id),
         wallet,
+        spending,
         recentOrders,
     }, 'Employee overview fetched.'));
 });

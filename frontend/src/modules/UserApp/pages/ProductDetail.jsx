@@ -972,13 +972,15 @@ const MobileProductDetail = () => {
                         <span className="text-primary-700 font-bold bg-primary-100 px-3 py-1 rounded-full text-sm">
                           Wholesale Price
                         </span>
-                        <span className="text-sm text-gray-500 font-medium">
-                          (Saved{" "}
-                          {Math.round(
-                            ((currentPrice - activePrice) / currentPrice) * 100,
-                          )}
-                          % based on quantity)
-                        </span>
+                        {currentPrice > activePrice && (
+                          <span className="text-sm text-gray-500 font-medium">
+                            (Saved{" "}
+                            {Math.round(
+                              ((currentPrice - activePrice) / currentPrice) * 100,
+                            )}
+                            % based on quantity)
+                          </span>
+                        )}
                       </div>
                     ) : (
                       product.originalPrice && (

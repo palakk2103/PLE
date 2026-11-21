@@ -1,4 +1,5 @@
 import asyncHandler from '../../../utils/asyncHandler.js';
+import { parseLimitInput } from '../../../services/b2bSpendingLimit.service.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
 import User from '../../../models/User.model.js';
@@ -61,7 +62,7 @@ const transferFundsToEmployee = async ({ adminId, employee, companyId, amount })
 // so every movement is recorded in the ledger.
 const EDITABLE_EMPLOYEE_FIELDS = [
     'firstName', 'lastName', 'phone', 'password', 'designation', 'department',
-    'address', 'status', 'role', 'b2bSpendingLimit'
+    'address', 'status', 'role', 'b2bSpendingLimit', 'b2bPerOrderSpendingLimit'
 ];
 
 /**
@@ -84,7 +85,9 @@ export const getEmployees = asyncHandler(async (req, res) => {
  */
 export const createEmployee = asyncHandler(async (req, res) => {
     const companyId = await getCompanyId(req);
-    const { firstName, lastName, email, phone, password, role, designation, department, address, b2bWalletBalance, b2bSpendingLimit } = req.body;
+    const { firstName, lastName, email, phone, password, role, designation, department, address, b2bWalletBalance } = req.body;
+    const b2bSpendingLimit = parseLimitInput(req.body.b2bSpendingLimit, 'Monthly limit') || 0;
+    const b2bPerOrderSpendingLimit = parseLimitInput(req.body.b2bPerOrderSpendingLimit, 'Per-order limit') || 0;
 
     if (!firstName || !lastName || !email) {
         throw new ApiError(400, 'First name, last name, and email are required.');
@@ -128,7 +131,8 @@ export const createEmployee = asyncHandler(async (req, res) => {
         isActive: true,
         isVerified: true,
         b2bWalletBalance: 0,
-        b2bSpendingLimit: Number(b2bSpendingLimit) || 0
+        b2bSpendingLimit,
+        b2bPerOrderSpendingLimit,
     });
 
     if (initialAllotment > 0) {
@@ -190,6 +194,9 @@ export const updateEmployee = asyncHandler(async (req, res) => {
     for (const field of EDITABLE_EMPLOYEE_FIELDS) {
         if (req.body[field] !== undefined) updates[field] = req.body[field];
     }
+
+    if (updates.b2bSpendingLimit !== undefined) updates.b2bSpendingLimit = parseLimitInput(updates.b2bSpendingLimit, 'Monthly limit');
+    if (updates.b2bPerOrderSpendingLimit !== undefined) updates.b2bPerOrderSpendingLimit = parseLimitInput(updates.b2bPerOrderSpendingLimit, 'Per-order limit');
 
     if (updates.firstName || updates.lastName) {
         const fn = updates.firstName || employee.firstName;

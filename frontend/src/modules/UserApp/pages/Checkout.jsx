@@ -93,12 +93,21 @@ const MobileCheckout = () => {
 
   const userWalletBalance = user?.role === 'b2bEmployee' ? (user?.b2bWalletBalance || 0) : (walletBalance || 0);
   const isWalletZero = isAuthenticated && userWalletBalance <= 0;
-  const employeeSpendingLimit = (user?.role === 'b2bEmployee' && Number(user?.b2bSpendingLimit) > 0)
-    ? Number(user.b2bSpendingLimit)
-    : null;
-  const effectiveWalletUsable = employeeSpendingLimit !== null
-    ? Math.min(userWalletBalance, employeeSpendingLimit)
-    : userWalletBalance;
+  // B2B employee spending limits (per order + per month) apply to the whole order total.
+  const isEmployee = user?.role === 'b2bEmployee';
+  const [spendSummary, setSpendSummary] = useState(null);
+  useEffect(() => {
+    if (!isAuthenticated || !isEmployee) {
+      setSpendSummary(null);
+      return;
+    }
+    let alive = true;
+    api.get('/user/spending-limits')
+      .then((res) => { if (alive) setSpendSummary(res?.data ?? null); })
+      .catch(() => { if (alive) setSpendSummary(null); });
+    return () => { alive = false; };
+  }, [isAuthenticated, isEmployee]);
+  const effectiveWalletUsable = userWalletBalance;
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -395,6 +404,17 @@ const MobileCheckout = () => {
   const discount = couponDiscount + pointsDiscount;
   const taxableAmount = Math.max(0, total - couponDiscount);
   const finalTotal = Math.max(0, prePointsTotal - pointsDiscount);
+  const fmtInr = (n) => `₹${Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
+  const spendLimitError = (() => {
+    if (!isEmployee || !spendSummary) return null;
+    if (spendSummary.perOrderLimit > 0 && finalTotal > spendSummary.perOrderLimit) {
+      return `This order (${fmtInr(finalTotal)}) is above your per-order limit of ${fmtInr(spendSummary.perOrderLimit)}.`;
+    }
+    if (spendSummary.monthlyLimit > 0 && finalTotal > spendSummary.remainingThisMonth) {
+      return `This order (${fmtInr(finalTotal)}) is more than the ${fmtInr(spendSummary.remainingThisMonth)} left in your monthly limit of ${fmtInr(spendSummary.monthlyLimit)}.`;
+    }
+    return null;
+  })();
 
   function taxAmount(tot, coupDisc) {
     return gstBreakdown.totalTax;
@@ -613,6 +633,7 @@ const MobileCheckout = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+
     const normalizedShipping = {
       name: String(formData.name || "").trim(),
       email: String(formData.email || "").trim().toLowerCase(),
@@ -674,6 +695,10 @@ const MobileCheckout = () => {
       }
       setStep(2);
     } else if (step === 2) {
+      if (spendLimitError) {
+        toast.error(`${spendLimitError} Reduce the order or ask your company admin to raise the limit.`);
+        return;
+      }
       setIsPlacingOrder(true);
       try {
         const walletAmountToUse = useWallet ? Math.min(effectiveWalletUsable, finalTotal) : 0;
@@ -1162,10 +1187,25 @@ const MobileCheckout = () => {
                             </span>
                           </div>
 
-                          {employeeSpendingLimit !== null && (
-                            <div className="text-xs text-blue-800 bg-blue-100/70 border border-blue-200/60 px-3 py-1.5 rounded-xl flex items-center justify-between">
-                              <span className="font-medium">Per-Order Spending Limit:</span>
-                              <span className="font-bold">₹{employeeSpendingLimit.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
+                          {isEmployee && spendSummary && (spendSummary.perOrderLimit > 0 || spendSummary.monthlyLimit > 0) && (
+                            <div className="text-xs text-blue-800 bg-blue-100/70 border border-blue-200/60 px-3 py-2 rounded-xl space-y-1" data-testid="checkout-spend-limits">
+                              {spendSummary.monthlyLimit > 0 && (
+                                <div className="flex items-center justify-between">
+                                  <span className="font-medium">Monthly limit left:</span>
+                                  <span className="font-bold">{fmtInr(spendSummary.remainingThisMonth)} of {fmtInr(spendSummary.monthlyLimit)}</span>
+                                </div>
+                              )}
+                              {spendSummary.perOrderLimit > 0 && (
+                                <div className="flex items-center justify-between">
+                                  <span className="font-medium">Per-order limit:</span>
+                                  <span className="font-bold">{fmtInr(spendSummary.perOrderLimit)}</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          {spendLimitError && (
+                            <div className="text-xs text-red-700 font-semibold bg-red-50 p-2.5 rounded-xl border border-red-100" data-testid="checkout-spend-limit-error">
+                              {spendLimitError} Reduce the order or ask your company admin to raise the limit.
                             </div>
                           )}
                           
@@ -1178,9 +1218,6 @@ const MobileCheckout = () => {
                             />
                             <span className="text-xs text-blue-700 font-medium">
                               Pay ₹{Math.min(effectiveWalletUsable, finalTotal).toLocaleString("en-IN")} from wallet
-                              {employeeSpendingLimit !== null && effectiveWalletUsable < userWalletBalance && (
-                                <span className="ml-1 text-[11px] text-blue-600 font-semibold">(Capped by spending limit)</span>
-                              )}
                             </span>
                           </label>
 

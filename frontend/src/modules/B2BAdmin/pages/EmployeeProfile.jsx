@@ -454,7 +454,25 @@ const EmployeeProfile = () => {
         <div className="md:text-right md:border-l md:border-gray-100 md:pl-5">
           <p className="text-xs text-gray-500 uppercase tracking-wide">Wallet balance</p>
           <p className="text-2xl font-bold text-gray-900">{money(w.currentBalance)}</p>
-          <p className="text-xs text-gray-500">Spending limit: {w.spendingLimit ? money(w.spendingLimit) : 'Unlimited'}</p>
+          {(() => {
+            const sp = overview?.spending;
+            if (!sp) return <p className="text-xs text-gray-500">Monthly limit: {w.spendingLimit ? money(w.spendingLimit) : 'Unlimited'}</p>;
+            const pct = sp.monthlyLimit > 0 ? Math.min(100, Math.round((sp.spentThisMonth / sp.monthlyLimit) * 100)) : 0;
+            return (
+              <div className="mt-2 text-xs text-gray-600 space-y-1 md:min-w-[220px]" data-testid="employee-spending">
+                <p>
+                  This month: <span className="font-semibold text-gray-800">{money(sp.spentThisMonth)}</span>
+                  {sp.monthlyLimit > 0 ? <> of {money(sp.monthlyLimit)}</> : ' (no monthly limit)'}
+                </p>
+                {sp.monthlyLimit > 0 && (
+                  <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                    <div className={`h-full ${pct >= 90 ? 'bg-red-500' : pct >= 70 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${pct}%` }} />
+                  </div>
+                )}
+                <p>Per order: {sp.perOrderLimit > 0 ? money(sp.perOrderLimit) : 'Unlimited'}</p>
+              </div>
+            );
+          })()}
         </div>
       </div>
 

@@ -30,7 +30,8 @@ const EmployeeManagement = () => {
     designation: '',
     status: 'Active',
     b2bWalletBalance: 0,
-    b2bSpendingLimit: 0
+    b2bSpendingLimit: 0,
+    b2bPerOrderSpendingLimit: 0
   });
 
   useEffect(() => {
@@ -51,7 +52,7 @@ const EmployeeManagement = () => {
   const openAddModal = () => {
     setIsEditing(false);
     setShowPassword(false);
-    setFormData({ id: null, firstName: '', lastName: '', email: '', phone: '', password: '', department: '', designation: '', status: 'Active', b2bWalletBalance: 0, b2bSpendingLimit: 0 });
+    setFormData({ id: null, firstName: '', lastName: '', email: '', phone: '', password: '', department: '', designation: '', status: 'Active', b2bWalletBalance: 0, b2bSpendingLimit: 0, b2bPerOrderSpendingLimit: 0 });
     setIsModalOpen(true);
   };
 
@@ -69,7 +70,8 @@ const EmployeeManagement = () => {
       designation: employee.designation || '',
       status: employee.isActive === false ? 'Inactive' : 'Active',
       b2bWalletBalance: employee.b2bWalletBalance || 0,
-      b2bSpendingLimit: employee.b2bSpendingLimit || 0
+      b2bSpendingLimit: employee.b2bSpendingLimit || 0,
+      b2bPerOrderSpendingLimit: employee.b2bPerOrderSpendingLimit || 0
     });
     setIsModalOpen(true);
   };
@@ -139,9 +141,14 @@ const EmployeeManagement = () => {
     },
     {
       key: 'b2bSpendingLimit',
-      label: 'Spending Limit',
+      label: 'Spending Limits',
       sortable: true,
-      render: (value) => <span className="text-sm text-gray-700">{value ? `₹${value.toLocaleString()}` : 'Unlimited'}</span>
+      render: (value, row) => (
+        <div className="text-xs text-gray-700 leading-5">
+          <div><span className="text-gray-500">Monthly:</span> <span className="font-semibold">{value ? `₹${Number(value).toLocaleString('en-IN')}` : 'Unlimited'}</span></div>
+          <div><span className="text-gray-500">Per order:</span> <span className="font-semibold">{row.b2bPerOrderSpendingLimit ? `₹${Number(row.b2bPerOrderSpendingLimit).toLocaleString('en-IN')}` : 'Unlimited'}</span></div>
+        </div>
+      )
     },
     {
       key: 'isActive',
@@ -326,7 +333,13 @@ const EmployeeManagement = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Monthly Spending Limit (₹) (0 for unlimited)</label>
-                  <input type="number" min={0} value={formData.b2bSpendingLimit} onChange={e => setFormData({ ...formData, b2bSpendingLimit: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D71920] outline-none" />
+                  <input type="number" min={0} value={formData.b2bSpendingLimit} onChange={e => setFormData({ ...formData, b2bSpendingLimit: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D71920] outline-none" data-testid="limit-monthly" />
+                  <p className="text-[11px] text-gray-500 mt-1">Total of all orders in a calendar month, any payment method.</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Per-order Limit (₹) (0 for unlimited)</label>
+                  <input type="number" min={0} value={formData.b2bPerOrderSpendingLimit} onChange={e => setFormData({ ...formData, b2bPerOrderSpendingLimit: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D71920] outline-none" data-testid="limit-per-order" />
+                  <p className="text-[11px] text-gray-500 mt-1">Maximum total of a single order (incl. GST).</p>
                 </div>
                 {!isEditing && (
                   <div>
