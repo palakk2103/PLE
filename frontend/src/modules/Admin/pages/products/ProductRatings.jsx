@@ -12,6 +12,7 @@ import {
   deleteReview,
 } from "../../services/adminService";
 import toast from "react-hot-toast";
+import ReviewPhotos from "../../../../shared/components/Product/ReviewPhotos";
 
 const ProductRatings = () => {
   const [ratings, setRatings] = useState([]);
@@ -112,6 +113,12 @@ const ProductRatings = () => {
       ),
     },
     {
+      key: "vendorName",
+      label: "Vendor",
+      sortable: true,
+      render: (value) => <span className="text-sm text-gray-700">{value || "—"}</span>,
+    },
+    {
       key: "customerName",
       label: "Customer",
       sortable: true,
@@ -129,6 +136,17 @@ const ProductRatings = () => {
       render: (value) => (
         <p className="max-w-xs truncate text-sm text-gray-600">{value}</p>
       ),
+    },
+    {
+      key: "images",
+      label: "Photos",
+      sortable: false,
+      render: (value) =>
+        Array.isArray(value) && value.length ? (
+          <ReviewPhotos images={value} size="sm" />
+        ) : (
+          <span className="text-xs text-gray-400">—</span>
+        ),
     },
     {
       key: "date",
@@ -267,6 +285,18 @@ const ProductRatings = () => {
 
               <div>
                 <label className="text-sm font-semibold text-gray-600">
+                  Vendor
+                </label>
+                <p className="text-base text-gray-800 mt-1">
+                  {selectedRating.vendorName || "—"}
+                  {selectedRating.vendorType === "managed_shop" && (
+                    <span className="ml-2 text-[10px] font-bold text-purple-600 uppercase">Admin-managed shop</span>
+                  )}
+                </p>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-gray-600">
                   Customer
                 </label>
                 <p className="text-base text-gray-800 mt-1">
@@ -289,6 +319,15 @@ const ProductRatings = () => {
                   {selectedRating.review}
                 </p>
               </div>
+
+              {selectedRating.images?.length > 0 && (
+                <div>
+                  <label className="text-sm font-semibold text-gray-600 mb-2 block">
+                    Customer Photos
+                  </label>
+                  <ReviewPhotos images={selectedRating.images} />
+                </div>
+              )}
 
               <div>
                 <label className="text-sm font-semibold text-gray-600">

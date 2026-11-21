@@ -55,7 +55,14 @@ export const getAllReviews = asyncHandler(async (req, res) => {
 
     const reviews = await Review.find(filter)
         .populate('userId', 'name email')
-        .populate('productId', 'name')
+        .populate({
+            path: 'productId',
+            select: 'name vendorId shopId',
+            populate: [
+                { path: 'vendorId', select: 'storeName name' },
+                { path: 'shopId', select: 'name' },
+            ],
+        })
         .sort({ createdAt: -1 })
         .skip((numericPage - 1) * numericLimit)
         .limit(numericLimit);
@@ -70,6 +77,12 @@ export const getAllReviews = asyncHandler(async (req, res) => {
         customerEmail: review.userId ? review.userId.email : 'N/A',
         productName: review.productId ? review.productId.name : 'Unknown Product',
         productId: review.productId?._id ? String(review.productId._id) : '',
+        vendorName: review.productId?.shopId?.name
+            || review.productId?.vendorId?.storeName
+            || review.productId?.vendorId?.name
+            || '',
+        vendorType: review.productId?.shopId ? 'managed_shop' : (review.productId?.vendorId ? 'vendor' : ''),
+        images: Array.isArray(review.images) ? review.images : [],
         review: review.comment || '',
         status: review.isApproved ? 'approved' : 'pending',
         reviewerType: review.reviewerType ?? 'B2C',

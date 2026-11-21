@@ -3,11 +3,32 @@ import { useForm } from 'react-hook-form';
 import { FiStar, FiUpload, FiX } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import api from '../../utils/api';
+
+const MAX_PHOTOS = 3;
+const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+const PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
+// Upload the chosen photos first; the review itself only carries the resulting URLs.
+export const uploadReviewPhotos = async (files) => {
+  if (!files?.length) return [];
+  const formData = new FormData();
+  files.forEach((f) => formData.append('images', f));
+  const res = await api.post('/user/reviews/images', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  const urls = res?.data?.urls ?? res?.urls ?? res?.data?.data?.urls;
+  if (!Array.isArray(urls) || urls.length !== files.length) {
+    throw new Error('Photo upload failed');
+  }
+  return urls;
+};
 
 const ReviewForm = ({ productId, onSubmit }) => {
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [images, setImages] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
 
   const {
     register,
@@ -17,13 +38,23 @@ const ReviewForm = ({ productId, onSubmit }) => {
   } = useForm();
 
   const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    if (images.length + files.length > 3) {
-      toast.error('Maximum 3 images allowed');
-      return;
+    const picked = Array.from(e.target.files || []);
+    e.target.value = '';
+    const valid = picked.filter((f) => {
+      if (!PHOTO_TYPES.includes(f.type)) {
+        toast.error(`${f.name}: only JPG, PNG, WEBP or GIF photos are allowed`);
+        return false;
+      }
+      if (f.size > MAX_PHOTO_BYTES) {
+        toast.error(`${f.name} is larger than 5 MB`);
+        return false;
+      }
+      return true;
+    });
+    if (images.length + valid.length > MAX_PHOTOS) {
+      toast.error(`Maximum ${MAX_PHOTOS} photos allowed`);
     }
-    const newImages = files.slice(0, 3 - images.length);
-    setImages([...images, ...newImages]);
+    setImages([...images, ...valid.slice(0, MAX_PHOTOS - images.length)]);
   };
 
   const removeImage = (index) => {
@@ -36,15 +67,25 @@ const ReviewForm = ({ productId, onSubmit }) => {
       return;
     }
 
-    const reviewData = {
-      ...data,
-      rating,
-      images,
-      productId,
-      date: new Date().toISOString(),
-    };
+    if (!onSubmit || submitting) return;
+    setSubmitting(true);
+    try {
+      let imageUrls = [];
+      try {
+        imageUrls = await uploadReviewPhotos(images);
+      } catch (err) {
+        toast.error(err?.response?.data?.message || err?.message || 'Could not upload photos. Please try again.');
+        return;
+      }
 
-    if (onSubmit) {
+      const reviewData = {
+        ...data,
+        rating,
+        images: imageUrls,
+        productId,
+        date: new Date().toISOString(),
+      };
+
       const result = await onSubmit(reviewData);
       if (result === false) {
         return;
@@ -52,7 +93,9 @@ const ReviewForm = ({ productId, onSubmit }) => {
       reset();
       setRating(0);
       setImages([]);
-      toast.success('Review submitted successfully!');
+      toast.success('Review submitted! It will appear after approval.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -154,7 +197,7 @@ const ReviewForm = ({ productId, onSubmit }) => {
           </label>
           <div className="flex flex-wrap gap-3">
             {images.map((image, index) => (
-              <div key={index} className="relative">
+              <div key={`${image.name}-${index}`} className="relative" data-testid="review-photo-preview">
                 <img
                   src={URL.createObjectURL(image)}
                   alt={`Review ${index + 1}`}
@@ -174,8 +217,9 @@ const ReviewForm = ({ productId, onSubmit }) => {
                 <FiUpload className="text-gray-400 text-xl" />
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
                   multiple
+                  data-testid="review-photo-input"
                   onChange={handleImageUpload}
                   className="hidden"
                 />
@@ -187,9 +231,10 @@ const ReviewForm = ({ productId, onSubmit }) => {
         {/* Submit Button */}
         <button
           type="submit"
-          className="w-full sm:w-auto px-8 py-3 gradient-green text-white rounded-xl font-semibold hover:shadow-glow-green transition-all duration-300 hover:scale-105"
+          disabled={submitting}
+          className="w-full sm:w-auto px-8 py-3 gradient-green text-white rounded-xl font-semibold hover:shadow-glow-green transition-all duration-300 hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
         >
-          Submit Review
+          {submitting ? (images.length ? 'Uploading photos…' : 'Submitting…') : 'Submit Review'}
         </button>
       </form>
     </motion.div>

@@ -8,6 +8,7 @@ import AnimatedSelect from '../components/AnimatedSelect';
 import { formatDateTime } from '../utils/adminHelpers';
 import { useReviewStore } from '../../../shared/store/reviewStore';
 import toast from 'react-hot-toast';
+import ReviewPhotos from '../../../shared/components/Product/ReviewPhotos';
 
 const Reviews = () => {
   const { reviews, isLoading, fetchReviews, updateReviewStatus, deleteReview, pagination } = useReviewStore();
@@ -42,6 +43,19 @@ const Reviews = () => {
       key: 'productName',
       label: 'Product',
       sortable: true,
+    },
+    {
+      key: 'vendorName',
+      label: 'Vendor',
+      sortable: true,
+      render: (value, row) => (
+        <div>
+          <p className="text-sm font-semibold text-gray-800">{value || '—'}</p>
+          {row.vendorType === 'managed_shop' && (
+            <p className="text-[10px] font-bold text-purple-600 uppercase">Admin-managed shop</p>
+          )}
+        </div>
+      ),
     },
     {
       key: 'customerName',
@@ -105,6 +119,17 @@ const Reviews = () => {
       label: 'Review Content',
       sortable: false,
       render: (value) => <p className="max-w-xs truncate text-sm">{value}</p>,
+    },
+    {
+      key: 'images',
+      label: 'Photos',
+      sortable: false,
+      render: (value) =>
+        Array.isArray(value) && value.length ? (
+          <ReviewPhotos images={value} size='sm' />
+        ) : (
+          <span className='text-xs text-gray-400'>—</span>
+        ),
     },
     {
       key: 'status',
@@ -204,12 +229,14 @@ const Reviews = () => {
             headers={[
               { label: 'ID', accessor: (row) => row.id },
               { label: 'Product', accessor: (row) => row.productName },
+              { label: 'Vendor', accessor: (row) => row.vendorName || '' },
               { label: 'Customer', accessor: (row) => row.customerName },
               { label: 'Review Type', accessor: (row) => row.reviewerType === 'B2B' ? 'Business Buyer Review' : 'Customer Review' },
               { label: 'Buyer Type', accessor: (row) => row.reviewerType === 'B2B' ? 'B2B' : 'B2C' },
               { label: 'Company', accessor: (row) => row.companyName || '' },
               { label: 'Rating', accessor: (row) => row.rating },
               { label: 'Comment', accessor: (row) => row.comment },
+              { label: 'Photos', accessor: (row) => (row.images || []).join(' ') },
               { label: 'Status', accessor: (row) => row.status },
             ]}
             filename="reviews"

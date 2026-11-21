@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
 import {
   FiStar,
@@ -17,7 +17,6 @@ import { motion } from "framer-motion";
 import { useCartStore, useUIStore } from "../../../shared/store/useStore";
 import { useWishlistStore } from "../../../shared/store/wishlistStore";
 import { useReviewsStore } from "../../../shared/store/reviewsStore";
-import { useOrderStore } from "../../../shared/store/orderStore";
 import { useAuthStore } from "../../../shared/store/authStore";
 import {
   getProductById,
@@ -32,6 +31,7 @@ import MobileLayout from "../components/Layout/MobileLayout";
 import ImageGallery from "../../../shared/components/Product/ImageGallery";
 import VariantSelector from "../../../shared/components/Product/VariantSelector";
 import ReviewForm from "../../../shared/components/Product/ReviewForm";
+import ReviewPhotos from "../../../shared/components/Product/ReviewPhotos";
 import MobileProductCard from "../components/Mobile/MobileProductCard";
 import PageTransition from "../../../shared/components/PageTransition";
 import Badge from "../../../shared/components/Badge";
@@ -304,7 +304,6 @@ const MobileProductDetail = () => {
     isInWishlist,
   } = useWishlistStore();
   const { fetchReviews, sortReviews, addReview } = useReviewsStore();
-  const { getAllOrders } = useOrderStore();
   const { user, isAuthenticated } = useAuthStore();
   const vendor = useMemo(() => {
     if (!product) return null;
@@ -464,20 +463,25 @@ const MobileProductDetail = () => {
       .filter((faq) => faq.question && faq.answer);
   }, [product?.faqs]);
 
-  const eligibleDeliveredOrderId = useMemo(() => {
-    if (!isAuthenticated || !user?.id || !isMongoId(product?.id)) return null;
-    const userOrders = getAllOrders(user.id) || [];
-    const eligibleOrder = userOrders.find((order) => {
-      if (String(order?.status || "").toLowerCase() !== "delivered")
-        return false;
-      const items = Array.isArray(order?.items) ? order.items : [];
-      return items.some(
-        (item) =>
-          String(item?.productId || item?.id || "") === String(product.id),
-      );
-    });
-    return eligibleOrder?._id || null;
-  }, [isAuthenticated, user?.id, product?.id, getAllOrders]);
+  // Ask the server (not the locally cached order list) whether this buyer can review:
+  // a delivered order with this product exists and no review has been written yet.
+  const [reviewEligibility, setReviewEligibility] = useState(null);
+  const loadReviewEligibility = useCallback(async () => {
+    if (!isAuthenticated || !user?.id || !isMongoId(product?.id)) {
+      setReviewEligibility(null);
+      return;
+    }
+    try {
+      const res = await api.get(`/user/reviews/eligibility/${product.id}`);
+      setReviewEligibility(res?.data ?? res ?? null);
+    } catch {
+      setReviewEligibility(null);
+    }
+  }, [isAuthenticated, user?.id, product?.id]);
+  useEffect(() => {
+    loadReviewEligibility();
+  }, [loadReviewEligibility]);
+  const eligibleDeliveredOrderId = reviewEligibility?.eligible ? reviewEligibility.orderId : null;
 
   const productSchema = useMemo(() => {
     if (!product) return null;
@@ -745,6 +749,7 @@ const MobileProductDetail = () => {
     }
 
     await fetchReviews(product.id, { sort: "newest", limit: 50 });
+    setReviewEligibility((prev) => ({ ...(prev || {}), eligible: false, alreadyReviewed: true, reviewStatus: "pending" }));
     return true;
   };
 
@@ -1498,6 +1503,12 @@ const MobileProductDetail = () => {
                         productId={product.id}
                         onSubmit={handleSubmitReview}
                       />
+                    ) : reviewEligibility?.alreadyReviewed ? (
+                      <div className="bg-green-50 border border-green-100 rounded-2xl p-4 text-sm text-green-800" data-testid="review-already-submitted">
+                        {reviewEligibility.reviewStatus === "approved"
+                          ? "Thanks! You have already reviewed this product."
+                          : "Thanks! Your review has been submitted and will appear after approval."}
+                      </div>
                     ) : (
                       <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4 text-sm text-gray-600">
                         Reviews are available after product delivery.
@@ -1563,6 +1574,7 @@ const MobileProductDetail = () => {
                           <p className="text-sm text-gray-750 leading-relaxed pl-12 font-normal">
                             {review.comment}
                           </p>
+                          <ReviewPhotos images={review.images} className="pl-12" />
                           {review.vendorResponse && (
                             <div className="mt-3 ml-12 bg-primary-50/50 border border-primary-100/60 rounded-xl p-3.5">
                               <p className="text-xs font-bold text-primary-800 mb-1">

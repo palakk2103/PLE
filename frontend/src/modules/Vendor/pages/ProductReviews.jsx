@@ -13,6 +13,7 @@ import {
   addVendorReviewResponse,
 } from "../services/vendorService";
 import toast from "react-hot-toast";
+import ReviewPhotos from "../../../shared/components/Product/ReviewPhotos";
 
 const ProductReviews = () => {
   const { vendor } = useVendorAuthStore();
@@ -221,6 +222,17 @@ const ProductReviews = () => {
           {value || "No comment"}
         </p>
       ),
+    },
+    {
+      key: "images",
+      label: "Photos",
+      sortable: false,
+      render: (value) =>
+        Array.isArray(value) && value.length ? (
+          <ReviewPhotos images={value} size="sm" />
+        ) : (
+          <span className="text-xs text-gray-400">—</span>
+        ),
     },
     {
       key: "status",
@@ -520,6 +532,15 @@ const ProductReviews = () => {
                   {selectedReview.comment || "No comment provided"}
                 </p>
               </div>
+
+              {selectedReview.images?.length > 0 && (
+                <div>
+                  <label className="text-sm font-semibold text-gray-600 mb-2 block">
+                    Customer Photos
+                  </label>
+                  <ReviewPhotos images={selectedReview.images} />
+                </div>
+              )}
 
               {selectedReview.vendorResponse && (
                 <div>

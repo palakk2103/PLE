@@ -12,7 +12,7 @@ import { authenticate } from '../../../middlewares/authenticate.js';
 import { authorize, enforceAccountStatus } from '../../../middlewares/authorize.js';
 import { authLimiter, otpLimiter, chatLimiter } from '../../../middlewares/rateLimiter.js';
 import { validate } from '../../../middlewares/validate.js';
-import { uploadSingle, uploadDocumentSingle } from '../../../middlewares/upload.js';
+import { uploadSingle, uploadMultiple, uploadDocumentSingle } from '../../../middlewares/upload.js';
 import {
     registerSchema,
     loginSchema,
@@ -84,6 +84,8 @@ router.delete('/wishlist/:productId', ...customerAuth, wishlistController.remove
 
 // Review routes
 router.get('/reviews/product/:productId', reviewController.getProductReviews);
+router.get('/reviews/eligibility/:productId', ...customerAuth, reviewController.getReviewEligibility);
+router.post('/reviews/images', ...customerAuth, uploadMultiple('images', reviewController.MAX_REVIEW_IMAGES), reviewController.uploadReviewImages);
 router.post('/reviews', ...customerAuth, reviewController.addReview);
 router.post('/reviews/:id/helpful', reviewController.voteHelpful);
 
