@@ -22,6 +22,8 @@ const returnRequestSchema = new mongoose.Schema(
                 price: Number,
                 image: String,
                 quantity: Number,
+                // GST charged on the returned units; included in refundAmount
+                gstAmount: { type: Number, default: 0 },
                 reason: String,
             },
         ],

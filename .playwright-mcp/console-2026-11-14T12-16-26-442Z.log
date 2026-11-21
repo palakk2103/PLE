@@ -18,3 +18,54 @@
 [  601025ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/general:1
 [  601028ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/email:1
 [  601032ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/notifications:1
+[ 1238543ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/src/routes/PortalRoutes.jsx?t=1794659824873:1
+[ 1238547ms] [ERROR] [hmr] Failed to reload /src/routes/PortalRoutes.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:3000/@vite/client:176
+[ 1242226ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/src/routes/PortalRoutes.jsx?t=1794659824873:1
+[ 1784265ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:21551
+[ 1784525ms] [LOG] ✅ Service Worker registered: ServiceWorkerRegistration @ http://localhost:3000/src/services/pushNotificationService.js?t=1794657144083:11
+[ 1784526ms] [LOG] ✅ Service Worker registered: ServiceWorkerRegistration @ http://localhost:3000/src/services/pushNotificationService.js?t=1794657144083:11
+[ 1784582ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/general:1
+[ 1784597ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/email:1
+[ 1784598ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/notifications:1
+[ 1784627ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/general:1
+[ 1784655ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/email:1
+[ 1784677ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/notifications:1
+[ 1834569ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:21551
+[ 1834715ms] [LOG] ✅ Service Worker registered: ServiceWorkerRegistration @ http://localhost:3000/src/services/pushNotificationService.js?t=1794657144083:11
+[ 1834715ms] [LOG] ✅ Service Worker registered: ServiceWorkerRegistration @ http://localhost:3000/src/services/pushNotificationService.js?t=1794657144083:11
+[ 1834722ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5000/api/admin/settings/general:1
+[ 1834743ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5000/api/products?page=1&limit=500:1
+[ 1834745ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5000/api/admin/settings/email:1
+[ 1834753ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5000/api/admin/settings/notifications:1
+[ 1834754ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5000/api/brands/all:1
+[ 1834755ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5000/api/user/account-deletion-request/status:1
+[ 1834755ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5000/api/vendors/all?status=approved&page=1&limit=200:1
+[ 1834757ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5000/api/categories/all:1
+[ 1834758ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5000/api/admin/settings/general:1
+[ 1834759ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5000/api/admin/settings/email:1
+[ 1834759ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5000/api/admin/settings/notifications:1
+[ 1834760ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5000/api/products?page=1&limit=500:1
+[ 1834760ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5000/api/brands/all:1
+[ 1834760ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5000/api/vendors/all?status=approved&page=1&limit=200:1
+[ 1834760ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5000/api/user/account-deletion-request/status:1
+[ 1834761ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5000/api/categories/all:1
+[ 1834887ms] [ERROR] Failed to fetch B2B notifications: AxiosError @ http://localhost:3000/src/modules/B2BAdmin/store/b2bAdminStore.js?t=1794657144083:406
+[ 1834900ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5000/api/b2b-user/admin/notifications?page=1&limit=10:1
+[ 1834901ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5000/api/b2b-user/admin/employees/purchases/summary?sortBy=netSpent&order=desc&page=1&limit=20:1
+[ 1834912ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5000/api/b2b-user/admin/company:1
+[ 1834913ms] [ERROR] Failed to fetch B2B notifications: AxiosError @ http://localhost:3000/src/modules/B2BAdmin/store/b2bAdminStore.js?t=1794657144083:406
+[ 1834921ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5000/api/b2b-user/admin/notifications?page=1&limit=10:1
+[ 1834922ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5000/api/b2b-user/admin/employees/purchases/summary?sortBy=netSpent&order=desc&page=1&limit=20:1
+[ 1834931ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5000/api/b2b-user/admin/company:1
+[ 1835197ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5000/api/b2b-user/admin/employees/purchases/summary?sortBy=netSpent&order=desc&page=1&limit=20:1
+[ 2978595ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3000/@vite/client:560
+[ 2978598ms] [ERROR] Failed to load resource: net::ERR_NETWORK_IO_SUSPENDED @ http://localhost:3000/:1
+[ 3126099ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:21551
+[ 3126257ms] [LOG] ✅ Service Worker registered: ServiceWorkerRegistration @ http://localhost:3000/src/services/pushNotificationService.js?t=1794657144083:11
+[ 3126259ms] [LOG] ✅ Service Worker registered: ServiceWorkerRegistration @ http://localhost:3000/src/services/pushNotificationService.js?t=1794657144083:11
+[ 3126295ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/general:1
+[ 3126297ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/email:1
+[ 3126298ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/notifications:1
+[ 3126300ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/general:1
+[ 3126301ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/email:1
+[ 3126302ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/notifications:1

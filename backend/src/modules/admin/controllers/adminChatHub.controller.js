@@ -1,6 +1,7 @@
 import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
+import mongoose from 'mongoose';
 import VendorChatThread from '../../../models/VendorChatThread.model.js';
 import VendorChatMessage from '../../../models/VendorChatMessage.model.js';
 import AdminManagedVendorThread from '../../../models/AdminManagedVendorThread.model.js';
@@ -10,6 +11,29 @@ import User from '../../../models/User.model.js';
 import Notification from '../../../models/Notification.model.js';
 import { getIO } from '../../../config/socket.js';
 import { decryptMessage, encryptMessage } from '../../../utils/chatEncryption.util.js';
+
+const escapeRegex = (str) => String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// Customers of a business account (B2B) vs. ordinary consumers
+const getB2BUserIds = () =>
+    User.find({ $or: [{ role: { $in: ['b2bAdmin', 'b2bEmployee'] } }, { companyId: { $ne: null } }] }).distinct('_id');
+
+// Vendors that PLE itself operates
+const getManagedVendorIds = () =>
+    Vendor.find({ $or: [{ storeName: 'PLE Shop' }, { isManaged: true }, { businessType: 'Home Business' }] }).distinct('_id');
+
+// Older screens read orderNumber / totalAmount / title: keep those names filled from the real fields
+const withLegacyAliases = (t) => {
+    if (t.orderRef && typeof t.orderRef === 'object') {
+        t.orderRef.orderNumber = t.orderRef.orderNumber || t.orderRef.orderId;
+        t.orderRef.totalAmount = t.orderRef.totalAmount ?? t.orderRef.total;
+    }
+    if (t.productRequestRef && typeof t.productRequestRef === 'object') {
+        t.productRequestRef.title = t.productRequestRef.title || t.productRequestRef.productName;
+        t.productRequestRef.expectedPrice = t.productRequestRef.expectedPrice ?? t.productRequestRef.expectedBudget;
+    }
+    return t;
+};
 
 const serializeMessage = (messageDoc) => ({
     id: messageDoc._id,
@@ -71,41 +95,26 @@ const classifyThread = (thread) => {
  * Get total conversation counts per category
  */
 export const getAdminChatStats = asyncHandler(async (req, res) => {
-    const threads = await VendorChatThread.find({})
-        .populate({
-            path: 'customerUserId',
-            select: 'role companyId',
-        })
-        .select('unreadCount customerUserId status')
-        .lean();
+    const b2bIds = await getB2BUserIds();
 
-    let total = threads.length;
-    let customerCount = 0;
-    let b2bCount = 0;
-    let unreadTotal = 0;
-
-    threads.forEach((t) => {
-        unreadTotal += (t.unreadCount || 0);
-        const c = t.customerUserId;
-        if (c && (c.role === 'b2bAdmin' || c.role === 'b2bEmployee' || c.companyId)) {
-            b2bCount++;
-        } else {
-            customerCount++;
-        }
-    });
-
-    const managedVendorThreadsCount = await AdminManagedVendorThread.countDocuments({});
+    const [all, b2b, unreadAgg, managedVendorThreadsCount, vendorIds] = await Promise.all([
+        VendorChatThread.countDocuments({}),
+        VendorChatThread.countDocuments({ customerUserId: { $in: b2bIds } }),
+        VendorChatThread.aggregate([{ $group: { _id: null, unread: { $sum: '$unreadCount' } } }]),
+        AdminManagedVendorThread.countDocuments({}),
+        VendorChatThread.distinct('vendorId'),
+    ]);
 
     res.status(200).json(
         new ApiResponse(
             200,
             {
-                all: total,
-                customer: customerCount,
-                b2b: b2bCount,
-                vendor: total,
+                all,
+                customer: all - b2b,
+                b2b,
+                vendor: vendorIds.length, // number of sellers with conversations (was wrongly the total thread count)
                 managedVendor: managedVendorThreadsCount,
-                unreadTotal,
+                unreadTotal: unreadAgg[0]?.unread || 0,
             },
             'Chat hub stats fetched successfully.'
         )
@@ -117,111 +126,67 @@ export const getAdminChatStats = asyncHandler(async (req, res) => {
  * Fetch conversation threads filtered by module category
  */
 export const getAdminChatThreads = asyncHandler(async (req, res) => {
-    const {
-        category = 'all',
-        vendorId,
-        search = '',
-        status,
-        page = 1,
-        limit = 50,
-    } = req.query;
+    const { category = 'all', vendorId, search = '', status, page = 1, limit = 50 } = req.query;
 
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
     const limitNum = Math.max(1, Math.min(100, parseInt(limit, 10) || 50));
     const skip = (pageNum - 1) * limitNum;
 
-    // Base query for VendorChatThread
-    const query = {};
+    // Filters are applied in the database (not in memory) so the hub stays fast as chats grow.
+    const base = {};
+    if (vendorId && mongoose.isValidObjectId(vendorId)) base.vendorId = vendorId;
 
-    if (vendorId) {
-        query.vendorId = vendorId;
+    const term = String(search || '').trim();
+    if (term) {
+        const rx = new RegExp(escapeRegex(term), 'i'); // escaped: user input must never be a raw regex
+        base.$or = [{ customerName: rx }, { customerEmail: rx }, { orderDisplayId: rx }, { productRequestId: rx }];
     }
 
-    if (status && ['active', 'resolved', 'closed'].includes(status)) {
-        query.status = status;
-    }
-
-    // If searching text
-    if (search && String(search).trim()) {
-        const searchRegex = new RegExp(String(search).trim(), 'i');
-        query.$or = [
-            { customerName: searchRegex },
-            { customerEmail: searchRegex },
-            { orderDisplayId: searchRegex },
-            { productRequestId: searchRegex },
-        ];
-    }
-
-    // Query threads with populated participant relationships
-    const rawThreads = await VendorChatThread.find(query)
-        .populate('vendorId', 'name storeName storeLogo email phone isVerified status')
-        .populate({
-            path: 'customerUserId',
-            select: 'name email phone avatar role b2bRole companyId',
-            populate: {
-                path: 'companyId',
-                select: 'companyName tradeName',
-            },
-        })
-        .populate('orderRef', 'orderNumber status totalAmount createdAt')
-        .populate('productRequestRef', 'requestId title status expectedPrice')
-        .sort({ lastActivity: -1 })
-        .lean();
-
-    // Map and enrich each thread with its deterministic classification
-    const enrichedThreads = rawThreads.map((t) => {
-        const classification = classifyThread(t);
-        return {
-            ...t,
-            lastMessage: t.lastMessage ? decryptMessage(t.lastMessage) : '',
-            classification,
-        };
-    });
-
-    // Apply Server-side category filter based on participant roles
-    let categoryFiltered = enrichedThreads;
-    if (category === 'customer') {
-        categoryFiltered = enrichedThreads.filter((t) => t.classification.isCustomer && !t.classification.isB2B);
-    } else if (category === 'b2b') {
-        categoryFiltered = enrichedThreads.filter((t) => t.classification.isB2B);
+    if (category === 'b2b') {
+        base.customerUserId = { $in: await getB2BUserIds() };
+    } else if (category === 'customer') {
+        base.customerUserId = { $nin: await getB2BUserIds() };
     } else if (category === 'managed_vendor') {
-        categoryFiltered = enrichedThreads.filter((t) => t.classification.isManagedVendor);
+        base.vendorId = { $in: await getManagedVendorIds() };
     }
 
-    // Calculate status counts for this category
-    const statusCounts = {
-        all: categoryFiltered.length,
-        active: categoryFiltered.filter((t) => t.status === 'active' || !t.status).length,
-        resolved: categoryFiltered.filter((t) => t.status === 'resolved').length,
-    };
+    const statusFilter = { active: { $in: ['active', null] }, resolved: 'resolved', closed: 'closed' };
+    const query = { ...base };
+    if (status && statusFilter[status] !== undefined) query.status = statusFilter[status];
 
-    // Apply status filter
-    let finalThreads = categoryFiltered;
-    if (status && status !== 'all') {
-        if (status === 'active') {
-            finalThreads = categoryFiltered.filter((t) => t.status === 'active' || !t.status);
-        } else if (status === 'resolved') {
-            finalThreads = categoryFiltered.filter((t) => t.status === 'resolved');
-        } else if (status === 'closed') {
-            finalThreads = categoryFiltered.filter((t) => t.status === 'closed');
-        }
-    }
+    const [rawThreads, totalCount, activeCount, resolvedCount, closedCount] = await Promise.all([
+        VendorChatThread.find(query)
+            .populate('vendorId', 'name storeName storeLogo email phone isVerified status isManaged businessType')
+            .populate({
+                path: 'customerUserId',
+                select: 'name email phone avatar role b2bRole companyId',
+                populate: { path: 'companyId', select: 'companyName tradeName' },
+            })
+            .populate('orderRef', 'orderId status total createdAt')
+            .populate('productRequestRef', 'requestId productName status expectedBudget')
+            .sort({ lastActivity: -1 })
+            .skip(skip)
+            .limit(limitNum)
+            .lean(),
+        VendorChatThread.countDocuments(query),
+        VendorChatThread.countDocuments({ ...base, status: { $in: ['active', null] } }),
+        VendorChatThread.countDocuments({ ...base, status: 'resolved' }),
+        VendorChatThread.countDocuments({ ...base, status: 'closed' }),
+    ]);
 
-    const totalCount = finalThreads.length;
-    const paginatedThreads = finalThreads.slice(skip, skip + limitNum);
+    const threads = rawThreads.map((t) => withLegacyAliases({
+        ...t,
+        lastMessage: t.lastMessage ? decryptMessage(t.lastMessage) : '',
+        classification: classifyThread(t),
+    }));
 
     res.status(200).json(
         new ApiResponse(
             200,
             {
-                threads: paginatedThreads,
-                statusCounts,
-                pagination: {
-                    total: totalCount,
-                    page: pageNum,
-                    limit: limitNum,
-                    totalPages: Math.ceil(totalCount / limitNum),
-                },
+                threads,
+                statusCounts: { all: activeCount + resolvedCount + closedCount, active: activeCount, resolved: resolvedCount, closed: closedCount },
+                pagination: { total: totalCount, page: pageNum, limit: limitNum, totalPages: Math.ceil(totalCount / limitNum) },
             },
             'Admin chat threads fetched successfully.'
         )
@@ -245,8 +210,8 @@ export const getAdminChatMessages = asyncHandler(async (req, res) => {
                 select: 'companyName tradeName',
             },
         })
-        .populate('orderRef', 'orderNumber status totalAmount')
-        .populate('productRequestRef', 'requestId title status')
+        .populate('orderRef', 'orderId status total')
+        .populate('productRequestRef', 'requestId productName status')
         .lean();
 
     if (!thread) {
@@ -257,11 +222,11 @@ export const getAdminChatMessages = asyncHandler(async (req, res) => {
         .sort({ createdAt: 1 })
         .lean();
 
-    const threadObj = {
+    const threadObj = withLegacyAliases({
         ...thread,
         lastMessage: thread.lastMessage ? decryptMessage(thread.lastMessage) : '',
         classification: classifyThread(thread),
-    };
+    });
 
     res.status(200).json(
         new ApiResponse(
@@ -294,15 +259,18 @@ export const sendAdminChatMessage = asyncHandler(async (req, res) => {
 
     const created = await VendorChatMessage.create({
         threadId: thread._id,
-        senderType: 'system', // or system / admin
+        senderType: 'admin', // distinct from automated 'system' notices
         senderId: req.user.id,
         message,
     });
 
     thread.lastMessage = message;
     thread.lastActivity = created.createdAt;
-    if (thread.status === 'closed') {
+    thread.unreadCountCustomer = (thread.unreadCountCustomer || 0) + 1;
+    // A closed conversation is only re-opened when the admin explicitly asks for it.
+    if (thread.status === 'closed' && req.body?.reopen === true) {
         thread.status = 'active';
+        thread.closedBy = null;
     }
     await thread.save();
 
@@ -358,7 +326,9 @@ export const markAdminChatRead = asyncHandler(async (req, res) => {
         throw new ApiError(404, 'Chat thread not found.');
     }
 
-    thread.unreadCount = 0;
+    // `unreadCount` is the VENDOR's counter: an admin opening the thread must not hide the
+    // vendor's unread badge. The admin only records its own last-read time.
+    thread.adminLastReadAt = new Date();
     await thread.save();
 
     res.status(200).json(new ApiResponse(200, thread, 'Thread marked as read.'));

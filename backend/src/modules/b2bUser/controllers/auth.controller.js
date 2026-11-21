@@ -294,6 +294,14 @@ export const loginB2BUser = asyncHandler(async (req, res) => {
         throw new ApiError(401, 'Invalid email or password.');
     }
 
+    // Deactivated employees (removed by their company admin) cannot sign in.
+    // Checked after the password so we don't reveal account status to someone guessing.
+    if (b2bAdmin.isActive === false) {
+        throw new ApiError(403, isEmployee
+            ? 'Your account has been deactivated by your company admin.'
+            : 'Account is deactivated. Contact support.');
+    }
+
     if (b2bAdmin.twoFactorEnabled) {
         const tempToken = signPreAuthToken({ 
             id: b2bAdmin._id, 

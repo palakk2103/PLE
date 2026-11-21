@@ -1,0 +1,46 @@
+- generic [ref=f1e5]:
+  - button "Toggle Theme" [ref=f1e6] [cursor=pointer]
+  - generic [ref=f1e10]:
+    - generic [ref=f1e11]:
+      - heading "Retail Store" [level=1] [ref=f1e12]
+      - paragraph [ref=f1e13]: A multi-category electronics retail portal built for discovering, sourcing, and purchasing the right tech with ease.
+    - generic [ref=f1e14]:
+      - generic [ref=f1e15]:
+        - generic [ref=f1e20]: MULTI-CATEGORY STORE
+        - generic [ref=f1e21]: Browse electronics across categories
+      - generic [ref=f1e22]:
+        - generic [ref=f1e27]: SPECIAL REQ
+        - generic [ref=f1e28]: PRODUCT SOURCING
+    - generic [ref=f1e29]:
+      - checkbox "I agree to the retail store terms and policies" [checked] [active] [ref=f1e30] [cursor=pointer]
+      - generic [ref=f1e31] [cursor=pointer]:
+        - text: I agree to the
+        - button "Terms & Conditions" [ref=f1e32]
+        - text: •
+        - button "Privacy Policy" [ref=f1e33]
+        - text: •
+        - button "User Agreement" [ref=f1e34]
+        - text: •
+        - button "etc. (View All Policies →)" [ref=f1e35]
+    - button "ENTER PORTAL" [ref=f1e37] [cursor=pointer]
+  - img "PLE Logo" [ref=f1e39]
+  - generic [ref=f1e41]:
+    - generic [ref=f1e42]:
+      - heading "Enterprise" [level=1] [ref=f1e43]
+      - paragraph [ref=f1e44]: Enquiry-based procurement, bulk quotations, and GST-compliant enterprise logistics management.
+    - generic [ref=f1e45]:
+      - generic [ref=f1e46]: GST VALIDATION REQUIRED
+      - generic [ref=f1e51]: RFQ SYSTEM INTEGRATION
+      - generic [ref=f1e56]: BULK PRICING ENGINE
+    - generic [ref=f1e61]:
+      - checkbox "I agree to the enterprise business terms and policies" [ref=f1e62] [cursor=pointer]
+      - generic [ref=f1e63] [cursor=pointer]:
+        - text: I agree to the
+        - button "Business Terms" [ref=f1e64]
+        - text: •
+        - button "Privacy Policy" [ref=f1e65]
+        - text: •
+        - button "Onboarding & Compliance" [ref=f1e66]
+        - text: •
+        - button "etc. (View All Policies →)" [ref=f1e67]
+    - button "BUSINESS ONBOARDING" [disabled] [ref=f1e69] [cursor=pointer]

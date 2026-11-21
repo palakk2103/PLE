@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { FiSearch, FiPlus, FiEdit2, FiTrash2, FiEye, FiEyeOff, FiX, FiDollarSign, FiShoppingBag } from 'react-icons/fi';
+import { FiSearch, FiPlus, FiEdit2, FiTrash2, FiEye, FiEyeOff, FiX, FiDollarSign, FiShoppingBag, FiUserX, FiUserCheck } from 'react-icons/fi';
 import DataTable from '../../Admin/components/DataTable';
 import ConfirmModal from '../../Admin/components/ConfirmModal';
 import { useB2BAdminStore } from '../store/b2bAdminStore';
@@ -184,13 +184,23 @@ const EmployeeManagement = () => {
           >
             <FiEdit2 />
           </button>
-          <button
-            onClick={() => setDeleteModal({ isOpen: true, id: row._id, name: `${row.firstName} ${row.lastName}` })}
-            className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
-            title="Delete"
-          >
-            <FiTrash2 />
-          </button>
+          {row.isActive === false ? (
+            <button
+              onClick={() => updateEmployee(row._id, { status: 'Active' })}
+              className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded transition-colors"
+              title="Reactivate"
+            >
+              <FiUserCheck />
+            </button>
+          ) : (
+            <button
+              onClick={() => setDeleteModal({ isOpen: true, id: row._id, name: `${row.firstName} ${row.lastName}` })}
+              className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+              title="Deactivate"
+            >
+              <FiUserX />
+            </button>
+          )}
         </div>
       )
     }
@@ -249,9 +259,9 @@ const EmployeeManagement = () => {
         isOpen={deleteModal.isOpen}
         onClose={() => setDeleteModal({ isOpen: false, id: null, name: '' })}
         onConfirm={() => handleDelete(deleteModal.id)}
-        title="Remove Employee"
-        message={`Are you sure you want to remove ${deleteModal.name}? They will no longer be able to access the B2B portal.`}
-        confirmText="Remove"
+        title="Deactivate Employee"
+        message={`Deactivate ${deleteModal.name}? They will no longer be able to log in or buy. Their orders, returns and wallet history are kept, and you can reactivate them later.`}
+        confirmText="Deactivate"
         cancelText="Cancel"
         type="danger"
       />

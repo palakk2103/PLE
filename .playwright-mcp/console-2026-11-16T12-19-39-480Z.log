@@ -1,0 +1,9 @@
+[     457ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:21551
+[     619ms] [LOG] ✅ Service Worker registered: ServiceWorkerRegistration @ http://localhost:3000/src/services/pushNotificationService.js?t=1794831380792:11
+[     620ms] [LOG] ✅ Service Worker registered: ServiceWorkerRegistration @ http://localhost:3000/src/services/pushNotificationService.js?t=1794831380792:11
+[     636ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/general:1
+[     637ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/email:1
+[     641ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/notifications:1
+[     665ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/general:1
+[     666ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/email:1
+[     669ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/admin/settings/notifications:1

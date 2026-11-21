@@ -73,9 +73,23 @@ const VendorLayout = () => {
 
       socket.on('new_order_placed', handleNewOrder);
 
+      // Live alerts the server already sends: a customer wrote to you / an RFQ you are part of changed
+      const handleChatNotification = (data) => {
+        if (window.location.pathname.includes('/chat')) return; // you are already looking at your chats
+        toast(`${data?.customerName || 'A customer'}: ${String(data?.message || '').slice(0, 80)}`, { icon: '💬', duration: 5000 });
+        window.dispatchEvent(new CustomEvent('chat-notification', { detail: data }));
+      };
+      const handleRfqUpdated = (data) => {
+        toast(data?.title || `RFQ ${data?.rfqId || ''} updated`, { icon: '🏷️', duration: 5000 });
+      };
+      socket.on('vendor_chat_notification', handleChatNotification);
+      socket.on('consumer_rfq_updated', handleRfqUpdated);
+
       return () => {
         socket.off('connect', joinRoom);
         socket.off('new_order_placed', handleNewOrder);
+        socket.off('vendor_chat_notification', handleChatNotification);
+        socket.off('consumer_rfq_updated', handleRfqUpdated);
         socket.emit('leave_user_room', vendorId);
       };
     }

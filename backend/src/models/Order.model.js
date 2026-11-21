@@ -15,6 +15,9 @@ const orderItemSchema = new mongoose.Schema({
     gstAmount: { type: Number, default: 0 },
     taxableAmount: { type: Number, default: 0 },
     taxIncluded: { type: Boolean, default: false },
+    // Set when this line was bought at a price negotiated in chat
+    proposalId: { type: mongoose.Schema.Types.ObjectId, ref: 'ChatTransactionProposal' },
+    proposalReference: String,
 });
 
 const vendorItemGroupSchema = new mongoose.Schema({

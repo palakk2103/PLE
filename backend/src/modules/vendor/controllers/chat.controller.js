@@ -14,6 +14,7 @@ import ChatReport from '../../../models/ChatReport.model.js';
 import ChatTransactionProposal from '../../../models/ChatTransactionProposal.model.js';
 import { decryptMessage } from '../../../utils/chatEncryption.util.js';
 import { normalizeReportReason } from '../../../utils/chatReport.util.js';
+import { assertTextLength } from '../../../utils/chatLimits.js';
 
 const buildThreadSeedFromOrder = (order) => {
     const customerName =
@@ -62,29 +63,41 @@ export const getVendorChatThreads = asyncHandler(async (req, res) => {
         .select('_id orderId userId guestInfo shippingAddress createdAt')
         .lean();
 
-    for (const order of recentOrders) {
+    // One order-scoped thread per order, created in a single batch (no fake
+    // opening message: the thread stays empty until someone actually writes).
+    const ops = recentOrders.map((order) => {
         const seed = buildThreadSeedFromOrder(order);
-        await VendorChatThread.updateOne(
-            { vendorId, orderRef: order._id },
-            {
-                $setOnInsert: {
-                    vendorId,
-                    orderRef: order._id,
-                    lastMessage: 'Hello, I need help with my order',
-                    lastActivity: order?.createdAt || new Date(),
-                    unreadCount: 0,
-                    status: 'active',
+        return {
+            updateOne: {
+                filter: { vendorId, orderRef: order._id },
+                update: {
+                    $setOnInsert: {
+                        vendorId,
+                        orderRef: order._id,
+                        lastMessage: '',
+                        lastActivity: order?.createdAt || new Date(),
+                        unreadCount: 0,
+                        status: 'active',
+                    },
+                    $set: {
+                        orderDisplayId: seed.orderDisplayId,
+                        customerUserId: seed.customerUserId,
+                        customerName: seed.customerName,
+                        customerEmail: seed.customerEmail,
+                        customerPhone: seed.customerPhone,
+                    },
                 },
-                $set: {
-                    orderDisplayId: seed.orderDisplayId,
-                    customerUserId: seed.customerUserId,
-                    customerName: seed.customerName,
-                    customerEmail: seed.customerEmail,
-                    customerPhone: seed.customerPhone,
-                },
+                upsert: true,
             },
-            { upsert: true }
-        );
+        };
+    });
+    if (ops.length) {
+        try {
+            await VendorChatThread.bulkWrite(ops, { ordered: false });
+        } catch (err) {
+            // Duplicate-key races between concurrent loads are harmless here.
+            if (err?.code !== 11000 && !err?.writeErrors?.every?.((e) => e.code === 11000)) throw err;
+        }
     }
 
     const threads = await VendorChatThread.find({ vendorId, hiddenForVendor: { $ne: true } }).sort({ lastActivity: -1 }).lean();
@@ -117,27 +130,8 @@ export const getVendorChatMessages = asyncHandler(async (req, res) => {
     });
     if (!thread) throw new ApiError(404, 'Chat thread not found.');
 
+    // Return only real messages. Never fabricate messages on behalf of either party.
     const messages = await VendorChatMessage.find({ threadId: thread._id }).sort({ createdAt: 1 });
-
-    if (messages.length === 0) {
-        const seeded = await VendorChatMessage.create([
-            {
-                threadId: thread._id,
-                senderType: 'customer',
-                senderId: thread.customerUserId || null,
-                message: thread.lastMessage || 'Hello, I need help with my order',
-            },
-            {
-                threadId: thread._id,
-                senderType: 'vendor',
-                senderId: req.user.id,
-                message: 'Hi! How can I help you today?',
-            },
-        ]);
-        return res
-            .status(200)
-            .json(new ApiResponse(200, seeded.map(serializeMessage), 'Chat messages fetched.'));
-    }
 
     res
         .status(200)
@@ -147,6 +141,7 @@ export const getVendorChatMessages = asyncHandler(async (req, res) => {
 export const sendVendorChatMessage = asyncHandler(async (req, res) => {
     const message = String(req.body?.message || '').trim();
     if (!message) throw new ApiError(400, 'Message is required.');
+    assertTextLength(message);
 
     // 1. Account-level chat restriction check
     const vendor = await Vendor.findById(req.user.id);
@@ -231,10 +226,11 @@ export const sendVendorChatMessage = asyncHandler(async (req, res) => {
     const recentMsgs = await VendorChatMessage.find({
         threadId: thread._id,
         senderId: req.user.id,
-        createdAt: { $gte: new Date(Date.now() - 120000) }
-    }).sort({ createdAt: 1 }).limit(10);
+        // Look back a full day (not 2 minutes): a scammer can send half a number now and the rest later.
+        createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
+    }).sort({ createdAt: -1 }).limit(10); // the 10 NEWEST messages, restored to chronological order below
 
-    const evasionResult = checkMultiMessageEvasion(message, recentMsgs.map(m => m.message));
+    const evasionResult = checkMultiMessageEvasion(message, recentMsgs.reverse().map(m => m.message));
     if (evasionResult.action === MODERATION_ACTION.BLOCK) {
         try {
             await ChatViolation.create({
@@ -266,10 +262,11 @@ export const sendVendorChatMessage = asyncHandler(async (req, res) => {
 
     thread.lastMessage = message;
     thread.lastActivity = created.createdAt;
+    thread.unreadCountCustomer = (thread.unreadCountCustomer || 0) + 1;
     await thread.save();
 
-    // Create in-app notification for the customer
-    if (thread.customerUserId) {
+    // Create in-app notification for the customer (unless they muted this chat)
+    if (thread.customerUserId && !thread.customerMuted) {
         try {
             const vendorObj = await Vendor.findById(req.user.id);
             const vendorName = vendorObj?.storeName || vendorObj?.name || 'Store';
@@ -295,7 +292,7 @@ export const sendVendorChatMessage = asyncHandler(async (req, res) => {
         if (io) {
             io.to(`chat_${thread._id}`).emit('new_message', serializeMessage(created));
             // Also notify the customer in their user room
-            if (thread.customerUserId) {
+            if (thread.customerUserId && !thread.customerMuted) {
                 const vendorObj = await Vendor.findById(req.user.id).select('storeName name');
                 io.to(`user_${thread.customerUserId}`).emit('customer_chat_notification', {
                     threadId: thread._id,
@@ -328,14 +325,17 @@ export const updateVendorChatStatus = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'Invalid status.');
     }
 
-    const thread = await VendorChatThread.findOneAndUpdate(
-        { _id: req.params.id, vendorId: req.user.id },
-        { status },
-        { new: true }
-    );
-    if (!thread) throw new ApiError(404, 'Chat thread not found.');
+    const existing = await VendorChatThread.findOne({ _id: req.params.id, vendorId: req.user.id });
+    if (!existing) throw new ApiError(404, 'Chat thread not found.');
+    // A seller may not re-open a conversation the customer or PLE support closed.
+    if (status === 'active' && existing.closedBy && existing.closedBy !== 'vendor') {
+        throw new ApiError(403, 'This conversation was closed by the customer or PLE support and cannot be re-opened by the seller.');
+    }
+    existing.status = status;
+    existing.closedBy = status === 'active' ? null : 'vendor';
+    await existing.save();
 
-    res.status(200).json(new ApiResponse(200, thread, 'Chat status updated.'));
+    res.status(200).json(new ApiResponse(200, existing, 'Chat status updated.'));
 });
 
 // @desc    Report a chat message or user
@@ -350,6 +350,10 @@ export const reportVendorChatMessage = asyncHandler(async (req, res) => {
     });
     if (!thread) throw new ApiError(404, 'Chat thread not found.');
 
+    if (!thread.customerUserId) {
+        throw new ApiError(400, 'This chat has no registered customer account to report.');
+    }
+
     let messageSnippet = '';
     if (messageId) {
         const msg = await VendorChatMessage.findOne({ _id: messageId, threadId: thread._id });
@@ -362,7 +366,7 @@ export const reportVendorChatMessage = asyncHandler(async (req, res) => {
         messageSnippet,
         reporterId: req.user.id,
         reporterType: 'vendor',
-        reportedUserId: thread.customerUserId || thread._id,
+        reportedUserId: thread.customerUserId,
         reportedUserType: 'customer',
         reason: normalizeReportReason(reason),
         description: description || details || '',
@@ -379,6 +383,10 @@ export const toggleBlockVendorChat = asyncHandler(async (req, res) => {
         vendorId: req.user.id,
     });
     if (!thread) throw new ApiError(404, 'Chat thread not found.');
+
+    if (thread.isBlocked && thread.blockedBy && thread.blockedBy !== 'vendor') {
+        throw new ApiError(403, 'This chat was blocked by the customer or by PLE support, so you cannot unblock it.');
+    }
 
     thread.isBlocked = !thread.isBlocked;
     thread.blockedBy = thread.isBlocked ? 'vendor' : null;
@@ -502,6 +510,9 @@ export const createVendorProposal = asyncHandler(async (req, res) => {
     if (['resolved', 'closed'].includes(thread.status)) {
         throw new ApiError(400, 'Cannot create proposal in a closed or resolved conversation.');
     }
+    if (!thread.customerUserId) {
+        throw new ApiError(400, 'This customer has no account, so an offer cannot be sent.');
+    }
 
     const {
         productId,
@@ -516,7 +527,18 @@ export const createVendorProposal = asyncHandler(async (req, res) => {
         notes = '',
     } = req.body;
 
-    const trimmedProductName = String(productName || '').trim();
+    // An offer must be for one of the vendor's own catalogue products, otherwise the buyer
+    // could never check it out through the platform (and payment would drift off-platform).
+    if (!productId || !mongoose.isValidObjectId(productId)) {
+        throw new ApiError(400, 'Please select the product this offer is for.');
+    }
+    const { default: ProductModel } = await import('../../../models/Product.model.js');
+    const ownProduct = await ProductModel.findOne({ _id: productId, vendorId: req.user.id }).select('name').lean();
+    if (!ownProduct) {
+        throw new ApiError(400, 'You can only make an offer for one of your own products.');
+    }
+
+    const trimmedProductName = String(ownProduct.name || productName || '').trim();
     if (!trimmedProductName) {
         throw new ApiError(400, 'Product name is required.');
     }

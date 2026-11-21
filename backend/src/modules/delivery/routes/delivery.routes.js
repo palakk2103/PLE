@@ -69,4 +69,13 @@ router.put('/notifications/:id/read', ...deliveryAuth, notificationController.ma
 router.put('/notifications/read-all', ...deliveryAuth, notificationController.markAllDeliveryNotificationsAsRead);
 router.delete('/notifications/:id', ...deliveryAuth, notificationController.deleteDeliveryNotification);
 
+// Support tickets to PLE
+import deliverySupport from '../controllers/deliverySupport.controller.js';
+router.get('/support/ticket-types', ...deliveryAuth, deliverySupport.ticketTypes);
+router.get('/support/tickets', ...deliveryAuth, deliverySupport.listMine);
+router.post('/support/tickets', ...deliveryAuth, deliverySupport.create);
+router.get('/support/tickets/:id', ...deliveryAuth, deliverySupport.detail);
+router.post('/support/tickets/:id/messages', ...deliveryAuth, deliverySupport.reply);
+router.patch('/support/tickets/:id/status', ...deliveryAuth, deliverySupport.setStatus);
+
 export default router;

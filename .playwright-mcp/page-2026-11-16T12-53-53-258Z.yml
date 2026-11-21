@@ -1,0 +1,931 @@
+- generic [ref=f2e4]:
+  - banner [ref=f2e5]:
+    - generic [ref=f2e6]:
+      - generic [ref=f2e7]:
+        - link [ref=f2e8] [cursor=pointer]:
+          - /url: /home
+          - img "OPLE Logo" [ref=f2e9]
+        - button "Menu" [ref=f2e10] [cursor=pointer]
+      - navigation [ref=f2e12]:
+        - link "Home" [ref=f2e13] [cursor=pointer]:
+          - /url: /home
+        - link "Other Shops Marketplace" [ref=f2e14] [cursor=pointer]:
+          - /url: /home?tab=marketplace
+          - generic [ref=f2e15]: Other Shops
+          - generic [ref=f2e16]: Marketplace
+        - link "Categories ▼" [ref=f2e17] [cursor=pointer]:
+          - /url: /categories
+          - generic [ref=f2e18]: Categories
+          - generic [ref=f2e19]: ▼
+        - link "Offers" [ref=f2e20] [cursor=pointer]:
+          - /url: /offers
+        - generic [ref=f2e21] [cursor=pointer]:
+          - generic [ref=f2e22]: Brands by PLE
+          - generic [ref=f2e23]: New
+          - generic [ref=f2e24]: ▼
+      - generic [ref=f2e25]:
+        - textbox "Search products, brands, categories..." [ref=f2e26]
+        - button "Search" [ref=f2e27] [cursor=pointer]
+      - generic [ref=f2e31]:
+        - button "RFQ" [ref=f2e32] [cursor=pointer]
+        - button "Cart" [ref=f2e38] [cursor=pointer]
+        - button "Theme" [ref=f2e43] [cursor=pointer]
+        - button [ref=f2e49] [cursor=pointer]:
+          - generic [ref=f2e52]:
+            - paragraph [ref=f2e53]: info
+            - paragraph [ref=f2e54]: Business Account
+  - main [ref=f2e55]:
+    - generic [ref=f2e57]:
+      - generic [ref=f2e59]:
+        - generic [ref=f2e60]:
+          - generic [ref=f2e61]:
+            - generic [ref=f2e62]:
+              - heading "Browse Categories" [level=3] [ref=f2e63]
+              - generic [ref=f2e64]:
+                - button "Computers & Peripherals" [ref=f2e65] [cursor=pointer]
+                - button "Components" [ref=f2e73] [cursor=pointer]
+                - button "Security & Surveillance" [ref=f2e82] [cursor=pointer]
+                - button "Networking" [ref=f2e90] [cursor=pointer]
+                - button "Storage & Backup" [ref=f2e99] [cursor=pointer]
+                - button "Office Equipment" [ref=f2e109] [cursor=pointer]
+                - button "Power & Electricals" [ref=f2e119] [cursor=pointer]
+                - button "Software & Licenses" [ref=f2e127] [cursor=pointer]
+                - button "Mobility & Accessories" [ref=f2e136] [cursor=pointer]
+                - button "Consumables" [ref=f2e144] [cursor=pointer]
+            - button "View All Categories" [ref=f2e154] [cursor=pointer]
+          - generic [ref=f2e155]:
+            - generic [ref=f2e156]:
+              - text: Corporate Procurement Made Easy
+              - heading "Smart Sourcing. Reliable Supply. Built for Business." [level=2] [ref=f2e157]: Smart Sourcing.Reliable Supply.Built for Business.
+              - paragraph [ref=f2e158]: End-to-end procurement solutions with GST-compliant invoicing, bulk pricing, and dedicated support.
+            - generic [ref=f2e159]:
+              - button "RFQ Details ➔" [ref=f2e160] [cursor=pointer]:
+                - text: RFQ Details
+                - generic [ref=f2e161]: ➔
+              - button "Source Now" [ref=f2e162] [cursor=pointer]
+          - generic [ref=f2e167]:
+            - generic [ref=f2e168]:
+              - generic [ref=f2e169]:
+                - heading "Business Account" [level=3] [ref=f2e170]
+                - link "View Profile ➔" [ref=f2e171] [cursor=pointer]:
+                  - /url: /profile
+              - generic [ref=f2e177]:
+                - heading "Business Account" [level=4] [ref=f2e178]
+                - paragraph [ref=f2e179]:
+                  - generic [ref=f2e180]: "GSTIN: Not Configured"
+              - generic [ref=f2e181]:
+                - generic [ref=f2e182]:
+                  - generic [ref=f2e183]: Admin
+                  - generic [ref=f2e184]: Business User
+                - generic [ref=f2e185]:
+                  - generic [ref=f2e186]: Role
+                  - generic [ref=f2e187]: Business Member
+                - generic [ref=f2e188]:
+                  - generic [ref=f2e189]: Purchases History
+                  - link "View History" [ref=f2e190] [cursor=pointer]:
+                    - /url: /orders
+                - generic [ref=f2e191]:
+                  - generic [ref=f2e192]: Member Since
+                  - generic [ref=f2e193]: Member
+              - generic [ref=f2e194]: Need bulk pricing or custom sourcing? Submit an RFQ and get best quotes.
+            - button "RFQ Details" [ref=f2e199] [cursor=pointer]
+        - generic [ref=f2e200]:
+          - generic [ref=f2e206]:
+            - heading "Wholesale Pricing" [level=4] [ref=f2e207]
+            - paragraph [ref=f2e208]: Verified tier discounts & bulk volume rates on all catalog items.
+          - generic [ref=f2e212] [cursor=pointer]:
+            - heading "Source Now" [level=4] [ref=f2e213]
+            - paragraph [ref=f2e214]: Request custom or unlisted items.
+          - generic [ref=f2e222]:
+            - heading "Fast & Reliable Delivery" [level=4] [ref=f2e223]
+            - paragraph [ref=f2e224]: Pan-India delivery with real-time tracking.
+          - generic [ref=f2e229]:
+            - heading "GST Compliant" [level=4] [ref=f2e230]
+            - paragraph [ref=f2e231]: All invoices & billing 100% GST compliant.
+        - generic [ref=f2e232]:
+          - generic [ref=f2e233]:
+            - heading "Explore By Category" [level=3] [ref=f2e234]
+            - link "View All ➔" [ref=f2e235] [cursor=pointer]:
+              - /url: /categories
+          - generic [ref=f2e236]:
+            - generic [ref=f2e237] [cursor=pointer]:
+              - img "Computers & Peripherals" [ref=f2e239]
+              - generic [ref=f2e240]: Computers & Peripherals
+            - generic [ref=f2e241] [cursor=pointer]:
+              - img "Components" [ref=f2e243]
+              - generic [ref=f2e244]: Components
+            - generic [ref=f2e245] [cursor=pointer]:
+              - img "Security & Surveillance" [ref=f2e247]
+              - generic [ref=f2e248]: Security & Surveillance
+            - generic [ref=f2e249] [cursor=pointer]:
+              - img "Networking" [ref=f2e251]
+              - generic [ref=f2e252]: Networking
+            - generic [ref=f2e253] [cursor=pointer]:
+              - img "Storage & Backup" [ref=f2e255]
+              - generic [ref=f2e256]: Storage & Backup
+            - generic [ref=f2e257] [cursor=pointer]:
+              - img "Office Equipment" [ref=f2e259]
+              - generic [ref=f2e260]: Office Equipment
+            - generic [ref=f2e261] [cursor=pointer]:
+              - img "Power & Electricals" [ref=f2e263]
+              - generic [ref=f2e264]: Power & Electricals
+            - generic [ref=f2e265] [cursor=pointer]:
+              - img "Software & Licenses" [ref=f2e267]
+              - generic [ref=f2e268]: Software & Licenses
+            - generic [ref=f2e269] [cursor=pointer]:
+              - img "Mobility & Accessories" [ref=f2e271]
+              - generic [ref=f2e272]: Mobility & Accessories
+        - generic [ref=f2e273]:
+          - generic [ref=f2e277]:
+            - strong [ref=f2e278]: 200+ Trusted Brands
+            - text: Curated for Business
+          - generic [ref=f2e283]:
+            - strong [ref=f2e284]: GST Compliant Billing
+            - text: 100% Secure & Compliant
+          - generic [ref=f2e291]:
+            - strong [ref=f2e292]: PAN India Delivery
+            - text: Fast & Reliable
+          - generic [ref=f2e296]:
+            - strong [ref=f2e297]: Dedicated Support
+            - text: Always Here For You
+      - generic [ref=f2e301]:
+        - generic [ref=f2e302]:
+          - generic [ref=f2e303] [cursor=pointer]:
+            - img "Armani Exchange"
+          - paragraph [ref=f2e304]: Armani Exchange
+        - generic [ref=f2e305]:
+          - generic [ref=f2e306] [cursor=pointer]:
+            - img "Chanel"
+          - paragraph [ref=f2e307]: Chanel
+        - generic [ref=f2e308]:
+          - generic [ref=f2e309] [cursor=pointer]:
+            - img "Charles & Keith"
+          - paragraph [ref=f2e310]: Charles & Keith
+        - generic [ref=f2e311]:
+          - generic [ref=f2e312] [cursor=pointer]:
+            - img "Chloe"
+          - paragraph [ref=f2e313]: Chloe
+        - generic [ref=f2e314]:
+          - generic [ref=f2e315] [cursor=pointer]:
+            - img "Crocs"
+          - paragraph [ref=f2e316]: Crocs
+        - generic [ref=f2e317]:
+          - generic [ref=f2e318] [cursor=pointer]:
+            - img "Emporio Armani"
+          - paragraph [ref=f2e319]: Emporio Armani
+        - generic [ref=f2e320]:
+          - generic [ref=f2e321] [cursor=pointer]:
+            - img "Fendi"
+          - paragraph [ref=f2e322]: Fendi
+        - generic [ref=f2e323]:
+          - generic [ref=f2e324] [cursor=pointer]:
+            - img "Fossil"
+          - paragraph [ref=f2e325]: Fossil
+        - generic [ref=f2e326]:
+          - generic [ref=f2e327] [cursor=pointer]:
+            - img "G-Shock"
+          - paragraph [ref=f2e328]: G-Shock
+        - generic [ref=f2e329]:
+          - generic [ref=f2e330] [cursor=pointer]:
+            - img "Gucci"
+          - paragraph [ref=f2e331]: Gucci
+      - generic [ref=f2e334]:
+        - generic [ref=f2e335]:
+          - generic [ref=f2e336]:
+            - heading "Best Sellers" [level=2] [ref=f2e337]
+            - paragraph [ref=f2e338]: Shop from trusted stores
+          - link "See All" [ref=f2e339] [cursor=pointer]:
+            - /url: /sellers
+        - generic [ref=f2e343]:
+          - link "Anita Mega Mart 4.8 0 products Visit Store" [ref=f2e344] [cursor=pointer]:
+            - /url: /seller/6a523ed45ae325dd5d7041c1
+            - generic [ref=f2e345]:
+              - heading "Anita Mega Mart" [level=3] [ref=f2e353]
+              - generic [ref=f2e354]: "4.8"
+              - generic [ref=f2e367]: 0 products
+              - generic [ref=f2e372]: Visit Store
+          - link "P PLE shop 4.8 6 products Visit Store" [ref=f2e377] [cursor=pointer]:
+            - /url: /seller/6a53a50ba7fd2a88646fa54c
+            - generic [ref=f2e378]:
+              - generic [ref=f2e379]: P
+              - heading "PLE shop" [level=3] [ref=f2e386]
+              - generic [ref=f2e387]: "4.8"
+              - generic [ref=f2e400]: 6 products
+              - generic [ref=f2e405]: Visit Store
+          - link "F Fashion Hub Store 4.3 4 products Visit Store" [ref=f2e410] [cursor=pointer]:
+            - /url: /seller/6996c04b4a33b2417858505e
+            - generic [ref=f2e411]:
+              - generic [ref=f2e412]: F
+              - heading "Fashion Hub Store" [level=3] [ref=f2e419]
+              - generic [ref=f2e420]: "4.3"
+              - generic [ref=f2e433]: 4 products
+              - generic [ref=f2e438]: Visit Store
+          - link "All is well 4.0 2 products Visit Store" [ref=f2e443] [cursor=pointer]:
+            - /url: /seller/69fd7efe55e69c0dfdf08fec
+            - generic [ref=f2e444]:
+              - heading "All is well" [level=3] [ref=f2e452]
+              - generic [ref=f2e453]: "4.0"
+              - generic [ref=f2e466]: 2 products
+              - generic [ref=f2e471]: Visit Store
+          - link "M MCP Store 0 products Visit Store" [ref=f2e476] [cursor=pointer]:
+            - /url: /seller/6ae9bc828e78bd0fad5f9394
+            - generic [ref=f2e477]:
+              - generic [ref=f2e478]: M
+              - heading "MCP Store" [level=3] [ref=f2e485]
+              - generic [ref=f2e486]: 0 products
+              - generic [ref=f2e491]: Visit Store
+          - link "U UI Store 0 products Visit Store" [ref=f2e496] [cursor=pointer]:
+            - /url: /seller/6ae9bacd8e78bd0fad5f8e23
+            - generic [ref=f2e497]:
+              - generic [ref=f2e498]: U
+              - heading "UI Store" [level=3] [ref=f2e505]
+              - generic [ref=f2e506]: 0 products
+              - generic [ref=f2e511]: Visit Store
+          - link "P PLE store 1 products Visit Store" [ref=f2e516] [cursor=pointer]:
+            - /url: /seller/6ae4b23dfdcdfc1795752df7
+            - generic [ref=f2e517]:
+              - generic [ref=f2e518]: P
+              - heading "PLE store" [level=3] [ref=f2e525]
+              - generic [ref=f2e526]: 1 products
+              - generic [ref=f2e531]: Visit Store
+          - link "F Fashion Hub Official 3 products Visit Store" [ref=f2e536] [cursor=pointer]:
+            - /url: /seller/6ac5f04352e2803067ca5cd6
+            - generic [ref=f2e537]:
+              - generic [ref=f2e538]: F
+              - heading "Fashion Hub Official" [level=3] [ref=f2e545]
+              - generic [ref=f2e546]: 3 products
+              - generic [ref=f2e551]: Visit Store
+          - link "A Ankit shop 0 products Visit Store" [ref=f2e556] [cursor=pointer]:
+            - /url: /seller/6aa13adab4d6beaa1ea00a1f
+            - generic [ref=f2e557]:
+              - generic [ref=f2e558]: A
+              - heading "Ankit shop" [level=3] [ref=f2e565]
+              - generic [ref=f2e566]: 0 products
+              - generic [ref=f2e571]: Visit Store
+          - link "O ohk 0 products Visit Store" [ref=f2e576] [cursor=pointer]:
+            - /url: /seller/6a76127ecd7876b653b3e0a5
+            - generic [ref=f2e577]:
+              - generic [ref=f2e578]: O
+              - heading "ohk" [level=3] [ref=f2e585]
+              - generic [ref=f2e586]: 0 products
+              - generic [ref=f2e591]: Visit Store
+      - generic [ref=f2e597]:
+        - generic [ref=f2e598]:
+          - generic:
+            - generic:
+              - generic:
+                - img "Hero Product"
+          - button "Limited Time Offer Flash Sale Shop now before it ends! Up to 50% OFF" [ref=f2e599] [cursor=pointer]:
+            - generic [ref=f2e600]:
+              - generic [ref=f2e601]: Limited Time Offer
+              - heading "Flash Sale" [level=3] [ref=f2e606]
+              - paragraph [ref=f2e607]: Shop now before it ends!
+              - generic [ref=f2e608]: Up to 50% OFF
+        - generic [ref=f2e612]:
+          - button [ref=f2e613] [cursor=pointer]
+          - button [ref=f2e615] [cursor=pointer]
+          - button [ref=f2e617] [cursor=pointer]
+      - generic [ref=f2e620]:
+        - generic [ref=f2e621]:
+          - generic [ref=f2e628]:
+            - heading "New Arrivals" [level=2] [ref=f2e629]
+            - paragraph [ref=f2e630]: Fresh products just added
+          - link "See All" [ref=f2e632] [cursor=pointer]:
+            - /url: /new-arrivals
+        - generic [ref=f2e633]:
+          - link [ref=f2e635] [cursor=pointer]:
+            - /url: /product/69fd959f55e69c0dfdf09c15
+          - link [ref=f2e641] [cursor=pointer]:
+            - /url: /product/69a2bcbedc14f741b639871d
+          - link [ref=f2e647] [cursor=pointer]:
+            - /url: /product/69a07231bd36da8fa1da72f2
+          - link [ref=f2e653] [cursor=pointer]:
+            - /url: /product/6af82469a5e940e7af4a5862
+          - link [ref=f2e659] [cursor=pointer]:
+            - /url: /product/6ae9bfd9d4a250fe945f5be2
+          - link [ref=f2e665] [cursor=pointer]:
+            - /url: /product/6ae38d7cfdcdfc1795752107
+      - generic [ref=f2e670]:
+        - generic [ref=f2e671]:
+          - heading "Most Popular" [level=2] [ref=f2e672]
+          - link "See All" [ref=f2e673] [cursor=pointer]:
+            - /url: /search
+        - generic [ref=f2e674]:
+          - generic [ref=f2e676] [cursor=pointer]:
+            - generic [ref=f2e677]:
+              - button [ref=f2e679]
+              - link "82% OFF" [ref=f2e682]:
+                - /url: /product/69a43fd6654972da0441e190
+            - generic [ref=f2e686]:
+              - link [ref=f2e687]:
+                - /url: /product/69a43fd6654972da0441e190
+                - heading "PRADA SLIPPERS" [level=3] [ref=f2e688]
+              - paragraph [ref=f2e689]: Piece
+              - generic [ref=f2e691]:
+                - generic [ref=f2e692]: "5"
+                - generic [ref=f2e696]: (2)
+              - generic [ref=f2e697]: Fast Bulk Cargo
+              - generic [ref=f2e700]:
+                - generic [ref=f2e701]:
+                  - generic [ref=f2e702]: "Bulk Price:"
+                  - generic [ref=f2e703]: ₹2,839.2
+                  - generic [ref=f2e704]: /Piece
+                - generic [ref=f2e705]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f2e709]
+          - generic [ref=f2e714] [cursor=pointer]:
+            - generic [ref=f2e715]:
+              - button [ref=f2e717]
+              - link "42% OFF" [ref=f2e720]:
+                - /url: /product/69a09a3c35b34238ea32ee6f
+            - generic [ref=f2e724]:
+              - link [ref=f2e725]:
+                - /url: /product/69a09a3c35b34238ea32ee6f
+                - heading "Digital Print Bedsheet" [level=3] [ref=f2e726]
+              - paragraph [ref=f2e727]: Piece
+              - generic [ref=f2e729]:
+                - generic [ref=f2e730]: "5"
+                - generic [ref=f2e734]: (2)
+              - generic [ref=f2e735]: Fast Bulk Cargo
+              - generic [ref=f2e738]:
+                - generic [ref=f2e739]:
+                  - generic [ref=f2e740]: "Bulk Price:"
+                  - generic [ref=f2e741]: ₹920
+                  - generic [ref=f2e742]: /Piece
+                - generic [ref=f2e743]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f2e747]
+          - generic [ref=f2e752] [cursor=pointer]:
+            - generic [ref=f2e753]:
+              - button [ref=f2e755]
+              - link "30% OFF" [ref=f2e758]:
+                - /url: /product/69a0993635b34238ea32ee31
+            - generic [ref=f2e762]:
+              - link [ref=f2e763]:
+                - /url: /product/69a0993635b34238ea32ee31
+                - heading "Bedsheet" [level=3] [ref=f2e764]
+              - paragraph [ref=f2e765]: Piece
+              - generic [ref=f2e767]:
+                - generic [ref=f2e768]: "5"
+                - generic [ref=f2e772]: (2)
+              - generic [ref=f2e773]: Fast Bulk Cargo
+              - generic [ref=f2e776]:
+                - generic [ref=f2e777]:
+                  - generic [ref=f2e778]: "Bulk Price:"
+                  - generic [ref=f2e779]: ₹559.2
+                  - generic [ref=f2e780]: /Piece
+                - generic [ref=f2e781]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f2e785]
+          - generic [ref=f2e790] [cursor=pointer]:
+            - generic [ref=f2e791]:
+              - button [ref=f2e793]
+              - link "31% OFF" [ref=f2e796]:
+                - /url: /product/69a08d06bd36da8fa1da7765
+            - generic [ref=f2e800]:
+              - link [ref=f2e801]:
+                - /url: /product/69a08d06bd36da8fa1da7765
+                - heading "Blouse • Lehenga • Shrug" [level=3] [ref=f2e802]
+              - paragraph [ref=f2e803]: Piece
+              - generic [ref=f2e805]:
+                - generic [ref=f2e806]: "5"
+                - generic [ref=f2e810]: (2)
+              - generic [ref=f2e811]: Fast Bulk Cargo
+              - generic [ref=f2e814]:
+                - generic [ref=f2e815]:
+                  - generic [ref=f2e816]: "Bulk Price:"
+                  - generic [ref=f2e817]: ₹1,080
+                  - generic [ref=f2e818]: /Piece
+                - generic [ref=f2e819]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f2e823]
+          - generic [ref=f2e828] [cursor=pointer]:
+            - generic [ref=f2e829]:
+              - button [ref=f2e831]
+              - link "59% OFF" [ref=f2e834]:
+                - /url: /product/699eb63478fb94f88662f64e
+            - generic [ref=f2e838]:
+              - link [ref=f2e839]:
+                - /url: /product/699eb63478fb94f88662f64e
+                - heading "Louis Vuitton Alma Trunk" [level=3] [ref=f2e840]
+              - paragraph [ref=f2e841]: Piece
+              - generic [ref=f2e843]:
+                - generic [ref=f2e844]: "5"
+                - generic [ref=f2e848]: (2)
+              - generic [ref=f2e849]: Fast Bulk Cargo
+              - generic [ref=f2e852]:
+                - generic [ref=f2e853]:
+                  - generic [ref=f2e854]: "Bulk Price:"
+                  - generic [ref=f2e855]: ₹4,959.2
+                  - generic [ref=f2e856]: /Piece
+                - generic [ref=f2e857]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f2e861]
+      - generic [ref=f2e869]:
+        - generic [ref=f2e870]:
+          - generic [ref=f2e871]:
+            - generic [ref=f2e876]:
+              - heading "Daily Deals" [level=2] [ref=f2e877]
+              - paragraph [ref=f2e878]: Limited time offers - Up to 70% OFF
+            - link "See All" [ref=f2e879] [cursor=pointer]:
+              - /url: /daily-deals
+          - generic [ref=f2e881]:
+            - paragraph [ref=f2e882]: Deal ends in
+            - generic [ref=f2e888]:
+              - generic [ref=f2e889]:
+                - generic [ref=f2e890]: "05"
+                - generic [ref=f2e891]: Hrs
+              - generic [ref=f2e892]: ":"
+              - generic [ref=f2e893]:
+                - generic [ref=f2e894]: "36"
+                - generic [ref=f2e895]: Min
+              - generic [ref=f2e896]: ":"
+              - generic [ref=f2e897]:
+                - generic [ref=f2e898]: "07"
+                - generic [ref=f2e899]: Sec
+        - generic [ref=f2e900]:
+          - generic [ref=f2e902] [cursor=pointer]:
+            - generic [ref=f2e903]:
+              - button [ref=f2e905]
+              - link "31% OFF Hot Deal" [ref=f2e908]:
+                - /url: /product/69a08d06bd36da8fa1da7765
+                - generic [ref=f2e909]:
+                  - generic [ref=f2e910]: 31% OFF
+                  - generic [ref=f2e911]: Hot Deal
+            - generic [ref=f2e914]:
+              - link [ref=f2e915]:
+                - /url: /product/69a08d06bd36da8fa1da7765
+                - heading "Blouse • Lehenga • Shrug" [level=3] [ref=f2e916]
+              - paragraph [ref=f2e917]: Piece
+              - generic [ref=f2e918]:
+                - generic [ref=f2e919]:
+                  - generic [ref=f2e920]: "5"
+                  - generic [ref=f2e924]: (2)
+                - generic [ref=f2e925]: Ending Soon
+              - generic [ref=f2e926]: Fast Bulk Cargo
+              - generic [ref=f2e929]:
+                - generic [ref=f2e930]: Available
+                - generic [ref=f2e931]: 95% Sold
+              - generic [ref=f2e935]:
+                - generic [ref=f2e936]:
+                  - generic [ref=f2e937]: "Bulk Price:"
+                  - generic [ref=f2e938]: ₹1,080
+                  - generic [ref=f2e939]: /Piece
+                - generic [ref=f2e940]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f2e944]
+          - generic [ref=f2e949] [cursor=pointer]:
+            - generic [ref=f2e950]:
+              - button [ref=f2e952]
+              - link "60% OFF Hot Deal" [ref=f2e955]:
+                - /url: /product/69a07571bd36da8fa1da7377
+                - generic [ref=f2e956]:
+                  - generic [ref=f2e957]: 60% OFF
+                  - generic [ref=f2e958]: Hot Deal
+            - generic [ref=f2e961]:
+              - link [ref=f2e962]:
+                - /url: /product/69a07571bd36da8fa1da7377
+                - heading "Adidas Track Pants" [level=3] [ref=f2e963]
+              - paragraph [ref=f2e964]: Piece
+              - generic [ref=f2e965]:
+                - generic [ref=f2e966]:
+                  - generic [ref=f2e967]: "4.5"
+                  - generic [ref=f2e971]: (2)
+                - generic [ref=f2e972]: Ending Soon
+              - generic [ref=f2e973]: Fast Bulk Cargo
+              - generic [ref=f2e976]:
+                - generic [ref=f2e977]: Available
+                - generic [ref=f2e978]: 95% Sold
+              - generic [ref=f2e982]:
+                - generic [ref=f2e983]:
+                  - generic [ref=f2e984]: "Bulk Price:"
+                  - generic [ref=f2e985]: ₹959.2
+                  - generic [ref=f2e986]: /Piece
+                - generic [ref=f2e987]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f2e991]
+          - generic [ref=f2e996] [cursor=pointer]:
+            - generic [ref=f2e997]:
+              - button [ref=f2e999]
+              - link "-757% OFF Hot Deal" [ref=f2e1002]:
+                - /url: /product/69fd959f55e69c0dfdf09c15
+                - generic [ref=f2e1003]:
+                  - generic [ref=f2e1004]: "-757% OFF"
+                  - generic [ref=f2e1005]: Hot Deal
+            - generic [ref=f2e1008]:
+              - link [ref=f2e1009]:
+                - /url: /product/69fd959f55e69c0dfdf09c15
+                - heading "Buytru" [level=3] [ref=f2e1010]
+              - paragraph [ref=f2e1011]: "1"
+              - generic [ref=f2e1012]:
+                - generic [ref=f2e1013]:
+                  - generic [ref=f2e1014]: "4"
+                  - generic [ref=f2e1018]: (2)
+                - generic [ref=f2e1019]: Ending Soon
+              - generic [ref=f2e1020]: Fast Bulk Cargo
+              - generic [ref=f2e1023]:
+                - generic [ref=f2e1024]: Available
+                - generic [ref=f2e1025]: 51% Sold
+              - generic [ref=f2e1029]:
+                - generic [ref=f2e1030]:
+                  - generic [ref=f2e1031]: "Bulk Price:"
+                  - generic [ref=f2e1032]: ₹960
+                  - generic [ref=f2e1033]: /1
+                - generic [ref=f2e1034]: "MOQ: 5 1s"
+              - button "Order Bulk" [ref=f2e1038]
+          - generic [ref=f2e1043] [cursor=pointer]:
+            - generic [ref=f2e1044]:
+              - button [ref=f2e1046]
+              - link "53% OFF Hot Deal" [ref=f2e1049]:
+                - /url: /product/69a07e33bd36da8fa1da74e8
+                - generic [ref=f2e1050]:
+                  - generic [ref=f2e1051]: 53% OFF
+                  - generic [ref=f2e1052]: Hot Deal
+            - generic [ref=f2e1055]:
+              - link [ref=f2e1056]:
+                - /url: /product/69a07e33bd36da8fa1da74e8
+                - heading "Guess Fame" [level=3] [ref=f2e1057]
+              - paragraph [ref=f2e1058]: Piece
+              - generic [ref=f2e1059]:
+                - generic [ref=f2e1060]:
+                  - generic [ref=f2e1061]: "3.5"
+                  - generic [ref=f2e1065]: (2)
+                - generic [ref=f2e1066]: Ending Soon
+              - generic [ref=f2e1067]: Fast Bulk Cargo
+              - generic [ref=f2e1070]:
+                - generic [ref=f2e1071]: Available
+                - generic [ref=f2e1072]: 75% Sold
+              - generic [ref=f2e1076]:
+                - generic [ref=f2e1077]:
+                  - generic [ref=f2e1078]: "Bulk Price:"
+                  - generic [ref=f2e1079]: ₹744
+                  - generic [ref=f2e1080]: /Piece
+                - generic [ref=f2e1081]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f2e1085]
+          - generic [ref=f2e1090] [cursor=pointer]:
+            - generic [ref=f2e1091]:
+              - button [ref=f2e1093]
+              - link "60% OFF Hot Deal" [ref=f2e1096]:
+                - /url: /product/69a09aed35b34238ea32ee8f
+                - generic [ref=f2e1097]:
+                  - generic [ref=f2e1098]: 60% OFF
+                  - generic [ref=f2e1099]: Hot Deal
+            - generic [ref=f2e1102]:
+              - link [ref=f2e1103]:
+                - /url: /product/69a09aed35b34238ea32ee8f
+                - heading "Harmony Tote Bag" [level=3] [ref=f2e1104]
+              - paragraph [ref=f2e1105]: Piece
+              - generic [ref=f2e1106]: Ending Soon
+              - generic [ref=f2e1108]: Fast Bulk Cargo
+              - generic [ref=f2e1111]:
+                - generic [ref=f2e1112]: Available
+                - generic [ref=f2e1113]: 75% Sold
+              - generic [ref=f2e1117]:
+                - generic [ref=f2e1118]:
+                  - generic [ref=f2e1119]: "Bulk Price:"
+                  - generic [ref=f2e1120]: ₹479.2
+                  - generic [ref=f2e1121]: /Piece
+                - generic [ref=f2e1122]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f2e1126]
+      - generic [ref=f2e1130]:
+        - generic [ref=f2e1131]:
+          - generic [ref=f2e1132]:
+            - heading "Flash Sale" [level=2] [ref=f2e1133]
+            - paragraph [ref=f2e1134]: Limited time offers
+          - link "See All" [ref=f2e1135] [cursor=pointer]:
+            - /url: /flash-sale
+        - generic [ref=f2e1136]:
+          - generic [ref=f2e1138] [cursor=pointer]:
+            - generic [ref=f2e1139]:
+              - button [ref=f2e1141]
+              - link "31% OFF Hot Deal" [ref=f2e1144]:
+                - /url: /product/69a08d06bd36da8fa1da7765
+                - generic [ref=f2e1145]:
+                  - generic [ref=f2e1146]: 31% OFF
+                  - generic [ref=f2e1147]: Hot Deal
+            - generic [ref=f2e1150]:
+              - link [ref=f2e1151]:
+                - /url: /product/69a08d06bd36da8fa1da7765
+                - heading "Blouse • Lehenga • Shrug" [level=3] [ref=f2e1152]
+              - paragraph [ref=f2e1153]: Piece
+              - generic [ref=f2e1154]:
+                - generic [ref=f2e1155]:
+                  - generic [ref=f2e1156]: "5"
+                  - generic [ref=f2e1160]: (2)
+                - generic [ref=f2e1161]: Ending Soon
+              - generic [ref=f2e1162]: Fast Bulk Cargo
+              - generic [ref=f2e1165]:
+                - generic [ref=f2e1166]: Available
+                - generic [ref=f2e1167]: 95% Sold
+              - generic [ref=f2e1171]:
+                - generic [ref=f2e1172]:
+                  - generic [ref=f2e1173]: "Bulk Price:"
+                  - generic [ref=f2e1174]: ₹1,080
+                  - generic [ref=f2e1175]: /Piece
+                - generic [ref=f2e1176]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f2e1180]
+          - generic [ref=f2e1185] [cursor=pointer]:
+            - generic [ref=f2e1186]:
+              - button [ref=f2e1188]
+              - link "60% OFF Hot Deal" [ref=f2e1191]:
+                - /url: /product/69a07571bd36da8fa1da7377
+                - generic [ref=f2e1192]:
+                  - generic [ref=f2e1193]: 60% OFF
+                  - generic [ref=f2e1194]: Hot Deal
+            - generic [ref=f2e1197]:
+              - link [ref=f2e1198]:
+                - /url: /product/69a07571bd36da8fa1da7377
+                - heading "Adidas Track Pants" [level=3] [ref=f2e1199]
+              - paragraph [ref=f2e1200]: Piece
+              - generic [ref=f2e1201]:
+                - generic [ref=f2e1202]:
+                  - generic [ref=f2e1203]: "4.5"
+                  - generic [ref=f2e1207]: (2)
+                - generic [ref=f2e1208]: Ending Soon
+              - generic [ref=f2e1209]: Fast Bulk Cargo
+              - generic [ref=f2e1212]:
+                - generic [ref=f2e1213]: Available
+                - generic [ref=f2e1214]: 95% Sold
+              - generic [ref=f2e1218]:
+                - generic [ref=f2e1219]:
+                  - generic [ref=f2e1220]: "Bulk Price:"
+                  - generic [ref=f2e1221]: ₹959.2
+                  - generic [ref=f2e1222]: /Piece
+                - generic [ref=f2e1223]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f2e1227]
+          - generic [ref=f2e1232] [cursor=pointer]:
+            - generic [ref=f2e1233]:
+              - button [ref=f2e1235]
+              - link "-757% OFF Hot Deal" [ref=f2e1238]:
+                - /url: /product/69fd959f55e69c0dfdf09c15
+                - generic [ref=f2e1239]:
+                  - generic [ref=f2e1240]: "-757% OFF"
+                  - generic [ref=f2e1241]: Hot Deal
+            - generic [ref=f2e1244]:
+              - link [ref=f2e1245]:
+                - /url: /product/69fd959f55e69c0dfdf09c15
+                - heading "Buytru" [level=3] [ref=f2e1246]
+              - paragraph [ref=f2e1247]: "1"
+              - generic [ref=f2e1248]:
+                - generic [ref=f2e1249]:
+                  - generic [ref=f2e1250]: "4"
+                  - generic [ref=f2e1254]: (2)
+                - generic [ref=f2e1255]: Ending Soon
+              - generic [ref=f2e1256]: Fast Bulk Cargo
+              - generic [ref=f2e1259]:
+                - generic [ref=f2e1260]: Available
+                - generic [ref=f2e1261]: 51% Sold
+              - generic [ref=f2e1265]:
+                - generic [ref=f2e1266]:
+                  - generic [ref=f2e1267]: "Bulk Price:"
+                  - generic [ref=f2e1268]: ₹960
+                  - generic [ref=f2e1269]: /1
+                - generic [ref=f2e1270]: "MOQ: 5 1s"
+              - button "Order Bulk" [ref=f2e1274]
+          - generic [ref=f2e1279] [cursor=pointer]:
+            - generic [ref=f2e1280]:
+              - button [ref=f2e1282]
+              - link "53% OFF Hot Deal" [ref=f2e1285]:
+                - /url: /product/69a07e33bd36da8fa1da74e8
+                - generic [ref=f2e1286]:
+                  - generic [ref=f2e1287]: 53% OFF
+                  - generic [ref=f2e1288]: Hot Deal
+            - generic [ref=f2e1291]:
+              - link [ref=f2e1292]:
+                - /url: /product/69a07e33bd36da8fa1da74e8
+                - heading "Guess Fame" [level=3] [ref=f2e1293]
+              - paragraph [ref=f2e1294]: Piece
+              - generic [ref=f2e1295]:
+                - generic [ref=f2e1296]:
+                  - generic [ref=f2e1297]: "3.5"
+                  - generic [ref=f2e1301]: (2)
+                - generic [ref=f2e1302]: Ending Soon
+              - generic [ref=f2e1303]: Fast Bulk Cargo
+              - generic [ref=f2e1306]:
+                - generic [ref=f2e1307]: Available
+                - generic [ref=f2e1308]: 75% Sold
+              - generic [ref=f2e1312]:
+                - generic [ref=f2e1313]:
+                  - generic [ref=f2e1314]: "Bulk Price:"
+                  - generic [ref=f2e1315]: ₹744
+                  - generic [ref=f2e1316]: /Piece
+                - generic [ref=f2e1317]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f2e1321]
+          - generic [ref=f2e1326] [cursor=pointer]:
+            - generic [ref=f2e1327]:
+              - button [ref=f2e1329]
+              - link "60% OFF Hot Deal" [ref=f2e1332]:
+                - /url: /product/69a09aed35b34238ea32ee8f
+                - generic [ref=f2e1333]:
+                  - generic [ref=f2e1334]: 60% OFF
+                  - generic [ref=f2e1335]: Hot Deal
+            - generic [ref=f2e1338]:
+              - link [ref=f2e1339]:
+                - /url: /product/69a09aed35b34238ea32ee8f
+                - heading "Harmony Tote Bag" [level=3] [ref=f2e1340]
+              - paragraph [ref=f2e1341]: Piece
+              - generic [ref=f2e1342]: Ending Soon
+              - generic [ref=f2e1344]: Fast Bulk Cargo
+              - generic [ref=f2e1347]:
+                - generic [ref=f2e1348]: Available
+                - generic [ref=f2e1349]: 75% Sold
+              - generic [ref=f2e1353]:
+                - generic [ref=f2e1354]:
+                  - generic [ref=f2e1355]: "Bulk Price:"
+                  - generic [ref=f2e1356]: ₹479.2
+                  - generic [ref=f2e1357]: /Piece
+                - generic [ref=f2e1358]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f2e1362]
+      - generic [ref=f2e1366]:
+        - generic [ref=f2e1367]:
+          - heading "Trending Now" [level=2] [ref=f2e1368]
+          - link "See All" [ref=f2e1369] [cursor=pointer]:
+            - /url: /search
+        - generic [ref=f2e1370]:
+          - generic [ref=f2e1372] [cursor=pointer]:
+            - generic [ref=f2e1373]:
+              - button [ref=f2e1375]
+              - link "82% OFF" [ref=f2e1378]:
+                - /url: /product/69a43fd6654972da0441e190
+            - generic [ref=f2e1382]:
+              - link [ref=f2e1383]:
+                - /url: /product/69a43fd6654972da0441e190
+                - heading "PRADA SLIPPERS" [level=3] [ref=f2e1384]
+              - paragraph [ref=f2e1385]: Piece
+              - generic [ref=f2e1387]:
+                - generic [ref=f2e1388]: "5"
+                - generic [ref=f2e1392]: (2)
+              - generic [ref=f2e1393]: Fast Bulk Cargo
+              - generic [ref=f2e1396]:
+                - generic [ref=f2e1397]:
+                  - generic [ref=f2e1398]: "Bulk Price:"
+                  - generic [ref=f2e1399]: ₹2,839.2
+                  - generic [ref=f2e1400]: /Piece
+                - generic [ref=f2e1401]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f2e1405]
+          - generic [ref=f2e1410] [cursor=pointer]:
+            - generic [ref=f2e1411]:
+              - button [ref=f2e1413]
+              - link "42% OFF" [ref=f2e1416]:
+                - /url: /product/69a09a3c35b34238ea32ee6f
+            - generic [ref=f2e1420]:
+              - link [ref=f2e1421]:
+                - /url: /product/69a09a3c35b34238ea32ee6f
+                - heading "Digital Print Bedsheet" [level=3] [ref=f2e1422]
+              - paragraph [ref=f2e1423]: Piece
+              - generic [ref=f2e1425]:
+                - generic [ref=f2e1426]: "5"
+                - generic [ref=f2e1430]: (2)
+              - generic [ref=f2e1431]: Fast Bulk Cargo
+              - generic [ref=f2e1434]:
+                - generic [ref=f2e1435]:
+                  - generic [ref=f2e1436]: "Bulk Price:"
+                  - generic [ref=f2e1437]: ₹920
+                  - generic [ref=f2e1438]: /Piece
+                - generic [ref=f2e1439]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f2e1443]
+          - generic [ref=f2e1448] [cursor=pointer]:
+            - generic [ref=f2e1449]:
+              - button [ref=f2e1451]
+              - link "30% OFF" [ref=f2e1454]:
+                - /url: /product/69a0993635b34238ea32ee31
+            - generic [ref=f2e1458]:
+              - link [ref=f2e1459]:
+                - /url: /product/69a0993635b34238ea32ee31
+                - heading "Bedsheet" [level=3] [ref=f2e1460]
+              - paragraph [ref=f2e1461]: Piece
+              - generic [ref=f2e1463]:
+                - generic [ref=f2e1464]: "5"
+                - generic [ref=f2e1468]: (2)
+              - generic [ref=f2e1469]: Fast Bulk Cargo
+              - generic [ref=f2e1472]:
+                - generic [ref=f2e1473]:
+                  - generic [ref=f2e1474]: "Bulk Price:"
+                  - generic [ref=f2e1475]: ₹559.2
+                  - generic [ref=f2e1476]: /Piece
+                - generic [ref=f2e1477]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f2e1481]
+          - generic [ref=f2e1486] [cursor=pointer]:
+            - generic [ref=f2e1487]:
+              - button [ref=f2e1489]
+              - link "31% OFF" [ref=f2e1492]:
+                - /url: /product/69a08d06bd36da8fa1da7765
+            - generic [ref=f2e1496]:
+              - link [ref=f2e1497]:
+                - /url: /product/69a08d06bd36da8fa1da7765
+                - heading "Blouse • Lehenga • Shrug" [level=3] [ref=f2e1498]
+              - paragraph [ref=f2e1499]: Piece
+              - generic [ref=f2e1501]:
+                - generic [ref=f2e1502]: "5"
+                - generic [ref=f2e1506]: (2)
+              - generic [ref=f2e1507]: Fast Bulk Cargo
+              - generic [ref=f2e1510]:
+                - generic [ref=f2e1511]:
+                  - generic [ref=f2e1512]: "Bulk Price:"
+                  - generic [ref=f2e1513]: ₹1,080
+                  - generic [ref=f2e1514]: /Piece
+                - generic [ref=f2e1515]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f2e1519]
+          - generic [ref=f2e1524] [cursor=pointer]:
+            - generic [ref=f2e1525]:
+              - button [ref=f2e1527]
+              - link "59% OFF" [ref=f2e1530]:
+                - /url: /product/699eb63478fb94f88662f64e
+            - generic [ref=f2e1534]:
+              - link [ref=f2e1535]:
+                - /url: /product/699eb63478fb94f88662f64e
+                - heading "Louis Vuitton Alma Trunk" [level=3] [ref=f2e1536]
+              - paragraph [ref=f2e1537]: Piece
+              - generic [ref=f2e1539]:
+                - generic [ref=f2e1540]: "5"
+                - generic [ref=f2e1544]: (2)
+              - generic [ref=f2e1545]: Fast Bulk Cargo
+              - generic [ref=f2e1548]:
+                - generic [ref=f2e1549]:
+                  - generic [ref=f2e1550]: "Bulk Price:"
+                  - generic [ref=f2e1551]: ₹4,959.2
+                  - generic [ref=f2e1552]: /Piece
+                - generic [ref=f2e1553]: "MOQ: 5 Pieces"
+              - button "Order Bulk" [ref=f2e1557]
+  - contentinfo [ref=f2e1561]:
+    - generic [ref=f2e1563]:
+      - generic [ref=f2e1564]:
+        - link "PLE Logo TM" [ref=f2e1565] [cursor=pointer]:
+          - /url: /home
+          - generic [ref=f2e1566]:
+            - img "PLE Logo" [ref=f2e1567]
+            - generic [ref=f2e1568]: TM
+        - paragraph [ref=f2e1569]: Your destination for electronics across consumer, business, and specialized sourcing needs — from everyday tech and accessories to enterprise procurement solutions.
+        - generic [ref=f2e1570]:
+          - link [ref=f2e1571] [cursor=pointer]:
+            - /url: https://www.facebook.com/share/1EaNrat2yr/
+          - link [ref=f2e1574] [cursor=pointer]:
+            - /url: https://www.instagram.com/peoplesleagueofelectronics?igsh=MWdtbTNzajdqMGV4cQ==
+          - link [ref=f2e1578] [cursor=pointer]:
+            - /url: https://x.com/PeoplesE9405
+          - link [ref=f2e1581] [cursor=pointer]:
+            - /url: https://www.linkedin.com/company/ple-electronics
+      - generic [ref=f2e1586]:
+        - heading "Quick Links" [level=3] [ref=f2e1587]
+        - list [ref=f2e1588]:
+          - listitem [ref=f2e1589]:
+            - link "Home" [ref=f2e1590] [cursor=pointer]:
+              - /url: /home
+          - listitem [ref=f2e1591]:
+            - link "Categories" [ref=f2e1592] [cursor=pointer]:
+              - /url: /categories
+          - listitem [ref=f2e1593]:
+            - link "Offers" [ref=f2e1594] [cursor=pointer]:
+              - /url: /offers
+          - listitem [ref=f2e1595]:
+            - link "Refurbished" [ref=f2e1596] [cursor=pointer]:
+              - /url: /refurbished-categories
+          - listitem [ref=f2e1597]:
+            - link "My Profile" [ref=f2e1598] [cursor=pointer]:
+              - /url: /profile
+          - listitem [ref=f2e1599]:
+            - link "About Us" [ref=f2e1600] [cursor=pointer]:
+              - /url: /about-us
+      - generic [ref=f2e1601]:
+        - heading "Customer Support" [level=3] [ref=f2e1602]
+        - list [ref=f2e1603]:
+          - listitem [ref=f2e1604]:
+            - link "Help & Support" [ref=f2e1605] [cursor=pointer]:
+              - /url: /help-support
+          - listitem [ref=f2e1606]:
+            - link "Privacy Policy" [ref=f2e1607] [cursor=pointer]:
+              - /url: /privacy-policy
+          - listitem [ref=f2e1608]:
+            - link "Terms & Conditions" [ref=f2e1609] [cursor=pointer]:
+              - /url: /terms-conditions
+          - listitem [ref=f2e1610]:
+            - link "Return Policy" [ref=f2e1611] [cursor=pointer]:
+              - /url: /return-policy
+          - listitem [ref=f2e1612]:
+            - link "Warranty Policy" [ref=f2e1613] [cursor=pointer]:
+              - /url: /warranty-policy
+          - listitem [ref=f2e1614]:
+            - link "Business Onboarding Policy" [ref=f2e1615] [cursor=pointer]:
+              - /url: /business-onboarding-policy
+          - listitem [ref=f2e1616]:
+            - link "Execution & Acceptance Policy" [ref=f2e1617] [cursor=pointer]:
+              - /url: /execution-acceptance-policy
+          - listitem [ref=f2e1618]:
+            - link "Shipping and Delivery Policy" [ref=f2e1619] [cursor=pointer]:
+              - /url: /shipping-and-delivery-policy
+          - listitem [ref=f2e1620]:
+            - link "User Agreement" [ref=f2e1621] [cursor=pointer]:
+              - /url: /user-agreement
+      - generic [ref=f2e1622]:
+        - generic [ref=f2e1623]:
+          - heading "Subscribe to Newsletter" [level=3] [ref=f2e1624]
+          - paragraph [ref=f2e1625]: Be the first to hear about special offers, new arrivals, and events.
+          - generic [ref=f2e1626]:
+            - textbox "Enter email address" [ref=f2e1627]
+            - button [ref=f2e1628] [cursor=pointer]
+        - generic [ref=f2e1632]:
+          - generic [ref=f2e1633]: support@plebusiness.com
+          - generic [ref=f2e1638]: +91 9071149100
+          - generic [ref=f2e1642]: SHOP NO.25, R S NO.1045/3, 2ND CROSS, UJWAL NAGAR, Belgaum Fort, Karnataka, India,590016
+    - generic [ref=f2e1648]:
+      - generic [ref=f2e1649]: © 2026 PLE Inc. All rights reserved.
+      - generic [ref=f2e1650]:
+        - link "Privacy" [ref=f2e1651] [cursor=pointer]:
+          - /url: /privacy-policy
+        - link "Terms" [ref=f2e1652] [cursor=pointer]:
+          - /url: /terms-conditions
+        - link "Sitemap" [ref=f2e1653] [cursor=pointer]:
+          - /url: /help-support

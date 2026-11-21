@@ -6,6 +6,10 @@ const supportTicketSchema = new mongoose.Schema(
         ticketNumber: { type: String, unique: true, sparse: true, index: true },
         userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
         vendorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vendor', index: true },
+        deliveryBoyId: { type: mongoose.Schema.Types.ObjectId, ref: 'DeliveryBoy', index: true },
+        requesterType: { type: String, enum: ['user', 'vendor', 'delivery', 'guest'], default: 'user', index: true },
+        // Contact form submitted by someone who is not signed in
+        guestContact: { name: String, email: String, phone: String },
         ticketTypeId: { type: mongoose.Schema.Types.ObjectId, ref: 'TicketType' },
         category: { type: String, default: 'General' },
         subject: { type: String, required: true },
@@ -21,7 +25,7 @@ const supportTicketSchema = new mongoose.Schema(
         messages: [
             {
                 senderId: { type: mongoose.Schema.Types.ObjectId },
-                senderType: { type: String, enum: ['user', 'vendor', 'admin'], default: 'user' },
+                senderType: { type: String, enum: ['user', 'vendor', 'delivery', 'admin'], default: 'user' },
                 message: {
                     type: String,
                     default: '',

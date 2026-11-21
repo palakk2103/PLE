@@ -767,7 +767,7 @@ const MobileHome = () => {
                   {((subcategories.length > 0 ? subcategories : fallbackSubcategories[activeCategoryKey]) || []).map((sub) => (
                     <Link
                       key={sub.id}
-                      to={sub.id && String(sub.id).includes("-") ? `/search?query=${sub.name}` : `/category/${sub.id}`}
+                      to={sub.id && String(sub.id).includes("-") ? `/search?q=${encodeURIComponent(sub.name)}` : `/category/${sub.id}`}
                       className="flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
                     >
                       <div className="w-14 h-14 rounded-full overflow-hidden border border-gray-100 bg-gray-50">

@@ -9,16 +9,31 @@ const PREFIX = 'enc:v1:';
  * Uses process.env.CHAT_ENCRYPTION_KEY if configured,
  * otherwise derives a deterministic key from process.env.JWT_SECRET.
  */
-function getEncryptionKey() {
-    const rawSecret =
-        process.env.CHAT_ENCRYPTION_KEY ||
-        process.env.JWT_SECRET ||
-        'ple_chat_default_secure_secret_key_2026';
+const DEFAULT_SECRET = 'ple_chat_default_secure_secret_key_2026';
+const deriveKey = (raw) => crypto.createHash('sha256').update(raw + '_ple_chat_secure_salt_v1').digest();
+let warnedAboutKey = false;
 
-    return crypto
-        .createHash('sha256')
-        .update(rawSecret + '_ple_chat_secure_salt_v1')
-        .digest();
+/**
+ * Keys in order of preference. New messages are ALWAYS encrypted with the first key; decryption tries
+ * every key, so setting a dedicated CHAT_ENCRYPTION_KEY later never makes old messages unreadable
+ * (they were encrypted with a key derived from JWT_SECRET or the built-in default).
+ */
+function getEncryptionKeys() {
+    if (!process.env.CHAT_ENCRYPTION_KEY && !warnedAboutKey && process.env.NODE_ENV === 'production') {
+        warnedAboutKey = true;
+        console.error('[ChatEncryption] CHAT_ENCRYPTION_KEY is not set: chats are encrypted with a key derived from JWT_SECRET. Set a dedicated random key.');
+    }
+    const secrets = [process.env.CHAT_ENCRYPTION_KEY, process.env.JWT_SECRET, DEFAULT_SECRET].filter(Boolean);
+    const keys = [];
+    for (const secret of secrets) {
+        const key = deriveKey(secret);
+        if (!keys.some((k) => k.equals(key))) keys.push(key);
+    }
+    return keys;
+}
+
+function getEncryptionKey() {
+    return getEncryptionKeys()[0];
 }
 
 /**
@@ -80,17 +95,22 @@ export function decryptMessage(cipherText) {
         }
 
         const [ivHex, authTagHex, encryptedData] = parts;
-        const key = getEncryptionKey();
         const iv = Buffer.from(ivHex, 'hex');
         const authTag = Buffer.from(authTagHex, 'hex');
 
-        const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
-        decipher.setAuthTag(authTag);
-
-        let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
-        decrypted += decipher.final('utf8');
-
-        return decrypted;
+        let lastErr = null;
+        for (const key of getEncryptionKeys()) {
+            try {
+                const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
+                decipher.setAuthTag(authTag);
+                let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
+                decrypted += decipher.final('utf8');
+                return decrypted;
+            } catch (err) {
+                lastErr = err; // wrong key (or tampered data): try the next key
+            }
+        }
+        throw lastErr || new Error('No key could decrypt this message');
     } catch (err) {
         console.warn('[ChatEncryption] Decryption failed or tampered data:', err.message);
         // Fallback safely so the app never crashes

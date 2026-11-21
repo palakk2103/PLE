@@ -1,0 +1,115 @@
+- main [ref=f11e5]:
+  - generic [ref=f11e6]:
+    - generic [ref=f11e8]:
+      - generic [ref=f11e9]:
+        - button [ref=f11e10] [cursor=pointer]
+        - heading "Checkout" [level=1] [ref=f11e13]
+      - generic [ref=f11e16]:
+        - generic [ref=f11e17]: Step 1
+        - generic [ref=f11e23]:
+          - generic [ref=f11e24]: "2"
+          - generic [ref=f11e25]: Step 2
+    - generic [ref=f11e27]:
+      - generic [ref=f11e127]:
+        - heading "Payment Method" [level=2] [ref=f11e128]
+        - generic [ref=f11e131]:
+          - generic [ref=f11e132]:
+            - generic [ref=f11e133]: Use Business Wallet Balance
+            - generic [ref=f11e134]: ₹1,186.00
+          - generic [ref=f11e135] [cursor=pointer]:
+            - checkbox "Pay ₹1,175.28 from wallet" [ref=f11e136]
+            - generic [ref=f11e137]: Pay ₹1,175.28 from wallet
+        - generic [ref=f11e138]:
+          - generic [ref=f11e139] [cursor=pointer]:
+            - radio "⚡ Online Payment (Razorpay) Instant & Secure Pay securely via Credit/Debit Cards, UPI, NetBanking & Wallets" [ref=f11e140]
+            - generic [ref=f11e141]:
+              - generic [ref=f11e142]:
+                - generic [ref=f11e143]: ⚡ Online Payment (Razorpay)
+                - generic [ref=f11e145]: Instant & Secure
+              - paragraph [ref=f11e146]: Pay securely via Credit/Debit Cards, UPI, NetBanking & Wallets
+          - generic [ref=f11e147] [cursor=pointer]:
+            - radio "💵 Cash on Delivery (COD) Pay at Doorstep Pay in cash upon physical order delivery" [checked] [active] [ref=f11e148]
+            - generic [ref=f11e149]:
+              - generic [ref=f11e150]:
+                - generic [ref=f11e151]: 💵 Cash on Delivery (COD)
+                - generic [ref=f11e153]: Pay at Doorstep
+              - paragraph [ref=f11e154]: Pay in cash upon physical order delivery
+        - generic [ref=f11e155]:
+          - heading "Shipping & Logistics Options" [level=3] [ref=f11e156]
+          - generic [ref=f11e158]:
+            - radio [checked] [ref=f11e159]
+            - generic [ref=f11e160]:
+              - generic [ref=f11e161]:
+                - generic [ref=f11e162]: 📦 B2B Bulk Pallet Dispatch
+                - generic [ref=f11e163]: Enterprise SLA
+              - paragraph [ref=f11e164]: "Estimated Handover: 3–5 Business Days"
+              - paragraph [ref=f11e165]: High-volume pallet security dispatch with priority freight logistics. Delivery is fully vetted and audited for business invoice clearance.
+            - generic [ref=f11e166]: ₹1,500
+          - generic [ref=f11e167]: "Logistics Fee: FREE"
+        - generic [ref=f11e172]:
+          - heading "Coupon Code" [level=3] [ref=f11e173]
+          - generic [ref=f11e174]:
+            - textbox "Enter code" [ref=f11e175]
+            - button "Apply" [ref=f11e176] [cursor=pointer]
+        - generic [ref=f11e177]:
+          - heading "Available Savings & Offers" [level=3] [ref=f11e181]
+          - generic [ref=f11e182]:
+            - generic [ref=f11e183]:
+              - paragraph [ref=f11e184]: Potential Savings Available
+              - paragraph [ref=f11e185]: Try applying coupon codes listed below to save extra.
+            - generic [ref=f11e186]: Save Up To 20%
+          - generic [ref=f11e187]:
+            - generic [ref=f11e188]:
+              - generic [ref=f11e189]:
+                - generic [ref=f11e190]: 🏦 SBI Card 10% Discount
+                - generic [ref=f11e191]: SBISAVE10
+              - paragraph [ref=f11e192]: "Min transaction: ₹5,000. Save up to ₹1,500."
+            - generic [ref=f11e193]:
+              - generic [ref=f11e194]:
+                - generic [ref=f11e195]: 🎉 Site-wide Festival Sale
+                - generic [ref=f11e196]: FESTIVAL20
+              - paragraph [ref=f11e197]: Flat 20% off all products across clothing & accessories.
+      - generic [ref=f11e71]:
+        - generic [ref=f11e72]:
+          - generic [ref=f11e73]:
+            - heading "Order Summary" [level=3] [ref=f11e74]
+            - generic [ref=f11e76]:
+              - generic [ref=f11e77]:
+                - generic [ref=f11e82]: XYZ
+                - generic [ref=f11e83]: ₹996
+              - generic [ref=f11e85]:
+                - img "USB Wired Optical Mouse" [ref=f11e86]
+                - generic [ref=f11e87]:
+                  - paragraph [ref=f11e88]: USB Wired Optical Mouse
+                  - paragraph [ref=f11e89]: ₹199.2 x 5
+                  - generic [ref=f11e90]: 18% GST (+₹179.28)
+            - generic [ref=f11e91]:
+              - generic [ref=f11e92]:
+                - generic [ref=f11e93]: Subtotal
+                - generic [ref=f11e94]: ₹996
+              - generic [ref=f11e96]:
+                - generic [ref=f11e97]:
+                  - generic [ref=f11e98]: Delivery Fee
+                  - generic [ref=f11e99]: COD
+                - generic [ref=f11e100]: FREE
+              - generic [ref=f11e101]:
+                - generic [ref=f11e102]:
+                  - generic [ref=f11e103]: Estimated GST & Taxes
+                  - generic [ref=f11e104]: ₹179.28
+                - generic [ref=f11e105]:
+                  - generic [ref=f11e106]:
+                    - generic [ref=f11e107]: Configured GST Slabs
+                    - generic [ref=f11e108]: CGST + SGST
+                  - generic [ref=f11e109]:
+                    - generic [ref=f11e110]: GST @ 18% (5 items, ₹996)
+                    - generic [ref=f11e111]: ₹179.28
+              - generic [ref=f11e112]:
+                - generic [ref=f11e113]: Total
+                - generic [ref=f11e114]: ₹1,175.28
+            - generic [ref=f11e115]:
+              - generic [ref=f11e116]: "🎯 You will earn:"
+              - generic [ref=f11e117]: 49 Points
+          - generic [ref=f11e118]:
+            - button "Place Order" [ref=f11e198] [cursor=pointer]
+            - button "Back to Shipping" [ref=f11e199] [cursor=pointer]
+        - generic [ref=f11e120]: Secure Checkout

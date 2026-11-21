@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   FiMessageSquare,
@@ -14,13 +14,16 @@ import DataTable from "../../Admin/components/DataTable";
 import Badge from "../../../shared/components/Badge";
 import AnimatedSelect from "../../Admin/components/AnimatedSelect";
 import { useVendorAuthStore } from "../store/vendorAuthStore";
+import { useSupportStore } from "../../../shared/store/supportStore";
 import toast from "react-hot-toast";
 
 const SupportTickets = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { vendor } = useVendorAuthStore();
-  const [tickets, setTickets] = useState([]);
+  // Tickets live on the server (the support team sees them); nothing is kept only in this browser
+  const { tickets: storeTickets, fetchTickets, createTicket } = useSupportStore();
+  const tickets = useMemo(() => storeTickets.map((t) => ({ ...t, type: t.category })), [storeTickets]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [showForm, setShowForm] = useState(false);
@@ -30,11 +33,8 @@ const SupportTickets = () => {
   useEffect(() => {
     if (!vendorId) return;
 
-    const savedTickets = localStorage.getItem(`vendor-${vendorId}-tickets`);
-    if (savedTickets) {
-      setTickets(JSON.parse(savedTickets));
-    }
-  }, [vendorId]);
+    fetchTickets();
+  }, [vendorId, fetchTickets]);
 
   const filteredTickets = tickets.filter((ticket) => {
     const matchesSearch =
@@ -46,21 +46,14 @@ const SupportTickets = () => {
     return matchesSearch && matchesStatus;
   });
 
-  const handleSave = (ticketData) => {
-    const updated = [
-      ...tickets,
-      {
-        ...ticketData,
-        id: `TKT-${Date.now()}`,
-        vendorId,
-        createdAt: new Date().toISOString(),
-        status: "open",
-      },
-    ];
-    setTickets(updated);
-    localStorage.setItem(`vendor-${vendorId}-tickets`, JSON.stringify(updated));
-    setShowForm(false);
-    toast.success("Ticket created successfully");
+  const handleSave = async (ticketData) => {
+    const created = await createTicket({
+      subject: ticketData.subject,
+      description: ticketData.description,
+      category: ticketData.type,
+      priority: ticketData.priority,
+    });
+    if (created) setShowForm(false);
   };
 
   const getStatusVariant = (status) => {

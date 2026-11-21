@@ -8,6 +8,8 @@ import Vendor from '../../../models/Vendor.model.js';
 import { decryptMessage } from '../../../utils/chatEncryption.util.js';
 
 
+const VALID_ACTIONS = ['WARN', 'MUTE', 'DISMISS', 'RESOLVE'];
+
 /**
  * GET /api/admin/chat-moderation/violations
  * Returns paginated list of chat violations for admin review.
@@ -56,7 +58,10 @@ export const getChatViolations = asyncHandler(async (req, res) => {
  */
 export const takeViolationAction = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { action, muteDurationHours, notes } = req.body;
+    const action = String(req.body.action || req.body.actionType || '').toUpperCase();
+    const muteDurationHours = req.body.muteDurationHours ?? req.body.durationHours;
+    const notes = req.body.notes ?? req.body.resolutionNotes;
+    if (!VALID_ACTIONS.includes(action)) throw new ApiError(400, `Action must be one of: ${VALID_ACTIONS.join(', ')}.`);
 
     const violation = await ChatViolation.findById(id);
     if (!violation) throw new ApiError(404, 'Violation record not found.');
@@ -139,7 +144,12 @@ export const getChatReports = asyncHandler(async (req, res) => {
  */
 export const takeReportAction = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { action, muteDurationHours, notes } = req.body;
+    // The dashboard sends { status: 'ACTION_TAKEN' | 'DISMISSED', resolutionNotes }; API clients may send { action }.
+    const statusToAction = { ACTION_TAKEN: 'WARN', DISMISSED: 'DISMISS', RESOLVED: 'RESOLVE' };
+    const action = String(req.body.action || statusToAction[String(req.body.status || '').toUpperCase()] || '').toUpperCase();
+    const muteDurationHours = req.body.muteDurationHours ?? req.body.durationHours;
+    const notes = req.body.notes ?? req.body.resolutionNotes;
+    if (!VALID_ACTIONS.includes(action)) throw new ApiError(400, `Action must be one of: ${VALID_ACTIONS.join(', ')}.`);
 
     const report = await ChatReport.findById(id);
     if (!report) throw new ApiError(404, 'Report not found.');

@@ -37,6 +37,7 @@ import MobileCategoryGrid from "../Mobile/MobileCategoryGrid";
 import OfferCarousel from "../../../offers/components/OfferCarousel";
 import { useCategoryStore } from "../../../../shared/store/categoryStore";
 import { categories as fallbackCategories } from "../../../../data/categories";
+import SearchBar from "../../../../shared/components/SearchBar";
 import { useThemeStore } from "../../../../shared/store/themeStore";
 import { useAuthStore } from "../../../../shared/store/authStore";
 import { useB2BAdminStore } from "../../../B2BAdmin/store/b2bAdminStore";
@@ -193,6 +194,22 @@ const B2BHome = ({
     setIsRfqOpen(true);
   };
 
+  // The sidebar/explore labels are marketing names, so link to a real category when one
+  // matches and otherwise search by the label's first keyword (e.g. "Networking").
+  const goToCategory = (name) => {
+    const label = String(name || "").toLowerCase();
+    const match = displayCategories.find((c) => {
+      const catName = String(c.name || "").toLowerCase();
+      return catName && (catName.includes(label) || label.includes(catName));
+    });
+    if (match?.id) {
+      navigate(`/search?category=${encodeURIComponent(match.id)}`);
+      return;
+    }
+    const keyword = String(name || "").split(/[\s&,]+/).filter(Boolean)[0] || name;
+    navigate(`/search?q=${encodeURIComponent(keyword)}`);
+  };
+
   // Sidebar category items
   const sidebarCategories = [
     { name: "Computers & Peripherals", icon: <FiMonitor /> },
@@ -313,19 +330,7 @@ const B2BHome = ({
             </div>
 
             {/* Fourth Row: Single Integrated Search Bar with Left Logo & Right Search Icon */}
-            <div className="relative flex items-center w-full bg-white rounded-full border border-white/20 pl-3 pr-8 py-1.5 shadow-sm">
-              <div className="flex items-center gap-1.5 pr-2 border-r border-gray-200">
-                <div className="w-4.5 h-4.5 rounded-full bg-[#AE020B] flex items-center justify-center text-white text-[8px] font-black">
-                  PLE
-                </div>
-              </div>
-              <input 
-                type="text" 
-                placeholder="Search for products, brands, categories..." 
-                className="flex-grow pl-2 bg-transparent text-xs text-gray-900 focus:outline-none placeholder-gray-400"
-              />
-              <FiSearch className="absolute right-3 text-gray-400 text-sm" />
-            </div>
+            <SearchBar variant="dark" />
           </div>
 
           {/* Fifth Row: Category Quick Nav Bar Wrapper */}
@@ -613,7 +618,7 @@ const B2BHome = ({
                   {sidebarCategories.map((cat) => (
                     <button
                       key={cat.name}
-                      onClick={() => navigate(`/search?query=${cat.name}`)}
+                      onClick={() => goToCategory(cat.name)}
                       className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all group text-sm font-medium ${
                         isDark 
                           ? "text-zinc-400 hover:text-white hover:bg-zinc-900" 
@@ -871,7 +876,7 @@ const B2BHome = ({
                       if (match?.id) {
                         navigate(`/category/${match.id}`);
                       } else {
-                        navigate(`/search?query=${cat.name}`);
+                        goToCategory(cat.name);
                       }
                     }}
                     className={`rounded-2xl p-3 text-center cursor-pointer hover:scale-102 transition-all flex flex-col items-center justify-between group border ${

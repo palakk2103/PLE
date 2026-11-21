@@ -1,0 +1,326 @@
+- generic [ref=f22e3]:
+  - complementary [ref=f22e5]:
+    - heading "B2B Admin" [level=2] [ref=f22e13]
+    - button "Back to B2B Store" [ref=f22e15] [cursor=pointer]
+    - navigation [ref=f22e25]:
+      - link "Dashboard" [ref=f22e26] [cursor=pointer]:
+        - /url: /b2b-dashboard/overview
+      - link "Employees" [ref=f22e31] [cursor=pointer]:
+        - /url: /b2b-dashboard/employees
+      - link "Employee Purchases" [ref=f22e38] [cursor=pointer]:
+        - /url: /b2b-dashboard/employee-purchases
+      - link "RFQs" [ref=f22e43] [cursor=pointer]:
+        - /url: /b2b-dashboard/rfqs
+      - link "Quotations" [ref=f22e48] [cursor=pointer]:
+        - /url: /b2b-dashboard/quotations
+      - link "Product Requests" [ref=f22e53] [cursor=pointer]:
+        - /url: /b2b-dashboard/product-requests
+      - link "RFQ Discussions" [ref=f22e58] [cursor=pointer]:
+        - /url: /b2b-dashboard/discussions
+      - link "Shop Chats" [ref=f22e62] [cursor=pointer]:
+        - /url: /b2b-dashboard/shop-chats
+      - link "Purchase Orders" [ref=f22e66] [cursor=pointer]:
+        - /url: /b2b-dashboard/purchase-orders
+      - link "Business Wallet" [ref=f22e70] [cursor=pointer]:
+        - /url: /wallet
+      - link "Company Profile" [ref=f22e74] [cursor=pointer]:
+        - /url: /b2b-dashboard/company-profile
+      - link "Legal Documents" [ref=f22e79] [cursor=pointer]:
+        - /url: /b2b-dashboard/legal-documents
+      - link "Admin Profile" [ref=f22e84] [cursor=pointer]:
+        - /url: /b2b-dashboard/admin-profile
+      - link "Support Desk" [ref=f22e89] [cursor=pointer]:
+        - /url: /b2b-dashboard/support
+      - link "Notifications" [ref=f22e94] [cursor=pointer]:
+        - /url: /b2b-dashboard/notifications
+      - link "Settings" [ref=f22e99] [cursor=pointer]:
+        - /url: /b2b-dashboard/settings
+    - button "Logout" [ref=f22e105] [cursor=pointer]
+  - generic [ref=f22e109]:
+    - banner [ref=f22e111]:
+      - textbox "Search..." [ref=f22e117]
+      - generic [ref=f22e118]:
+        - button "Back to B2B Store" [ref=f22e119] [cursor=pointer]
+        - button "Toggle theme" [ref=f22e123] [cursor=pointer]
+        - button [ref=f22e126] [cursor=pointer]
+        - generic [ref=f22e130] [cursor=pointer]:
+          - generic [ref=f22e131]: Z
+          - generic [ref=f22e132]:
+            - paragraph [ref=f22e133]: ZZ Test Co 1794654844
+            - paragraph [ref=f22e134]: B2B Admin
+    - main [ref=f22e135]:
+      - generic [ref=f22e136]:
+        - button "Back" [ref=f22e137] [cursor=pointer]
+        - generic [ref=f22e140]:
+          - generic [ref=f22e141]:
+            - generic [ref=f22e142]: SE
+            - generic [ref=f22e143]:
+              - generic [ref=f22e144]:
+                - heading "Seed Employee 01" [level=1] [ref=f22e145]
+                - generic [ref=f22e146]: Active
+              - generic [ref=f22e147]:
+                - generic [ref=f22e148]: zzseed-1@example.test
+                - generic [ref=f22e153]: Staff · Sales
+              - paragraph [ref=f22e157]: "Member since 08 Aug 2026 · Role: Staff"
+          - generic [ref=f22e158]:
+            - paragraph [ref=f22e159]: Wallet balance
+            - paragraph [ref=f22e160]: ₹83
+            - paragraph [ref=f22e161]: "Spending limit: Unlimited"
+        - generic [ref=f22e162]:
+          - generic [ref=f22e163]:
+            - paragraph [ref=f22e165]: Net spend
+            - paragraph [ref=f22e169]: ₹39,671.6
+            - paragraph [ref=f22e170]: ₹41,731.88 gross · 76 items
+          - generic [ref=f22e171]:
+            - paragraph [ref=f22e173]: Orders
+            - paragraph [ref=f22e177]: "28"
+            - paragraph [ref=f22e178]: 17 delivered · 7 cancelled
+          - generic [ref=f22e179]:
+            - paragraph [ref=f22e181]: Returns
+            - paragraph [ref=f22e185]: "4"
+            - paragraph [ref=f22e186]: ₹2,060.28 refunded · 1 pending
+          - generic [ref=f22e187]:
+            - paragraph [ref=f22e189]: Wallet usage
+            - paragraph [ref=f22e192]: ₹13,666.92
+            - paragraph [ref=f22e193]: ₹0 allotted · ₹2,060.28 refunded back
+        - generic [ref=f22e194]:
+          - tablist [ref=f22e195]:
+            - tab "Orders" [selected] [ref=f22e196] [cursor=pointer]
+            - tab "Returns & Refunds" [ref=f22e200] [cursor=pointer]
+            - tab "Wallet History" [ref=f22e204] [cursor=pointer]
+          - generic [ref=f22e207]:
+            - textbox "Order ID…" [ref=f22e208]
+            - combobox "Order status" [ref=f22e209]:
+              - option "All statuses" [selected]
+              - option "Pending"
+              - option "Processing"
+              - option "Shipped"
+              - option "Out For Delivery"
+              - option "Delivered"
+              - option "Cancelled"
+              - option "Returned"
+            - combobox "Payment method" [ref=f22e210]:
+              - option "All payment methods" [selected]
+              - option "Wallet"
+              - option "Card"
+              - option "UPI"
+              - option "Bank"
+              - option "COD"
+              - option "Mixed"
+            - generic [ref=f22e211]:
+              - text: From
+              - textbox "From" [ref=f22e212]
+            - generic [ref=f22e213]:
+              - text: To
+              - textbox "To" [ref=f22e214]
+          - table [ref=f22e216]:
+            - rowgroup [ref=f22e217]:
+              - row [ref=f22e218]:
+                - columnheader "Order" [ref=f22e219]
+                - columnheader "Products" [ref=f22e220]
+                - columnheader "Status" [ref=f22e221]
+                - columnheader "Payment" [ref=f22e222]
+                - columnheader "Total" [ref=f22e223]
+            - rowgroup [ref=f22e224]:
+              - row [ref=f22e225] [cursor=pointer]:
+                - cell [ref=f22e226]:
+                  - paragraph [ref=f22e227]: ZZSEED-0026
+                  - paragraph [ref=f22e228]: 08 Nov 2026, 09:59 am
+                - cell "USB Wired Optical Mouse × 2 @ ₹1,200" [ref=f22e229]:
+                  - paragraph [ref=f22e230]:
+                    - text: USB Wired Optical Mouse
+                    - generic [ref=f22e231]: × 2 @ ₹1,200
+                - cell "Shipped" [ref=f22e232]
+                - cell "Card Paid" [ref=f22e234]:
+                  - paragraph [ref=f22e235]: Card
+                  - generic [ref=f22e236]: Paid
+                - cell "₹2,832" [ref=f22e237]
+              - row [ref=f22e238] [cursor=pointer]:
+                - cell [ref=f22e239]:
+                  - paragraph [ref=f22e240]: ZZSEED-0042
+                  - paragraph [ref=f22e241]: 05 Nov 2026, 01:02 pm
+                - cell "USB Wired Optical Mouse × 1 @ ₹160" [ref=f22e242]:
+                  - paragraph [ref=f22e243]:
+                    - text: USB Wired Optical Mouse
+                    - generic [ref=f22e244]: × 1 @ ₹160
+                - cell "Shipped" [ref=f22e245]
+                - cell "UPI Paid" [ref=f22e247]:
+                  - paragraph [ref=f22e248]: UPI
+                  - generic [ref=f22e249]: Paid
+                - cell "₹188.8" [ref=f22e250]
+              - row [ref=f22e251] [cursor=pointer]:
+                - cell [ref=f22e252]:
+                  - paragraph [ref=f22e253]: ZZSEED-0015
+                  - paragraph [ref=f22e254]: 04 Nov 2026, 05:16 pm
+                - cell "USB Wired Optical Mouse × 3 @ ₹1,200" [ref=f22e255]:
+                  - paragraph [ref=f22e256]:
+                    - text: USB Wired Optical Mouse
+                    - generic [ref=f22e257]: × 3 @ ₹1,200
+                - cell "Delivered" [ref=f22e258]
+                - cell "Card Pending" [ref=f22e260]:
+                  - paragraph [ref=f22e261]: Card
+                  - generic [ref=f22e262]: Pending
+                - cell "₹4,248" [ref=f22e263]
+              - row [ref=f22e264] [cursor=pointer]:
+                - cell [ref=f22e265]:
+                  - paragraph [ref=f22e266]: ZZSEED-0035
+                  - paragraph [ref=f22e267]: 04 Nov 2026, 01:49 pm
+                - cell "USB Wired Optical Mouse × 3 @ ₹499" [ref=f22e268]:
+                  - paragraph [ref=f22e269]:
+                    - text: USB Wired Optical Mouse
+                    - generic [ref=f22e270]: × 3 @ ₹499
+                - cell "Delivered" [ref=f22e271]
+                - cell "Card Pending" [ref=f22e273]:
+                  - paragraph [ref=f22e274]: Card
+                  - generic [ref=f22e275]: Pending
+                - cell "₹1,766.46" [ref=f22e276]
+              - row [ref=f22e277] [cursor=pointer]:
+                - cell [ref=f22e278]:
+                  - paragraph [ref=f22e279]: ZZSEED-0022
+                  - paragraph [ref=f22e280]: 03 Nov 2026, 06:16 am
+                - cell "USB Wired Optical Mouse × 2 @ ₹160" [ref=f22e281]:
+                  - paragraph [ref=f22e282]:
+                    - text: USB Wired Optical Mouse
+                    - generic [ref=f22e283]: × 2 @ ₹160
+                - cell "Delivered" [ref=f22e284]
+                - cell "COD Pending" [ref=f22e286]:
+                  - paragraph [ref=f22e287]: COD
+                  - generic [ref=f22e288]: Pending
+                - cell "₹377.6" [ref=f22e289]
+              - row [ref=f22e290] [cursor=pointer]:
+                - cell [ref=f22e291]:
+                  - paragraph [ref=f22e292]: ZZSEED-0004
+                  - paragraph [ref=f22e293]: 01 Nov 2026, 12:40 am
+                - cell "USB Wired Optical Mouse × 4 @ ₹249" [ref=f22e294]:
+                  - paragraph [ref=f22e295]:
+                    - text: USB Wired Optical Mouse
+                    - generic [ref=f22e296]: × 4 @ ₹249
+                - cell "Pending" [ref=f22e297]
+                - cell "Card Paid" [ref=f22e299]:
+                  - paragraph [ref=f22e300]: Card
+                  - generic [ref=f22e301]: Paid
+                - cell "₹1,175.28" [ref=f22e302]
+              - row [ref=f22e303] [cursor=pointer]:
+                - cell [ref=f22e304]:
+                  - paragraph [ref=f22e305]: ZZSEED-0039
+                  - paragraph [ref=f22e306]: 31 Oct 2026, 12:34 pm
+                - cell "USB Wired Optical Mouse × 3 @ ₹249" [ref=f22e307]:
+                  - paragraph [ref=f22e308]:
+                    - text: USB Wired Optical Mouse
+                    - generic [ref=f22e309]: × 3 @ ₹249
+                - cell "Delivered" [ref=f22e310]
+                - cell "Card Paid" [ref=f22e312]:
+                  - paragraph [ref=f22e313]: Card
+                  - generic [ref=f22e314]: Paid
+                - cell "₹881.46" [ref=f22e315]
+              - row [ref=f22e316] [cursor=pointer]:
+                - cell [ref=f22e317]:
+                  - paragraph [ref=f22e318]: ZZSEED-0031
+                  - paragraph [ref=f22e319]: 31 Oct 2026, 08:01 am
+                - cell "USB Wired Optical Mouse × 3 @ ₹1,200" [ref=f22e320]:
+                  - paragraph [ref=f22e321]:
+                    - text: USB Wired Optical Mouse
+                    - generic [ref=f22e322]: × 3 @ ₹1,200
+                - cell "Delivered" [ref=f22e323]
+                - cell "Mixed Paid ₹1,699 from wallet" [ref=f22e325]:
+                  - paragraph [ref=f22e326]: Mixed
+                  - generic [ref=f22e327]: Paid
+                  - paragraph [ref=f22e328]: ₹1,699 from wallet
+                - cell "₹4,248" [ref=f22e329]
+              - row [ref=f22e330] [cursor=pointer]:
+                - cell [ref=f22e331]:
+                  - paragraph [ref=f22e332]: ZZSEED-0045
+                  - paragraph [ref=f22e333]: 25 Oct 2026, 11:43 am
+                - cell "USB Wired Optical Mouse × 4 @ ₹1,200" [ref=f22e334]:
+                  - paragraph [ref=f22e335]:
+                    - text: USB Wired Optical Mouse
+                    - generic [ref=f22e336]: × 4 @ ₹1,200
+                - cell "Shipped" [ref=f22e337]
+                - cell "Wallet Paid" [ref=f22e339]:
+                  - paragraph [ref=f22e340]: Wallet
+                  - generic [ref=f22e341]: Paid
+                - cell "₹5,664" [ref=f22e342]
+              - row [ref=f22e343] [cursor=pointer]:
+                - cell [ref=f22e344]:
+                  - paragraph [ref=f22e345]: ZZSEED-0013
+                  - paragraph [ref=f22e346]: 24 Oct 2026, 06:29 am
+                - cell "USB Wired Optical Mouse × 5 @ ₹249" [ref=f22e347]:
+                  - paragraph [ref=f22e348]:
+                    - text: USB Wired Optical Mouse
+                    - generic [ref=f22e349]: × 5 @ ₹249
+                - cell "Processing" [ref=f22e350]
+                - cell "Wallet Paid" [ref=f22e352]:
+                  - paragraph [ref=f22e353]: Wallet
+                  - generic [ref=f22e354]: Paid
+                - cell "₹1,469.1" [ref=f22e355]
+              - row [ref=f22e356] [cursor=pointer]:
+                - cell [ref=f22e357]:
+                  - paragraph [ref=f22e358]: ZZSEED-0024
+                  - paragraph [ref=f22e359]: 23 Oct 2026, 09:10 am
+                - cell "USB Wired Optical Mouse × 1 @ ₹249" [ref=f22e360]:
+                  - paragraph [ref=f22e361]:
+                    - text: USB Wired Optical Mouse
+                    - generic [ref=f22e362]: × 1 @ ₹249
+                - cell "Delivered" [ref=f22e363]
+                - cell "COD Pending" [ref=f22e365]:
+                  - paragraph [ref=f22e366]: COD
+                  - generic [ref=f22e367]: Pending
+                - cell "₹293.82" [ref=f22e368]
+              - row [ref=f22e369] [cursor=pointer]:
+                - cell [ref=f22e370]:
+                  - paragraph [ref=f22e371]: ZZSEED-0043
+                  - paragraph [ref=f22e372]: 16 Oct 2026, 09:33 am
+                - cell "USB Wired Optical Mouse × 4 @ ₹249" [ref=f22e373]:
+                  - paragraph [ref=f22e374]:
+                    - text: USB Wired Optical Mouse
+                    - generic [ref=f22e375]: × 4 @ ₹249
+                - cell "Shipped" [ref=f22e376]
+                - cell "Card Failed" [ref=f22e378]:
+                  - paragraph [ref=f22e379]: Card
+                  - generic [ref=f22e380]: Failed
+                - cell "₹1,175.28" [ref=f22e381]
+              - row [ref=f22e382] [cursor=pointer]:
+                - cell [ref=f22e383]:
+                  - paragraph [ref=f22e384]: ZZSEED-0040
+                  - paragraph [ref=f22e385]: 16 Oct 2026, 06:00 am
+                - cell "USB Wired Optical Mouse × 2 @ ₹1,200" [ref=f22e386]:
+                  - paragraph [ref=f22e387]:
+                    - text: USB Wired Optical Mouse
+                    - generic [ref=f22e388]: × 2 @ ₹1,200
+                - cell "Cancelled" [ref=f22e389]
+                - cell "Card Failed" [ref=f22e391]:
+                  - paragraph [ref=f22e392]: Card
+                  - generic [ref=f22e393]: Failed
+                - cell "₹2,832" [ref=f22e394]
+              - row [ref=f22e395] [cursor=pointer]:
+                - cell [ref=f22e396]:
+                  - paragraph [ref=f22e397]: ZZSEED-0041
+                  - paragraph [ref=f22e398]: 14 Oct 2026, 02:03 am
+                - cell "USB Wired Optical Mouse × 1 @ ₹1,200" [ref=f22e399]:
+                  - paragraph [ref=f22e400]:
+                    - text: USB Wired Optical Mouse
+                    - generic [ref=f22e401]: × 1 @ ₹1,200
+                - cell "Cancelled" [ref=f22e402]
+                - cell "COD Pending" [ref=f22e404]:
+                  - paragraph [ref=f22e405]: COD
+                  - generic [ref=f22e406]: Pending
+                - cell "₹1,416" [ref=f22e407]
+              - row [ref=f22e408] [cursor=pointer]:
+                - cell [ref=f22e409]:
+                  - paragraph [ref=f22e410]: ZZSEED-0027
+                  - paragraph [ref=f22e411]: 12 Oct 2026, 02:04 pm
+                - cell "USB Wired Optical Mouse × 3 @ ₹499" [ref=f22e412]:
+                  - paragraph [ref=f22e413]:
+                    - text: USB Wired Optical Mouse
+                    - generic [ref=f22e414]: × 3 @ ₹499
+                - cell "Delivered" [ref=f22e415]
+                - cell "Mixed Paid ₹707 from wallet" [ref=f22e417]:
+                  - paragraph [ref=f22e418]: Mixed
+                  - generic [ref=f22e419]: Paid
+                  - paragraph [ref=f22e420]: ₹707 from wallet
+                - cell "₹1,766.46" [ref=f22e421]
+          - generic [ref=f22e422]:
+            - generic [ref=f22e423]: Page 1 of 3 · 45 records
+            - generic [ref=f22e424]:
+              - button "Prev" [disabled] [ref=f22e425]
+              - button "Next" [ref=f22e426] [cursor=pointer]

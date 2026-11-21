@@ -6,6 +6,8 @@ import RFQ from '../../../models/RFQ.model.js';
 import PurchaseOrder from '../../../models/PurchaseOrder.model.js';
 import Vendor from '../../../models/Vendor.model.js';
 import { createNotification } from '../../../services/notification.service.js';
+import { rfqForViewer } from '../../../utils/rfqVisibility.js';
+import { assertTextLength, sanitizeAttachments } from '../../../utils/chatLimits.js';
 
 // GET /api/admin/rfq
 export const getAdminRFQs = asyncHandler(async (req, res) => {
@@ -17,7 +19,7 @@ export const getAdminRFQs = asyncHandler(async (req, res) => {
         .populate('assignedVendorIds', 'storeName name email phone')
         .sort({ createdAt: -1 });
 
-    res.status(200).json(new ApiResponse(200, rfqs, 'All RFQs fetched successfully.'));
+    res.status(200).json(new ApiResponse(200, rfqs.map((r) => rfqForViewer(r, 'admin')), 'All RFQs fetched successfully.'));
 });
 
 // GET /api/admin/rfq/:id
@@ -31,7 +33,7 @@ export const getAdminRFQDetail = asyncHandler(async (req, res) => {
         throw new ApiError(404, 'RFQ not found.');
     }
 
-    res.status(200).json(new ApiResponse(200, rfq, 'RFQ details fetched successfully.'));
+    res.status(200).json(new ApiResponse(200, rfqForViewer(rfq, 'admin'), 'RFQ details fetched successfully.'));
 });
 
 // GET /api/admin/rfq/stats
@@ -309,13 +311,15 @@ export const sendAdminDiscussionMessage = asyncHandler(async (req, res) => {
     if (!message) {
         throw new ApiError(400, 'Message body is required.');
     }
+    assertTextLength(message);
+    const safeAttachments = sanitizeAttachments(attachments);
 
     rfq.negotiationMessages.push({
         senderId: req.user.id,
         senderType: 'SuperAdmin',
         senderName: 'Super Admin',
         message,
-        attachments: attachments || [],
+        attachments: safeAttachments,
         isInternalNote: !!isInternalNote
     });
 
@@ -340,7 +344,8 @@ export const sendAdminDiscussionMessage = asyncHandler(async (req, res) => {
 
     // Emit socket event for internal discussion
     const io = getIO();
-    io.to(`rfq_${rfq._id}`).emit('new_internal_message', { rfqId: rfq._id, message: newMessage });
+    // An admin-only note must not be broadcast to the buyer's company
+    io.to(isInternalNote ? `rfq_${rfq._id}_admin` : `rfq_${rfq._id}`).emit('new_internal_message', { rfqId: rfq._id, message: newMessage });
 
     res.status(200).json(new ApiResponse(200, newMessage, 'Message sent successfully.'));
 });
@@ -351,6 +356,7 @@ export const sendAdminToVendorMessage = asyncHandler(async (req, res) => {
     if (!message) {
         throw new ApiError(400, 'Message text is required.');
     }
+    assertTextLength(message);
 
     const rfq = await RFQ.findOne({ _id: req.params.id, rfqType: { $ne: 'consumer' } });
     if (!rfq) {
@@ -404,7 +410,9 @@ export const sendAdminToVendorMessage = asyncHandler(async (req, res) => {
 
     // Emit socket event for vendor-admin chat
     const io = getIO();
-    io.to(`rfq_${rfq._id}`).emit('new_admin_message', { rfqId: rfq._id, vendorId: quotation.vendorId, message: savedMessage });
+    // Only the admins and THIS vendor's private line - never other vendors or the B2B buyer.
+    io.to([`rfq_${rfq._id}_admin`, `rfq_${rfq._id}_vendor_${quotation.vendorId}`])
+        .emit('new_admin_message', { rfqId: rfq._id, vendorId: quotation.vendorId, message: savedMessage });
 
     res.status(200).json(new ApiResponse(200, savedMessage, 'Negotiation message sent successfully.'));
 });

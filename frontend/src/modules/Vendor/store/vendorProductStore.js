@@ -115,7 +115,7 @@ export const useVendorProductStore = create((set, get) => ({
             const product = res.data ?? res;
             await get().fetchProducts();
             set({ isSaving: false });
-            toast.success('Product created successfully');
+            toast.success('Product submitted for admin approval. It will go live once approved.');
             return product;
         } catch (error) {
             set({ isSaving: false });
@@ -139,7 +139,11 @@ export const useVendorProductStore = create((set, get) => ({
             const updated = res.data ?? res;
             await get().fetchProducts();
             set({ isSaving: false });
-            toast.success('Product updated successfully');
+            toast.success(
+                updated?.approvalStatus === 'pending'
+                    ? 'Product updated and sent for admin approval.'
+                    : 'Product updated successfully'
+            );
             return updated;
         } catch (error) {
             set({ isSaving: false });

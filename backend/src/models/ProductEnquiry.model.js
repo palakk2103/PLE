@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import crypto from 'crypto';
 
 const timelineSchema = new mongoose.Schema({
     status: { type: String, required: true },
@@ -11,7 +12,8 @@ const productEnquirySchema = new mongoose.Schema({
         type: String,
         unique: true,
         required: true,
-        default: () => `PE-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`
+        // 6 random hex chars = 16 million values per year (the old 4 digits collided after a few hundred enquiries)
+        default: () => `PE-${new Date().getFullYear()}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`
     },
     userId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -55,6 +57,13 @@ const productEnquirySchema = new mongoose.Schema({
         type: String,
         default: null
     },
+    // The full conversation (question, answers, follow-ups). `sellerResponse` keeps the latest seller answer.
+    messages: [{
+        senderType: { type: String, enum: ['customer', 'vendor', 'admin'], required: true },
+        senderId: { type: mongoose.Schema.Types.ObjectId },
+        message: { type: String, required: true, maxlength: 5000 },
+        createdAt: { type: Date, default: Date.now },
+    }],
     timeline: [timelineSchema]
 }, { timestamps: true });
 

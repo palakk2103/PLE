@@ -1,0 +1,35 @@
+- main [ref=e5]:
+  - generic [ref=e8]:
+    - button "Go Back" [ref=e9] [cursor=pointer]
+    - generic [ref=e12]:
+      - heading "Welcome Back" [level=1] [ref=e13]
+      - paragraph [ref=e14]: Login to access your account
+    - paragraph [ref=e16]: "✨ Business mode: unlock wholesale prices, tier discounts, MOQ, GST credit, and credit terms."
+    - generic [ref=e17]:
+      - generic [ref=e18]:
+        - generic [ref=e19]: Email Address
+        - textbox "your.email@example.com" [ref=e24]: MCP Owner
+      - generic [ref=e25]:
+        - generic [ref=e26]: Password
+        - generic [ref=e27]:
+          - textbox "Enter your password" [ref=e31]: secret123
+          - button [ref=e32] [cursor=pointer]
+      - generic [ref=e36]:
+        - generic [ref=e37] [cursor=pointer]:
+          - checkbox "Remember me" [ref=e38]
+          - generic [ref=e39]: Remember me
+        - link "Forgot password?" [ref=e40] [cursor=pointer]:
+          - /url: /forgot-password
+      - button "Log In" [ref=e41] [cursor=pointer]
+    - paragraph [ref=e43]:
+      - text: Don't have an account?
+      - link "Sign Up" [ref=e44] [cursor=pointer]:
+        - /url: /b2b/register
+    - generic [ref=e45]:
+      - text: By continuing, you agree to our
+      - link "Terms & Conditions" [ref=e46] [cursor=pointer]:
+        - /url: /terms-and-conditions
+      - text: and
+      - link "Privacy Policy" [ref=e47] [cursor=pointer]:
+        - /url: /privacy-policy
+      - text: .

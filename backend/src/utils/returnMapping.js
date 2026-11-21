@@ -121,3 +121,48 @@ export const getReturnedQuantities = async (order, { session = null } = {}) => {
     }
     return used;
 };
+
+// Return states that mean the goods are really coming back (pending/rejected requests don't count).
+const ACCEPTED_RETURN_STATUSES = ['approved', 'processing', 'completed', 'return_initiated', 'in_transit', 'qc_center', 'refund_processed'];
+
+/**
+ * True only when every unit of every line on the order is covered by an accepted return.
+ * A partial return (e.g. 2 of 5 units) must NOT flip the whole order to "returned".
+ */
+export const isOrderFullyReturned = async (order, { session = null } = {}) => {
+    const accepted = await ReturnRequest.find({
+        orderId: order._id,
+        status: { $in: ACCEPTED_RETURN_STATUSES },
+    }).session(session);
+
+    const returned = new Map();
+    for (const req of accepted) {
+        for (const rawItem of req.items || []) {
+            const item = toPlain(rawItem);
+            const matched = matchOrderItem(order.items, item);
+            const key = String(item.orderItemId || matched?._id || '');
+            if (!key) continue;
+            returned.set(key, (returned.get(key) || 0) + Number(item.quantity || 0));
+        }
+    }
+
+    const lines = order.items || [];
+    if (lines.length === 0) return false;
+    return lines.every((line) => (returned.get(String(line._id)) || 0) >= Number(line.quantity || 0));
+};
+
+/**
+ * Refund owed for `qty` units of an order line: the price paid plus the GST charged on those units.
+ * GST is only added when it was charged on top of the price (taxIncluded === false);
+ * if the price already included tax, the price alone is the full amount paid.
+ */
+export const lineRefundParts = (orderItem, qty) => {
+    const quantity = Number(qty || 0);
+    const orderedQty = Number(orderItem?.quantity || 0);
+    const base = Number(orderItem?.price || 0) * quantity;
+    const gst = !orderItem?.taxIncluded && orderedQty > 0
+        ? Number(orderItem?.gstAmount || 0) * (quantity / orderedQty)
+        : 0;
+    return { base, gst: Math.round(gst * 100) / 100 };
+};
+

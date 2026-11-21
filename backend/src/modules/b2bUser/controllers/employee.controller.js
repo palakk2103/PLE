@@ -228,21 +228,33 @@ export const updateEmployee = asyncHandler(async (req, res) => {
 });
 
 /**
- * @desc    Delete an employee
+ * @desc    Remove an employee (deactivate; never erase)
  * @route   DELETE /api/b2b-user/admin/employees/:id
  * @access  Private (B2B Admin)
+ *
+ * The employee's record is kept so their orders, returns and wallet history stay
+ * visible to the company admin. They simply can no longer sign in or buy. Any
+ * remaining wallet balance stays on the account; reactivate via Edit (Status: Active).
  */
 export const deleteEmployee = asyncHandler(async (req, res) => {
     const companyId = await getCompanyId(req);
     const employeeId = req.params.id;
 
-    const employee = await User.findOneAndDelete({ _id: employeeId, companyId: companyId, role: 'b2bEmployee' });
+    const employee = await User.findOneAndUpdate(
+        { _id: employeeId, companyId: companyId, role: 'b2bEmployee' },
+        {
+            $set: { isActive: false },
+            // Invalidate any refresh token so an open session can't silently continue
+            $unset: { refreshTokenHash: '', refreshTokenExpiresAt: '' },
+        },
+        { new: true }
+    ).select('name email isActive b2bWalletBalance');
 
     if (!employee) {
         throw new ApiError(404, 'Employee not found or unauthorized.');
     }
 
-    res.status(200).json(new ApiResponse(200, null, 'Employee deleted successfully.'));
+    res.status(200).json(new ApiResponse(200, employee, 'Employee deactivated. Their purchase history has been kept.'));
 });
 
 /**

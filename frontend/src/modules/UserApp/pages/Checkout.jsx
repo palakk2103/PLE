@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   FiMapPin,
   FiCreditCard,
@@ -46,7 +46,38 @@ const loadRazorpayScript = () => {
 
 const MobileCheckout = () => {
   const navigate = useNavigate();
-  const { items, getTotal, clearCart, getItemsByVendor } = useCartStore();
+  const location = useLocation();
+  const cartStore = useCartStore();
+  // Price negotiated in chat ("Proceed to official checkout"): this page then shows ONLY that offer,
+  // priced exactly as agreed (unit price, discount, tax and delivery come from the accepted offer),
+  // and the shopper's normal cart is left untouched.
+  const proposalCheckout = location.state?.proposalCheckout || null;
+  const proposalItems = useMemo(() => {
+    if (!proposalCheckout) return null;
+    const qty = Math.max(1, Number(proposalCheckout.quantity || 1));
+    const netTotal = Math.max(0, Number(proposalCheckout.subtotal || 0) - Number(proposalCheckout.discount || 0));
+    return [{
+      id: String(proposalCheckout.productId || ""),
+      productId: String(proposalCheckout.productId || ""),
+      proposalId: proposalCheckout.proposalId,
+      name: proposalCheckout.name,
+      variant: proposalCheckout.variant || undefined,
+      image: proposalCheckout.image,
+      price: netTotal / qty,
+      quantity: qty,
+      vendorId: proposalCheckout.vendorId,
+      vendorName: "Negotiated offer",
+      gstRate: netTotal > 0 ? (Number(proposalCheckout.tax || 0) / netTotal) * 100 : 0,
+    }];
+  }, [proposalCheckout]);
+  const items = proposalItems || cartStore.items;
+  const getTotal = proposalItems
+    ? () => Math.max(0, Number(proposalCheckout.subtotal || 0) - Number(proposalCheckout.discount || 0))
+    : cartStore.getTotal;
+  const clearCart = proposalItems ? () => {} : cartStore.clearCart;
+  const getItemsByVendor = proposalItems
+    ? () => [{ vendorId: String(proposalCheckout.vendorId), vendorName: "Negotiated offer", items: proposalItems, subtotal: getTotal() }]
+    : cartStore.getItemsByVendor;
   const { user, isAuthenticated } = useAuthStore();
   const { dbCompanyProfile } = useB2BAdminStore();
   const { addresses, getDefaultAddress, addAddress, updateAddress, fetchAddresses } = useAddressStore();
@@ -230,7 +261,7 @@ const MobileCheckout = () => {
   const [liveGstRates, setLiveGstRates] = useState({});
 
   useEffect(() => {
-    if (!items || items.length === 0) return;
+    if (proposalCheckout || !items || items.length === 0) return;
     let isCancelled = false;
     const syncCartGst = async () => {
       try {
@@ -332,9 +363,11 @@ const MobileCheckout = () => {
   }, [items, liveGstRates, appliedCoupon, appliedDiscount]);
 
   const total = getTotal();
-  const shipping = estimatedShipping !== null ? estimatedShipping : calculateShippingFallback();
+  const shipping = proposalCheckout
+    ? Number(proposalCheckout.shipping || 0)
+    : (estimatedShipping !== null ? estimatedShipping : calculateShippingFallback());
   const couponDiscount = appliedCoupon ? appliedDiscount : 0;
-  const tax = gstBreakdown.totalTax;
+  const tax = proposalCheckout ? Number(proposalCheckout.tax || 0) : gstBreakdown.totalTax;
   const prePointsTotal = total + shipping + tax;
   const maxRedeemableCash = Math.min(prePointsTotal, appliedPoints * (loyaltyConfig?.redemptionRatio || 0.2));
   const pointsDiscount = maxRedeemableCash;

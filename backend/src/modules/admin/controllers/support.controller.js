@@ -3,8 +3,19 @@ import TicketType from '../../../models/TicketType.model.js';
 import { ApiError } from '../../../utils/ApiError.js';
 import { ApiResponse } from '../../../utils/ApiResponse.js';
 import { asyncHandler } from '../../../utils/asyncHandler.js';
+import { notifyRequester } from '../../../services/supportTicket.service.js';
+import { assertTextLength, MAX_LONG_TEXT_LENGTH, sanitizeAttachments } from '../../../utils/chatLimits.js';
 
 const escapeRegex = (value = '') => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// Who raised the ticket: a customer, a vendor, a delivery partner, or a visitor who filled the contact form
+const requesterOf = (ticket) => {
+    if (ticket.userId?.name) return { name: ticket.userId.name, email: ticket.userId.email, phone: ticket.userId.phone, type: 'user' };
+    if (ticket.vendorId?.storeName) return { name: ticket.vendorId.storeName, email: ticket.vendorId.email, type: 'vendor' };
+    if (ticket.deliveryBoyId?.name) return { name: ticket.deliveryBoyId.name, email: ticket.deliveryBoyId.email, phone: ticket.deliveryBoyId.phone, type: 'delivery' };
+    if (ticket.guestContact?.name || ticket.guestContact?.email) return { ...ticket.guestContact, type: 'guest' };
+    return { name: 'Anonymous', type: ticket.requesterType || 'user' };
+};
 
 const findTicketByIdOrNumber = async (id, populate = false) => {
     let query = null;
@@ -17,7 +28,8 @@ const findTicketByIdOrNumber = async (id, populate = false) => {
     if (populate && query) {
         query = query
             .populate('userId', 'name email phone')
-            .populate('vendorId', 'shopName email')
+            .populate('vendorId', 'storeName email')
+            .populate('deliveryBoyId', 'name email phone')
             .populate('ticketTypeId', 'name');
     }
 
@@ -56,7 +68,8 @@ export const getAllTickets = asyncHandler(async (req, res) => {
 
     const tickets = await SupportTicket.find(filter)
         .populate('userId', 'name email phone')
-        .populate('vendorId', 'shopName email')
+        .populate('vendorId', 'storeName email')
+        .populate('deliveryBoyId', 'name email phone')
         .populate('ticketTypeId', 'name')
         .sort({ updatedAt: -1 })
         .skip((pageNumber - 1) * limitNumber)
@@ -69,14 +82,7 @@ export const getAllTickets = asyncHandler(async (req, res) => {
         ...ticket._doc,
         id: ticket.ticketNumber || String(ticket._id),
         _id: ticket._id,
-        customer: ticket.userId ? {
-            name: ticket.userId.name,
-            email: ticket.userId.email,
-            phone: ticket.userId.phone
-        } : (ticket.vendorId ? {
-            name: ticket.vendorId.shopName,
-            email: ticket.vendorId.email
-        } : { name: 'Anonymous' }),
+        customer: requesterOf(ticket),
         category: ticket.ticketTypeId ? ticket.ticketTypeId.name : (ticket.category || 'General'),
         lastUpdate: ticket.updatedAt
     }));
@@ -111,14 +117,7 @@ export const getTicketById = asyncHandler(async (req, res) => {
         ...ticket._doc,
         id: ticket.ticketNumber || String(ticket._id),
         _id: ticket._id,
-        customer: ticket.userId ? {
-            name: ticket.userId.name,
-            email: ticket.userId.email,
-            phone: ticket.userId.phone
-        } : (ticket.vendorId ? {
-            name: ticket.vendorId.shopName,
-            email: ticket.vendorId.email
-        } : { name: 'Anonymous' }),
+        customer: requesterOf(ticket),
         category: ticket.ticketTypeId ? ticket.ticketTypeId.name : (ticket.category || 'General'),
         lastUpdate: ticket.updatedAt
     };
@@ -156,6 +155,10 @@ export const updateTicketStatus = asyncHandler(async (req, res) => {
 
     await ticket.save();
 
+    if (status) {
+        await notifyRequester(ticket, 'Your ticket status changed', `${ticket.ticketNumber} is now ${String(status).replace('_', ' ')}.`);
+    }
+
     res.status(200).json(
         new ApiResponse(200, {
             ...ticket._doc,
@@ -176,18 +179,24 @@ export const addTicketMessage = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'Message or attachment is required');
     }
 
+    assertTextLength(trimmedMessage, 'Message', MAX_LONG_TEXT_LENGTH);
+    const safeAttachment = attachment ? sanitizeAttachments(attachment, { allowInlineImages: true })[0] : null;
+
     const ticket = await findTicketByIdOrNumber(req.params.id, false);
 
     if (!ticket) {
         throw new ApiError(404, 'Ticket not found');
+    }
+    if (ticket.status === 'closed') {
+        throw new ApiError(400, 'This ticket is closed. Re-open it before replying.');
     }
 
     const newMsg = {
         senderId: req.user?._id || req.user?.id,
         senderType: 'admin',
         message: trimmedMessage,
-        attachment: attachment || null,
-        attachments: attachment ? [attachment] : [],
+        attachment: safeAttachment,
+        attachments: safeAttachment ? [safeAttachment] : [],
         createdAt: new Date()
     };
 
@@ -206,6 +215,8 @@ export const addTicketMessage = asyncHandler(async (req, res) => {
     }
 
     await ticket.save();
+
+    await notifyRequester(ticket, 'Support replied to your ticket', `PLE support replied on ${ticket.ticketNumber}.`);
 
     res.status(200).json(
         new ApiResponse(200, newMsg, 'Message added successfully')

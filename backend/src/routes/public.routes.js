@@ -4,6 +4,7 @@ import asyncHandler from '../utils/asyncHandler.js';
 import ApiResponse from '../utils/ApiResponse.js';
 import ApiError from '../utils/ApiError.js';
 import Product from '../models/Product.model.js';
+import { publicApprovalFilter } from '../utils/productVisibility.js';
 import Category from '../models/Category.model.js';
 
 import Brand from '../models/Brand.model.js';
@@ -25,6 +26,11 @@ import User from '../models/User.model.js';
 import { optionalAuth } from '../middlewares/authenticate.js';
 import { resolveProductGST } from '../utils/gstUtils.js';
 import { resolveSpecTemplate } from '../services/productSpecs.service.js';
+import { moderateMessage, MODERATION_ACTION } from '../services/chatModeration.service.js';
+import rateLimit from 'express-rate-limit';
+import SupportTicket from '../models/SupportTicket.model.js';
+import { generateTicketNumber, notifyAdmins } from '../services/supportTicket.service.js';
+import { assertTextLength } from '../utils/chatLimits.js';
 
 const router = Router();
 
@@ -99,19 +105,33 @@ router.get('/loyalty/config', asyncHandler(async (req, res) => {
     }, 'Public loyalty config fetched.'));
 }));
 
+// Customers must NEVER receive a vendor's contact or business-identity details
+// (phone, email, address, bank, PAN/GST, documents...). Whitelist only what the
+// storefront needs, so any field added to the Vendor model later stays private by default.
+const PUBLIC_VENDOR_FIELDS = [
+    '_id', 'name', 'storeName', 'storeLogo', 'logo', 'rating', 'reviewCount',
+    'isVerified', 'status', 'joinDate', 'createdAt', 'businessType', 'totalProducts',
+    'isManagedShop', 'id',
+];
+
 const toPublicVendor = (vendorDoc) => {
     const vendor = typeof vendorDoc?.toObject === 'function'
         ? vendorDoc.toObject()
         : (vendorDoc || {});
 
-    return {
-        ...vendor,
-        password: undefined,
-        otp: undefined,
-        otpExpiry: undefined,
-        bankDetails: undefined,
-        commissionRate: undefined,
-    };
+    const safe = {};
+    for (const key of PUBLIC_VENDOR_FIELDS) {
+        if (vendor[key] !== undefined) safe[key] = vendor[key];
+    }
+    // Free-text store description is vendor-written: never let it carry contact details.
+    const description = vendor.storeDescription ?? vendor.description;
+    if (description) {
+        safe.storeDescription = moderateMessage(String(description)).action === MODERATION_ACTION.ALLOW
+            ? description
+            : '';
+        safe.description = safe.storeDescription;
+    }
+    return safe;
 };
 
 const normalizeVariantPart = (value) => String(value || '').trim().toLowerCase();
@@ -195,9 +215,9 @@ const listProducts = asyncHandler(async (req, res) => {
     const skip = (page - 1) * limit;
     const filter = {
         isActive: true,
+        ...publicApprovalFilter(),
         isSourceProduct: { $ne: true },
         publicationStatus: { $nin: ['draft', 'unpublished', 'archived'] },
-        approvalStatus: { $ne: 'pending' },
         brandApprovalStatus: { $ne: 'pending' },
         categoryApprovalStatus: { $ne: 'pending' },
     };
@@ -269,11 +289,18 @@ const listProducts = asyncHandler(async (req, res) => {
     if (searchQuery) {
         const escaped = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const searchRegex = new RegExp(escaped, 'i');
+        // Also match products whose real category or brand name matches the query.
+        const [matchedCategories, matchedBrands] = await Promise.all([
+            Category.find({ name: searchRegex }).select('_id').limit(50),
+            Brand.find({ name: searchRegex }).select('_id').limit(50),
+        ]);
         filter.$or = [
             { name: searchRegex },
             { description: searchRegex },
             { customCategoryName: searchRegex },
             { customBrandName: searchRegex },
+            ...(matchedCategories.length ? [{ categoryId: { $in: matchedCategories.map((c) => c._id) } }] : []),
+            ...(matchedBrands.length ? [{ brandId: { $in: matchedBrands.map((b) => b._id) } }] : []),
         ];
     }
 
@@ -309,6 +336,7 @@ router.get('/products', listProducts);
 const getFlashSale = asyncHandler(async (req, res) => {
     const filter = {
         isActive: true,
+        ...publicApprovalFilter(),
         flashSale: true,
         isSourceProduct: { $ne: true },
         publicationStatus: { $nin: ['draft', 'unpublished', 'archived'] },
@@ -345,6 +373,7 @@ const getNewArrivals = asyncHandler(async (req, res) => {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const filter = {
         isActive: true,
+        ...publicApprovalFilter(),
         isSourceProduct: { $ne: true },
         publicationStatus: { $nin: ['draft', 'unpublished', 'archived'] },
         $or: [
@@ -424,6 +453,7 @@ const getNewArrivals = asyncHandler(async (req, res) => {
 const getPopular = asyncHandler(async (req, res) => {
     const filter = {
         isActive: true,
+        ...publicApprovalFilter(),
         isSourceProduct: { $ne: true },
         publicationStatus: { $nin: ['draft', 'unpublished', 'archived'] },
     };
@@ -460,6 +490,7 @@ router.get('/similar/:id', asyncHandler(async (req, res) => {
     
     const filter = {
         isActive: true,
+        ...publicApprovalFilter(),
         isSourceProduct: { $ne: true },
         publicationStatus: { $nin: ['draft', 'unpublished', 'archived'] },
         _id: { $ne: product._id },
@@ -484,6 +515,7 @@ const getProductDetail = asyncHandler(async (req, res) => {
         isSourceProduct: { $ne: true },
         publicationStatus: { $nin: ['draft', 'unpublished', 'archived'] },
         isActive: true,
+        ...publicApprovalFilter(),
     })
         .select('-negotiatedSupplyPrice -requestedSupplyPrice -agreementId -sourceProductId -auditLog')
         .populate('categoryId', 'name gstRate parentId')
@@ -559,11 +591,11 @@ router.get('/vendors/all', asyncHandler(async (req, res) => {
     const trimmedSearch = String(search || '').trim();
     if (trimmedSearch) {
         const safeRegex = new RegExp(trimmedSearch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
-        filter.$or = [{ name: safeRegex }, { email: safeRegex }, { storeName: safeRegex }];
+        filter.$or = [{ name: safeRegex }, { storeName: safeRegex }];
     }
 
     const vendors = await Vendor.find(filter)
-        .select('-password -otp -otpExpiry')
+        .select('name storeName storeLogo storeDescription rating reviewCount isVerified status joinDate createdAt businessType')
         .sort({ rating: -1, reviewCount: -1, createdAt: -1 })
         .skip(skip)
         .limit(numericLimit)
@@ -572,7 +604,7 @@ router.get('/vendors/all', asyncHandler(async (req, res) => {
     const activeShops = await ManagedShop.find({ status: 'active' }).lean();
 
     const mappedShops = await Promise.all(activeShops.map(async (shop) => {
-        const productCount = await Product.countDocuments({ shopId: shop._id, isActive: true });
+        const productCount = await Product.countDocuments({ shopId: shop._id, isActive: true, ...publicApprovalFilter() });
         return {
             _id: shop._id,
             id: String(shop._id),
@@ -591,7 +623,7 @@ router.get('/vendors/all', asyncHandler(async (req, res) => {
     }));
 
     const mappedVendors = await Promise.all(vendors.map(async (v) => {
-        const productCount = await Product.countDocuments({ vendorId: v._id, isActive: true });
+        const productCount = await Product.countDocuments({ vendorId: v._id, isActive: true, ...publicApprovalFilter() });
         return {
             ...toPublicVendor(v),
             id: String(v._id),
@@ -616,7 +648,14 @@ router.get('/vendors/:id', asyncHandler(async (req, res) => {
     let seller = await Vendor.findOne({
         _id: req.params.id,
         status: 'approved',
-    }).select('-password -otp -otpExpiry').lean();
+    }).lean();
+    if (seller) {
+        seller = {
+            ...toPublicVendor(seller),
+            id: String(seller._id),
+            totalProducts: await Product.countDocuments({ vendorId: seller._id, isActive: true, ...publicApprovalFilter() }),
+        };
+    }
 
     if (!seller) {
         const shop = await ManagedShop.findOne({
@@ -624,7 +663,7 @@ router.get('/vendors/:id', asyncHandler(async (req, res) => {
             status: 'active'
         }).lean();
         if (shop) {
-            const productCount = await Product.countDocuments({ shopId: shop._id, isActive: true });
+            const productCount = await Product.countDocuments({ shopId: shop._id, isActive: true, ...publicApprovalFilter() });
             seller = {
                 _id: shop._id,
                 id: String(shop._id),
@@ -668,7 +707,7 @@ router.get('/vendors/:id/products', asyncHandler(async (req, res) => {
 
     if (!isShop && !isVendor) throw new ApiError(404, 'Seller not found.');
 
-    const filter = { isActive: true };
+    const filter = { isActive: true, ...publicApprovalFilter() };
     if (isShop) {
         filter.shopId = req.params.id;
     } else {
@@ -806,7 +845,7 @@ router.post('/shipping/estimate', asyncHandler(async (req, res) => {
         );
     }
 
-    const products = await Product.find({ _id: { $in: productIds }, isActive: true })
+    const products = await Product.find({ _id: { $in: productIds }, isActive: true, ...publicApprovalFilter() })
         .populate('vendorId', 'shippingEnabled defaultShippingRate freeShippingThreshold pincode address')
         .populate('shopId', 'name logo warehouse address')
         .select('_id vendorId shopId price variants.prices')
@@ -929,7 +968,8 @@ router.get('/campaigns/:slug', asyncHandler(async (req, res) => {
 
     const products = await Product.find({
         _id: { $in: productIds },
-        isActive: true
+        isActive: true,
+        ...publicApprovalFilter(),
     })
         .populate('categoryId', 'name')
         .populate('brandId', 'name')
@@ -1011,6 +1051,62 @@ router.get('/agreement-template/active', asyncHandler(async (req, res) => {
     }
     res.status(200).json(new ApiResponse(200, template, 'Active agreement template fetched.'));
 }));
+
+// ─── POST /api/support/contact ───────────────────────────────────────────────
+// "Contact us" form for customers, vendors, delivery partners and visitors who are not signed in.
+// Creates a real support ticket (previously the forms only pretended to submit).
+const contactLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: process.env.NODE_ENV === 'production' ? 5 : 1000,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, message: 'Too many messages sent. Please try again in an hour.' },
+});
+
+router.post('/support/contact', contactLimiter, optionalAuth, asyncHandler(async (req, res) => {
+    const name = String(req.body?.name || '').trim();
+    const email = String(req.body?.email || '').trim().toLowerCase();
+    const phone = String(req.body?.phone || '').trim().slice(0, 20);
+    const subject = String(req.body?.subject || req.body?.category || 'General enquiry').trim();
+    const message = String(req.body?.message || '').trim();
+    const storeName = String(req.body?.storeName || '').trim();
+
+    if (!name) throw new ApiError(400, 'Please enter your name.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) throw new ApiError(400, 'Please enter a valid email address.');
+    if (message.length < 10) throw new ApiError(400, 'Please describe your issue (at least 10 characters).');
+    assertTextLength(name, 'Name', 100);
+    assertTextLength(subject, 'Subject', 200);
+    assertTextLength(message, 'Message', 5000);
+
+    // Attach the ticket to the signed-in account when there is one
+    const role = req.user?.role;
+    const owner = {};
+    let requesterType = 'guest';
+    let senderType = 'user';
+    if (['customer', 'b2bAdmin', 'b2bEmployee'].includes(role)) { owner.userId = req.user.id; requesterType = 'user'; }
+    else if (['vendor', 'managed_vendor'].includes(role)) { owner.vendorId = req.user.id; requesterType = 'vendor'; senderType = 'vendor'; }
+    else if (role === 'delivery') { owner.deliveryBoyId = req.user.id; requesterType = 'delivery'; senderType = 'delivery'; }
+
+    const body = storeName ? `${message}\n\nStore: ${storeName}` : message;
+    const ticketNumber = await generateTicketNumber();
+    const ticket = await SupportTicket.create({
+        ticketNumber,
+        ...owner,
+        requesterType,
+        guestContact: { name, email, phone },
+        category: String(req.body?.category || 'General').slice(0, 80),
+        subject,
+        description: body,
+        priority: 'medium',
+        status: 'open',
+        messages: [{ senderId: owner.userId || owner.vendorId || owner.deliveryBoyId, senderType, message: body, createdAt: new Date() }],
+        timeline: [{ status: 'open', changedAt: new Date(), note: 'Submitted through the contact form' }],
+    });
+
+    await notifyAdmins(ticket, 'New contact request', `${name} (${requesterType}) wrote: ${subject}`);
+    res.status(201).json(new ApiResponse(201, { ticketNumber }, 'Your message has been received. Our support team will contact you shortly.'));
+}));
+
 
 export default router;
 

@@ -149,6 +149,7 @@ router.post('/consumer-rfq/:id/reject', ...consumerRfqAuth, rfqId, validate(crv.
 import * as enquiryController from '../controllers/productEnquiry.controller.js';
 router.post('/enquiries', ...customerAuth, enquiryController.createEnquiry);
 router.get('/enquiries', ...customerAuth, enquiryController.getMyEnquiries);
+router.post('/enquiries/:id/messages', ...customerAuth, enquiryController.addEnquiryMessage);
 
 // Product Request routes
 import * as productRequestController from '../../b2bUser/controllers/productRequest.controller.js';
@@ -173,6 +174,7 @@ router.patch('/chat/vendor/threads/:id/read', ...customerAuth, customerChatContr
 router.post('/chat/vendor/threads/:id/report', ...customerAuth, customerChatController.reportCustomerChatMessage);
 router.post('/chat/vendor/threads/:id/block', ...customerAuth, customerChatController.toggleBlockCustomerChat);
 router.post('/chat/vendor/threads/:id/mute', ...customerAuth, customerChatController.toggleMuteCustomerChat);
+router.patch('/chat/vendor/threads/:id/status', ...customerAuth, customerChatController.updateCustomerChatStatus);
 router.get('/chat/vendor/threads/:id/proposal', ...customerAuth, customerChatController.getCustomerProposal);
 router.post('/chat/vendor/threads/:id/proposal/:proposalId/respond', ...customerAuth, customerChatController.respondCustomerProposal);
 router.post('/chat/vendor/threads/:id/proposal/:proposalId/checkout', ...customerAuth, customerChatController.checkoutCustomerProposal);

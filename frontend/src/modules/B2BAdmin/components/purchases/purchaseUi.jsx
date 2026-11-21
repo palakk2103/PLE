@@ -12,8 +12,12 @@ export const fmtDate = (d, withTime = false) => {
     : date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
+const ACRONYMS = { cod: 'COD', upi: 'UPI', gst: 'GST' };
+
 export const humanize = (s) =>
-  String(s || '—').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  String(s || '—')
+    .replace(/_/g, ' ')
+    .replace(/\b\w+/g, (w) => ACRONYMS[w.toLowerCase()] || w.charAt(0).toUpperCase() + w.slice(1));
 
 const TONES = {
   green: 'bg-green-50 text-green-700 border-green-200',

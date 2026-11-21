@@ -1,0 +1,315 @@
+- main [ref=f9e5]:
+  - generic [ref=f9e6]:
+    - generic [ref=f9e7]:
+      - generic [ref=f9e9]:
+        - textbox "Search products..." [active] [ref=f9e13]: mou
+        - generic [ref=f9e14]:
+          - button [ref=f9e15] [cursor=pointer]
+          - button [ref=f9e44] [cursor=pointer]
+        - generic [ref=f9e48]:
+          - generic [ref=f9e49]: Suggestions
+          - button "USB Wired Optical Mouse" [ref=f9e50] [cursor=pointer]
+          - button "MK270 Wireless Keyboard and Mouse Combo" [ref=f9e55] [cursor=pointer]
+      - generic [ref=f9e21]:
+        - paragraph [ref=f9e22]: Found 15 product(s)
+        - generic [ref=f9e23]:
+          - combobox [ref=f9e24]:
+            - option "Newest"
+            - option "Oldest"
+            - 'option "Price: Low to High"'
+            - 'option "Price: High to Low"'
+            - option "Popular"
+            - option "Top Rated" [selected]
+          - generic [ref=f9e25]:
+            - button [ref=f9e26] [cursor=pointer]
+            - button [ref=f9e28] [cursor=pointer]
+          - button "Filters" [ref=f9e35] [cursor=pointer]
+    - generic [ref=f9e40]:
+      - generic [ref=f9e61] [cursor=pointer]:
+        - generic [ref=f9e62]:
+          - button [ref=f9e64]
+          - link "32% OFF 6-Socket Surge Protector" [ref=f9e67]:
+            - /url: /product/6ada3975fdcdfc17957474c8
+            - generic [ref=f9e68]:
+              - generic [ref=f9e69]: 32% OFF
+              - img "6-Socket Surge Protector" [ref=f9e71]
+        - generic [ref=f9e72]:
+          - link [ref=f9e73]:
+            - /url: /product/6ada3975fdcdfc17957474c8
+            - heading "6-Socket Surge Protector" [level=3] [ref=f9e74]
+          - paragraph [ref=f9e75]: Piece
+          - generic [ref=f9e76]: Fast Bulk Cargo
+          - generic [ref=f9e79]:
+            - generic [ref=f9e80]:
+              - generic [ref=f9e81]: "Bulk Price:"
+              - generic [ref=f9e82]: ₹1,300
+              - generic [ref=f9e83]: /Piece
+            - generic [ref=f9e84]: "MOQ: 5 Pieces"
+          - button "Order Bulk" [ref=f9e88]
+      - generic [ref=f9e93] [cursor=pointer]:
+        - generic [ref=f9e94]:
+          - button [ref=f9e96]
+          - link "38% OFF USB Wired Optical Mouse" [ref=f9e99]:
+            - /url: /product/6ada3975fdcdfc17957474c2
+            - generic [ref=f9e100]:
+              - generic [ref=f9e101]: 38% OFF
+              - img "USB Wired Optical Mouse" [ref=f9e103]
+        - generic [ref=f9e104]:
+          - link [ref=f9e105]:
+            - /url: /product/6ada3975fdcdfc17957474c2
+            - heading "USB Wired Optical Mouse" [level=3] [ref=f9e106]
+          - paragraph [ref=f9e107]: Piece
+          - generic [ref=f9e108]: Fast Bulk Cargo
+          - generic [ref=f9e111]:
+            - generic [ref=f9e112]:
+              - generic [ref=f9e113]: "Bulk Price:"
+              - generic [ref=f9e114]: ₹160
+              - generic [ref=f9e115]: /Piece
+            - generic [ref=f9e116]: "MOQ: 5 Pieces"
+          - button "Order Bulk" [ref=f9e120]
+      - generic [ref=f9e125] [cursor=pointer]:
+        - generic [ref=f9e126]:
+          - button [ref=f9e128]
+          - link "24% OFF 600VA Line-Interactive UPS" [ref=f9e131]:
+            - /url: /product/6ada3975fdcdfc17957474bc
+            - generic [ref=f9e132]:
+              - generic [ref=f9e133]: 24% OFF
+              - img "600VA Line-Interactive UPS" [ref=f9e135]
+        - generic [ref=f9e136]:
+          - link [ref=f9e137]:
+            - /url: /product/6ada3975fdcdfc17957474bc
+            - heading "600VA Line-Interactive UPS" [level=3] [ref=f9e138]
+          - paragraph [ref=f9e139]: Piece
+          - generic [ref=f9e140]: Fast Bulk Cargo
+          - generic [ref=f9e143]:
+            - generic [ref=f9e144]:
+              - generic [ref=f9e145]: "Bulk Price:"
+              - generic [ref=f9e146]: ₹3,150
+              - generic [ref=f9e147]: /Piece
+            - generic [ref=f9e148]: "MOQ: 5 Pieces"
+          - button "Order Bulk" [ref=f9e152]
+      - generic [ref=f9e157] [cursor=pointer]:
+        - generic [ref=f9e158]:
+          - button [ref=f9e160]
+          - link "22% OFF PIXMA Inkjet Printer" [ref=f9e163]:
+            - /url: /product/6ada3975fdcdfc17957474b6
+            - generic [ref=f9e164]:
+              - generic [ref=f9e165]: 22% OFF
+              - img "PIXMA Inkjet Printer" [ref=f9e167]
+        - generic [ref=f9e168]:
+          - link [ref=f9e169]:
+            - /url: /product/6ada3975fdcdfc17957474b6
+            - heading "PIXMA Inkjet Printer" [level=3] [ref=f9e170]
+          - paragraph [ref=f9e171]: Piece
+          - generic [ref=f9e172]: Fast Bulk Cargo
+          - generic [ref=f9e175]:
+            - generic [ref=f9e176]:
+              - generic [ref=f9e177]: "Bulk Price:"
+              - generic [ref=f9e178]: ₹6,100
+              - generic [ref=f9e179]: /Piece
+            - generic [ref=f9e180]: "MOQ: 5 Pieces"
+          - button "Order Bulk" [ref=f9e184]
+      - generic [ref=f9e189] [cursor=pointer]:
+        - generic [ref=f9e190]:
+          - button [ref=f9e192]
+          - link "29% OFF DataTraveler 32GB USB Flash Drive" [ref=f9e195]:
+            - /url: /product/6ada3975fdcdfc17957474b0
+            - generic [ref=f9e196]:
+              - generic [ref=f9e197]: 29% OFF
+              - img "DataTraveler 32GB USB Flash Drive" [ref=f9e199]
+        - generic [ref=f9e200]:
+          - link [ref=f9e201]:
+            - /url: /product/6ada3975fdcdfc17957474b0
+            - heading "DataTraveler 32GB USB Flash Drive" [level=3] [ref=f9e202]
+          - paragraph [ref=f9e203]: Piece
+          - generic [ref=f9e204]: Fast Bulk Cargo
+          - generic [ref=f9e207]:
+            - generic [ref=f9e208]:
+              - generic [ref=f9e209]: "Bulk Price:"
+              - generic [ref=f9e210]: ₹350
+              - generic [ref=f9e211]: /Piece
+            - generic [ref=f9e212]: "MOQ: 5 Pieces"
+          - button "Order Bulk" [ref=f9e216]
+      - generic [ref=f9e221] [cursor=pointer]:
+        - generic [ref=f9e222]:
+          - button [ref=f9e224]
+          - link "21% OFF 24-inch Full HD Monitor" [ref=f9e227]:
+            - /url: /product/6ada3975fdcdfc17957474aa
+            - generic [ref=f9e228]:
+              - generic [ref=f9e229]: 21% OFF
+              - img "24-inch Full HD Monitor" [ref=f9e231]
+        - generic [ref=f9e232]:
+          - link [ref=f9e233]:
+            - /url: /product/6ada3975fdcdfc17957474aa
+            - heading "24-inch Full HD Monitor" [level=3] [ref=f9e234]
+          - paragraph [ref=f9e235]: Piece
+          - generic [ref=f9e236]: Fast Bulk Cargo
+          - generic [ref=f9e239]:
+            - generic [ref=f9e240]:
+              - generic [ref=f9e241]: "Bulk Price:"
+              - generic [ref=f9e242]: ₹8,300
+              - generic [ref=f9e243]: /Piece
+            - generic [ref=f9e244]: "MOQ: 5 Pieces"
+          - button "Order Bulk" [ref=f9e248]
+      - generic [ref=f9e253] [cursor=pointer]:
+        - generic [ref=f9e254]:
+          - button [ref=f9e256]
+          - link "18% OFF" [ref=f9e259]:
+            - /url: /product/6ada3975fdcdfc17957474a4
+        - generic [ref=f9e263]:
+          - link [ref=f9e264]:
+            - /url: /product/6ada3975fdcdfc17957474a4
+            - heading "Portable SSD T7 1TB" [level=3] [ref=f9e265]
+          - paragraph [ref=f9e266]: Piece
+          - generic [ref=f9e267]: Fast Bulk Cargo
+          - generic [ref=f9e270]:
+            - generic [ref=f9e271]:
+              - generic [ref=f9e272]: "Bulk Price:"
+              - generic [ref=f9e273]: ₹7,900
+              - generic [ref=f9e274]: /Piece
+            - generic [ref=f9e275]: "MOQ: 5 Pieces"
+          - button "Order Bulk" [ref=f9e279]
+      - generic [ref=f9e284] [cursor=pointer]:
+        - generic [ref=f9e285]:
+          - button [ref=f9e287]
+          - link "29% OFF" [ref=f9e290]:
+            - /url: /product/6ada3975fdcdfc179574749e
+        - generic [ref=f9e294]:
+          - link [ref=f9e295]:
+            - /url: /product/6ada3975fdcdfc179574749e
+            - heading "Archer C6 AC1200 Wi-Fi Router" [level=3] [ref=f9e296]
+          - paragraph [ref=f9e297]: Piece
+          - generic [ref=f9e298]: Fast Bulk Cargo
+          - generic [ref=f9e301]:
+            - generic [ref=f9e302]:
+              - generic [ref=f9e303]: "Bulk Price:"
+              - generic [ref=f9e304]: ₹2,050
+              - generic [ref=f9e305]: /Piece
+            - generic [ref=f9e306]: "MOQ: 5 Pieces"
+          - button "Order Bulk" [ref=f9e310]
+      - generic [ref=f9e315] [cursor=pointer]:
+        - generic [ref=f9e316]:
+          - button [ref=f9e318]
+          - link "28% OFF" [ref=f9e321]:
+            - /url: /product/6ada3975fdcdfc1795747498
+        - generic [ref=f9e325]:
+          - link [ref=f9e326]:
+            - /url: /product/6ada3975fdcdfc1795747498
+            - heading "MK270 Wireless Keyboard and Mouse Combo" [level=3] [ref=f9e327]
+          - paragraph [ref=f9e328]: Piece
+          - generic [ref=f9e329]: Fast Bulk Cargo
+          - generic [ref=f9e332]:
+            - generic [ref=f9e333]:
+              - generic [ref=f9e334]: "Bulk Price:"
+              - generic [ref=f9e335]: ₹1,450
+              - generic [ref=f9e336]: /Piece
+            - generic [ref=f9e337]: "MOQ: 5 Pieces"
+          - button "Order Bulk" [ref=f9e341]
+      - generic [ref=f9e346] [cursor=pointer]:
+        - generic [ref=f9e347]:
+          - button [ref=f9e349]
+          - link "50% OFF" [ref=f9e352]:
+            - /url: /product/6ada3975fdcdfc179574748c
+        - generic [ref=f9e356]:
+          - link [ref=f9e357]:
+            - /url: /product/6ada3975fdcdfc179574748c
+            - heading "Premium Cotton T-Shirt" [level=3] [ref=f9e358]
+          - paragraph [ref=f9e359]: Piece
+          - generic [ref=f9e360]: Fast Bulk Cargo
+          - generic [ref=f9e363]:
+            - generic [ref=f9e364]:
+              - generic [ref=f9e365]: "Bulk Price:"
+              - generic [ref=f9e366]: ₹350
+              - generic [ref=f9e367]: /Piece
+            - generic [ref=f9e368]: "MOQ: 5 Pieces"
+          - button "Order Bulk" [ref=f9e372]
+      - generic [ref=f9e377] [cursor=pointer]:
+        - generic [ref=f9e378]:
+          - button [ref=f9e380]
+          - link "37% OFF" [ref=f9e383]:
+            - /url: /product/6ad9f559fdcdfc17957461a8
+        - generic [ref=f9e387]:
+          - link [ref=f9e388]:
+            - /url: /product/6ad9f559fdcdfc17957461a8
+            - heading "RTX 5090" [level=3] [ref=f9e389]
+          - paragraph [ref=f9e390]: "1"
+          - generic [ref=f9e391]: Fast Bulk Cargo
+          - generic [ref=f9e394]:
+            - generic [ref=f9e395]:
+              - generic [ref=f9e396]: "Bulk Price:"
+              - generic [ref=f9e397]: ₹1,58,000
+              - generic [ref=f9e398]: /1
+            - generic [ref=f9e399]: "MOQ: 5 1s"
+          - button "Order Bulk" [ref=f9e403]
+      - generic [ref=f9e408] [cursor=pointer]:
+        - generic [ref=f9e409]:
+          - button [ref=f9e411]
+          - link "-20% OFF" [ref=f9e414]:
+            - /url: /product/6ad9b30e41a4a93c40523bdc
+        - generic [ref=f9e418]:
+          - link [ref=f9e419]:
+            - /url: /product/6ad9b30e41a4a93c40523bdc
+            - heading "ishu" [level=3] [ref=f9e420]
+          - paragraph
+          - generic [ref=f9e421]: Fast Bulk Cargo
+          - generic [ref=f9e424]:
+            - generic [ref=f9e425]:
+              - generic [ref=f9e426]: "Bulk Price:"
+              - generic [ref=f9e427]: ₹120
+              - generic [ref=f9e428]: /Pc
+            - generic [ref=f9e429]: "MOQ: 5 s"
+          - button "Order Bulk" [ref=f9e433]
+      - generic [ref=f9e438] [cursor=pointer]:
+        - generic [ref=f9e439]:
+          - button [ref=f9e441]
+          - link "12% OFF" [ref=f9e444]:
+            - /url: /product/6a87f6cc16d2ad92941082e3
+        - generic [ref=f9e448]:
+          - link [ref=f9e449]:
+            - /url: /product/6a87f6cc16d2ad92941082e3
+            - heading "ASUS ROG Strix G16 Gaming Laptop" [level=3] [ref=f9e450]
+          - paragraph [ref=f9e451]: Piece
+          - generic [ref=f9e452]: Fast Bulk Cargo
+          - generic [ref=f9e455]:
+            - generic [ref=f9e456]:
+              - generic [ref=f9e457]: "Bulk Price:"
+              - generic [ref=f9e458]: ₹1,14,999
+              - generic [ref=f9e459]: /Piece
+            - generic [ref=f9e460]: "MOQ: 5 Pieces"
+          - button "Order Bulk" [ref=f9e464]
+      - generic [ref=f9e469] [cursor=pointer]:
+        - generic [ref=f9e470]:
+          - button [ref=f9e472]
+          - link "15% OFF" [ref=f9e475]:
+            - /url: /product/6a7c3c12224ddc3dfc26451a
+        - generic [ref=f9e479]:
+          - link [ref=f9e480]:
+            - /url: /product/6a7c3c12224ddc3dfc26451a
+            - heading "ASUS Vivobook 15 X1504VA Laptop" [level=3] [ref=f9e481]
+          - paragraph [ref=f9e482]: Piece
+          - generic [ref=f9e483]: Fast Bulk Cargo
+          - generic [ref=f9e486]:
+            - generic [ref=f9e487]:
+              - generic [ref=f9e488]: "Bulk Price:"
+              - generic [ref=f9e489]: ₹49,999
+              - generic [ref=f9e490]: /Piece
+            - generic [ref=f9e491]: "MOQ: 5 Pieces"
+          - button "Order Bulk" [ref=f9e495]
+      - generic [ref=f9e500] [cursor=pointer]:
+        - generic [ref=f9e501]:
+          - button [ref=f9e503]
+          - link "0% OFF" [ref=f9e506]:
+            - /url: /product/6a3fbc086cbda7648bab5591
+        - generic [ref=f9e510]:
+          - link [ref=f9e511]:
+            - /url: /product/6a3fbc086cbda7648bab5591
+            - heading "boy" [level=3] [ref=f9e512]
+          - paragraph [ref=f9e513]: "2"
+          - generic [ref=f9e514]: Fast Bulk Cargo
+          - generic [ref=f9e517]:
+            - generic [ref=f9e518]:
+              - generic [ref=f9e519]: "Bulk Price:"
+              - generic [ref=f9e520]: ₹555
+              - generic [ref=f9e521]: /2
+            - generic [ref=f9e522]: "MOQ: 5 2s"
+          - button "Order Bulk" [ref=f9e526]

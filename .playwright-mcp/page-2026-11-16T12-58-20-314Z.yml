@@ -1,0 +1,149 @@
+- generic [ref=f6e1700]:
+  - banner [ref=f6e1701]:
+    - generic [ref=f6e1702]:
+      - generic [ref=f6e1703]:
+        - link [ref=f6e1704] [cursor=pointer]:
+          - /url: /home
+          - img "OPLE Logo" [ref=f6e1705]
+        - button "Menu" [ref=f6e1706] [cursor=pointer]
+      - navigation [ref=f6e1708]:
+        - link "Home" [ref=f6e1709] [cursor=pointer]:
+          - /url: /home
+        - link "Other Shops Marketplace" [ref=f6e1710] [cursor=pointer]:
+          - /url: /home?tab=marketplace
+          - generic [ref=f6e1711]: Other Shops
+          - generic [ref=f6e1712]: Marketplace
+        - link "Categories ▼" [ref=f6e1713] [cursor=pointer]:
+          - /url: /categories
+          - generic [ref=f6e1714]: Categories
+          - generic [ref=f6e1715]: ▼
+        - link "Offers" [ref=f6e1716] [cursor=pointer]:
+          - /url: /offers
+        - generic [ref=f6e1717] [cursor=pointer]:
+          - generic [ref=f6e1718]: Brands by PLE
+          - generic [ref=f6e1719]: New
+          - generic [ref=f6e1720]: ▼
+      - generic [ref=f6e1721]:
+        - textbox "Search products, brands, categories..." [ref=f6e1722]
+        - button "Search" [ref=f6e1723] [cursor=pointer]
+      - generic [ref=f6e1727]:
+        - button "3 RFQ" [ref=f6e1728] [cursor=pointer]:
+          - generic [ref=f6e1729]: "3"
+          - generic [ref=f6e1734]: RFQ
+        - button "Cart" [ref=f6e1735] [cursor=pointer]
+        - button "Theme" [ref=f6e1740] [cursor=pointer]
+        - button [ref=f6e1746] [cursor=pointer]:
+          - generic [ref=f6e1749]:
+            - paragraph [ref=f6e1750]: palak
+            - paragraph [ref=f6e1751]: Business Account
+  - main [ref=f6e1752]:
+    - generic [ref=f6e1753]:
+      - generic [ref=f6e1755]:
+        - paragraph [ref=f6e1756]: Found 0 product(s)
+        - generic [ref=f6e1757]:
+          - combobox [ref=f6e1758]:
+            - option "Newest"
+            - option "Oldest"
+            - 'option "Price: Low to High"'
+            - 'option "Price: High to Low"'
+            - option "Popular"
+            - option "Top Rated" [selected]
+          - generic [ref=f6e1759]:
+            - button [ref=f6e1760] [cursor=pointer]
+            - button [ref=f6e1762] [cursor=pointer]
+          - button "Filters" [ref=f6e1769] [cursor=pointer]
+      - generic [ref=f6e1774]:
+        - heading "Product not available." [level=3] [ref=f6e1778]
+        - paragraph [ref=f6e1779]: We couldn't find any match for your search. You can submit a product request and we will source it for you!
+        - generic [ref=f6e1780]:
+          - button "Request This Product" [ref=f6e1781] [cursor=pointer]
+          - button "Clear Filters" [ref=f6e1782] [cursor=pointer]
+  - contentinfo [ref=f6e1783]:
+    - generic [ref=f6e1785]:
+      - generic [ref=f6e1786]:
+        - link "PLE Logo TM" [ref=f6e1787] [cursor=pointer]:
+          - /url: /home
+          - generic [ref=f6e1788]:
+            - img "PLE Logo" [ref=f6e1789]
+            - generic [ref=f6e1790]: TM
+        - paragraph [ref=f6e1791]: Your destination for electronics across consumer, business, and specialized sourcing needs — from everyday tech and accessories to enterprise procurement solutions.
+        - generic [ref=f6e1792]:
+          - link [ref=f6e1793] [cursor=pointer]:
+            - /url: https://www.facebook.com/share/1EaNrat2yr/
+          - link [ref=f6e1796] [cursor=pointer]:
+            - /url: https://www.instagram.com/peoplesleagueofelectronics?igsh=MWdtbTNzajdqMGV4cQ==
+          - link [ref=f6e1800] [cursor=pointer]:
+            - /url: https://x.com/PeoplesE9405
+          - link [ref=f6e1803] [cursor=pointer]:
+            - /url: https://www.linkedin.com/company/ple-electronics
+      - generic [ref=f6e1808]:
+        - heading "Quick Links" [level=3] [ref=f6e1809]
+        - list [ref=f6e1810]:
+          - listitem [ref=f6e1811]:
+            - link "Home" [ref=f6e1812] [cursor=pointer]:
+              - /url: /home
+          - listitem [ref=f6e1813]:
+            - link "Categories" [ref=f6e1814] [cursor=pointer]:
+              - /url: /categories
+          - listitem [ref=f6e1815]:
+            - link "Offers" [ref=f6e1816] [cursor=pointer]:
+              - /url: /offers
+          - listitem [ref=f6e1817]:
+            - link "Refurbished" [ref=f6e1818] [cursor=pointer]:
+              - /url: /refurbished-categories
+          - listitem [ref=f6e1819]:
+            - link "My Profile" [ref=f6e1820] [cursor=pointer]:
+              - /url: /profile
+          - listitem [ref=f6e1821]:
+            - link "About Us" [ref=f6e1822] [cursor=pointer]:
+              - /url: /about-us
+      - generic [ref=f6e1823]:
+        - heading "Customer Support" [level=3] [ref=f6e1824]
+        - list [ref=f6e1825]:
+          - listitem [ref=f6e1826]:
+            - link "Help & Support" [ref=f6e1827] [cursor=pointer]:
+              - /url: /help-support
+          - listitem [ref=f6e1828]:
+            - link "Privacy Policy" [ref=f6e1829] [cursor=pointer]:
+              - /url: /privacy-policy
+          - listitem [ref=f6e1830]:
+            - link "Terms & Conditions" [ref=f6e1831] [cursor=pointer]:
+              - /url: /terms-conditions
+          - listitem [ref=f6e1832]:
+            - link "Return Policy" [ref=f6e1833] [cursor=pointer]:
+              - /url: /return-policy
+          - listitem [ref=f6e1834]:
+            - link "Warranty Policy" [ref=f6e1835] [cursor=pointer]:
+              - /url: /warranty-policy
+          - listitem [ref=f6e1836]:
+            - link "Business Onboarding Policy" [ref=f6e1837] [cursor=pointer]:
+              - /url: /business-onboarding-policy
+          - listitem [ref=f6e1838]:
+            - link "Execution & Acceptance Policy" [ref=f6e1839] [cursor=pointer]:
+              - /url: /execution-acceptance-policy
+          - listitem [ref=f6e1840]:
+            - link "Shipping and Delivery Policy" [ref=f6e1841] [cursor=pointer]:
+              - /url: /shipping-and-delivery-policy
+          - listitem [ref=f6e1842]:
+            - link "User Agreement" [ref=f6e1843] [cursor=pointer]:
+              - /url: /user-agreement
+      - generic [ref=f6e1844]:
+        - generic [ref=f6e1845]:
+          - heading "Subscribe to Newsletter" [level=3] [ref=f6e1846]
+          - paragraph [ref=f6e1847]: Be the first to hear about special offers, new arrivals, and events.
+          - generic [ref=f6e1848]:
+            - textbox "Enter email address" [ref=f6e1849]
+            - button [ref=f6e1850] [cursor=pointer]
+        - generic [ref=f6e1854]:
+          - generic [ref=f6e1855]: support@plebusiness.com
+          - generic [ref=f6e1860]: +91 9071149100
+          - generic [ref=f6e1864]: SHOP NO.25, R S NO.1045/3, 2ND CROSS, UJWAL NAGAR, Belgaum Fort, Karnataka, India,590016
+    - generic [ref=f6e1870]:
+      - generic [ref=f6e1871]: © 2026 PLE Inc. All rights reserved.
+      - generic [ref=f6e1872]:
+        - link "Privacy" [ref=f6e1873] [cursor=pointer]:
+          - /url: /privacy-policy
+        - link "Terms" [ref=f6e1874] [cursor=pointer]:
+          - /url: /terms-conditions
+        - link "Sitemap" [ref=f6e1875] [cursor=pointer]:
+          - /url: /help-support

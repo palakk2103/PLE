@@ -4,13 +4,23 @@ import VendorChatThread from "../models/VendorChatThread.model.js";
 import AdminManagedVendorThread from "../models/AdminManagedVendorThread.model.js";
 import { DirectRFQ } from "../models/DirectRFQ.model.js";
 import RFQ from "../models/RFQ.model.js";
+import User from "../models/User.model.js";
 
 let io;
 
 export const initSocket = (server) => {
+    // Production: only our own web app (and the packaged mobile app shells) may open a socket.
+    // Set SOCKET_ALLOWED_ORIGINS="https://a.com,https://b.com" to override. Development stays open.
+    const extraOrigins = String(process.env.SOCKET_ALLOWED_ORIGINS || '').split(',').map((o) => o.trim()).filter(Boolean);
+    const clientUrl = String(process.env.CLIENT_URL || '').replace(/\/$/, '');
+    const restrict = process.env.NODE_ENV === 'production' && (extraOrigins.length > 0 || clientUrl);
+    const allowedOrigins = restrict
+        ? [...new Set([...extraOrigins, clientUrl, 'capacitor://localhost', 'ionic://localhost', 'https://localhost', 'http://localhost'].filter(Boolean))]
+        : '*';
+
     io = new Server(server, {
         cors: {
-            origin: "*",
+            origin: allowedOrigins,
             methods: ["GET", "POST"]
         }
     });
@@ -34,44 +44,60 @@ export const initSocket = (server) => {
 
     io.on("connection", (socket) => {
         // ── Join an RFQ room (Authorized participants only) ─────
+        // rfq_<id>                 : admins + the B2B buyer side + (Direct RFQ) its vendor
+        // rfq_<id>_admin           : admins only (vendor negotiation traffic)
+        // rfq_<id>_vendor_<vid>    : one vendor's private line with the admin
         socket.on("join_rfq_room", async (rfqId) => {
             if (!socket.user) {
                 return socket.emit("error", { message: "Authentication required to join RFQ room." });
             }
 
             try {
-                // Check if user is admin
-                if (socket.user.role === 'admin') {
+                const uid = String(socket.user.id);
+                const role = String(socket.user.role || '');
+
+                // Platform admins
+                if (['admin', 'superadmin', 'account_team'].includes(role)) {
                     socket.join(`rfq_${rfqId}`);
+                    socket.join(`rfq_${rfqId}_admin`);
                     return;
                 }
 
-                // Check Direct RFQ
+                // The user's company comes from the database, never from a client-supplied value
+                let myCompanyId = null;
+                if (role === 'b2bAdmin' || role === 'b2bEmployee') {
+                    const me = await User.findById(uid).select('companyId').lean();
+                    myCompanyId = me?.companyId ? String(me.companyId) : null;
+                }
+
+                // Direct RFQ (employee <-> vendor)
                 const drfq = await DirectRFQ.findById(rfqId).select('employeeId vendorId companyId').lean();
                 if (drfq) {
-                    const isEmployee = drfq.employeeId?.toString() === socket.user.id;
-                    const isVendor = drfq.vendorId?.toString() === socket.user.id;
-                    const isCompany = socket.user.companyId && drfq.companyId && 
-                        (socket.user.companyId.toString() === drfq.companyId.toString());
-
-                    if (isEmployee || isVendor || isCompany || socket.user.role === 'b2bAdmin') {
+                    const isCreator = String(drfq.employeeId || '') === uid;
+                    const isCompanyAdmin = role === 'b2bAdmin' && myCompanyId && String(drfq.companyId || '') === myCompanyId;
+                    const isVendor = role === 'vendor' && String(drfq.vendorId || '') === uid;
+                    if (isCreator || isCompanyAdmin || isVendor) {
                         socket.join(`rfq_${rfqId}`);
                         return;
                     }
                 }
 
-                // Check Standard RFQ if exists
-                if (RFQ) {
-                    const rfq = await RFQ.findById(rfqId).select('userId assignedVendors').lean();
-                    if (rfq) {
-                        const isBuyer = rfq.userId?.toString() === socket.user.id;
-                        const isAssigned = (rfq.assignedVendors || []).some(
-                            v => (v?.vendorId?.toString() || v?.toString()) === socket.user.id
-                        );
-                        if (isBuyer || isAssigned) {
-                            socket.join(`rfq_${rfqId}`);
-                            return;
-                        }
+                // Managed (B2B sourcing) RFQ
+                const rfq = await RFQ.findById(rfqId).select('rfqType companyId createdByEmployeeId assignedVendorIds buyerId').lean();
+                if (rfq && rfq.rfqType !== 'consumer') {
+                    const isEmployeeOwner = role === 'b2bEmployee' && String(rfq.createdByEmployeeId || '') === uid;
+                    const isCompanyAdmin = role === 'b2bAdmin' && myCompanyId && String(rfq.companyId || '') === myCompanyId;
+                    if (isEmployeeOwner || isCompanyAdmin) {
+                        socket.join(`rfq_${rfqId}`);
+                        socket.join(`rfq_${rfqId}_b2b`); // buyer-team-only notes
+                        return;
+                    }
+                    const isAssignedVendor = role === 'vendor'
+                        && (rfq.assignedVendorIds || []).some((v) => String(v) === uid);
+                    if (isAssignedVendor) {
+                        // Vendors only ever get their own private line, never the shared RFQ room
+                        socket.join(`rfq_${rfqId}_vendor_${uid}`);
+                        return;
                     }
                 }
 
@@ -84,6 +110,8 @@ export const initSocket = (server) => {
         // Leave an RFQ room
         socket.on("leave_rfq_room", (rfqId) => {
             socket.leave(`rfq_${rfqId}`);
+            socket.leave(`rfq_${rfqId}_admin`);
+            if (socket.user?.id) socket.leave(`rfq_${rfqId}_vendor_${socket.user.id}`);
         });
 
         // ── Join a User room (Personal user room) ───────────────
@@ -109,7 +137,7 @@ export const initSocket = (server) => {
             }
 
             try {
-                if (socket.user.role === 'admin') {
+                if (['admin', 'superadmin'].includes(socket.user.role)) {
                     socket.join(`chat_${threadId}`);
                     return;
                 }

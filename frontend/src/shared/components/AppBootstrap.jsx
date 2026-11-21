@@ -252,12 +252,28 @@ const AppBootstrap = () => {
     };
     
     socket.on('return_status_updated', handleReturnUpdate);
-    
+
+    // Live alerts the server already sends: a seller / PLE support wrote to you, or your RFQ changed
+    const handleChatNotification = (data) => {
+      if (window.location.pathname.includes('/chat')) return; // already in the conversation
+      toast(`${data?.vendorName || 'PLE Support'}: ${String(data?.message || data?.lastMessage || '').slice(0, 80)}`, {
+        icon: '💬', duration: 5000, position: 'top-right',
+      });
+      window.dispatchEvent(new CustomEvent('chat-notification', { detail: data }));
+    };
+    const handleRfqUpdated = (data) => {
+      toast(data?.title || `RFQ ${data?.rfqId || ''} updated`, { icon: '🏷️', duration: 5000, position: 'top-right' });
+    };
+    socket.on('customer_chat_notification', handleChatNotification);
+    socket.on('consumer_rfq_updated', handleRfqUpdated);
+
     return () => {
       if (typeof unsubscribeForeground === 'function') {
         unsubscribeForeground();
       }
       socket.off('return_status_updated', handleReturnUpdate);
+      socket.off('customer_chat_notification', handleChatNotification);
+      socket.off('consumer_rfq_updated', handleRfqUpdated);
       socket.emit('leave_user_room', user.id);
     };
   }, [user?.id]);

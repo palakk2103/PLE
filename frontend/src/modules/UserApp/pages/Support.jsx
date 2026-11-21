@@ -21,6 +21,7 @@ import { useNavigate, Link } from "react-router-dom";
 import MobileLayout from "../components/Layout/MobileLayout";
 import PageTransition from "../../../shared/components/PageTransition";
 import toast from "react-hot-toast";
+import api from "../../../shared/utils/api";
 
 const CONTACT_INFO = {
   name: "Mohmmad Jain kankudti",
@@ -94,25 +95,24 @@ const UserSupport = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.message) {
       toast.error("Please fill in all required fields.");
       return;
     }
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      // Creates a real support ticket (works signed-in or as a visitor)
+      await api.post("/support/contact", formData);
       setSubmitted(true);
       toast.success("Your message has been received. Our support team will contact you shortly!");
-      setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        subject: "",
-        message: "",
-      });
-    }, 800);
+      setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
+    } catch (error) {
+      toast.error(error?.response?.data?.message || error?.message || "Could not send your message. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

@@ -17,6 +17,7 @@ import {
     buildReturnIdentifiers,
     getInvoiceNumberMap,
     escapeRegex,
+    isOrderFullyReturned,
 } from '../../../utils/returnMapping.js';
 
 const normalizeReturnRequest = (request, invoiceMap = new Map()) => {
@@ -225,6 +226,7 @@ export const updateReturnRequestStatus = asyncHandler(async (req, res) => {
         }
     }
 
+    const previousStatus = request.status;
     request.status = nextStatus;
     request.adminNote = nextAdminNote;
     if (refundStatus) request.refundStatus = nextRefundStatus;
@@ -239,12 +241,17 @@ export const updateReturnRequestStatus = asyncHandler(async (req, res) => {
         if (linkedOrderId) {
             const order = await Order.findById(linkedOrderId);
             if (order && order.isDeleted !== true) {
-                if (status === 'approved' && !['cancelled', 'returned'].includes(order.status)) {
+                // Only flip the order to "returned" once every unit is covered by an accepted return.
+                // A partial return (e.g. 2 of 5 units) leaves the order delivered so the rest stays usable.
+                if (status === 'approved' && !['cancelled', 'returned'].includes(order.status)
+                    && await isOrderFullyReturned(order)) {
                     order.status = 'returned';
                     await order.save();
                 }
 
-                if (status === 'completed') {
+                // Restore stock only on the transition INTO completed, so re-saving an
+                // already-completed return (e.g. processing its refund) can't add stock twice.
+                if (status === 'completed' && previousStatus !== 'completed') {
                     const stockRestores = (request.items || []).map(async (item) => {
                         const qty = Number(item?.quantity || 0);
                         if (!item?.productId || qty <= 0) return;

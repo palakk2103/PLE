@@ -10,6 +10,8 @@ import { getIO } from '../../../config/socket.js';
 import { moderateMessage, checkMultiMessageEvasion, MODERATION_ACTION } from '../../../services/chatModeration.service.js';
 import ChatViolation from '../../../models/ChatViolation.model.js';
 import ChatReport from '../../../models/ChatReport.model.js';
+import Notification from '../../../models/Notification.model.js';
+import { assertTextLength } from '../../../utils/chatLimits.js';
 import ChatTransactionProposal from '../../../models/ChatTransactionProposal.model.js';
 import { decryptMessage } from '../../../utils/chatEncryption.util.js';
 import { normalizeReportReason } from '../../../utils/chatReport.util.js';
@@ -26,7 +28,9 @@ export const initiateVendorChat = asyncHandler(async (req, res) => {
     if (!vendorId) throw new ApiError(400, 'Vendor ID is required.');
 
     const vendor = await Vendor.findById(vendorId);
-    if (!vendor) throw new ApiError(404, 'Vendor not found.');
+    if (!vendor || vendor.isDeleted || vendor.status !== 'approved') {
+        throw new ApiError(404, 'This seller is not available for chat.');
+    }
 
     // Find existing general chat thread for this user and vendor (no orderRef)
     let thread = await VendorChatThread.findOne({
@@ -62,6 +66,8 @@ export const getCustomerChatThreads = asyncHandler(async (req, res) => {
         if (threadObj.lastMessage) {
             threadObj.lastMessage = decryptMessage(threadObj.lastMessage);
         }
+        // The customer's own unread counter (the stored `unreadCount` belongs to the vendor side).
+        threadObj.unreadCount = threadObj.unreadCountCustomer || 0;
         return threadObj;
     });
 
@@ -84,6 +90,7 @@ export const getCustomerChatMessages = asyncHandler(async (req, res) => {
 export const sendCustomerChatMessage = asyncHandler(async (req, res) => {
     const message = String(req.body?.message || '').trim();
     if (!message) throw new ApiError(400, 'Message is required.');
+    assertTextLength(message);
 
     // 1. Account-level chat restriction check
     const user = await User.findById(req.user.id);
@@ -165,10 +172,11 @@ export const sendCustomerChatMessage = asyncHandler(async (req, res) => {
     const recentMsgs = await VendorChatMessage.find({
         threadId: thread._id,
         senderId: req.user.id,
-        createdAt: { $gte: new Date(Date.now() - 120000) }
-    }).sort({ createdAt: 1 }).limit(10);
+        // Look back a full day (not 2 minutes): a scammer can send half a number now and the rest later.
+        createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
+    }).sort({ createdAt: -1 }).limit(10); // the 10 NEWEST messages, restored to chronological order below
 
-    const evasionResult = checkMultiMessageEvasion(message, recentMsgs.map(m => m.message));
+    const evasionResult = checkMultiMessageEvasion(message, recentMsgs.reverse().map(m => m.message));
     if (evasionResult.action === MODERATION_ACTION.BLOCK) {
         try {
             await ChatViolation.create({
@@ -203,17 +211,35 @@ export const sendCustomerChatMessage = asyncHandler(async (req, res) => {
     thread.unreadCount += 1;
     await thread.save();
 
+    // Persistent notification for the vendor (unless they muted this chat)
+    if (!thread.vendorMuted) {
+        try {
+            await Notification.create({
+                recipientId: thread.vendorId,
+                recipientType: 'vendor',
+                title: `New message from ${req.user.name || 'a customer'}`,
+                message: message.length > 50 ? `${message.substring(0, 50)}...` : message,
+                type: 'chat',
+                data: { threadId: String(thread._id) },
+            });
+        } catch (nErr) {
+            console.warn('Failed to create vendor chat notification:', nErr.message);
+        }
+    }
+
     // Broadcast the message via Socket.io to the thread room
     try {
         const io = getIO();
         if (io) {
             io.to(`chat_${thread._id}`).emit('new_message', serializeMessage(created));
             // Also notify the vendor specifically in their user room
+            if (!thread.vendorMuted) {
             io.to(`user_${thread.vendorId}`).emit('vendor_chat_notification', {
                 threadId: thread._id,
                 customerName: req.user.name || 'Customer',
                 message,
             });
+            }
         }
     } catch (err) {
         console.warn('Socket broadcast failed:', err.message);
@@ -229,7 +255,10 @@ export const markCustomerChatRead = asyncHandler(async (req, res) => {
     });
     if (!thread) throw new ApiError(404, 'Chat thread not found.');
 
-    res.status(200).json(new ApiResponse(200, thread, 'Chat marked as read.'));
+    thread.unreadCountCustomer = 0;
+    await thread.save();
+
+    res.status(200).json(new ApiResponse(200, { unreadCount: 0 }, 'Chat marked as read.'));
 });
 
 // @desc    Report a chat message or vendor
@@ -274,12 +303,32 @@ export const toggleBlockCustomerChat = asyncHandler(async (req, res) => {
     });
     if (!thread) throw new ApiError(404, 'Chat thread not found.');
 
+    if (thread.isBlocked && thread.blockedBy && thread.blockedBy !== 'customer') {
+        throw new ApiError(403, 'This chat was blocked by the seller or by PLE support, so you cannot unblock it.');
+    }
+
     thread.isBlocked = !thread.isBlocked;
     thread.blockedBy = thread.isBlocked ? 'customer' : null;
     thread.blockReason = thread.isBlocked ? (req.body?.reason || 'Blocked by customer') : null;
     await thread.save();
 
     res.status(200).json(new ApiResponse(200, { isBlocked: thread.isBlocked }, thread.isBlocked ? 'Chat blocked.' : 'Chat unblocked.'));
+});
+
+// @desc    Customer closes or re-opens a conversation (a seller must not be able to silence a complaint)
+// @route   PATCH /api/user/chat/vendor/threads/:id/status
+export const updateCustomerChatStatus = asyncHandler(async (req, res) => {
+    const { status } = req.body;
+    if (!['active', 'closed'].includes(status)) throw new ApiError(400, 'Status must be active or closed.');
+    const thread = await VendorChatThread.findOne({ _id: req.params.id, customerUserId: req.user.id });
+    if (!thread) throw new ApiError(404, 'Chat thread not found.');
+    if (status === 'active' && thread.closedBy === 'admin') {
+        throw new ApiError(403, 'This conversation was closed by PLE support.');
+    }
+    thread.status = status;
+    thread.closedBy = status === 'closed' ? 'customer' : null;
+    await thread.save();
+    res.status(200).json(new ApiResponse(200, { status: thread.status }, status === 'closed' ? 'Conversation closed.' : 'Conversation re-opened.'));
 });
 
 // @desc    Mute/Unmute thread notifications
@@ -440,8 +489,14 @@ export const checkoutCustomerProposal = asyncHandler(async (req, res) => {
     });
     if (!proposal) throw new ApiError(404, 'Proposal not found.');
 
+    if (proposal.status === 'converted_to_order') {
+        throw new ApiError(409, 'This offer has already been ordered.');
+    }
     if (proposal.status !== 'accepted') {
         throw new ApiError(400, 'Only accepted proposals can be converted to checkout.');
+    }
+    if (!proposal.productId) {
+        throw new ApiError(400, 'This offer is not linked to a product. Please ask the seller to send it again.');
     }
 
     // Generate authoritative checkout item payload

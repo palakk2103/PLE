@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiSearch, FiX, FiClock } from 'react-icons/fi';
 import { getCatalogProducts } from '../../data/catalogData';
 import api from '../../../../shared/utils/api';
+import { useAuthStore } from '../../../../shared/store/authStore';
+import { getChannelParam } from '../../../../shared/utils/salesChannel';
 
 const SearchSuggestions = ({
   query,
@@ -43,7 +45,13 @@ const SearchSuggestions = ({
 
       try {
         const response = await api.get('/products', {
-          params: { q: trimmedQuery, page: 1, limit: 5, sort: 'rating' },
+          params: {
+            q: trimmedQuery,
+            page: 1,
+            limit: 5,
+            sort: 'rating',
+            channel: getChannelParam(useAuthStore.getState().user?.role),
+          },
         });
         const payload = response?.data ?? response;
         const products = Array.isArray(payload?.products) ? payload.products : [];

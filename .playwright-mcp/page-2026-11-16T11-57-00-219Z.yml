@@ -1,0 +1,137 @@
+- generic [ref=f11e339]:
+  - main [ref=f11e340]:
+    - generic [ref=f11e342]:
+      - generic [ref=f11e343]:
+        - heading "Order Confirmed!" [level=1] [ref=f11e348]
+        - paragraph [ref=f11e349]: Thank you for your purchase. Your order has been received and is being processed.
+      - generic [ref=f11e350]:
+        - generic [ref=f11e351]: 🎉
+        - generic [ref=f11e352]:
+          - heading "You earned 40 Loyalty Points!" [level=3] [ref=f11e353]
+          - paragraph [ref=f11e354]: Use these points on your next checkout to save money.
+      - generic [ref=f11e355]:
+        - generic [ref=f11e356]:
+          - paragraph [ref=f11e357]: Order Number
+          - paragraph [ref=f11e358]: ORD-1794830211148-6KGK
+          - paragraph [ref=f11e359]: Tracking Number
+          - paragraph [ref=f11e360]: TRK-4W0ZPA4FV2
+        - generic [ref=f11e361]:
+          - generic [ref=f11e362]:
+            - generic [ref=f11e363]: Order Date
+            - generic [ref=f11e364]: November 16, 2026
+          - generic [ref=f11e365]:
+            - generic [ref=f11e366]: Total Amount
+            - generic [ref=f11e367]: ₹944
+          - generic [ref=f11e368]:
+            - generic [ref=f11e369]: Payment Method
+            - generic [ref=f11e370]: cod
+          - generic [ref=f11e371]:
+            - generic [ref=f11e372]: Tax Invoice
+            - generic [ref=f11e373]:
+              - button "View" [ref=f11e374] [cursor=pointer]
+              - button "Download" [ref=f11e378] [cursor=pointer]
+      - generic [ref=f11e382]:
+        - heading "Order Items" [level=2] [ref=f11e383]
+        - generic [ref=f11e385]:
+          - generic [ref=f11e388]:
+            - heading "USB Wired Optical Mouse" [level=3] [ref=f11e389]
+            - paragraph [ref=f11e390]: ₹160 x 5
+          - paragraph [ref=f11e391]: ₹800
+      - generic [ref=f11e392]:
+        - generic [ref=f11e393]:
+          - button "View Invoice" [ref=f11e394] [cursor=pointer]
+          - button "Download PDF" [ref=f11e398] [cursor=pointer]
+        - link "View Order Details" [ref=f11e402] [cursor=pointer]:
+          - /url: /orders/ORD-1794830211148-6KGK
+        - link "Track Order" [ref=f11e407] [cursor=pointer]:
+          - /url: /track-order/ORD-1794830211148-6KGK
+        - button "Continue Shopping" [ref=f11e414] [cursor=pointer]
+  - contentinfo [ref=f11e415]:
+    - generic [ref=f11e417]:
+      - generic [ref=f11e418]:
+        - link "PLE Logo TM" [ref=f11e419] [cursor=pointer]:
+          - /url: /home
+          - generic [ref=f11e420]:
+            - img "PLE Logo" [ref=f11e421]
+            - generic [ref=f11e422]: TM
+        - paragraph [ref=f11e423]: Your destination for electronics across consumer, business, and specialized sourcing needs — from everyday tech and accessories to enterprise procurement solutions.
+        - generic [ref=f11e424]:
+          - link [ref=f11e425] [cursor=pointer]:
+            - /url: https://www.facebook.com/share/1EaNrat2yr/
+          - link [ref=f11e428] [cursor=pointer]:
+            - /url: https://www.instagram.com/peoplesleagueofelectronics?igsh=MWdtbTNzajdqMGV4cQ==
+          - link [ref=f11e432] [cursor=pointer]:
+            - /url: https://x.com/PeoplesE9405
+          - link [ref=f11e435] [cursor=pointer]:
+            - /url: https://www.linkedin.com/company/ple-electronics
+      - generic [ref=f11e440]:
+        - heading "Quick Links" [level=3] [ref=f11e441]
+        - list [ref=f11e442]:
+          - listitem [ref=f11e443]:
+            - link "Home" [ref=f11e444] [cursor=pointer]:
+              - /url: /home
+          - listitem [ref=f11e445]:
+            - link "Categories" [ref=f11e446] [cursor=pointer]:
+              - /url: /categories
+          - listitem [ref=f11e447]:
+            - link "Offers" [ref=f11e448] [cursor=pointer]:
+              - /url: /offers
+          - listitem [ref=f11e449]:
+            - link "Refurbished" [ref=f11e450] [cursor=pointer]:
+              - /url: /refurbished-categories
+          - listitem [ref=f11e451]:
+            - link "My Profile" [ref=f11e452] [cursor=pointer]:
+              - /url: /profile
+          - listitem [ref=f11e453]:
+            - link "About Us" [ref=f11e454] [cursor=pointer]:
+              - /url: /about-us
+      - generic [ref=f11e455]:
+        - heading "Customer Support" [level=3] [ref=f11e456]
+        - list [ref=f11e457]:
+          - listitem [ref=f11e458]:
+            - link "Help & Support" [ref=f11e459] [cursor=pointer]:
+              - /url: /help-support
+          - listitem [ref=f11e460]:
+            - link "Privacy Policy" [ref=f11e461] [cursor=pointer]:
+              - /url: /privacy-policy
+          - listitem [ref=f11e462]:
+            - link "Terms & Conditions" [ref=f11e463] [cursor=pointer]:
+              - /url: /terms-conditions
+          - listitem [ref=f11e464]:
+            - link "Return Policy" [ref=f11e465] [cursor=pointer]:
+              - /url: /return-policy
+          - listitem [ref=f11e466]:
+            - link "Warranty Policy" [ref=f11e467] [cursor=pointer]:
+              - /url: /warranty-policy
+          - listitem [ref=f11e468]:
+            - link "Business Onboarding Policy" [ref=f11e469] [cursor=pointer]:
+              - /url: /business-onboarding-policy
+          - listitem [ref=f11e470]:
+            - link "Execution & Acceptance Policy" [ref=f11e471] [cursor=pointer]:
+              - /url: /execution-acceptance-policy
+          - listitem [ref=f11e472]:
+            - link "Shipping and Delivery Policy" [ref=f11e473] [cursor=pointer]:
+              - /url: /shipping-and-delivery-policy
+          - listitem [ref=f11e474]:
+            - link "User Agreement" [ref=f11e475] [cursor=pointer]:
+              - /url: /user-agreement
+      - generic [ref=f11e476]:
+        - generic [ref=f11e477]:
+          - heading "Subscribe to Newsletter" [level=3] [ref=f11e478]
+          - paragraph [ref=f11e479]: Be the first to hear about special offers, new arrivals, and events.
+          - generic [ref=f11e480]:
+            - textbox "Enter email address" [ref=f11e481]
+            - button [ref=f11e482] [cursor=pointer]
+        - generic [ref=f11e486]:
+          - generic [ref=f11e487]: support@plebusiness.com
+          - generic [ref=f11e492]: +91 9071149100
+          - generic [ref=f11e496]: SHOP NO.25, R S NO.1045/3, 2ND CROSS, UJWAL NAGAR, Belgaum Fort, Karnataka, India,590016
+    - generic [ref=f11e502]:
+      - generic [ref=f11e503]: © 2026 PLE Inc. All rights reserved.
+      - generic [ref=f11e504]:
+        - link "Privacy" [ref=f11e505] [cursor=pointer]:
+          - /url: /privacy-policy
+        - link "Terms" [ref=f11e506] [cursor=pointer]:
+          - /url: /terms-conditions
+        - link "Sitemap" [ref=f11e507] [cursor=pointer]:
+          - /url: /help-support

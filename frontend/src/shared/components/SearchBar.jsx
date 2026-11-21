@@ -5,12 +5,15 @@ import { FiSearch, FiClock, FiTrendingUp } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getCatalogProducts } from '../../modules/UserApp/data/catalogData';
 import api from '../utils/api';
+import { useAuthStore } from '../store/authStore';
+import { getChannelParam } from '../utils/salesChannel';
 
 const RECENT_SEARCHES_KEY = 'recent-searches';
 const MAX_RECENT_SEARCHES = 5;
 const MAX_SUGGESTIONS = 5;
 
-const SearchBar = () => {
+const SearchBar = ({ variant = 'default' }) => {
+  const isDark = variant === 'dark';
   const [searchQuery, setSearchQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -100,7 +103,13 @@ const SearchBar = () => {
 
       try {
         const response = await api.get('/products', {
-          params: { q: searchQuery.trim(), page: 1, limit: MAX_SUGGESTIONS, sort: 'rating' },
+          params: {
+            q: searchQuery.trim(),
+            page: 1,
+            limit: MAX_SUGGESTIONS,
+            sort: 'rating',
+            channel: getChannelParam(useAuthStore.getState().user?.role),
+          },
         });
         const payload = response?.data ?? response;
         const products = Array.isArray(payload?.products) ? payload.products : [];
@@ -264,7 +273,7 @@ const SearchBar = () => {
     <div className="w-full relative" ref={searchRef}>
       <form onSubmit={handleSubmit} className="w-full">
         <div className="relative group">
-          <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-primary-500 transition-colors z-10" />
+          <FiSearch className={`absolute top-1/2 transform -translate-y-1/2 transition-colors z-10 ${isDark ? 'left-3 text-zinc-400 text-sm' : 'left-4 text-gray-400 group-focus-within:text-primary-500'}`} />
           <input
             ref={inputRef}
             type="text"
@@ -273,7 +282,9 @@ const SearchBar = () => {
             onFocus={handleInputFocus}
             onBlur={handleInputBlur}
             onKeyDown={handleKeyDown}
-            className="w-full pl-12 pr-4 md:pl-12 md:pr-4 py-3 glass-card rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:shadow-glow transition-all duration-300 text-gray-700 placeholder:text-gray-400"
+            className={isDark
+              ? 'w-full pl-9 pr-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-white focus:outline-none focus:border-zinc-600 transition-colors'
+              : 'w-full pl-12 pr-4 md:pl-12 md:pr-4 py-3 glass-card rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:shadow-glow transition-all duration-300 text-gray-700 placeholder:text-gray-400'}
           />
           {/* Animated placeholder overlay */}
           <motion.span
@@ -288,7 +299,7 @@ const SearchBar = () => {
                 ? { repeat: Infinity, repeatType: "loop", duration: 4, ease: "linear" } 
                 : { duration: 0 }
             }}
-            className="absolute inset-y-0 left-11 right-4 flex items-center justify-start text-gray-400 pointer-events-none z-10 whitespace-nowrap overflow-hidden text-ellipsis text-left text-sm"
+            className={`absolute inset-y-0 right-4 flex items-center justify-start pointer-events-none z-10 whitespace-nowrap overflow-hidden text-ellipsis text-left ${isDark ? 'left-9 text-zinc-500 text-xs' : 'left-11 text-gray-400 text-sm'}`}
           >
             {displayedPlaceholder}
           </motion.span>
@@ -319,7 +330,7 @@ const SearchBar = () => {
                   />
                   <div className="flex-1 text-left">
                     <p className="text-sm font-semibold text-gray-800">{suggestion.name}</p>
-                    <p className="text-xs text-gray-600">${suggestion.price.toFixed(2)}</p>
+                    <p className="text-xs text-gray-600">₹{suggestion.price.toFixed(2)}</p>
                   </div>
                 </button>
               ))}
