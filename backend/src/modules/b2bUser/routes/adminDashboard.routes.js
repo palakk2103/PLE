@@ -1,3 +1,4 @@
+import * as walletRequest from '../controllers/walletRequest.controller.js';
 import express from 'express';
 import { getDashboardOverview } from '../controllers/dashboard.controller.js';
 import { 
@@ -60,6 +61,11 @@ router.post('/employees', requireAdmin, createEmployee);
 router.put('/employees/:id', requireAdmin, updateEmployee);
 router.delete('/employees/:id', requireAdmin, deleteEmployee);
 router.post('/employees/:id/allot-wallet', requireAdmin, allotWalletFunds);
+
+// Employee wallet top-up requests (Admin only)
+router.get('/wallet-requests', requireAdmin, walletRequest.getCompanyWalletRequests);
+router.post('/wallet-requests/:id/approve', requireAdmin, walletRequest.approveWalletRequest);
+router.post('/wallet-requests/:id/reject', requireAdmin, walletRequest.rejectWalletRequest);
 
 // Vendors for dropdowns
 router.get('/vendors', rfqController.getVendorsForSourcing);

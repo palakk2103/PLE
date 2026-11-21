@@ -12,6 +12,7 @@ const B2BLegalDocuments = lazy(() => import("../modules/B2BAdmin/pages/LegalDocu
 const B2BAdminProfile = lazy(() => import("../modules/B2BAdmin/pages/AdminProfile"));
 const B2BEmployeeProfile = lazy(() => import("../modules/B2BAdmin/pages/EmployeeProfile"));
 const B2BEmployeePurchases = lazy(() => import("../modules/B2BAdmin/pages/EmployeePurchases"));
+const B2BWalletRequests = lazy(() => import("../modules/B2BAdmin/pages/WalletRequests"));
 const B2BActivityLogs = lazy(() => import("../modules/B2BAdmin/pages/ActivityLogs"));
 const B2BNotifications = lazy(() => import("../modules/B2BAdmin/pages/Notifications"));
 const B2BDashboardSettings = lazy(() => import("../modules/B2BAdmin/pages/Settings"));
@@ -52,6 +53,7 @@ export default function B2BRoutes() {
         <Route path="employees" element={<B2BEmployeeManagement />} />
         <Route path="employees/:id" element={<B2BEmployeeProfile />} />
         <Route path="employee-purchases" element={<B2BEmployeePurchases />} />
+        <Route path="wallet-requests" element={<B2BWalletRequests />} />
         <Route path="rfqs" element={<B2BRFQs />} />
         <Route path="rfqs/new" element={<B2BCreateRFQ />} />
         <Route path="rfqs/:id" element={<B2BRFQDetail />} />

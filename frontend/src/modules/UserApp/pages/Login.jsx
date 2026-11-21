@@ -123,7 +123,6 @@ const MobileLogin = ({ isB2BRoute }) => {
         return;
       }
 
-      console.log('Login submit start', data);
       try {
         const result = await login(data.email, data.password, rememberMe);
         if (result?.twoFactorRequired) {

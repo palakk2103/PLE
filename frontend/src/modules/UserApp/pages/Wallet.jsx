@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import EmployeeWalletRequests from "../components/B2B/EmployeeWalletRequests";
 import {
   FiDollarSign,
   FiTrendingUp,
@@ -48,6 +49,7 @@ const Wallet = () => {
 
   const isB2B = user?.role === 'b2bAdmin' || user?.role === 'b2bEmployee';
   const isEmployee = user?.role === 'b2bEmployee';
+  const [liveEmployeeBalance, setLiveEmployeeBalance] = useState(null);
 
   useEffect(() => {
     fetchWallet();
@@ -216,7 +218,7 @@ const Wallet = () => {
                     {isEmployee ? "Employee Allotted Balance" : "Company Wallet Balance"}
                   </p>
                   <h2 className="text-4xl font-extrabold tracking-tight">
-                    ₹{(isEmployee ? (user?.b2bWalletBalance ?? 0) : balance).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                    ₹{(isEmployee ? (liveEmployeeBalance ?? user?.b2bWalletBalance ?? 0) : balance).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                   </h2>
                 </div>
                 <div className="bg-white/20 p-2.5 rounded-2xl backdrop-blur-md">
@@ -247,10 +249,12 @@ const Wallet = () => {
               {isEmployee && (
                 <div className="mt-4 text-red-100/90 border-t border-white/10 pt-3 flex justify-between">
                   <span>Monthly Limit: {Number(user?.b2bSpendingLimit) > 0 ? `₹${Number(user.b2bSpendingLimit).toLocaleString("en-IN")}` : "Unlimited"}</span>
-                  <span>Contact admin to request balance allotment.</span>
+                  <span>Need more? Request funds below.</span>
                 </div>
               )}
             </div>
+
+            {isEmployee && <EmployeeWalletRequests onBalance={setLiveEmployeeBalance} />}
 
             {/* Quick stats row */}
             <div className="grid grid-cols-2 gap-4">

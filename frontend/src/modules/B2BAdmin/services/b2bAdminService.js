@@ -23,6 +23,11 @@ export const getEmployeeOrderDetail = (id, orderId) => api.get(`/b2b-user/admin/
 export const getEmployeeReturns = (id, params) => api.get(`/b2b-user/admin/employees/${id}/returns`, { params });
 export const getEmployeeWalletTransactions = (id, params) => api.get(`/b2b-user/admin/employees/${id}/wallet-transactions`, { params });
 
+// ─── Employee wallet requests ───────────────────────────────────────────────
+export const getWalletRequests = (params) => api.get('/b2b-user/admin/wallet-requests', { params });
+export const approveWalletRequest = (id, data) => api.post(`/b2b-user/admin/wallet-requests/${id}/approve`, data);
+export const rejectWalletRequest = (id, data) => api.post(`/b2b-user/admin/wallet-requests/${id}/reject`, data);
+
 // ─── Profiles ───────────────────────────────────────────────────────────────
 export const getCompanyProfile = () => api.get('/b2b-user/admin/company');
 export const updateCompanyProfile = (data) => api.put('/b2b-user/admin/company', data);

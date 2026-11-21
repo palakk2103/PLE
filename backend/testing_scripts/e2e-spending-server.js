@@ -1,7 +1,7 @@
 /**
- * Isolated backend for browser-testing B2B employee spending limits.
+ * Isolated backend for browser-testing B2B employee spending limits and wallet requests.
  * In-memory MongoDB; nothing external is touched.
- *   - Company admin  asha@example.com / Passw0rd!  (b2bAdmin)
+ *   - Company admin  asha@example.com / Passw0rd!  (b2bAdmin, company wallet ₹10,000)
  *   - Employee       ravi@example.com / Passw0rd!  monthly limit ₹8,000, per-order ₹5,000,
  *                    already spent ₹4,720 this month, wallet ₹20,000
  *   - Product "Office Chair" ₹1,000 + 18% GST
@@ -28,6 +28,7 @@ const companyId = new mongoose.Types.ObjectId();
 await mongoose.connection.collection('b2bcompanies').insertOne({ _id: companyId, companyName: 'Acme Pvt Ltd', businessEmail: 'asha@example.com', verificationStatus: 'Approved', isActive: true, createdAt: new Date(), updatedAt: new Date() });
 const admin = await User.create({ name: 'Asha Admin', firstName: 'Asha', lastName: 'Admin', email: 'asha@example.com', password: PASSWORD, phone: '9000000010', isVerified: true, isActive: true, role: 'b2bAdmin', companyId, companyName: 'Acme Pvt Ltd' });
 const emp = await User.create({ name: 'Ravi Staff', firstName: 'Ravi', lastName: 'Staff', email: 'ravi@example.com', password: PASSWORD, phone: '9000000011', isVerified: true, isActive: true, role: 'b2bEmployee', companyId, companyName: 'Acme Pvt Ltd', b2bWalletBalance: 20000, b2bSpendingLimit: 8000, b2bPerOrderSpendingLimit: 5000, department: 'Ops', designation: 'Buyer' });
+await mongoose.connection.collection('wallets').insertOne({ userId: admin._id, balance: 10000, totalCredit: 10000, totalDebit: 0, isFrozen: false, createdAt: new Date(), updatedAt: new Date() });
 await Address.create({ userId: emp._id, name: 'Office', fullName: 'Ravi Staff', phone: '9000000011', address: '1 FC Road', city: 'Pune', state: 'Maharashtra', zipCode: '411004', country: 'India', isDefault: true });
 const vendor = await Vendor.create({ name: 'Volt', email: 'volt@example.com', password: PASSWORD, storeName: 'Volt Supplies', status: 'approved', isVerified: true, gstNumber: '27ABCDE1234F1Z5', shippingEnabled: false });
 const cat = await Category.create({ name: 'Furniture', slug: 'furniture', isActive: true });

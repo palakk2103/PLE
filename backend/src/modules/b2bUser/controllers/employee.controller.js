@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import asyncHandler from '../../../utils/asyncHandler.js';
 import { parseLimitInput } from '../../../services/b2bSpendingLimit.service.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
@@ -21,40 +22,61 @@ export const getCompanyId = async (req) => {
 
 /**
  * Move funds from the B2B admin's wallet to an employee's spendable balance,
- * recording it on both ledgers. Returns the admin's updated wallet.
+ * recording it on both ledgers in one transaction. Returns { adminWallet, creditTransaction }.
  * Throws (before crediting anything) if the admin wallet can't cover it.
  */
-const transferFundsToEmployee = async ({ adminId, employee, companyId, amount }) => {
-    const { wallet: adminWallet } = await walletService.debitWallet({
-        userId: adminId,
-        amount,
-        category: 'transfer_out',
-        description: `Allotted funds to employee: ${employee.name}`
-    });
+export const transferFundsToEmployee = async ({ adminId, employee, companyId, amount, description, session: outerSession = null }) => {
+    const run = async (session) => {
+        const { wallet: adminWallet } = await walletService.debitWallet({
+            userId: adminId,
+            amount,
+            category: 'transfer_out',
+            description: description || `Allotted funds to employee: ${employee.name}`,
+            session,
+        });
 
-    employee.b2bWalletBalance = parseFloat(((employee.b2bWalletBalance || 0) + amount).toFixed(2));
-    await employee.save();
+        // Atomic increment: never overwrite a balance changed by a concurrent order/refund.
+        const updated = await User.findOneAndUpdate(
+            { _id: employee._id, role: 'b2bEmployee' },
+            { $inc: { b2bWalletBalance: amount } },
+            { new: true, session, projection: { b2bWalletBalance: 1 } }
+        );
+        if (!updated) throw new ApiError(404, 'Employee not found.');
+        const newBalance = parseFloat(Number(updated.b2bWalletBalance || 0).toFixed(2));
+        employee.b2bWalletBalance = newBalance;
 
-    // Mirror on the employee's Wallet and record the credit on their own ledger
-    const employeeWallet = await walletService.getOrCreateWallet(employee._id);
-    employeeWallet.balance = employee.b2bWalletBalance;
-    employeeWallet.totalCredit = parseFloat(((employeeWallet.totalCredit || 0) + amount).toFixed(2));
-    await employeeWallet.save();
+        // Mirror on the employee's Wallet and record the credit on their own ledger
+        const employeeWallet = await walletService.getOrCreateWallet(employee._id, session);
+        employeeWallet.balance = newBalance;
+        employeeWallet.totalCredit = parseFloat(((employeeWallet.totalCredit || 0) + amount).toFixed(2));
+        await employeeWallet.save({ session });
 
-    await WalletTransaction.create({
-        walletId: employeeWallet._id,
-        userId: employee._id,
-        companyId,
-        performedBy: adminId,
-        type: 'credit',
-        transactionCategory: 'b2b_allotment',
-        amount,
-        balanceAfterTransaction: employee.b2bWalletBalance,
-        description: 'Funds allotted by company admin',
-        status: 'completed'
-    });
+        const [tx] = await WalletTransaction.create([{
+            walletId: employeeWallet._id,
+            userId: employee._id,
+            companyId,
+            performedBy: adminId,
+            type: 'credit',
+            transactionCategory: 'b2b_allotment',
+            amount,
+            balanceAfterTransaction: newBalance,
+            description: description || 'Funds allotted by company admin',
+            status: 'completed'
+        }], { session });
 
-    return adminWallet;
+        return { adminWallet, creditTransaction: tx };
+    };
+
+    // Debit + credit + ledger entries succeed or fail together.
+    if (outerSession) return run(outerSession);
+    const session = await mongoose.startSession();
+    try {
+        let result;
+        await session.withTransaction(async () => { result = await run(session); });
+        return result;
+    } finally {
+        await session.endSession();
+    }
 };
 
 // Fields a B2B admin may change via "Edit employee". The wallet balance is
@@ -283,7 +305,7 @@ export const allotWalletFunds = asyncHandler(async (req, res) => {
         throw new ApiError(404, 'Employee not found or unauthorized.');
     }
 
-    const adminWallet = await transferFundsToEmployee({ adminId: req.user.id, employee, companyId, amount });
+    const { adminWallet } = await transferFundsToEmployee({ adminId: req.user.id, employee, companyId, amount });
 
     res.status(200).json(new ApiResponse(200, {
         adminBalance: adminWallet.balance,
