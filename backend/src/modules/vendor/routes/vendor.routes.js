@@ -15,6 +15,7 @@ import * as returnController from '../controllers/return.controller.js';
 import * as reviewController from '../controllers/review.controller.js';
 import * as shippingController from '../controllers/shipping.controller.js';
 import * as uploadController from '../controllers/upload.controller.js';
+import * as storeProfileController from '../controllers/storeProfile.controller.js';
 import * as vendorPurchaseOrderController from '../controllers/vendorPurchaseOrder.controller.js';
 import * as businessProfileController from '../controllers/businessProfile.controller.js';
 import * as b2bApplicationController from '../controllers/b2bApplication.controller.js';
@@ -144,6 +145,8 @@ router.patch('/chat/threads/:id/proposal/:proposalId/cancel', ...strictVendorAut
 // Documents
 router.get('/documents', ...strictVendorAuth, documentController.getVendorDocuments);
 router.post('/documents', ...strictVendorAuth, uploadDocumentSingle('file'), documentController.createVendorDocument);
+router.get('/store-profile', ...vendorAuth, storeProfileController.getStoreProfile);
+router.put('/store-profile', ...vendorAuth, storeProfileController.updateStoreProfile);
 router.put('/documents/:id', ...strictVendorAuth, uploadDocumentSingle('file'), documentController.replaceVendorDocument);
 router.delete('/documents/:id', ...strictVendorAuth, documentController.deleteVendorDocument);
 

@@ -3,13 +3,16 @@ import { FiSave, FiImage, FiGlobe, FiShoppingBag, FiShield } from "react-icons/f
 import { motion } from "framer-motion";
 import { useVendorAuthStore } from "../../store/vendorAuthStore";
 import AnimatedSelect from "../../../Admin/components/AnimatedSelect";
+import StoreAppearance from "../../components/settings/StoreAppearance";
+import OTPVerificationModal from "../../../../shared/components/OTPVerificationModal";
 import toast from "react-hot-toast";
 
 const StoreSettings = () => {
-  const { vendor, updateProfile } = useVendorAuthStore();
+  const { vendor, updateProfile, verifyProfileOTP, resendProfileOTP } = useVendorAuthStore();
+  const [pendingUpdateId, setPendingUpdateId] = useState(null);
   const isManaged = vendor?.role === 'managed_vendor';
   const [formData, setFormData] = useState({});
-  const [activeSection, setActiveSection] = useState("identity");
+  const [activeSection, setActiveSection] = useState("storefront");
 
   useEffect(() => {
     if (vendor) {
@@ -81,20 +84,27 @@ const StoreSettings = () => {
       }
 
       // Only send fields accepted by PUT /vendor/auth/profile
-      await updateProfile({
+      const res = await updateProfile({
         storeName: formData.storeName,
         storeLogo: formData.storeLogo,
         storeDescription: formData.storeDescription,
         phone: formData.phone,
         address: addressData,
       });
-      toast.success("Store settings saved successfully");
+      // The server only applies these changes after the emailed code is entered
+      if (res?.pendingUpdateId) {
+        setPendingUpdateId(res.pendingUpdateId);
+        toast.success("We emailed you a code. Enter it to save your changes.");
+      } else {
+        toast.success("Store settings saved successfully");
+      }
     } catch {
       // api.js shows toast
     }
   };
 
   const sections = [
+    { id: "storefront", label: "Storefront", icon: FiImage },
     { id: "identity", label: "Store Identity", icon: FiShoppingBag },
     { id: "contact", label: "Contact Info", icon: FiGlobe },
     { id: "social", label: "Social Media", icon: FiImage },
@@ -145,6 +155,9 @@ const StoreSettings = () => {
           </div>
         </div>
 
+        {activeSection === "storefront" ? (
+          <StoreAppearance isManaged={isManaged} />
+        ) : (
         <form onSubmit={handleSubmit} className="p-3 sm:p-4 md:p-6">
           {isManaged && (
             <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40 rounded-lg text-amber-800 dark:text-amber-200 flex items-start gap-3">
@@ -394,7 +407,22 @@ const StoreSettings = () => {
             </div>
           )}
         </form>
+        )}
       </div>
+      <OTPVerificationModal
+        isOpen={!!pendingUpdateId}
+        onClose={() => setPendingUpdateId(null)}
+        email={vendor?.email}
+        onVerify={async (otp) => {
+          await verifyProfileOTP(pendingUpdateId, otp);
+          setPendingUpdateId(null);
+          toast.success("Store settings saved successfully");
+        }}
+        onResend={async () => {
+          await resendProfileOTP(pendingUpdateId);
+          toast.success("Code resent. Check your email.");
+        }}
+      />
     </motion.div>
   );
 };

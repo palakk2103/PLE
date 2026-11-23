@@ -15,6 +15,7 @@ import toast from "react-hot-toast";
 import { useAuthStore } from "../../../shared/store/authStore";
 import { useB2bStore } from "../../../shared/store/b2bStore";
 import { useSafeBack } from "../../../shared/hooks/useSafeBack";
+import StorefrontPreview from "../../Vendor/components/settings/StorefrontPreview";
 
 const normalizeVendor = (raw) => ({
     ...raw,
@@ -57,10 +58,11 @@ const Seller = () => {
     const [isInitiatingChat, setIsInitiatingChat] = useState(false);
 
     // Get vendor information
-    const vendor = useMemo(
-        () => getVendorById(vendorId) || remoteVendor,
-        [vendorId, catalogVersion, remoteVendor]
-    );
+    // The live API copy wins: it carries the vendor's current theme, logo and business details
+    const vendor = useMemo(() => {
+        const cached = getVendorById(vendorId);
+        return remoteVendor ? { ...(cached || {}), ...remoteVendor } : cached;
+    }, [vendorId, catalogVersion, remoteVendor]);
 
     const [showFilters, setShowFilters] = useState(false);
     const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
@@ -455,46 +457,21 @@ const Seller = () => {
                                 </div>
                             </div>
 
-                            {/* Vendor Profile Card */}
-                            <div className="bg-gray-50 rounded-xl p-3 md:p-4 flex flex-col items-center text-center gap-3">
-                                <div className="w-20 h-20 rounded-full bg-white p-1 shadow-sm overflow-hidden">
-                                    <LazyImage
-                                        src={vendor.storeLogo}
-                                        alt={vendor.storeName || vendor.name}
-                                        className="w-full h-full object-cover rounded-full"
-                                        onError={(e) => {
-                                            e.target.src = getPlaceholderImage(80, 80, (vendor.storeName || vendor.name).charAt(0));
-                                        }}
-                                    />
-                                </div>
-                                <div>
-                                    <div className="flex items-center justify-center gap-1 mb-1">
-                                        <h2 className="font-bold text-gray-800 text-lg">{vendor.storeName || vendor.name}</h2>
-                                        {vendor.isVerified && <FiCheckCircle className="text-blue-500 text-sm" />}
-                                    </div>
-                                    <div className="flex items-center justify-center gap-4 text-sm text-gray-600">
-                                        <div className="flex items-center gap-1">
-                                            <FiStar className="text-yellow-500 fill-yellow-500" />
-                                            <span>{vendor.rating} Ratings</span>
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            <FiShoppingBag className="text-gray-500" />
-                                            <span>{vendorProducts.length} Products</span>
-                                        </div>
-                                    </div>
-                                    {isB2BUser && (
-                                        <button
-                                            type="button"
-                                            onClick={handleChatWithStore}
-                                            disabled={isInitiatingChat}
-                                            className="mt-3 relative z-10 flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#9B1C1C] via-[#7B0A0A] to-[#4C0505] text-white font-bold rounded-xl shadow-md hover:shadow-lg active:scale-95 transition-all duration-200 text-xs cursor-pointer disabled:opacity-50"
-                                        >
-                                            <FiMessageSquare className="text-sm" />
-                                            <span>{isInitiatingChat ? "Connecting..." : "Chat with Store"}</span>
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
+                            {/* Vendor storefront: theme, banner, real name, GST and address come from the Vendor Panel */}
+                            <StorefrontPreview vendor={vendor} rating={vendor.rating} productCount={vendorProducts.length}>
+                                {isB2BUser && (
+                                    <button
+                                        type="button"
+                                        onClick={handleChatWithStore}
+                                        disabled={isInitiatingChat}
+                                        className="mt-3 relative z-10 flex items-center justify-center gap-2 px-5 py-2.5 text-white font-bold rounded-xl shadow-md hover:shadow-lg active:scale-95 transition-all duration-200 text-xs cursor-pointer disabled:opacity-50"
+                                        style={{ background: vendor?.storeProfile?.theme?.primaryColor || '#7B0A0A' }}
+                                    >
+                                        <FiMessageSquare className="text-sm" />
+                                        <span>{isInitiatingChat ? "Connecting..." : "Chat with Store"}</span>
+                                    </button>
+                                )}
+                            </StorefrontPreview>
                         </div>
                     </div>
 

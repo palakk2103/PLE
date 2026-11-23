@@ -27,6 +27,7 @@ import { optionalAuth } from '../middlewares/authenticate.js';
 import { resolveProductGST } from '../utils/gstUtils.js';
 import { resolveSpecTemplate } from '../services/productSpecs.service.js';
 import { moderateMessage, MODERATION_ACTION } from '../services/chatModeration.service.js';
+import { buildPublicStoreProfile } from '../services/vendorStoreProfile.service.js';
 import rateLimit from 'express-rate-limit';
 import SupportTicket from '../models/SupportTicket.model.js';
 import { generateTicketNumber, notifyAdmins } from '../services/supportTicket.service.js';
@@ -115,7 +116,7 @@ const PUBLIC_VENDOR_FIELDS = [
     'isManagedShop', 'id',
 ];
 
-const toPublicVendor = (vendorDoc) => {
+const toPublicVendor = (vendorDoc, { detail = false } = {}) => {
     const vendor = typeof vendorDoc?.toObject === 'function'
         ? vendorDoc.toObject()
         : (vendorDoc || {});
@@ -132,6 +133,9 @@ const toPublicVendor = (vendorDoc) => {
             : '';
         safe.description = safe.storeDescription;
     }
+    // The single seller page also shows the vendor's chosen theme and verified business details
+    // (real name, GST number, address). Still no phone / email / PAN / bank / documents.
+    if (detail) safe.storeProfile = buildPublicStoreProfile(vendor);
     return safe;
 };
 
@@ -652,7 +656,7 @@ router.get('/vendors/:id', asyncHandler(async (req, res) => {
     }).lean();
     if (seller) {
         seller = {
-            ...toPublicVendor(seller),
+            ...toPublicVendor(seller, { detail: true }),
             id: String(seller._id),
             totalProducts: await Product.countDocuments({ vendorId: seller._id, isActive: true, ...publicApprovalFilter() }),
         };

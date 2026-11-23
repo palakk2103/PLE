@@ -13,6 +13,17 @@ const vendorSchema = new mongoose.Schema(
         storeName: { type: String, required: true },
         storeLogo: { type: String },
         storeDescription: { type: String },
+        // Public storefront appearance (what customers see on the seller page)
+        storeProfile: {
+            tagline: { type: String, default: '', maxlength: 100 },
+            about: { type: String, default: '', maxlength: 1500 },
+            bannerUrl: { type: String, default: '' },
+            businessHours: { type: String, default: '', maxlength: 100 },
+            theme: {
+                primaryColor: { type: String, default: '#7B0A0A' },
+                accentColor: { type: String, default: '#F59E0B' },
+            },
+        },
         status: {
             type: String,
             enum: ['pending', 'approved', 'suspended', 'rejected', 'deleted'],
