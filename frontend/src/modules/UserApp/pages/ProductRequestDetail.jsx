@@ -234,7 +234,9 @@ const ProductRequestDetail = () => {
       ? ["Submitted", "Vendor Window Open", "Vendor Accepted", "Quotation Submitted", "Quotation Approved", "Completed"]
       : ["Submitted", "Under Review", "Vendor Sourcing", "Final Proposal", "Confirmed"];
 
-    const currentIndex = order.indexOf(request.status);
+    // a paid/confirmed proposal in the vendor-window flow = approved, awaiting fulfilment
+    const currentStatus = isVendorWindowFlow && request.status === "Confirmed" ? "Quotation Approved" : request.status;
+    const currentIndex = order.indexOf(currentStatus);
     const stepIndex = order.indexOf(stepName);
 
     if (currentIndex >= stepIndex) return "completed";
