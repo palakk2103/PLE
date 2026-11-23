@@ -1,4 +1,5 @@
 import { applyLegacyUpdate } from '../../../services/vendorBankAccounts.service.js';
+import { clearVendorDraft } from './registrationDraft.controller.js';
 import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
@@ -212,6 +213,8 @@ export const register = asyncHandler(async (req, res) => {
             )
         );
     }).catch(() => {});
+
+    await clearVendorDraft(vendor.email);
 
     res.status(201).json(new ApiResponse(201, { email: vendor.email }, 'Registration submitted. Please verify your email and await admin approval.'));
 });

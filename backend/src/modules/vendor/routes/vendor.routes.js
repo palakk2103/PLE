@@ -23,7 +23,8 @@ import * as productNegotiationController from '../controllers/productNegotiation
 import * as accountDeletionController from '../controllers/accountDeletion.controller.js';
 import { authenticate } from '../../../middlewares/authenticate.js';
 import { authorize, enforceAccountStatus } from '../../../middlewares/authorize.js';
-import { authLimiter, chatLimiter } from '../../../middlewares/rateLimiter.js';
+import { authLimiter, chatLimiter, otpLimiter } from '../../../middlewares/rateLimiter.js';
+import * as draftController from '../controllers/registrationDraft.controller.js';
 import { validate } from '../../../middlewares/validate.js';
 import {
     registerSchema,
@@ -48,6 +49,14 @@ const vendorAuth = [authenticate, authorize('vendor', 'managed_vendor'), enforce
 const strictVendorAuth = [authenticate, authorize('vendor', 'managed_vendor'), enforceAccountStatus];
 
 // Auth
+// Registration drafts: save the form, resume by emailed code or single-use link
+router.post('/auth/draft/save', authLimiter, draftController.saveDraft);
+router.post('/auth/draft/request-otp', otpLimiter, draftController.requestDraftOtp);
+router.post('/auth/draft/verify-otp', authLimiter, draftController.verifyDraftOtp);
+router.post('/auth/draft/load', authLimiter, draftController.loadDraft);
+router.post('/auth/draft/discard', authLimiter, draftController.discardDraft);
+router.post('/auth/draft/send-link', otpLimiter, draftController.sendDraftResumeLink);
+router.post('/auth/draft/resume-link', otpLimiter, draftController.resumeDraftFromLink);
 router.post('/auth/register', authLimiter, uploadVendorRegistrationDocs(), validate(registerSchema), authController.register);
 router.post('/auth/verify-otp', validate(verifyOtpSchema), authController.verifyOTP);
 router.post('/auth/resend-otp', validate(resendOtpSchema), authController.resendOTP);

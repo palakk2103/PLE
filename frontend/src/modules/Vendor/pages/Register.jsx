@@ -6,6 +6,7 @@ import { useVendorAuthStore } from "../store/vendorAuthStore";
 import toast from 'react-hot-toast';
 import api from '../../../shared/utils/api';
 import { getDownloadUrl } from '../../../shared/utils/documentUrl';
+import VendorDraftBar, { clearVendorDraftSession } from '../components/VendorDraftBar';
 
 const VendorRegister = () => {
   const navigate = useNavigate();
@@ -393,6 +394,7 @@ const VendorRegister = () => {
     try {
       const result = await registerVendor(data);
       toast.success(result.message || 'Registration successful!');
+      clearVendorDraftSession();
       navigate('/vendor/verification', { state: { email: formData.email } });
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message || 'Registration failed. Please try again.';
@@ -424,6 +426,18 @@ const VendorRegister = () => {
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-800 mb-1.5 sm:mb-2">Become a Vendor</h1>
           <p className="text-xs sm:text-sm text-gray-600">Register your store, verify your email, then await admin approval</p>
         </div>
+
+        {/* Save as draft / resume (emailed link or code) */}
+        <VendorDraftBar
+          formData={formData}
+          onRestore={(saved) => setFormData((prev) => ({
+            ...prev,
+            ...saved,
+            address: { ...prev.address, ...(saved.address || {}) },
+            // never restored: re-entered by the vendor
+            password: '', confirmPassword: '', bankAccountNumber: '', confirmAccountNumber: '',
+          }))}
+        />
 
         {/* Registration Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
