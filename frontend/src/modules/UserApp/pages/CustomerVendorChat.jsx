@@ -95,7 +95,7 @@ const CustomerVendorChat = () => {
         try {
           const propRes = await api.get(`/user/chat/vendor/threads/${threadId}/proposal`);
           if (active) {
-            setProposal(propRes?.data?.data || null);
+            setProposal(propRes?.data?.data || propRes?.data || null);
           }
         } catch {
           // No proposal yet or fetch error
@@ -173,7 +173,7 @@ const CustomerVendorChat = () => {
       const res = await api.post(`/user/chat/vendor/threads/${threadId}/proposal/${proposalId}/respond`, {
         action: "ACCEPT",
       });
-      const updated = res?.data?.data;
+      const updated = res?.data?.data || res?.data;
       setProposal(updated);
       toast.success("Proposal accepted! You can proceed to official checkout.");
     } catch (err) {
@@ -191,7 +191,7 @@ const CustomerVendorChat = () => {
         action: "REJECT",
         rejectionReason: reason,
       });
-      const updated = res?.data?.data;
+      const updated = res?.data?.data || res?.data;
       setProposal(updated);
       toast.success("Proposal declined.");
     } catch (err) {
@@ -205,7 +205,7 @@ const CustomerVendorChat = () => {
     try {
       setSubmittingAction(true);
       const res = await api.post(`/user/chat/vendor/threads/${threadId}/proposal/${proposalObj._id}/checkout`);
-      const checkoutPayload = res?.data?.data;
+      const checkoutPayload = res?.data?.data || res?.data;
       navigate("/checkout", { state: { proposalCheckout: checkoutPayload } });
     } catch (err) {
       toast.error(err?.response?.data?.message || "Failed to prepare official checkout.");
