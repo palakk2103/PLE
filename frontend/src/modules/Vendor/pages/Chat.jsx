@@ -567,7 +567,7 @@ const Chat = () => {
                       </h3>
                       <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
                         {selectedChat.productRequestId ? (
-                          <span className="text-indigo-600 font-semibold">📦 Product Request: {selectedChat.productRequestId}</span>
+                          <span className="text-indigo-600 font-semibold">📦 Source Now: {selectedChat.productRequestId}</span>
                         ) : selectedChat.productName ? (
                           <span className="text-primary-700 font-semibold">🛍️ Enquiry about {selectedChat.productName}</span>
                         ) : selectedChat.orderDisplayId ? (

@@ -569,7 +569,7 @@ const Seller = () => {
                                 onClick={() => navigate(`/product-request/new?targetType=Vendor&targetId=${vendorId}&targetName=${encodeURIComponent(vendor.storeName || vendor.name)}`)}
                                 className="px-6 py-3 bg-[#7B0A0A] hover:bg-[#AE020B] text-white rounded-xl font-bold text-sm shadow-md transition-all active:scale-95 duration-200"
                             >
-                                Request Product
+                                Source Now
                             </button>
                         </div>
                     </div>

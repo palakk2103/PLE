@@ -168,7 +168,7 @@ const ProductRequestForm = () => {
           <FiArrowLeft className="text-xl text-gray-700" />
         </button>
         <div>
-          <h1 className="text-2xl font-extrabold text-gray-800">Request a Product</h1>
+          <h1 className="text-2xl font-extrabold text-gray-800">Source Now</h1>
           <p className="text-sm text-gray-500 mt-0.5">Let us know what product you are looking for</p>
         </div>
       </div>

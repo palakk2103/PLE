@@ -124,10 +124,10 @@ const InvoiceModal = ({ isOpen, onClose, orderId, role = 'customer' }) => {
         };
       case 'product_request':
         return {
-          title: 'Product Request Order',
-          badgeText: 'Product Request Order',
+          title: 'Source Now Order',
+          badgeText: 'Source Now Order',
           badgeClass: 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border-amber-300 dark:border-amber-800',
-          label: 'Invoice Type: Product Request Order',
+          label: 'Invoice Type: Source Now Order',
         };
       case 'rfq':
         return {
@@ -398,10 +398,10 @@ const InvoiceModal = ({ isOpen, onClose, orderId, role = 'customer' }) => {
                   <div className="p-4 rounded-xl bg-amber-50/90 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 text-xs text-amber-900 dark:text-amber-200 space-y-2">
                     <div className="flex items-center gap-2 font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
                       <FiLayers className="w-4 h-4 text-amber-600" />
-                      <span>Origin: Product Request Order</span>
+                      <span>Origin: Source Now Order</span>
                     </div>
                     <p className="text-[11px] text-amber-700 dark:text-amber-300">
-                      This purchase originated from a custom Product Request workflow.
+                      This purchase originated from a custom Source Now workflow.
                     </p>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 border-t border-amber-200/60 dark:border-amber-800/40 text-[11px]">
                       <div>

@@ -909,7 +909,7 @@ const MobileHome = () => {
                         onClick={() => navigate("/product-request/new")}
                         className="bg-[#ffffff] dark:!bg-[#7B0A0A] text-gray-900 dark:text-white font-bold py-3.5 px-10 rounded-xl w-full hover:bg-gray-100 dark:hover:!bg-[#AE020B] transition-all transform hover:-translate-y-1 shadow-lg hover:shadow-xl uppercase tracking-widest text-sm"
                       >
-                        Request Product
+                        Source Now
                       </button>
                     </div>
                   </div>
@@ -938,7 +938,7 @@ const MobileHome = () => {
                   }}
                 >
                   <FiEdit3 className="text-base shrink-0" />
-                  <span>Request Product</span>
+                  <span>Source Now</span>
                 </button>
               </div>
 

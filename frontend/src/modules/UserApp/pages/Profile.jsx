@@ -509,7 +509,7 @@ const MobileProfile = () => {
         },
         {
           id: "product-requests",
-          label: "Product Requests",
+          label: "Source Now",
           icon: FiLayers,
           color: "text-[#7B0A0A]",
           bg: "bg-[#7B0A0A]/10",
@@ -590,7 +590,7 @@ const MobileProfile = () => {
       },
       {
         id: "product-requests",
-        label: "My Product Requests",
+        label: "My Source Now Requests",
         icon: FiFileText,
         color: "text-[#7B0A0A]",
         bg: "bg-[#7B0A0A]/10",

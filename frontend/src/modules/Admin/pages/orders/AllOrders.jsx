@@ -833,7 +833,7 @@ const AllOrders = () => {
               { value: "all", label: "All Types" },
               { value: "b2c", label: "B2C Orders" },
               { value: "b2b", label: "B2B / Bulk" },
-              { value: "product_request", label: "Product Request" },
+              { value: "product_request", label: "Source Now" },
               { value: "rfq", label: "RFQ Orders" },
             ]}
             className="w-full sm:w-auto min-w-[140px]"

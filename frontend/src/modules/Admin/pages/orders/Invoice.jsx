@@ -144,7 +144,7 @@ const Invoice = () => {
         };
       case 'product_request':
         return {
-          title: 'Product Request Order',
+          title: 'Source Now Order',
           badgeClass: 'bg-amber-100 text-amber-800 border border-amber-300',
         };
       case 'rfq':
@@ -324,9 +324,9 @@ const Invoice = () => {
         {order.orderType === 'product_request' && (
           <div className="mb-8 p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1.5">
             <div className="font-bold uppercase tracking-wider text-amber-800">
-              Origin: Product Request Order
+              Origin: Source Now Order
             </div>
-            <p className="text-amber-700">This purchase originated from a custom Product Request workflow.</p>
+            <p className="text-amber-700">This purchase originated from a custom Source Now workflow.</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1 border-t border-amber-200 text-[11px]">
               <div>
                 <span className="text-amber-600 block font-medium">Request Ref ID:</span>

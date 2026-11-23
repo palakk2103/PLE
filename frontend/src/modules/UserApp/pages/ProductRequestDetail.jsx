@@ -190,7 +190,7 @@ const ProductRequestDetail = () => {
             className="mt-4 inline-flex items-center gap-2 px-6 py-2.5 bg-[#7B0A0A] hover:bg-[#AE020B] text-white rounded-xl font-bold text-sm transition-colors shadow-sm"
           >
             <FiArrowLeft />
-            <span>Back to Product Requests</span>
+            <span>Back to Source Now</span>
           </button>
         </div>
       </div>
@@ -659,7 +659,7 @@ const ProductRequestDetail = () => {
 
           {/* Product Request Details Card */}
           <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm space-y-4">
-            <h3 className="text-lg font-bold text-gray-800">Product Request Details</h3>
+            <h3 className="text-lg font-bold text-gray-800">Source Now Request Details</h3>
             
             {request.image && (
               <div className="rounded-2xl overflow-hidden border border-gray-200 aspect-video bg-gray-50 flex items-center justify-center p-2 mb-4">

@@ -28,7 +28,7 @@ const B2BSidebar = ({ isOpen, setIsOpen, isMobile }) => {
     { name: 'Wallet Requests', path: '/b2b-dashboard/wallet-requests', icon: FiDollarSign },
     { name: 'RFQs', path: '/b2b-dashboard/rfqs', icon: FiFileText },
     { name: 'Quotations', path: '/b2b-dashboard/quotations', icon: FiTrendingUp },
-    { name: 'Product Requests', path: '/b2b-dashboard/product-requests', icon: FiBriefcase },
+    { name: 'Source Now', path: '/b2b-dashboard/product-requests', icon: FiBriefcase },
     { name: 'RFQ Discussions', path: '/b2b-dashboard/discussions', icon: FiMessageCircle },
     { name: 'Shop Chats', path: '/b2b-dashboard/shop-chats', icon: FiMessageSquare },
     { name: 'Purchase Orders', path: '/b2b-dashboard/purchase-orders', icon: FiDollarSign },
@@ -41,7 +41,7 @@ const B2BSidebar = ({ isOpen, setIsOpen, isMobile }) => {
     { name: 'Settings', path: '/b2b-dashboard/settings', icon: FiSettings },
   ].filter(item => {
     if (isEmployee) {
-      return ['RFQs', 'Quotations', 'Product Requests', 'RFQ Discussions', 'Shop Chats', 'Support Desk'].includes(item.name);
+      return ['RFQs', 'Quotations', 'Source Now', 'RFQ Discussions', 'Shop Chats', 'Support Desk'].includes(item.name);
     }
     return true;
   });
