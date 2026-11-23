@@ -44,6 +44,20 @@ const UserAgreement = () => {
     },
   ];
 
+  const activeSections = b2bSections;
+
+  const handleDownload = () => {
+    const header = "USER AGREEMENT - Peoples League Of Electronics Private Limited\nLast updated: June 2026\n\n";
+    const body = activeSections.map((s) => `${s.title}\n${s.content}`).join("\n\n");
+    const blob = new Blob([header + body], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "User_Agreement.txt";
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <PageTransition>
       <MobileLayout showBottomNav={true} showCartBar={true}>

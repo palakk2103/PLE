@@ -4,6 +4,7 @@ import { FiSave, FiTruck, FiMapPin, FiShield } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { useVendorAuthStore } from "../../store/vendorAuthStore";
 import toast from 'react-hot-toast';
+import DeliveryServiceabilityCheck from '../../components/DeliveryServiceabilityCheck';
 
 const ShippingSettings = () => {
   const { vendor, updateProfile } = useVendorAuthStore();
@@ -102,6 +103,8 @@ const ShippingSettings = () => {
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white mb-2">Shipping Settings</h1>
         <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Configure your shipping options and rates</p>
       </div>
+
+      <DeliveryServiceabilityCheck />
 
       <div className="bg-white dark:bg-[#1A1A1A] rounded-xl shadow-sm border border-gray-200 dark:border-white/5 max-w-full overflow-x-hidden">
         <div className="border-b border-gray-200 dark:border-white/10 overflow-x-hidden">

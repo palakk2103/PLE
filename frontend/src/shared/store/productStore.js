@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import * as adminService from '../../modules/Admin/services/adminService';
+import api from '../utils/api';
 import toast from 'react-hot-toast';
 
 export const useProductStore = create((set, get) => ({
@@ -15,7 +15,8 @@ export const useProductStore = create((set, get) => ({
     fetchProducts: async (params = {}) => {
         set({ isLoading: true });
         try {
-            const response = await adminService.getAllProducts(params);
+            // storefront: public catalogue (the admin endpoint would 401 for customers)
+            const response = await api.get('/products', { params: { limit: 200, ...params } });
             // Check if response.data is an array or object with products
             const productsData = Array.isArray(response.data) ? response.data : (response.data.products || []);
             const normalizedProducts = productsData.map(p => ({

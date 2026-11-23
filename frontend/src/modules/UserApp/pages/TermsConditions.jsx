@@ -858,6 +858,8 @@ A Purchase Order may only be modified before acceptance by the Company unless ot
     },
   ];
 
+  const activeSections = isB2BUser ? b2bSections : sections;
+
   const handleDownload = () => {
     const title = isB2BUser ? "BUSINESS TERMS & CONDITIONS (B2B) - Peoples League Of Electronics Private Limited" : "Terms & Conditions";
     const date = isB2BUser ? "Version: 1.0" : "Last updated: June 2026";

@@ -85,6 +85,15 @@ cloudinary.uploader.upload = async (filePath, opts) => {
 };
 cloudinary.uploader.destroy = async () => ({ result: 'ok' });
 
+// Shiprocket is stubbed: every pincode is serviceable except 999999; COD is only offered by one courier
+const { shiprocketClient } = await import('../src/modules/delivery/providers/shiprocket/shiprocketClient.js');
+shiprocketClient.request = async (method, path, body, params = {}) => {
+    if (!String(path).includes('serviceability') || String(params.delivery_postcode) === '999999') return { data: { available_courier_companies: [] } };
+    return { data: { recommended_courier_company_id: 1, available_courier_companies: [
+        { courier_company_id: 1, courier_name: 'Delhivery Surface', rate: 62, freight_charge: 62, cod: 0, etd: '3 Days', estimated_delivery_days: 3 },
+        { courier_company_id: 2, courier_name: 'BlueDart Express', rate: 95, freight_charge: 85, cod_charges: 10, cod: 1, etd: '2 Days', estimated_delivery_days: 2 },
+    ] } };
+};
 const { default: app } = await import('../src/app.js');
 const { initSocket } = await import('../src/config/socket.js');
 const server = http.createServer(app);

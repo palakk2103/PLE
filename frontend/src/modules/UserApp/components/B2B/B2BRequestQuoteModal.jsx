@@ -101,13 +101,13 @@ export const B2BRequestQuoteModal = ({ isOpen, onClose, product }) => {
       }
 
       if (isEmployee) {
-        if (!selectedVendorId) {
+        if (!product && !selectedVendorId) {
           toast.error('Please select a vendor');
           setIsSubmitting(false);
           return;
         }
         await api.post('/b2b-user/employee/direct-rfq', {
-          vendorId: selectedVendorId,
+          vendorId: product ? undefined : selectedVendorId, // for a product the server routes by ownership
           productId: product ? (product.id || product._id) : undefined,
           customProductName: product ? undefined : customProductName,
           quantity,
@@ -257,7 +257,7 @@ export const B2BRequestQuoteModal = ({ isOpen, onClose, product }) => {
             )}
 
             {/* Vendor Selection (Employee Only) */}
-            {isEmployee && (
+            {isEmployee && !product && (
               <div className="p-4 bg-red-50/50 rounded-xl border border-red-100">
                 <label className="block text-xs font-bold text-[#AE020B] mb-2 uppercase tracking-wider">
                   Select Target Vendor

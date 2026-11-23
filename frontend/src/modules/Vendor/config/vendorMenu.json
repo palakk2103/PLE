@@ -36,6 +36,11 @@
                      ]
     },
     {
+        "title": "Business RFQs",
+        "route": "/vendor/direct-rfqs",
+        "children": []
+    },
+    {
         "title": "B2B Enquiries",
         "route": "/vendor/b2b-enquiries",
         "children": [

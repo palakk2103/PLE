@@ -34,6 +34,11 @@ const vendor2 = await Vendor.create({ name: 'Bolt', email: 'bolt@example.com', p
 const cat = await Category.create({ name: 'Audio', slug: 'audio', isActive: true });
 const product = await Product.create({ name: 'Vee Headphones', slug: 'vee-headphones', vendorId: vendor._id, categoryId: cat._id, price: 1500, stockQuantity: 20, stock: 'in_stock', description: 'Wireless headphones', images: [], salesChannel: 'BOTH', approvalStatus: 'approved', isActive: true, isVisible: true, gstMode: 'custom', gstRate: 18 });
 
+// Admin-managed (platform-owned) product: B2B RFQs on it must go to the Super Admin, not to a vendor
+const { default: ManagedShop } = await import('../src/models/ManagedShop.model.js');
+const shop = await ManagedShop.create({ name: 'PLE Own Store', status: 'active' });
+const adminProduct = await Product.create({ name: 'PLE Own Keyboard', slug: 'ple-own-keyboard', shopId: shop._id, categoryId: cat._id, price: 800, stockQuantity: 50, stock: 'in_stock', description: 'Keyboard', images: [], salesChannel: 'BOTH', approvalStatus: 'approved', isActive: true, isVisible: true, gstMode: 'custom', gstRate: 18 });
+
 const msg = (type, id, name, text, extra = {}) => ({ senderId: id, senderType: type, senderName: name, message: text, ...extra });
 await DirectRFQ.create({ directRfqId: 'DRFQ-AAA111', employeeId: ravi._id, companyId, vendorId: vendor._id, productId: product._id, quantity: 10, targetPrice: 1200, status: 'Negotiating', requirementDetails: 'Need 10 headsets for the support team.', messages: [msg('Employee', ravi._id, 'Ravi Staff', 'Can you do 1,200 each for 10?'), msg('Vendor', vendor._id, 'Vee Electronics', 'We can do 1,350 each.', { priceOffer: 1350 }), msg('Employee', ravi._id, 'Ravi Staff', 'How about 1,280?', { priceOffer: 1280 })] });
 await DirectRFQ.create({ directRfqId: 'DRFQ-BBB222', employeeId: zoya._id, companyId, vendorId: vendor2._id, customProductName: 'Industrial Bolts M12', quantity: 500, targetPrice: 12, status: 'Pending Vendor', messages: [] });
@@ -44,5 +49,5 @@ const { initSocket } = await import('../src/config/socket.js');
 const server = http.createServer(app);
 initSocket(server);
 server.listen(port, '127.0.0.1', () => {
-    console.log(JSON.stringify({ ready: true, port, productId: String(product._id) }));
+    console.log(JSON.stringify({ ready: true, port, productId: String(product._id), adminProductId: String(adminProduct._id) }));
 });

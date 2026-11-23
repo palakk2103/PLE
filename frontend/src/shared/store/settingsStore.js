@@ -203,7 +203,13 @@ export const useSettingsStore = create(
           );
         } catch (_) {}
 
-        // 2. Async fetch from backend to sync admin general, email, and notifications settings
+        // 2. Async fetch from backend to sync admin general, email, and notifications settings.
+        // These endpoints are admin-only, so skip them for vendors / customers / guests (they would 401).
+        let hasAdminSession = false;
+        try {
+          hasAdminSession = Boolean(localStorage.getItem('adminToken'));
+        } catch (_) {}
+        if (!hasAdminSession) return;
         try {
           const [generalRes, emailRes, notifRes] = await Promise.allSettled([
             api.get('/admin/settings/general'),

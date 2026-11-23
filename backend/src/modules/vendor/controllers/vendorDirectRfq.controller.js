@@ -11,13 +11,13 @@ import ChatViolation from '../../../models/ChatViolation.model.js';
 
 export const getVendorDirectRFQs = asyncHandler(async (req, res) => {
     const vendorId = req.user.id;
-    const drfqs = await DirectRFQ.find({ vendorId }).populate('employeeId', 'name email');
+    const drfqs = await DirectRFQ.find({ vendorId }).populate('employeeId', 'name email').populate('productId', 'name images');
     res.status(200).json(new ApiResponse(200, drfqs, "Fetched Vendor Direct RFQs"));
 });
 
 export const getVendorDirectRFQDetail = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const drfq = await DirectRFQ.findById(id).populate('employeeId', 'name email');
+    const drfq = await DirectRFQ.findById(id).populate('employeeId', 'name email').populate('productId', 'name images');
     if (!drfq) throw new ApiError(404, "Not found");
 
     // Server-side authorization check (IDOR Protection)

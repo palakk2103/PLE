@@ -203,6 +203,7 @@ router.patch('/reviews/:id/status', ...strictVendorAuth, reviewController.update
 router.patch('/reviews/:id/response', ...strictVendorAuth, reviewController.addVendorReviewResponse);
 
 // Shipping management
+router.post('/shipping/serviceability', ...strictVendorAuth, shippingController.checkServiceability);
 router.get('/shipping/zones', ...strictVendorAuth, shippingController.getShippingZones);
 router.post('/shipping/zones', ...strictVendorAuth, shippingController.createShippingZone);
 router.put('/shipping/zones/:id', ...strictVendorAuth, shippingController.updateShippingZone);

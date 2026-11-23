@@ -4,6 +4,10 @@ import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
 import VendorShippingZone from '../../../models/VendorShippingZone.model.js';
 import VendorShippingRate from '../../../models/VendorShippingRate.model.js';
+import Vendor from '../../../models/Vendor.model.js';
+import ManagedShop from '../../../models/ManagedShop.model.js';
+import PickupLocation from '../../../models/PickupLocation.model.js';
+import { deliveryManager } from '../../delivery/deliveryManager.js';
 
 const sanitizeCountries = (countries) => {
     if (!Array.isArray(countries)) return [];
@@ -172,4 +176,61 @@ export const deleteShippingRate = asyncHandler(async (req, res) => {
     if (!rate) throw new ApiError(404, 'Shipping rate not found.');
 
     res.status(200).json(new ApiResponse(200, null, 'Shipping rate deleted.'));
+});
+
+/* ───────────── delivery serviceability check (pincode → available / unavailable) ───────────── */
+
+const PIN_RE = /^\d{6}$/;
+
+const resolvePickupPincode = async (vendorId) => {
+    const pickup = await PickupLocation.findOne({ vendorId }).sort({ isDefault: -1 }).select('zipCode').lean().catch(() => null);
+    if (PIN_RE.test(String(pickup?.zipCode || '').trim())) return String(pickup.zipCode).trim();
+    const vendor = await Vendor.findById(vendorId).select('pincode address').lean().catch(() => null);
+    const vp = String(vendor?.pincode || vendor?.address?.zipCode || '').trim();
+    if (PIN_RE.test(vp)) return vp;
+    const shop = await ManagedShop.findById(vendorId).select('warehouse address').lean().catch(() => null);
+    const m = `${shop?.warehouse || ''} ${shop?.address || ''}`.match(/\b\d{6}\b/);
+    if (m) return m[0];
+    return String(process.env.SHIPROCKET_PICKUP_PINCODE || process.env.DEFAULT_PICKUP_PINCODE || '110001').trim();
+};
+
+export const checkServiceability = asyncHandler(async (req, res) => {
+    const deliveryPincode = String(req.body?.pincode || req.query?.pincode || '').trim();
+    if (!PIN_RE.test(deliveryPincode)) {
+        throw new ApiError(400, 'Enter a valid 6-digit delivery pincode.');
+    }
+    const weight = Math.min(50, Math.max(0.1, Number(req.body?.weight || req.query?.weight) || 0.5));
+    const cod = String(req.body?.cod ?? req.query?.cod ?? '') === 'true' || req.body?.cod === true;
+    const pickupPincode = await resolvePickupPincode(req.user.id);
+
+    let quote;
+    try {
+        quote = await deliveryManager.getQuote({
+            preferredProvider: 'shiprocket',
+            pickupPincode,
+            deliveryPincode,
+            weight,
+            cod: cod ? 1 : 0,
+        });
+    } catch (err) {
+        throw new ApiError(502, 'Could not reach the courier service. Please try again shortly.');
+    }
+
+    const couriers = (quote?.availableCouriers || []).slice(0, 8).map((c) => ({
+        name: c.courier_name,
+        rate: Number(c.rate ?? c.freight_charge ?? 0),
+        etd: c.etd || null,
+        estimatedDays: c.estimated_delivery_days || null,
+        cod: Number(c.cod) === 1 || Boolean(c.is_cod),
+    }));
+
+    res.status(200).json(new ApiResponse(200, {
+        pickupPincode,
+        deliveryPincode,
+        serviceable: Boolean(quote?.isServiceable),
+        codAvailable: Boolean(quote?.isCodAvailable),
+        reason: quote?.isServiceable ? null : (quote?.reason || 'No courier delivers to this pincode.'),
+        selectedCourier: quote?.selectedCourier || null,
+        couriers,
+    }, quote?.isServiceable ? 'Delivery available.' : 'Delivery not available.'));
 });

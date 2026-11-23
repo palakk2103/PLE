@@ -784,3 +784,9 @@ export const submitUnflagAppeal = (reason) => {
 
 
 
+
+/**
+ * Check whether delivery is possible to a customer pincode
+ */
+export const checkDeliveryServiceability = (payload) =>
+    api.post('/vendor/shipping/serviceability', payload);

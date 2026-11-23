@@ -7,6 +7,8 @@ import { getIO } from '../../../config/socket.js';
 import crypto from 'crypto';
 import { moderateMessage, checkMultiMessageEvasion, validateMonetaryOffer, MODERATION_ACTION } from '../../../services/chatModeration.service.js';
 import ChatViolation from '../../../models/ChatViolation.model.js';
+import Product from '../../../models/Product.model.js';
+import { createRFQ } from './rfq.controller.js';
 import { createNotification } from '../../../services/notification.service.js';
 import { assertTextLength } from '../../../utils/chatLimits.js';
 
@@ -29,7 +31,21 @@ export const createDirectRFQ = asyncHandler(async (req, res) => {
     const employee = await User.findById(employeeId);
     if (!employee || !employee.companyId) throw new ApiError(400, "User must belong to a B2B company");
 
-    const { vendorId, productId, customProductName, quantity, targetPrice, requirementDetails, category, expectedDeliveryDate, attachment } = req.body;
+    let { vendorId, productId, customProductName, quantity, targetPrice, requirementDetails, category, expectedDeliveryDate, attachment } = req.body;
+
+    // Ownership routing: a vendor-owned product goes to that vendor (never to a different one the
+    // client picked); an admin-managed product goes to the Super Admin through the standard RFQ flow.
+    if (productId) {
+        const product = await Product.findById(productId).select('vendorId shopId').lean();
+        if (!product) throw new ApiError(404, 'Product not found.');
+        if (product.vendorId && !product.shopId) {
+            vendorId = product.vendorId;
+        } else {
+            req.body.status = 'Submitted';
+            return createRFQ(req, res);
+        }
+    }
+    if (!vendorId) throw new ApiError(400, 'Please select a vendor.');
 
     const drfq = await DirectRFQ.create({
         directRfqId: generateId(),
