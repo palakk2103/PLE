@@ -16,6 +16,7 @@ import {
 import { motion } from "framer-motion";
 import { useCartStore, useUIStore } from "../../../shared/store/useStore";
 import { useWishlistStore } from "../../../shared/store/wishlistStore";
+import CompareToggle from "../../../shared/components/CompareToggle";
 import { useReviewsStore } from "../../../shared/store/reviewsStore";
 import { useAuthStore } from "../../../shared/store/authStore";
 import {
@@ -810,6 +811,7 @@ const MobileProductDetail = () => {
                 
                 {/* Floating Wishlist and Share buttons */}
                 <div className="absolute top-4 right-4 flex flex-col gap-2.5 z-30">
+                  <CompareToggle product={product} className="!w-10 !h-10 !p-0 flex items-center justify-center border border-gray-200 bg-white/90" />
                   <button
                     onClick={handleFavorite}
                     className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 active:scale-90 border ${

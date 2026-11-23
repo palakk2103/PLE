@@ -5,6 +5,7 @@ import DesktopHeader from './DesktopHeader';
 import DesktopFooter from './DesktopFooter';
 import MobileBottomNav from './MobileBottomNav';
 import CartDrawer from '../../../../shared/components/Cart/CartDrawer';
+import CompareTray from '../../../../shared/components/CompareTray';
 import useMobileHeaderHeight from '../../hooks/useMobileHeaderHeight';
 import useKeyboardVisible from '../../../../shared/hooks/useKeyboardVisible';
 import { useUIStore } from '../../../../shared/store/useStore';
@@ -111,6 +112,7 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true, noPa
       {!isAuthPage && !isCheckoutPage && <DesktopFooter />}
       {shouldShowBottomNav && <MobileBottomNav />}
       <CartDrawer />
+      <CompareTray />
     </>
   );
 };

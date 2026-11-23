@@ -19,6 +19,7 @@ import MobileSearch from "../modules/UserApp/pages/Search";
 const RefurbishedCatalog = lazy(() => import("../modules/UserApp/pages/RefurbishedCatalog"));
 const MobileSeller = lazy(() => import("../modules/UserApp/pages/Seller"));
 const AllSellers = lazy(() => import("../modules/UserApp/pages/AllSellers"));
+const CompareProducts = lazy(() => import("../modules/UserApp/pages/Compare"));
 const MobileCategory = lazy(() => import("../modules/UserApp/pages/Category"));
 const MobileBrand = lazy(() => import("../modules/UserApp/pages/Brand"));
 const MobileCheckout = lazy(() => import("../modules/UserApp/pages/Checkout"));
@@ -174,6 +175,14 @@ export default function PortalRoutes() {
         element={
           <RouteWrapper>
             <MobileProductDetail />
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/compare"
+        element={
+          <RouteWrapper>
+            <CompareProducts />
           </RouteWrapper>
         }
       />

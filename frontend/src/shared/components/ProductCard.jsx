@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { useCartStore, useUIStore } from "../store/useStore";
 import { useWishlistStore } from "../store/wishlistStore";
+import CompareToggle from "./CompareToggle";
 import { formatPrice, getPlaceholderImage } from "../utils/helpers";
 import toast from "react-hot-toast";
 import LazyImage from "./LazyImage";
@@ -220,7 +221,8 @@ const ProductCard = memo(({ product, hideRating = false, isFlashSale = false, sh
       >
         <div className="relative">
           {/* Favorite Icon */}
-          <div className="absolute top-2 right-2 z-10">
+          <div className="absolute top-2 right-2 z-10 flex flex-col gap-1.5">
+            <CompareToggle product={product} />
             <button
               type="button"
               data-interactive="true"

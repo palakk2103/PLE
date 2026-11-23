@@ -38,6 +38,22 @@ await WithdrawalRequest.collection.insertMany([
 ]);
 
 // Cloudinary is stubbed: uploads succeed offline with placeholder URLs
+// Products for the compare feature: two vendors + the PLE shop, laptops with differing specs
+const [Category, Brand, Product, ManagedShop] = await Promise.all(['Category', 'Brand', 'Product', 'ManagedShop'].map(M));
+const cat = await Category.collection.insertOne({ name: 'Laptops', slug: 'laptops', isActive: true, status: 'approved', createdAt: new Date(), updatedAt: new Date() });
+const brand = await Brand.collection.insertOne({ name: 'Acme', isActive: true, status: 'approved', createdAt: new Date(), updatedAt: new Date() });
+const wen = await Vendor.create({ name: 'Wen', email: 'wen@example.com', password: PASSWORD, storeName: 'Wen Traders', status: 'approved', isVerified: false, rating: 3.8, reviewCount: 4 });
+const shop = await ManagedShop.collection.insertOne({ name: 'PLE Own Store', status: 'active', createdAt: new Date(), updatedAt: new Date() });
+const spec = (label, value, unit) => ({ key: label.toLowerCase(), label, type: 'text', value, unit });
+const mkP = (name, extra) => Product.collection.insertOne({
+    name, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'), price: 50000, stock: 'in_stock', stockQuantity: 10, isActive: true, isVisible: true,
+    approvalStatus: 'approved', categoryId: cat.insertedId, brandId: brand.insertedId, vendorId: vendor._id, rating: 4.2, reviewCount: 30, createdAt: new Date(), updatedAt: new Date(), ...extra,
+});
+await mkP('Acme Book 14', { price: 52000, originalPrice: 65000, warrantyPeriod: '1 year', specifications: { features: [spec('RAM', '16', 'GB'), spec('Processor', 'Core i5'), spec('Touchscreen', false)], additional: [spec('Weight', '1.4', 'kg')] } });
+await mkP('Acme Book 15', { price: 61000, vendorId: wen._id, rating: 4.7, reviewCount: 90, specifications: { features: [spec('RAM', '32', 'GB'), spec('Processor', 'Core i5'), spec('Touchscreen', true)] } });
+await mkP('PLE Own Laptop', { price: 40000, vendorId: undefined, shopId: shop.insertedId, specifications: { features: [spec('RAM', '8', 'GB'), spec('Processor', 'Core i3')] } });
+await mkP('Acme Book 13', { price: 45000, stock: 'out_of_stock', stockQuantity: 0, specifications: { features: [spec('RAM', '16', 'GB')] } });
+
 const { default: cloudinary } = await import('../src/config/cloudinary.js');
 let stubN = 0;
 cloudinary.uploader.upload = async (filePath, opts) => {

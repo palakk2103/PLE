@@ -28,6 +28,7 @@ import { resolveProductGST } from '../utils/gstUtils.js';
 import { resolveSpecTemplate } from '../services/productSpecs.service.js';
 import { moderateMessage, MODERATION_ACTION } from '../services/chatModeration.service.js';
 import { buildPublicStoreProfile } from '../services/vendorStoreProfile.service.js';
+import { parseCompareIds, buildComparison } from '../services/productCompare.service.js';
 import rateLimit from 'express-rate-limit';
 import SupportTicket from '../models/SupportTicket.model.js';
 import { generateTicketNumber, notifyAdmins } from '../services/supportTicket.service.js';
@@ -483,6 +484,12 @@ router.get('/products/new-arrivals', getNewArrivals);
 
 router.get('/popular', getPopular);
 router.get('/products/popular', getPopular);
+
+// GET /api/products/compare?ids=a,b,c  (public; 2-4 products, side by side with seller details)
+router.get('/products/compare', asyncHandler(async (req, res) => {
+    const ids = parseCompareIds(req.query.ids);
+    res.status(200).json(new ApiResponse(200, await buildComparison(ids), 'Product comparison.'));
+}));
 
 // GET /api/products/similar/:id
 router.get('/similar/:id', asyncHandler(async (req, res) => {
