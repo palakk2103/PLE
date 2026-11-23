@@ -144,6 +144,7 @@ router.patch('/chat/threads/:id/proposal/:proposalId/cancel', ...strictVendorAut
 // Documents
 router.get('/documents', ...strictVendorAuth, documentController.getVendorDocuments);
 router.post('/documents', ...strictVendorAuth, uploadDocumentSingle('file'), documentController.createVendorDocument);
+router.put('/documents/:id', ...strictVendorAuth, uploadDocumentSingle('file'), documentController.replaceVendorDocument);
 router.delete('/documents/:id', ...strictVendorAuth, documentController.deleteVendorDocument);
 
 // Notifications

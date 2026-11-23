@@ -299,11 +299,27 @@ export const getVendorDocuments = () =>
  */
 export const uploadVendorDocument = (data, file) => {
     const formData = new FormData();
-    formData.append('name', data.name);
+    if (data.name) formData.append('name', data.name);
     formData.append('category', data.category);
     if (data.expiryDate) formData.append('expiryDate', data.expiryDate);
     formData.append('file', file);
     return api.post('/vendor/documents', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+    });
+};
+
+/**
+ * Replace the file of a vendor document (goes back to pending review)
+ * @param {string} id
+ * @param {File} file
+ * @param {{ name?: string, expiryDate?: string }} [data]
+ */
+export const replaceVendorDocument = (id, file, data = {}) => {
+    const formData = new FormData();
+    if (data.name) formData.append('name', data.name);
+    if (data.expiryDate !== undefined) formData.append('expiryDate', data.expiryDate);
+    formData.append('file', file);
+    return api.put(`/vendor/documents/${id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
     });
 };

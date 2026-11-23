@@ -27,7 +27,7 @@ const [Vendor, Admin, VendorWallet, WithdrawalRequest] = await Promise.all(['Ven
 
 const PASSWORD = 'Passw0rd!';
 await Admin.create({ name: 'Admin', email: 'admin@example.com', password: PASSWORD, role: 'superadmin', isActive: true });
-const vendor = await Vendor.create({ name: 'Vee', email: 'vee@example.com', password: PASSWORD, storeName: 'Vee Electronics', status: 'approved', isVerified: true, commissionRate: 10, gstNumber: '27ABCDE1234F1Z5' });
+const vendor = await Vendor.create({ name: 'Vee', email: 'vee@example.com', password: PASSWORD, storeName: 'Vee Electronics', status: 'approved', isVerified: true, commissionRate: 10, gstNumber: '27ABCDE1234F1Z5', ownerName: 'Vikram Rao', businessName: 'Vee Electronics Pvt Ltd', businessType: 'Private Limited', verificationStatus: 'Approved', businessAddress: '12 MG Road, Camp', city: 'Pune', state: 'Maharashtra', pincode: '411001', rating: 4.5, reviewCount: 12 });
 // the old single account, written straight to the collection (no bankAccounts yet), dated at registration
 await Vendor.collection.updateOne({ _id: vendor._id }, { $set: { createdAt: new Date('2026-01-15T00:00:00Z'), bankDetails: { accountName: 'Vee Electronics', accountNumber: '123456789012', bankName: 'HDFC Bank', ifscCode: 'HDFC0001234', upiId: '', branchName: 'Pune', accountType: 'current' } } });
 await VendorWallet.create({ vendorId: vendor._id, available: 20000, onHold: 0, reserved: 0, withdrawn: 2500, totalEarnings: 22500 });
@@ -36,6 +36,16 @@ await WithdrawalRequest.collection.insertMany([
     { withdrawalId: 'WR-20261001-1111', vendorId: vendor._id, requestedAmount: 1000, eligibleAmountAtRequest: 1000, status: 'paid', paidAmount: 1000, paidAt: new Date('2026-10-01'), bankDetailsSnapshot: old, paymentMethod: 'bank_transfer', createdAt: new Date('2026-10-01'), updatedAt: new Date('2026-10-01') },
     { withdrawalId: 'WR-20261015-2222', vendorId: vendor._id, requestedAmount: 1500, eligibleAmountAtRequest: 1500, status: 'paid', paidAmount: 1500, paidAt: new Date('2026-10-15'), bankDetailsSnapshot: old, paymentMethod: 'bank_transfer', createdAt: new Date('2026-10-15'), updatedAt: new Date('2026-10-15') },
 ]);
+
+// Cloudinary is stubbed: uploads succeed offline with placeholder URLs
+const { default: cloudinary } = await import('../src/config/cloudinary.js');
+let stubN = 0;
+cloudinary.uploader.upload = async (filePath, opts) => {
+    stubN += 1;
+    const id = `${opts?.folder || 'f'}/stub${stubN}`;
+    return { secure_url: `https://res.cloudinary.test/${id}`, public_id: id, resource_type: 'raw' };
+};
+cloudinary.uploader.destroy = async () => ({ result: 'ok' });
 
 const { default: app } = await import('../src/app.js');
 const { initSocket } = await import('../src/config/socket.js');

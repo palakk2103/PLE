@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
-import { FiFile, FiUpload, FiDownload, FiTrash2 } from "react-icons/fi";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { FiFile, FiUpload, FiDownload, FiTrash2, FiRefreshCw, FiEye } from "react-icons/fi";
 import { motion } from "framer-motion";
 import DataTable from "../../Admin/components/DataTable";
 import ConfirmModal from "../../Admin/components/ConfirmModal";
@@ -9,6 +9,7 @@ import {
   getVendorDocuments,
   uploadVendorDocument,
   deleteVendorDocument,
+  replaceVendorDocument,
 } from "../services/vendorService";
 import toast from "react-hot-toast";
 
@@ -21,6 +22,33 @@ const Documents = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   const vendorId = vendor?.id || vendor?._id;
+  const replaceInput = useRef(null);
+  const replaceTarget = useRef(null);
+  const loa = documents.find((d) => d.category === "LOA");
+
+  const startReplace = (doc) => {
+    replaceTarget.current = doc;
+    if (replaceInput.current) {
+      replaceInput.current.value = "";
+      replaceInput.current.accept = doc.category === "LOA" ? ".pdf,.jpg,.jpeg,.png" : ".pdf,image/*";
+      replaceInput.current.click();
+    }
+  };
+
+  const handleReplaceFile = async (e) => {
+    const file = e.target.files?.[0];
+    const doc = replaceTarget.current;
+    if (!file || !doc) return;
+    setIsSaving(true);
+    try {
+      await replaceVendorDocument(doc._id, file);
+      toast.success("Document replaced. It will be reviewed again.");
+      fetchDocuments();
+    } finally {
+      setIsSaving(false);
+      replaceTarget.current = null;
+    }
+  };
 
   const fetchDocuments = useCallback(async () => {
     if (!vendorId) return;
@@ -64,8 +92,25 @@ const Documents = () => {
   };
 
   const columns = [
-    { key: "name", label: "Document Name", sortable: true },
-    { key: "category", label: "Category", sortable: true },
+    {
+      key: "name",
+      label: "Document Name",
+      sortable: true,
+      render: (value, row) => (
+        <span data-testid={row.category === "LOA" ? "loa-row" : undefined}>
+          {value}
+          {row.version > 1 && <span className="ml-2 text-xs text-gray-400">v{row.version}</span>}
+        </span>
+      ),
+    },
+    {
+      key: "category",
+      label: "Category",
+      sortable: true,
+      render: (value) => value === "LOA"
+        ? <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-700">LOA</span>
+        : value,
+    },
     {
       key: "status",
       label: "Status",
@@ -94,11 +139,31 @@ const Documents = () => {
       render: (_, row) => (
         <div className="flex gap-2">
           <button
-            onClick={() => window.open(row.fileUrl, "_blank")}
+            onClick={() => window.open(row.fileUrl, "_blank", "noopener")}
+            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+            title="View"
+            data-testid="doc-view"
+          >
+            <FiEye />
+          </button>
+          <a
+            href={row.fileUrl}
+            download={row.fileName || true}
+            target="_blank"
+            rel="noreferrer"
             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
             title="Download"
           >
             <FiDownload />
+          </a>
+          <button
+            onClick={() => startReplace(row)}
+            disabled={isSaving}
+            className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg disabled:opacity-50"
+            title="Replace file"
+            data-testid="doc-replace"
+          >
+            <FiRefreshCw />
           </button>
           <button
             onClick={() => setDeleteModal({ isOpen: true, id: row._id })}
@@ -136,6 +201,7 @@ const Documents = () => {
             Manage business documents and certificates
           </p>
         </div>
+        <input ref={replaceInput} type="file" className="hidden" data-testid="replace-input" onChange={handleReplaceFile} />
         <button
           onClick={() => setShowUpload(true)}
           className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-semibold"
@@ -143,6 +209,31 @@ const Documents = () => {
           <FiUpload />
           <span>Upload Document</span>
         </button>
+      </div>
+
+      <div className={`rounded-xl border p-4 flex flex-wrap items-center justify-between gap-3 ${loa ? "bg-white border-gray-200" : "bg-amber-50 border-amber-200"}`} data-testid="loa-card">
+        <div>
+          <p className="font-bold text-gray-800 text-sm">Letter of Authorization (LOA)</p>
+          {loa ? (
+            <p className="text-xs text-gray-500 mt-0.5">
+              {loa.fileName || loa.name} · status <b data-testid="loa-status">{loa.status}</b>
+              {loa.replacedAt ? ` · replaced ${new Date(loa.replacedAt).toLocaleDateString()}` : ""}
+            </p>
+          ) : (
+            <p className="text-xs text-amber-800 mt-0.5">No LOA uploaded yet. Upload a signed PDF, JPG or PNG.</p>
+          )}
+        </div>
+        <div className="flex gap-2">
+          {loa ? (
+            <>
+              <button onClick={() => window.open(loa.fileUrl, "_blank", "noopener")} className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 hover:bg-gray-50" data-testid="loa-view">View</button>
+              <button onClick={() => startReplace(loa)} disabled={isSaving} className="px-3 py-1.5 text-sm rounded-lg border border-amber-300 text-amber-700 hover:bg-amber-50 disabled:opacity-50" data-testid="loa-replace">Replace</button>
+              <button onClick={() => setDeleteModal({ isOpen: true, id: loa._id })} className="px-3 py-1.5 text-sm rounded-lg border border-red-200 text-red-600 hover:bg-red-50" data-testid="loa-delete">Delete</button>
+            </>
+          ) : (
+            <button onClick={() => setShowUpload("LOA")} className="px-3 py-1.5 text-sm rounded-lg bg-primary-600 text-white" data-testid="loa-upload">Upload LOA</button>
+          )}
+        </div>
       </div>
 
       {isLoading ? (
@@ -158,6 +249,8 @@ const Documents = () => {
           onSave={handleUpload}
           onClose={() => setShowUpload(false)}
           isSaving={isSaving}
+          initialCategory={showUpload === "LOA" ? "LOA" : "License"}
+          hasLoa={!!loa}
         />
       )}
 
@@ -175,10 +268,10 @@ const Documents = () => {
   );
 };
 
-const DocumentUploadForm = ({ onSave, onClose, isSaving }) => {
+const DocumentUploadForm = ({ onSave, onClose, isSaving, initialCategory = "License", hasLoa = false }) => {
   const [formData, setFormData] = useState({
     name: "",
-    category: "License",
+    category: initialCategory,
     expiryDate: "",
   });
   const [file, setFile] = useState(null);
@@ -203,7 +296,8 @@ const DocumentUploadForm = ({ onSave, onClose, isSaving }) => {
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              required
+              required={formData.category !== "LOA"}
+              placeholder={formData.category === "LOA" ? "Letter of Authorization (LOA)" : ""}
               className="w-full px-3 py-2 border border-gray-200 rounded-lg"
             />
           </div>
@@ -217,6 +311,7 @@ const DocumentUploadForm = ({ onSave, onClose, isSaving }) => {
               <option>License</option>
               <option>Certificate</option>
               <option>Tax Document</option>
+              <option value="LOA" disabled={hasLoa}>LOA (Letter of Authorization){hasLoa ? " - already uploaded, use Replace" : ""}</option>
               <option>Other</option>
             </select>
           </div>
@@ -235,7 +330,7 @@ const DocumentUploadForm = ({ onSave, onClose, isSaving }) => {
             <label className="block text-sm font-semibold mb-2">Upload File</label>
             <input
               type="file"
-              accept=".pdf,image/*"
+              accept={formData.category === "LOA" ? ".pdf,.jpg,.jpeg,.png" : ".pdf,image/*"}
               onChange={(e) => setFile(e.target.files?.[0] || null)}
               className="w-full px-3 py-2 border border-gray-200 rounded-lg"
             />

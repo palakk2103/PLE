@@ -489,6 +489,9 @@ const VendorDetail = () => {
       key: "category",
       label: "Category",
       sortable: true,
+      render: (value) => value === "LOA"
+        ? <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-700" data-testid="admin-loa-tag">LOA</span>
+        : value,
     },
     {
       key: "status",
