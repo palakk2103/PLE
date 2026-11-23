@@ -11,7 +11,7 @@ export const MAX_COMPARE = 4;
 /** "a,b,c" (or an array) -> unique valid ids in the order given, 2 to 4 of them. */
 export const parseCompareIds = (raw) => {
     const list = (Array.isArray(raw) ? raw : String(raw || '').split(','))
-        .map((v) => String(v).trim())
+        .map((v) => String(v).trim().toLowerCase())
         .filter(Boolean);
     const ids = [...new Set(list)];
     if (ids.some((id) => !mongoose.Types.ObjectId.isValid(id) || String(new mongoose.Types.ObjectId(id)) !== id.toLowerCase())) {

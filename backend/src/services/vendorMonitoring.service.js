@@ -40,7 +40,7 @@ const vendorOrderRows = (vendorId, range) => [
             customerKey: {
                 $ifNull: [
                     { $cond: [{ $ne: ['$userId', null] }, { $concat: ['u:', { $toString: '$userId' }] }, null] },
-                    { $cond: [{ $gt: [{ $strLenCP: { $ifNull: ['$guestInfo.email', ''] } }, 0] }, { $concat: ['g:', { $toLower: '$guestInfo.email' }] }, { $concat: ['p:', { $ifNull: ['$guestInfo.phone', '$_id'] }] }] },
+                    { $cond: [{ $gt: [{ $strLenCP: { $ifNull: ['$guestInfo.email', ''] } }, 0] }, { $concat: ['g:', { $toLower: '$guestInfo.email' }] }, { $concat: ['p:', { $ifNull: ['$guestInfo.phone', { $toString: '$_id' }] }] }] },
                 ],
             },
         },
@@ -121,7 +121,7 @@ export const getVendorMonitoring = async (vendorIdRaw, { from, to } = {}) => {
                 $group: {
                     _id: null,
                     total: { $sum: 1 },
-                    active: { $sum: { $cond: [{ $in: ['$status', ['active', null]] }, 1, 0] } },
+                    active: { $sum: { $cond: [{ $eq: [{ $ifNull: ['$status', 'active'] }, 'active'] }, 1, 0] } },
                     resolved: { $sum: { $cond: [{ $eq: ['$status', 'resolved'] }, 1, 0] } },
                     closed: { $sum: { $cond: [{ $eq: ['$status', 'closed'] }, 1, 0] } },
                     enquiries: { $sum: { $cond: [{ $ne: [{ $ifNull: ['$productRef', null] }, null] }, 1, 0] } },

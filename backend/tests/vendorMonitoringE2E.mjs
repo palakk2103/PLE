@@ -74,6 +74,7 @@ await mkOrder({ user: U.u3, status: 'cancelled', pay: 'upi', lines: [line(V, 800
 await mkOrder({ user: U.u2, status: 'returned', pay: 'wallet', lines: [line(V, 250, 1)] });                                      // returned 250
 await mkOrder({ user: U.u3, status: 'delivered', pay: 'wallet', lines: [line(W, 999, 1)] });                                     // not V's
 await mkOrder({ user: U.u1, status: 'delivered', pay: 'upi', lines: [line(V, 9999, 1)], deleted: true });                         // deleted: ignored
+await mkOrder({ guest: { name: 'NoContact' }, status: 'delivered', pay: 'upi', paid: true, lines: [line(W, 10, 1)] }); // guest with no email/phone must not break the aggregation
 await mkOrder({ user: U.u2, status: 'delivered', pay: 'mixed', lines: [line(V, 150, 2)], at: '2026-10-31T19:00:00Z' });          // 300; 1 Nov 00:30 IST
 
 const prod = (extra) => ins(M.Product, { name: 'p', slug: `p-${Math.random()}`, price: 1, categoryId: new mongoose.Types.ObjectId(), vendorId: V, isActive: true, stock: 'in_stock', approvalStatus: 'approved', ...extra });
@@ -112,6 +113,11 @@ console.log('In-memory DB ready.\n');
     check('Chats: 3 threads (1 active, 1 resolved, 1 closed), 1 enquiry, 6 messages, last activity set', d.chats?.total === 3 && d.chats.active === 1 && d.chats.resolved === 1 && d.chats.closed === 1 && d.chats.enquiries === 1 && d.chats.messages === 6 && !!d.chats.lastActivity, d.chats);
     const st = Object.fromEntries((d.orders?.byStatus || []).map((s) => [s.status, s]));
     check('Orders by status: delivered 3 / 3200, processing 1, pending 1, cancelled 1, returned 1', st.delivered?.orders === 3 && st.delivered.value === 3200 && st.processing?.orders === 1 && st.pending?.orders === 1 && st.cancelled?.orders === 1 && st.returned?.orders === 1, d.orders?.byStatus);
+}
+
+{
+    const w = await get(TA, `/admin/vendors/${W}/monitoring`);
+    check('A guest order with no email and no phone does not break monitoring (was a 500)', w.status === 200 && w.data.customers.unique >= 2, `${w.status} ${w.body?.message}`);
 }
 
 // 2. Date range in India time

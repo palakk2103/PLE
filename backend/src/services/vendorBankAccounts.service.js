@@ -181,6 +181,7 @@ export const getPreferredAccount = (vendor) => {
  * are matched by account number + IFSC (or UPI id). Returns Map(accountId -> {count, amount, lastPaidAt}).
  */
 export const getAccountUsage = async (vendorId, accounts = []) => {
+    if (!vendorId) return new Map();
     const paid = await WithdrawalRequest.find({ vendorId, status: 'paid' })
         .select('bankDetailsSnapshot paidAmount requestedAmount paidAt').lean();
     const usage = new Map(accounts.map((a) => [String(a._id), { count: 0, amount: 0, lastPaidAt: null }]));
@@ -321,7 +322,10 @@ export const removeAccount = async (vendorId, accountId) => {
  * Old single-account update calls (/vendor/auth/bank-details, /vendor/finance/bank-details) now
  * edit the preferred account, or create the first one.
  */
-export const applyLegacyUpdate = async (vendorId, fields) => {
+export const applyLegacyUpdate = async (vendorId, rawFields) => {
+    // Older clients send a blank accountNumber to mean "unchanged"
+    const fields = { ...rawFields };
+    if (fields.accountNumber !== undefined && !String(fields.accountNumber).trim()) delete fields.accountNumber;
     const vendor = await loadVendorWithAccounts(vendorId);
     const preferred = getPreferredAccount(vendor);
     if (!preferred) return addAccount(vendorId, { ...fields, label: 'Primary account', isPreferred: true });

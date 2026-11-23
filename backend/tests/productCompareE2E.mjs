@@ -126,6 +126,8 @@ const sid = String;
     check('The same product twice counts once (400, need 2)', dup.status === 400, dup.status);
     const none = await get('/products/compare');
     check('No ids rejected (400)', none.status === 400, none.status);
+    const up = await get(`/products/compare?ids=${String(A).toUpperCase()},${String(B).toUpperCase()}`);
+    check('Upper-case ids work', up.status === 200 && up.data.products.length === 2 && up.data.unavailable.length === 0, up.status);
     const bad = await get(`/products/compare?ids=${ids(A)},not-an-id`);
     check('A malformed id rejected (400)', bad.status === 400 && /invalid/i.test(bad.body?.message), `${bad.status} ${bad.body?.message}`);
     const inj = await get(`/products/compare?ids[$ne]=1`);

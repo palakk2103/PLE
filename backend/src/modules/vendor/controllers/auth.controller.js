@@ -1,4 +1,4 @@
-import { applyLegacyUpdate } from '../../../services/vendorBankAccounts.service.js';
+import { applyLegacyUpdate, maskAccountNumber } from '../../../services/vendorBankAccounts.service.js';
 import { clearVendorDraft } from './registrationDraft.controller.js';
 import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
@@ -502,7 +502,10 @@ export const getProfile = asyncHandler(async (req, res) => {
     }
     const vendor = await Vendor.findById(req.user.id).select('-password -otp -otpExpiry');
     if (!vendor) throw new ApiError(404, 'Vendor not found.');
-    res.status(200).json(new ApiResponse(200, vendor, 'Profile fetched.'));
+    // Payout accounts are managed (and masked) under /vendor/bank-accounts, never returned in full here
+    const out = vendor.toObject();
+    out.bankAccounts = (out.bankAccounts || []).map((a) => ({ _id: a._id, label: a.label, bankName: a.bankName, isPreferred: a.isPreferred, maskedAccountNumber: maskAccountNumber(a.accountNumber) }));
+    res.status(200).json(new ApiResponse(200, out, 'Profile fetched.'));
 });
 
 // PUT /api/vendor/auth/profile

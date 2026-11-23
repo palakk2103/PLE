@@ -136,6 +136,9 @@ export const createVendorDocument = asyncHandler(async (req, res) => {
         if (uploaded?.publicId) {
             await deleteFromCloudinary(uploaded.publicId).catch(() => null);
         }
+        if (error?.code === 11000 && category === LOA_CATEGORY) {
+            throw new ApiError(409, 'You already have an LOA on file. Replace it instead of uploading another.');
+        }
         throw error;
     }
 });
