@@ -272,7 +272,7 @@ const ProductApprovals = () => {
                 {/* Image and Badges */}
                 <div className="relative h-44 w-full rounded-xl bg-gray-50 overflow-hidden flex items-center justify-center border border-gray-100">
                   <img
-                    src={product.image || product.images?.[0] || "https://via.placeholder.com/150"}
+                    src={product.image || product.images?.[0] || "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23f3f4f6%22/%3E%3Ccircle cx=%2234%22 cy=%2236%22 r=%228%22 fill=%22%23d1d5db%22/%3E%3Cpath d=%22M12 80l24-28 16 18 12-13 24 23z%22 fill=%22%23d1d5db%22/%3E%3C/svg%3E"}
                     alt={product.name}
                     className="max-h-full max-w-full object-contain"
                   />
@@ -397,7 +397,7 @@ const ProductApprovals = () => {
               <div className="flex-1 overflow-y-auto p-5 space-y-4">
                 <div className="flex gap-4 items-center bg-gray-50 p-4 rounded-2xl border border-gray-100">
                   <img
-                    src={selectedProduct.image || selectedProduct.images?.[0] || "https://via.placeholder.com/80"}
+                    src={selectedProduct.image || selectedProduct.images?.[0] || "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23f3f4f6%22/%3E%3Ccircle cx=%2234%22 cy=%2236%22 r=%228%22 fill=%22%23d1d5db%22/%3E%3Cpath d=%22M12 80l24-28 16 18 12-13 24 23z%22 fill=%22%23d1d5db%22/%3E%3C/svg%3E"}
                     alt={selectedProduct.name}
                     className="w-16 h-16 object-contain rounded-lg bg-white border border-gray-200"
                   />

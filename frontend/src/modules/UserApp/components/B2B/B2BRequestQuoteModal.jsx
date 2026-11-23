@@ -94,7 +94,7 @@ export const B2BRequestQuoteModal = ({ isOpen, onClose, product }) => {
       if (attachmentFile) {
         const uploadForm = new FormData();
         uploadForm.append('file', attachmentFile);
-        const uploadRes = await api.post('/rfq/upload', uploadForm, {
+        const uploadRes = await api.post('/user/rfq/upload', uploadForm, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         attachmentUrl = uploadRes.data?.url || uploadRes.url || '';

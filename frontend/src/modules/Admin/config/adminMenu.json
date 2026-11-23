@@ -295,21 +295,9 @@
   },
   {
     "title": "Marketing & Offers",
-    "route": "/ple-ops-desk/offers-management",
+    "route": "/ple-ops-desk/banners",
     "icon": "Offers Management",
     "children": [
-      {
-        "title": "Offers Dashboard",
-        "route": "/ple-ops-desk/offers-management/dashboard"
-      },
-      {
-        "title": "Offers List",
-        "route": "/ple-ops-desk/offers-management/list"
-      },
-      {
-        "title": "Create Offer",
-        "route": "/ple-ops-desk/offers-management/create"
-      },
       {
         "title": "Home Sliders",
         "route": "/ple-ops-desk/offers/home-sliders"

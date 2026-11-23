@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { FiArrowLeft, FiCamera, FiUploadCloud, FiTrash2, FiFileText } from "react-icons/fi";
 import { motion } from "framer-motion";
@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import MobileLayout from "../components/Layout/MobileLayout";
 import PageTransition from "../../../shared/components/PageTransition";
 import api from "../../../shared/utils/api";
+import { useCategoryStore } from "../../../shared/store/categoryStore";
 
 const ProductRequestForm = () => {
   const navigate = useNavigate();
@@ -28,17 +29,13 @@ const ProductRequestForm = () => {
   const [imagePreview, setImagePreview] = useState("");
   const [dragActive, setDragActive] = useState(false);
 
-  const categories = [
-    "Clothing & Fashion",
-    "Footwear",
-    "Bags & Luggage",
-    "Jewelry & Watches",
-    "Accessories",
-    "Athletic & Activewear",
-    "Electronics",
-    "Home & Living",
-    "Others",
-  ];
+  // Real, admin-managed categories (plus "Other" for things that don't fit any of them)
+  const { initialize: initCategories, getRootCategories, categories: allCategories } = useCategoryStore();
+  useEffect(() => { initCategories(); }, [initCategories]);
+  const categoryOptions = useMemo(
+    () => getRootCategories().filter((c) => c.isActive !== false).map((c) => c.name),
+    [allCategories, getRootCategories]
+  );
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -209,12 +206,10 @@ const ProductRequestForm = () => {
               className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:border-red-500 transition-colors text-base bg-white"
             >
               <option value="" disabled>Select a category</option>
-              <option value="Electronics">Electronics</option>
-              <option value="Groceries">Groceries</option>
-              <option value="Stationery">Stationery</option>
-              <option value="Hardware">Hardware</option>
-              <option value="Clothing">Clothing</option>
-              <option value="Office Supplies">Office Supplies</option>
+              {categoryOptions.map((name) => (
+                <option key={name} value={name}>{name}</option>
+              ))}
+              <option value="Other">Other</option>
             </select>
           </div>
 

@@ -125,7 +125,7 @@ const DeliveryLogin = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    placeholder="delivery@delivery.com"
+                    placeholder="your.email@example.com"
                     className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary-500 focus:outline-none transition-colors text-base"
                     required
                   />
@@ -187,12 +187,14 @@ const DeliveryLogin = () => {
               </button>
             </form>
 
-            {/* Demo Credentials */}
-            <div className="mt-6 p-4 bg-primary-50 rounded-xl">
-              <p className="text-sm text-gray-700 font-semibold mb-2">Demo Credentials:</p>
-              <p className="text-xs text-gray-600">Email: delivery@delivery.com</p>
-              <p className="text-xs text-gray-600">Password: delivery123</p>
-            </div>
+            {/* Demo credentials: development builds only — never shown in production */}
+            {import.meta.env.DEV && (
+              <div className="mt-6 p-4 bg-primary-50 rounded-xl">
+                <p className="text-sm text-gray-700 font-semibold mb-2">Demo Credentials (dev only):</p>
+                <p className="text-xs text-gray-600">Email: delivery@delivery.com</p>
+                <p className="text-xs text-gray-600">Password: delivery123</p>
+              </div>
+            )}
 
             <div className="text-center pt-4">
               <p className="text-sm text-gray-600">

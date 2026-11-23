@@ -303,7 +303,7 @@ const GstSettings = () => {
                     Or Type / Enter Custom GST Rate Manually (%)
                   </label>
                   <p className="text-[11px] text-gray-500 mb-2">
-                    Aap yahan direct type karke koi bhi custom rate (e.g. 12, 18, 7.5, etc.) likh sakte hain:
+                    Type any custom rate here (e.g. 12, 18, 7.5):
                   </p>
                   <div className="flex items-center gap-3 max-w-sm">
                     <div className="relative flex-1">
@@ -330,7 +330,7 @@ const GstSettings = () => {
                   <div>
                     <span className="font-bold">Active Selected Rate: {globalGstRate}% GST</span>
                     <p className="text-gray-600 text-[11px] mt-0.5">
-                      Neeche green button click karne par yeh <strong>{globalGstRate}% GST</strong> aapke store ke sabhi <strong>{data.totalProducts} active products</strong> par ek sath apply ho jayega.
+                      Clicking the green button below applies <strong>{globalGstRate}% GST</strong> to all <strong>{data.totalProducts} active products</strong> in your store at once.
                     </p>
                   </div>
                 </div>

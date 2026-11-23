@@ -513,7 +513,7 @@ const ProfileSettings = () => {
 
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1">
                     <p className="text-xs text-amber-800">
-                      Aapki request Admin ke paas gayi hui hai. Approval ke baad hi aapka account close hoga. Tab tak store active rahega.
+                      Your request has been sent to the admin. Your account will be closed only after approval; until then your store stays active.
                     </p>
                     <button
                       type="button"
@@ -546,7 +546,7 @@ const ProfileSettings = () => {
                         <strong>Admin Remarks:</strong> {deletionData.request.adminRemarks || 'Declined by Admin.'}
                       </p>
                       <p className="text-[11px] text-gray-500">
-                        Aapka vendor account active hai. Agar requirements poori ho gayi hain toh aap nayi request submit kar sakte hain.
+                        Your vendor account is active. Once the requirements are met, you can submit a new request.
                       </p>
                     </div>
                   )}

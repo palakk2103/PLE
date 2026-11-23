@@ -893,10 +893,10 @@ const Earnings = ({ defaultTab }) => {
               <div className="p-6 space-y-4">
                 <div className="p-4 bg-amber-50 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-800/40 text-xs text-amber-900 dark:text-amber-200 space-y-2">
                   <p className="font-bold text-sm text-amber-950 dark:text-amber-100">
-                    Aap abhi withdrawal request nahi bhej sakte!
+                    You can't send a withdrawal request yet!
                   </p>
                   <p className="text-amber-800/80 dark:text-amber-300/80 leading-relaxed">
-                    Kyunki aapne abhi tak apna <strong>Bank Account Number</strong> ya <strong>UPI ID</strong> save nahi kiya hai. Admin ko payout transfer karne ke liye aapki bank details zaroori hain.
+                    You haven't saved a <strong>Bank Account Number</strong> or <strong>UPI ID</strong> yet. The admin needs your bank details to transfer payouts.
                   </p>
                 </div>
 

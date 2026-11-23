@@ -24,7 +24,6 @@ import {
   getApprovedVendors,
   getCatalogBrands,
 } from "../data/catalogData";
-import { products as allStaticProducts } from "../../../data/products";
 import { categories as fallbackCategories } from "../../../data/categories";
 import PageTransition from "../../../shared/components/PageTransition";
 import usePullToRefresh from "../hooks/usePullToRefresh";
@@ -334,7 +333,7 @@ const MobileHome = () => {
     if (!activeCategoryId || !activeCategory) return [];
     const matched = catalogProducts.filter(p => String(p.categoryId) === String(activeCategory.id));
     if (matched.length > 0) return matched;
-    const list = catalogProducts.length > 0 ? catalogProducts : allStaticProducts;
+    const list = catalogProducts;
     return list.map(normalizeProduct).filter(p => 
       String(p.categoryId) === String(activeCategory.id) || 
       String(p.categoryName || "").toLowerCase().includes(String(activeCategory.name || "").toLowerCase())
@@ -400,7 +399,7 @@ const MobileHome = () => {
   }, [catalogProducts, fallbackFlashSale]);
 
   const computedRefurbished = useMemo(() => {
-    const list = catalogProducts.length > 0 ? catalogProducts : allStaticProducts;
+    const list = catalogProducts;
     return list.filter((p) => p.condition && p.condition !== "brand_new").slice(0, 5);
   }, [catalogProducts]);
 
@@ -772,7 +771,7 @@ const MobileHome = () => {
                     >
                       <div className="w-14 h-14 rounded-full overflow-hidden border border-gray-100 bg-gray-50">
                         <img
-                          src={sub.image || "https://via.placeholder.com/150"}
+                          src={sub.image || "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23f3f4f6%22/%3E%3Ccircle cx=%2234%22 cy=%2236%22 r=%228%22 fill=%22%23d1d5db%22/%3E%3Cpath d=%22M12 80l24-28 16 18 12-13 24 23z%22 fill=%22%23d1d5db%22/%3E%3C/svg%3E"}
                           alt={sub.name}
                           className="w-full h-full object-cover"
                         />
@@ -861,7 +860,7 @@ const MobileHome = () => {
                             className="w-full h-full object-cover pointer-events-none select-none"
                             draggable={false}
                             onError={(e) => {
-                              e.target.src = `https://via.placeholder.com/400x200?text=Slide+${index + 1
+                              e.target.src = `data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23f3f4f6%22/%3E%3Ccircle cx=%2234%22 cy=%2236%22 r=%228%22 fill=%22%23d1d5db%22/%3E%3Cpath d=%22M12 80l24-28 16 18 12-13 24 23z%22 fill=%22%23d1d5db%22/%3E%3C/svg%3E + 1
                                 }`;
                             }}
                           />
@@ -894,7 +893,7 @@ const MobileHome = () => {
                       alt={sideBanner?.title || "Premium Watch"}
                       className="w-full h-full object-contain p-8 group-hover:scale-110 transition-transform duration-700"
                       onError={(e) => {
-                        e.target.src = "https://via.placeholder.com/400x400?text=Premium+Watch";
+                        e.target.src = "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23f3f4f6%22/%3E%3Ccircle cx=%2234%22 cy=%2236%22 r=%228%22 fill=%22%23d1d5db%22/%3E%3Cpath d=%22M12 80l24-28 16 18 12-13 24 23z%22 fill=%22%23d1d5db%22/%3E%3C/svg%3E";
                       }}
                     />
                     <div className="absolute inset-x-0 bottom-0 p-8 z-20 flex flex-col items-center text-center">

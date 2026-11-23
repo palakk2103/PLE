@@ -48,15 +48,21 @@ const MobileCategoryGrid = () => {
               to={`/home?category=${category.id}`}
               className="flex flex-col items-center gap-1.5 w-16 select-none">
               <div className="w-14 h-14 rounded-full overflow-hidden bg-white dark:bg-[#1A1A1A] flex items-center justify-center p-1.5 border border-purple-200 dark:border-[#7B0A0A] shadow-sm dark:shadow-[0_0_8px_rgba(123, 10, 10,0.4)]">
-                <LazyImage
-                  src={category.image}
-                  alt={category.name}
-                  className="w-full h-full object-contain rounded-full"
-                  onError={(e) => {
-                    e.target.src =
-                      "https://via.placeholder.com/64x64?text=Cat";
-                  }}
-                />
+                {category.image ? (
+                  <LazyImage
+                    src={category.image}
+                    alt={category.name}
+                    className="w-full h-full object-contain rounded-full"
+                    onError={(e) => {
+                      e.target.src =
+                        "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23f3f4f6%22/%3E%3Ccircle cx=%2234%22 cy=%2236%22 r=%228%22 fill=%22%23d1d5db%22/%3E%3Cpath d=%22M12 80l24-28 16 18 12-13 24 23z%22 fill=%22%23d1d5db%22/%3E%3C/svg%3E";
+                    }}
+                  />
+                ) : (
+                  <span className="text-xl font-black text-gray-400 dark:text-gray-500">
+                    {String(category.name || "?").charAt(0).toUpperCase()}
+                  </span>
+                )}
               </div>
               <span className="text-xs font-semibold text-gray-800 dark:text-white text-center mt-2 truncate max-w-full px-0.5">
                 {category.name}

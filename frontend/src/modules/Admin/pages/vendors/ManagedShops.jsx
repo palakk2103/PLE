@@ -171,7 +171,7 @@ const ManagedShops = () => {
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
                     <img
-                      src={shop.logo || "https://via.placeholder.com/60"}
+                      src={shop.logo || "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23f3f4f6%22/%3E%3Ccircle cx=%2234%22 cy=%2236%22 r=%228%22 fill=%22%23d1d5db%22/%3E%3Cpath d=%22M12 80l24-28 16 18 12-13 24 23z%22 fill=%22%23d1d5db%22/%3E%3C/svg%3E"}
                       alt={shop.name}
                       className="w-12 h-12 object-contain rounded-xl border border-gray-100 bg-gray-50"
                     />

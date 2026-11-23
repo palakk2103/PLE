@@ -1410,7 +1410,7 @@ const MobileProfile = () => {
 
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1">
                           <p className="text-xs text-amber-800 leading-relaxed">
-                            Aapki account deletion request Admin ke paas verification ke liye gayi hui hai. Admin review ke baad hi account delete hoga. Is beech aapka account poori tarah active rahega.
+                            Your account deletion request has been sent to the admin for verification. Your account will be deleted only after the admin reviews it, and stays fully active until then.
                           </p>
                           <button
                             type="button"
@@ -1444,7 +1444,7 @@ const MobileProfile = () => {
                               <strong>Admin Remarks:</strong> {deletionData.request.adminRemarks || "Request could not be approved at this time."}
                             </p>
                             <p className="text-[11px] text-gray-500">
-                              Aapka account active hai. Agar issues resolve ho gaye hain ya aap dobara request submit karna chahte hain, toh aap nayi request bhej sakte hain.
+                              Your account is active. If the issues are resolved or you'd like to try again, you can submit a new request.
                             </p>
                           </div>
                         )}
@@ -2433,7 +2433,7 @@ const MobileProfile = () => {
                 <div className="bg-amber-50 rounded-2xl p-3 border border-amber-200 text-xs text-amber-900 flex items-start gap-2">
                   <FiClock className="text-amber-700 text-base shrink-0 mt-0.5" />
                   <span>
-                    Aapki request submit hone ke baad Admin team ise verify karegi. Approval milne par account close ho jayega.
+                    Once submitted, the admin team will verify your request. Your account will be closed after approval.
                   </span>
                 </div>
 

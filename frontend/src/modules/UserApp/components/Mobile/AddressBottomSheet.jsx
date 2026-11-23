@@ -219,7 +219,7 @@ const AddressBottomSheet = ({ isOpen, onClose }) => {
                             type="text"
                             placeholder="Home"
                             {...register("name", { required: "Label is required" })}
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
                           />
                           {errors.name && (
                             <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>
@@ -234,7 +234,7 @@ const AddressBottomSheet = ({ isOpen, onClose }) => {
                             type="text"
                             placeholder="Your full name"
                             {...register("fullName", { required: "Full name is required" })}
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
                           />
                           {errors.fullName && (
                             <p className="mt-1 text-xs text-red-500">{errors.fullName.message}</p>
@@ -255,7 +255,7 @@ const AddressBottomSheet = ({ isOpen, onClose }) => {
                                 message: "Enter a valid 10-digit phone number",
                               },
                             })}
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
                           />
                           {errors.phone && (
                             <p className="mt-1 text-xs text-red-500">{errors.phone.message}</p>
@@ -270,7 +270,7 @@ const AddressBottomSheet = ({ isOpen, onClose }) => {
                             type="text"
                             placeholder="Flat, House no., Area, Street"
                             {...register("address", { required: "Address is required" })}
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
                           />
                           {errors.address && (
                             <p className="mt-1 text-xs text-red-500">{errors.address.message}</p>
@@ -286,7 +286,7 @@ const AddressBottomSheet = ({ isOpen, onClose }) => {
                               type="text"
                               placeholder="City"
                               {...register("city", { required: "City is required" })}
-                              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
                             />
                             {errors.city && (
                               <p className="mt-1 text-xs text-red-500">{errors.city.message}</p>
@@ -301,7 +301,7 @@ const AddressBottomSheet = ({ isOpen, onClose }) => {
                               type="text"
                               placeholder="State"
                               {...register("state", { required: "State is required" })}
-                              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
                             />
                             {errors.state && (
                               <p className="mt-1 text-xs text-red-500">{errors.state.message}</p>
@@ -318,7 +318,7 @@ const AddressBottomSheet = ({ isOpen, onClose }) => {
                               type="text"
                               placeholder="Zip code"
                               {...register("zipCode", { required: "Zip code is required" })}
-                              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
                             />
                             {errors.zipCode && (
                               <p className="mt-1 text-xs text-red-500">{errors.zipCode.message}</p>
@@ -334,7 +334,7 @@ const AddressBottomSheet = ({ isOpen, onClose }) => {
                               placeholder="Country"
                               defaultValue="India"
                               {...register("country", { required: "Country is required" })}
-                              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
                             />
                             {errors.country && (
                               <p className="mt-1 text-xs text-red-500">{errors.country.message}</p>

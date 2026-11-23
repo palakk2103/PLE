@@ -45,7 +45,16 @@ const VendorHeader = ({ onMenuClick, isCollapsed = false, onToggleCollapse }) =>
       settings: "Settings",
       profile: "Profile",
     };
-    return pageNames[path] || path.charAt(0).toUpperCase() + path.slice(1);
+    if (pageNames[path]) return pageNames[path];
+    // Detail pages end in an id (e.g. ORD-123..., 24-char hex): show "<Section> Details" instead.
+    const segments = pathname.split("/").filter(Boolean);
+    if (/^(ORD|PO|RFQ|REQ|TKT)-/i.test(path) || /^[a-f0-9]{24}$/i.test(path)) {
+      const parent = segments[segments.length - 2] || "item";
+      const singular = parent.replace(/s$/, "");
+      return singular.charAt(0).toUpperCase() + singular.slice(1).replace(/-/g, " ") + " Details";
+    }
+    // "manage-products" -> "Manage Products"
+    return path.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
   };
 
   const pageName = getPageName(location.pathname);

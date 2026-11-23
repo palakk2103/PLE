@@ -15,6 +15,20 @@ export default {
         'xs': '375px',
       },
       colors: {
+        // Customer-storefront brand (maroon) — matches the header/buttons across the shopper app.
+        brand: {
+          DEFAULT: '#7B0A0A',
+          50: '#FEF2F2',
+          100: '#FDE4E4',
+          200: '#FBCACA',
+          300: '#F4A0A0',
+          400: '#E06161',
+          500: '#AE020B',
+          600: '#950A0A',
+          700: '#7B0A0A',
+          800: '#5E0707',
+          900: '#450505',
+        },
         primary: {
           DEFAULT: '#7C3AED',
           50: '#F5F3FF',

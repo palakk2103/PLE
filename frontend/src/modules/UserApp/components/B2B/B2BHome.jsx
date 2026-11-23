@@ -159,25 +159,6 @@ const B2BHome = ({
     });
   }, [allCategories, getRootCategories]);
 
-  const categoryTabs = [
-    { name: "All", count: 0 },
-    { name: "Men's", count: 0 },
-    { name: "Women's", count: 0 },
-    { name: "Books", count: 0 },
-    { name: "Kids", count: 0 }
-  ];
-
-  const brands = [
-    { name: "Armani Exchange", logo: "A|X", subtitle: "Armani Exchange" },
-    { name: "Chanel", logo: "CHANEL", subtitle: "Chanel" },
-    { name: "Charles & Keith", logo: "CHARLES & KEITH", subtitle: "Charles & Keith" },
-    { name: "Chloe", logo: "Chloé", subtitle: "Chloe" }
-  ];
-
-
-
-
-
   const handleUploadBOQ = () => {
     if (!isAuthenticated) {
       toast.error("Please sign in or create a business account to upload BOQs.");
@@ -194,48 +175,40 @@ const B2BHome = ({
     setIsRfqOpen(true);
   };
 
-  // The sidebar/explore labels are marketing names, so link to a real category when one
-  // matches and otherwise search by the label's first keyword (e.g. "Networking").
-  const goToCategory = (name) => {
-    const label = String(name || "").toLowerCase();
-    const match = displayCategories.find((c) => {
-      const catName = String(c.name || "").toLowerCase();
-      return catName && (catName.includes(label) || label.includes(catName));
-    });
-    if (match?.id) {
-      navigate(`/search?category=${encodeURIComponent(match.id)}`);
-      return;
-    }
-    const keyword = String(name || "").split(/[\s&,]+/).filter(Boolean)[0] || name;
-    navigate(`/search?q=${encodeURIComponent(keyword)}`);
+  // Real categories (managed by admin) — only show what actually exists in the catalogue,
+  // never made-up marketing names. `getRootCategories()` is empty until the API has loaded.
+  const realCategories = useMemo(
+    () => getRootCategories().filter((cat) => cat.isActive !== false),
+    [allCategories, getRootCategories]
+  );
+
+  // Pick a sensible icon from the category name; fall back to a generic one.
+  const iconForCategory = (name) => {
+    const n = String(name || "").toLowerCase();
+    if (/computer|laptop|desktop|monitor|peripheral/.test(n)) return <FiMonitor />;
+    if (/component|cpu|processor|chip/.test(n)) return <FiCpu />;
+    if (/secur|surveil|cctv|camera/.test(n)) return <FiShield />;
+    if (/network|router|wifi|wi-fi/.test(n)) return <FiGlobe />;
+    if (/storage|backup|drive|memory/.test(n)) return <FiDatabase />;
+    if (/office|print|scan/.test(n)) return <FiPrinter />;
+    if (/power|electric|battery|charger|cable/.test(n)) return <FiZap />;
+    if (/software|licen/.test(n)) return <FiFileText />;
+    if (/mobile|phone|accessor|audio|headphone/.test(n)) return <FiSmartphone />;
+    return <FiLayers />;
   };
 
-  // Sidebar category items
-  const sidebarCategories = [
-    { name: "Computers & Peripherals", icon: <FiMonitor /> },
-    { name: "Components", icon: <FiCpu /> },
-    { name: "Security & Surveillance", icon: <FiShield /> },
-    { name: "Networking", icon: <FiGlobe /> },
-    { name: "Storage & Backup", icon: <FiDatabase /> },
-    { name: "Office Equipment", icon: <FiPrinter /> },
-    { name: "Power & Electricals", icon: <FiZap /> },
-    { name: "Software & Licenses", icon: <FiFileText /> },
-    { name: "Mobility & Accessories", icon: <FiSmartphone /> },
-    { name: "Consumables", icon: <FiLayers /> }
-  ];
+  // Sidebar items (max 10) and "Explore by category" tiles (max 9), both from real categories
+  const sidebarCategories = realCategories.slice(0, 10).map((cat) => ({
+    id: cat.id || cat._id,
+    name: cat.name,
+    icon: iconForCategory(cat.name),
+  }));
 
-  // Explore by category grid items
-  const exploreCategories = [
-    { name: "Computers & Peripherals", image: "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=200&fit=crop&q=80" },
-    { name: "Components", image: "https://images.unsplash.com/photo-1591488320449-011701bb6704?w=200&fit=crop&q=80" },
-    { name: "Security & Surveillance", image: "https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=200&fit=crop&q=80" },
-    { name: "Networking", image: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=200&fit=crop&q=80" },
-    { name: "Storage & Backup", image: "https://images.unsplash.com/photo-1600541519468-4a78a7ff6942?w=200&fit=crop&q=80" },
-    { name: "Office Equipment", image: "https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?w=200&fit=crop&q=80" },
-    { name: "Power & Electricals", image: "https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=200&fit=crop&q=80" },
-    { name: "Software & Licenses", image: "https://images.unsplash.com/photo-1607799279861-4dd421887fb3?w=200&fit=crop&q=80" },
-    { name: "Mobility & Accessories", image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&fit=crop&q=80" }
-  ];
+  const exploreCategories = realCategories.slice(0, 9).map((cat) => ({
+    id: cat.id || cat._id,
+    name: cat.name,
+    image: cat.image || "",
+  }));
 
   return (
     <div className="w-full min-h-screen bg-black text-white dark:bg-black dark:text-white light:bg-gray-50 light:text-gray-900 transition-colors duration-300 pb-24">
@@ -268,7 +241,8 @@ const B2BHome = ({
       `}</style>
 
       {/* Main Container */}
-      <div className="w-full max-w-full">
+      {/* Centred, padded content column on tablet/desktop; full-bleed on phones */}
+      <div className="w-full max-w-full md:max-w-[1400px] md:mx-auto md:px-6 lg:px-8">
 
         {/* MOBILE ONLY TOP SECTION */}
         <div className="block md:hidden">
@@ -563,15 +537,19 @@ const B2BHome = ({
                             ? "border-red-900/60 bg-zinc-955 hover:border-red-500" 
                             : "border-gray-200 bg-white hover:border-red-500 shadow-sm"
                         }`}>
-                          <img
-                            src={cat.image}
-                            alt={cat.name}
-                            className="w-full h-full object-contain rounded-full"
-                            onError={(e) => {
-                              e.target.onerror = null;
-                              e.target.src = getPlaceholderImage(64, 64, cat.name || "Cat");
-                            }}
-                          />
+                          {cat.image ? (
+                            <img
+                              src={cat.image}
+                              alt={cat.name}
+                              className="w-full h-full object-contain rounded-full"
+                              onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = getPlaceholderImage(64, 64, cat.name || "Cat");
+                              }}
+                            />
+                          ) : (
+                            <span className="text-lg font-black text-gray-400">{String(cat.name || "?").charAt(0).toUpperCase()}</span>
+                          )}
                         </div>
                         <span className="text-[10px] text-zinc-500 text-center truncate w-20">
                           {cat.name}
@@ -607,7 +585,7 @@ const B2BHome = ({
           <div className="grid grid-cols-12 gap-4 items-stretch">
             
             {/* Left Column: BROWSE CATEGORIES */}
-            <div className={`col-span-3 rounded-2xl p-5 flex flex-col justify-between border ${
+            <div className={`col-span-4 lg:col-span-3 rounded-2xl p-5 flex flex-col justify-between border ${
               isDark 
                 ? "bg-zinc-955 border-zinc-900 text-zinc-400" 
                 : "bg-white border-gray-200 text-gray-700"
@@ -615,10 +593,13 @@ const B2BHome = ({
               <div>
                 <h3 className={`text-xs font-bold uppercase tracking-wider mb-5 ${isDark ? "text-zinc-450" : "text-gray-500"}`}>Browse Categories</h3>
                 <div className="space-y-1">
+                  {sidebarCategories.length === 0 && (
+                    <p className={`px-3 py-2 text-xs ${isDark ? "text-zinc-500" : "text-gray-400"}`}>No categories available yet.</p>
+                  )}
                   {sidebarCategories.map((cat) => (
                     <button
-                      key={cat.name}
-                      onClick={() => goToCategory(cat.name)}
+                      key={cat.id || cat.name}
+                      onClick={() => navigate(`/category/${cat.id}`)}
                       className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all group text-sm font-medium ${
                         isDark 
                           ? "text-zinc-400 hover:text-white hover:bg-zinc-900" 
@@ -649,7 +630,7 @@ const B2BHome = ({
             </div>
 
             {/* Middle Column: Hero Carousel Banner */}
-            <div className="col-span-6 relative rounded-2xl overflow-hidden bg-[#0A0506] border border-zinc-900 p-8 md:p-10 flex flex-col justify-between min-h-[420px]">
+            <div className="col-span-8 lg:col-span-6 relative rounded-2xl overflow-hidden bg-[#0A0506] border border-zinc-900 p-8 md:p-10 flex flex-col justify-between min-h-[420px]">
               
               {/* Background gradient & decorative dark architectural picture style */}
               <div 
@@ -697,7 +678,7 @@ const B2BHome = ({
             </div>
 
             {/* Right Column: BUSINESS ACCOUNT Card */}
-            <div className={`col-span-3 rounded-2xl p-5 border flex flex-col justify-between ${
+            <div className={`hidden lg:flex col-span-3 rounded-2xl p-5 border flex-col justify-between ${
               isDark 
                 ? "bg-zinc-955 border-zinc-900 text-white" 
                 : "bg-white border-gray-200 text-gray-800"
@@ -866,19 +847,12 @@ const B2BHome = ({
               </Link>
             </div>
             
-            <div className="grid grid-cols-9 gap-4">
+            <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-3 lg:gap-4">
               {exploreCategories.map((cat) => {
-                const match = displayCategories.find(c => c.name?.toLowerCase().includes(cat.name.toLowerCase()) || cat.name.toLowerCase().includes(c.name?.toLowerCase()));
                 return (
                   <div
-                    key={cat.name}
-                    onClick={() => {
-                      if (match?.id) {
-                        navigate(`/category/${match.id}`);
-                      } else {
-                        goToCategory(cat.name);
-                      }
-                    }}
+                    key={cat.id || cat.name}
+                    onClick={() => navigate(`/category/${cat.id}`)}
                     className={`rounded-2xl p-3 text-center cursor-pointer hover:scale-102 transition-all flex flex-col items-center justify-between group border ${
                     isDark 
                       ? "bg-zinc-955 border-zinc-900 hover:border-zinc-800 text-white" 
@@ -886,11 +860,17 @@ const B2BHome = ({
                   }`}
                 >
                   <div className={`w-full aspect-square rounded-xl overflow-hidden mb-3 border ${isDark ? "bg-zinc-900 border-zinc-850" : "bg-gray-55 border-gray-100"}`}>
-                    <img 
-                      src={cat.image} 
-                      alt={cat.name} 
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
-                    />
+                    {cat.image ? (
+                      <img 
+                        src={cat.image} 
+                        alt={cat.name} 
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                      />
+                    ) : (
+                      <div className={`w-full h-full flex items-center justify-center text-xl font-black ${isDark ? "text-zinc-600" : "text-gray-300"}`}>
+                        {String(cat.name || "?").charAt(0).toUpperCase()}
+                      </div>
+                    )}
                   </div>
                   <span className={`text-[11px] font-bold transition-colors leading-tight line-clamp-2 ${
                     isDark 

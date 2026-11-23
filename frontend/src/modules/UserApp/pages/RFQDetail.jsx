@@ -26,7 +26,7 @@ const MobileRFQDetail = () => {
   const fetchRFQDetail = async () => {
     try {
       setIsLoading(true);
-      const res = await api.get(`/rfq/${id}`);
+      const res = await api.get(`/user/rfq/${id}`);
       if (res && res.data) {
         setRfq(res.data);
         setCounterPrice(res.data.targetPrice);
@@ -54,7 +54,7 @@ const MobileRFQDetail = () => {
     }
     try {
       setIsActionLoading(true);
-      const res = await api.post(`/rfq/${id}/accept`);
+      const res = await api.post(`/user/rfq/${id}/accept`);
       toast.success(res.message || 'Quote accepted! Order has been generated.');
       navigate('/orders');
     } catch (error) {
@@ -71,7 +71,7 @@ const MobileRFQDetail = () => {
     }
     try {
       setIsActionLoading(true);
-      const res = await api.post(`/rfq/${id}/reject`);
+      const res = await api.post(`/user/rfq/${id}/reject`);
       toast.success(res.message || 'RFQ rejected successfully.');
       fetchRFQDetail();
     } catch (error) {
@@ -90,7 +90,7 @@ const MobileRFQDetail = () => {
     }
     try {
       setIsActionLoading(true);
-      const res = await api.post(`/rfq/${id}/counter`, {
+      const res = await api.post(`/user/rfq/${id}/counter`, {
         price: counterPrice,
         quantity: counterQty,
         notes: counterNotes

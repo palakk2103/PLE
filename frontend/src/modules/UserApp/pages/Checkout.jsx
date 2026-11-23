@@ -928,7 +928,7 @@ const MobileCheckout = () => {
                     className="px-4 py-4 lg:p-0">
                     <div className="flex items-center justify-between mb-4">
                       <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                        <FiTruck className="text-primary-600" />
+                        <FiTruck className="text-brand-600" />
                         Delivery Address
                       </h2>
                       {isAuthenticated && addresses.length > 0 && (
@@ -938,7 +938,7 @@ const MobileCheckout = () => {
                             setEditingAddress(null);
                             setShowAddressForm(true);
                           }}
-                          className="flex items-center gap-1.5 text-xs font-bold text-primary-600 hover:text-primary-700 bg-primary-50 px-3 py-1.5 rounded-xl transition-all border border-primary-200"
+                          className="flex items-center gap-1.5 text-xs font-bold text-brand-600 hover:text-brand-700 bg-brand-50 px-3 py-1.5 rounded-xl transition-all border border-brand-200"
                         >
                           <FiPlus className="text-sm" /> Add New Address
                         </button>
@@ -947,11 +947,11 @@ const MobileCheckout = () => {
 
                     {/* If user has saved addresses, display the selected address card */}
                     {isAuthenticated && addresses.length > 0 && activeSelectedAddress ? (
-                      <div className="bg-white rounded-2xl border-2 border-primary-500 shadow-sm p-4 sm:p-5 relative transition-all">
+                      <div className="bg-white rounded-2xl border-2 border-brand-500 shadow-sm p-4 sm:p-5 relative transition-all">
                         {/* Header & Badges */}
                         <div className="flex items-start justify-between gap-2 mb-3">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="px-2.5 py-1 bg-primary-100 text-primary-800 text-xs font-bold rounded-full uppercase tracking-wider flex items-center gap-1">
+                            <span className="px-2.5 py-1 bg-brand-100 text-brand-800 text-xs font-bold rounded-full uppercase tracking-wider flex items-center gap-1">
                               <FiMapPin className="text-xs" />
                               {activeSelectedAddress.name || "Delivery Address"}
                             </span>
@@ -981,7 +981,7 @@ const MobileCheckout = () => {
                             <button
                               type="button"
                               onClick={() => setShowAddressListModal(true)}
-                              className="px-3 py-1.5 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-xs font-bold transition-colors shadow-sm"
+                              className="px-3 py-1.5 bg-brand-500 hover:bg-brand-600 text-white rounded-lg text-xs font-bold transition-colors shadow-sm"
                             >
                               Change
                             </button>
@@ -1033,7 +1033,7 @@ const MobileCheckout = () => {
                           <button
                             type="button"
                             onClick={() => setShowAddressListModal(true)}
-                            className="text-xs text-primary-600 hover:text-primary-700 font-bold"
+                            className="text-xs text-brand-600 hover:text-brand-700 font-bold"
                           >
                             {addresses.length > 1
                               ? `Choose from ${addresses.length} saved addresses →`
@@ -1055,7 +1055,7 @@ const MobileCheckout = () => {
                             onChange={handleInputChange}
                             required
                             placeholder="Recipient's full name"
-                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
+                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-base"
                           />
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1070,7 +1070,7 @@ const MobileCheckout = () => {
                               onChange={handleInputChange}
                               required
                               placeholder="example@mail.com"
-                              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
+                              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-base"
                             />
                           </div>
                           <div>
@@ -1084,7 +1084,7 @@ const MobileCheckout = () => {
                               onChange={handleInputChange}
                               required
                               placeholder="10-digit mobile number"
-                              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
+                              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-base"
                             />
                           </div>
                         </div>
@@ -1099,7 +1099,7 @@ const MobileCheckout = () => {
                             required
                             rows={3}
                             placeholder="Street address, flat/house number, landmark"
-                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
+                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-base"
                           />
                         </div>
                         <div className="grid grid-cols-2 gap-3">
@@ -1114,7 +1114,7 @@ const MobileCheckout = () => {
                               onChange={handleInputChange}
                               required
                               placeholder="City"
-                              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
+                              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-base"
                             />
                           </div>
                           <div>
@@ -1128,7 +1128,7 @@ const MobileCheckout = () => {
                               onChange={handleInputChange}
                               required
                               placeholder="State"
-                              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
+                              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-base"
                             />
                           </div>
                         </div>
@@ -1144,7 +1144,7 @@ const MobileCheckout = () => {
                               onChange={handleInputChange}
                               required
                               placeholder="6-digit pincode"
-                              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
+                              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-base"
                             />
                           </div>
                           <div>
@@ -1158,7 +1158,7 @@ const MobileCheckout = () => {
                               onChange={handleInputChange}
                               required
                               placeholder="Country"
-                              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
+                              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-base"
                             />
                           </div>
                         </div>
@@ -1174,7 +1174,7 @@ const MobileCheckout = () => {
                     animate={{ opacity: 1, x: 0 }}
                     className="px-4 py-4 lg:p-0">
                     <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                      <FiCreditCard className="text-primary-600" />
+                      <FiCreditCard className="text-brand-600" />
                       Payment Method
                     </h2>
 
@@ -1261,7 +1261,7 @@ const MobileCheckout = () => {
                                 option.disabled
                                   ? "border-gray-200 bg-gray-50/70 opacity-60 cursor-not-allowed"
                                   : formData.paymentMethod === option.id
-                                    ? "border-primary-500 bg-primary-50/60 shadow-sm"
+                                    ? "border-brand-500 bg-brand-50/60 shadow-sm"
                                     : "border-gray-200 hover:border-gray-300 bg-white"
                               }`}
                             >
@@ -1272,7 +1272,7 @@ const MobileCheckout = () => {
                                 disabled={option.disabled}
                                 checked={formData.paymentMethod === option.id && !option.disabled}
                                 onChange={handleInputChange}
-                                className="w-5 h-5 text-primary-500 mt-1 cursor-pointer disabled:cursor-not-allowed"
+                                className="w-5 h-5 text-brand-500 mt-1 cursor-pointer disabled:cursor-not-allowed"
                               />
                               <div className="flex-1">
                                 <div className="flex items-center justify-between">
@@ -1320,7 +1320,7 @@ const MobileCheckout = () => {
                               value="bulk"
                               checked={true}
                               readOnly
-                              className="w-5 h-5 text-primary-500 mt-1"
+                              className="w-5 h-5 text-brand-500 mt-1"
                             />
                             <div className="flex-1">
                               <span className="font-extrabold text-[#7B0A0A] text-base flex items-center gap-1.5">
@@ -1346,7 +1346,7 @@ const MobileCheckout = () => {
                           {/* Express Local same-city shipping option */}
                           <label
                             className={`flex items-start justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${shippingOption === "express"
-                              ? "border-primary-500 bg-primary-50"
+                              ? "border-brand-500 bg-brand-50"
                               : "border-gray-200"
                               }`}>
                             <div className="flex items-start gap-3">
@@ -1356,7 +1356,7 @@ const MobileCheckout = () => {
                                 value="express"
                                 checked={shippingOption === "express"}
                                 onChange={(e) => setShippingOption(e.target.value)}
-                                className="w-5 h-5 text-primary-500 mt-1"
+                                className="w-5 h-5 text-brand-500 mt-1"
                               />
                               <div>
                                 <span className="font-bold text-gray-800 text-base flex items-center gap-1.5">
@@ -1378,7 +1378,7 @@ const MobileCheckout = () => {
                           {/* Standard shipping option */}
                           <label
                             className={`flex items-start justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${shippingOption === "standard"
-                              ? "border-primary-500 bg-primary-50"
+                              ? "border-brand-500 bg-brand-50"
                               : "border-gray-200"
                               }`}>
                             <div className="flex items-start gap-3">
@@ -1388,7 +1388,7 @@ const MobileCheckout = () => {
                                 value="standard"
                                 checked={shippingOption === "standard"}
                                 onChange={(e) => setShippingOption(e.target.value)}
-                                className="w-5 h-5 text-primary-500 mt-1"
+                                className="w-5 h-5 text-brand-500 mt-1"
                               />
                               <div>
                                 <span className="font-bold text-gray-800 text-base">
@@ -1506,7 +1506,7 @@ const MobileCheckout = () => {
                               value={couponCode}
                               onChange={(e) => setCouponCode(e.target.value)}
                               placeholder="Enter code"
-                              className="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
+                              className="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-base"
                             />
                             <button
                               type="button"
@@ -1519,7 +1519,7 @@ const MobileCheckout = () => {
                           {!isWalletZero && availableCoupons.length > 0 && (
                             <div className="mt-3 bg-gray-50 rounded-xl p-3 border border-gray-200">
                               <h4 className="text-sm font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                                <FiTag className="text-primary-600" />
+                                <FiTag className="text-brand-600" />
                                 Available coupons
                               </h4>
                               <div className="space-y-2 max-h-40 overflow-y-auto">
@@ -1529,11 +1529,11 @@ const MobileCheckout = () => {
                                     type="button"
                                     onClick={() => handleApplyCoupon(coupon.code)}
                                     disabled={isApplyingCoupon}
-                                    className="w-full text-left p-2 bg-white rounded-lg border border-gray-200 hover:border-primary-300 transition-colors"
+                                    className="w-full text-left p-2 bg-white rounded-lg border border-gray-200 hover:border-brand-300 transition-colors"
                                   >
                                     <div className="flex items-center justify-between">
                                       <p className="text-sm font-semibold text-gray-800">{coupon.code}</p>
-                                      <p className="text-xs font-semibold text-primary-700">
+                                      <p className="text-xs font-semibold text-brand-700">
                                         {coupon.type === "percentage"
                                           ? `${coupon.value}% OFF`
                                           : coupon.type === "fixed"
@@ -1576,7 +1576,7 @@ const MobileCheckout = () => {
 
                     {/* Available Offers & Suggestions (UI Only) */}
                     <div className="mb-6 bg-white p-4 rounded-xl border border-gray-200 shadow-sm space-y-4">
-                      <div className="flex items-center gap-2 text-primary-600">
+                      <div className="flex items-center gap-2 text-brand-600">
                         <FiTag className="text-lg" />
                         <h3 className="text-sm font-extrabold text-gray-800 uppercase tracking-wide">
                           Available Savings & Offers
@@ -1799,7 +1799,7 @@ const AddressListModal = ({
                   onClick={() => onSelect(address)}
                   className={`p-4 rounded-2xl border-2 cursor-pointer transition-all relative ${
                     isSelected
-                      ? "border-primary-500 bg-primary-50/60 shadow-sm"
+                      ? "border-brand-500 bg-brand-50/60 shadow-sm"
                       : "border-gray-200 hover:border-gray-300 bg-white"
                   }`}
                 >
@@ -1809,7 +1809,7 @@ const AddressListModal = ({
                         <div
                           className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                             isSelected
-                              ? "border-primary-600 bg-primary-600"
+                              ? "border-brand-600 bg-brand-600"
                               : "border-gray-300"
                           }`}
                         >
@@ -1856,7 +1856,7 @@ const AddressListModal = ({
                         e.stopPropagation();
                         onEdit(address);
                       }}
-                      className="px-2.5 py-1 text-xs font-semibold text-gray-600 hover:text-primary-600 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center gap-1 transition-colors shrink-0"
+                      className="px-2.5 py-1 text-xs font-semibold text-gray-600 hover:text-brand-600 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center gap-1 transition-colors shrink-0"
                     >
                       <FiEdit2 size={12} />
                       <span>Edit</span>
@@ -1872,7 +1872,7 @@ const AddressListModal = ({
             <button
               type="button"
               onClick={onAddNew}
-              className="w-full py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-md transition-all text-sm"
+              className="w-full py-3 px-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-md transition-all text-sm"
             >
               <FiPlus className="text-lg" />
               <span>Add New Address</span>
@@ -1979,7 +1979,7 @@ const AddressFormModal = ({ show, initialData = null, onSubmit, onCancel }) => {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm font-medium"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm font-medium"
                 >
                   <option value="Home">Home</option>
                   <option value="Work">Work / Office</option>
@@ -1998,7 +1998,7 @@ const AddressFormModal = ({ show, initialData = null, onSubmit, onCancel }) => {
                   onChange={handleChange}
                   required
                   placeholder="Recipient Name"
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
                 />
               </div>
             </div>
@@ -2014,7 +2014,7 @@ const AddressFormModal = ({ show, initialData = null, onSubmit, onCancel }) => {
                 onChange={handleChange}
                 required
                 placeholder="10-digit mobile number"
-                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
               />
             </div>
 
@@ -2029,7 +2029,7 @@ const AddressFormModal = ({ show, initialData = null, onSubmit, onCancel }) => {
                 required
                 rows={2}
                 placeholder="Flat / House no., Building, Street, Landmark"
-                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
               />
             </div>
 
@@ -2045,7 +2045,7 @@ const AddressFormModal = ({ show, initialData = null, onSubmit, onCancel }) => {
                   onChange={handleChange}
                   required
                   placeholder="City"
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
                 />
               </div>
               <div>
@@ -2059,7 +2059,7 @@ const AddressFormModal = ({ show, initialData = null, onSubmit, onCancel }) => {
                   onChange={handleChange}
                   required
                   placeholder="State"
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
                 />
               </div>
             </div>
@@ -2076,7 +2076,7 @@ const AddressFormModal = ({ show, initialData = null, onSubmit, onCancel }) => {
                   onChange={handleChange}
                   required
                   placeholder="6-digit pincode"
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
                 />
               </div>
               <div>
@@ -2090,7 +2090,7 @@ const AddressFormModal = ({ show, initialData = null, onSubmit, onCancel }) => {
                   onChange={handleChange}
                   required
                   placeholder="Country"
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
                 />
               </div>
             </div>
@@ -2147,11 +2147,11 @@ const UpiRedirectModal = ({ show, upiApp, totalAmount, onSuccess, onCancel }) =>
     },
     phonepe: {
       name: "PhonePe",
-      bgColor: "bg-purple-700",
-      textColor: "text-purple-900",
-      bgLight: "bg-purple-50",
-      borderColor: "border-purple-200",
-      btnColor: "bg-purple-700 hover:bg-purple-800 focus:ring-purple-400",
+      bgColor: "bg-brand-700",
+      textColor: "text-brand-900",
+      bgLight: "bg-brand-50",
+      borderColor: "border-brand-200",
+      btnColor: "bg-brand-700 hover:bg-brand-800 focus:ring-brand-400",
       logo: "🟣",
     },
     paytm: {

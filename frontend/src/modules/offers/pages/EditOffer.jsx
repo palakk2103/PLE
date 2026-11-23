@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useOffers } from "../hooks/useOffers";
 import { OFFER_TYPES, DISCOUNT_TYPES, OFFER_STATUS } from "../constants/offerTypes";
-import { categories as mockCategories } from "../../../data/categories";
+import { categories as mockCategories } from "../data/mockCategories";
 import { products as mockProducts } from "../../../data/products";
 import { FiArrowLeft, FiTag, FiEye, FiCheck } from "react-icons/fi";
 import { ADMIN_BASE_ROUTE, getAdminPath } from "../../Admin/config/adminRoutesConfig";

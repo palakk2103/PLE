@@ -40,7 +40,6 @@ const VendorLegalDocuments = lazy(() => import("../modules/Vendor/pages/VendorLe
 const VendorNotifications = lazy(() => import("../modules/Vendor/pages/Notifications"));
 const VendorSupportTickets = lazy(() => import("../modules/Vendor/pages/SupportTickets"));
 const VendorSupportEscalations = lazy(() => import("../modules/Vendor/pages/SupportEscalations"));
-const VendorPickupLocations = lazy(() => import("../modules/Vendor/pages/PickupLocations"));
 const VendorReports = lazy(() => import("../modules/Vendor/pages/Reports"));
 const VendorLanguageSettings = lazy(() => import("../modules/Vendor/pages/LanguageSettings"));
 const VendorDirectRFQs = lazy(() => import("../modules/Vendor/pages/b2b/VendorDirectRFQs"));
@@ -117,7 +116,7 @@ export default function VendorRoutes() {
         <Route path="return-requests/:id" element={<VendorReturnRequestDetail />} />
         <Route path="product-reviews" element={<VendorProductReviews />} />
         <Route path="shipping-management" element={<VendorShippingManagement />} />
-        <Route path="pickup-locations" element={<VendorPickupLocations />} />
+        <Route path="pickup-locations" element={<Navigate to="/vendor/dashboard" replace />} />
         <Route path="customers/:id" element={<VendorCustomerDetail />} />
         <Route path="customers" element={<VendorCustomers />} />
         <Route path="support-tickets" element={<VendorSupportTickets />} />

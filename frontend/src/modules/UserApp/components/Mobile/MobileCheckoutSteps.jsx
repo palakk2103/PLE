@@ -17,7 +17,7 @@ const MobileCheckoutSteps = ({ currentStep, totalSteps = 3 }) => {
                     isCompleted
                       ? "gradient-green text-white"
                       : isCurrent
-                      ? "gradient-green text-white ring-4 ring-primary-200"
+                      ? "gradient-green text-white ring-4 ring-brand-200"
                       : "bg-gray-200 text-gray-500"
                   }`}>
                   {isCompleted ? <FiCheck className="text-lg" /> : step}
@@ -25,7 +25,7 @@ const MobileCheckoutSteps = ({ currentStep, totalSteps = 3 }) => {
                 <span
                   className={`text-xs font-semibold mt-2 ${
                     isCurrent
-                      ? "text-primary-600"
+                      ? "text-brand-600"
                       : isCompleted
                       ? "text-gray-600"
                       : "text-gray-400"

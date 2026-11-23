@@ -136,11 +136,6 @@ const ChatModerationDashboard = lazy(() => import("../modules/Admin/pages/ChatMo
 const AdminProductEnquiries = lazy(() => import("../modules/Admin/pages/AdminProductEnquiries"));
 
 // Offers & Promotion Management System Pages
-const OfferDashboard = lazy(() => import("../modules/offers/pages/OfferDashboard"));
-const OfferList = lazy(() => import("../modules/offers/pages/OfferList"));
-const CreateOffer = lazy(() => import("../modules/offers/pages/CreateOffer"));
-const EditOffer = lazy(() => import("../modules/offers/pages/EditOffer"));
-const OfferDetails = lazy(() => import("../modules/offers/pages/OfferDetails"));
 
 // Landing Page CMS Pages
 const LandingPageCMSLayout = lazy(() => import("../modules/Admin/pages/landing-page/LandingPageCMSLayout"));
@@ -279,12 +274,9 @@ export default function AdminRoutes() {
         <Route path="offers/home-sliders" element={<HomeSliders />} />
         <Route path="offers/festival-offers" element={<FestivalOffers />} />
 
-        <Route path="offers-management" element={<Navigate to="dashboard" replace />} />
-        <Route path="offers-management/dashboard" element={<OfferDashboard />} />
-        <Route path="offers-management/list" element={<OfferList />} />
-        <Route path="offers-management/create" element={<CreateOffer />} />
-        <Route path="offers-management/edit/:id" element={<EditOffer />} />
-        <Route path="offers-management/details/:id" element={<OfferDetails />} />
+        {/* The old "Offers Management" module was a localStorage-only demo (no backend, no storefront link),
+            so it is retired. Real offers: Promo Codes, Campaigns, Banners, Festival Offers. */}
+        <Route path="offers-management/*" element={<Navigate to="/ple-ops-desk/banners" replace />} />
 
         <Route path="promocodes" element={<PromoCodes />} />
         <Route path="notifications" element={<AllNotifications />} />

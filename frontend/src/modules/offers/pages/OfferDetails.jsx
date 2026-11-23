@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useOffers } from "../hooks/useOffers";
-import { categories as mockCategories } from "../../../data/categories";
+import { categories as mockCategories } from "../data/mockCategories";
 import { products as mockProducts } from "../../../data/products";
 import { FiArrowLeft, FiCalendar, FiUser, FiInfo, FiTag, FiShoppingBag, FiLayers } from "react-icons/fi";
 import OfferStatusChip from "../components/OfferStatusChip";

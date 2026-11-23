@@ -1,10 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiX, FiFilter } from 'react-icons/fi';
-import { categories } from '../../../../data/categories';
+import { useCategoryStore } from '../../../../shared/store/categoryStore';
 import useSwipeGesture from '../../hooks/useSwipeGesture';
 
 const MobileFilterPanel = ({ isOpen, onClose, filters, onFilterChange, onClearFilters }) => {
+  const categories = useCategoryStore((state) => state.categories).filter((c) => !c.parentId && c.isActive !== false);
   const [dragY, setDragY] = useState(0);
   const panelRef = useRef(null);
 

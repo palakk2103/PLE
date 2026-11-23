@@ -279,7 +279,7 @@ const Dashboard = () => {
             Welcome back! Here's your business overview.
           </p>
         </div>
-        <div className="flex items-center gap-2 w-full">
+        <div className="flex flex-wrap items-center gap-2 w-full">
           <TimePeriodFilter selectedPeriod={period} onPeriodChange={setPeriod} />
           <ExportButton
             data={revenueData}

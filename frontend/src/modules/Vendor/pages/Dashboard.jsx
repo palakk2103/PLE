@@ -52,6 +52,10 @@ const VendorDashboard = () => {
 
   const vendorId = vendor?.id || vendor?._id;
 
+  // Managed (PLE-run) shop accounts have no payout wallet or bank details — don't call the
+  // vendor-finance API for them (it 404s with "Vendor not found") or show the bank-missing banner.
+  const isManagedVendor = vendor?.role === "managed_vendor";
+
   const loadDashboardData = async () => {
     setIsLoading(true);
     try {
@@ -61,7 +65,7 @@ const VendorDashboard = () => {
         getVendorEarnings(),
         getVendorOrders({ page: 1, limit: 1, status: "pending" }),
         getVendorOrders({ page: 1, limit: 1, status: "processing" }),
-        getVendorFinanceBankDetails().catch(() => null),
+        isManagedVendor ? Promise.resolve(null) : getVendorFinanceBankDetails().catch(() => null),
       ]);
 
       const ordersData = ordersRes?.data ?? ordersRes;
@@ -84,7 +88,9 @@ const VendorDashboard = () => {
 
       setRecentOrders(orders);
 
-      if (bankRes) {
+      if (isManagedVendor) {
+        setHasBankConfigured(true); // not applicable — hides the banner and the "Bank Missing" badge
+      } else if (bankRes) {
         const bankData = bankRes?.data ?? bankRes;
         setHasBankConfigured(Boolean(bankData?.hasConfiguredBank));
       } else {
@@ -289,7 +295,7 @@ const VendorDashboard = () => {
                   </span>
                 </div>
                 <p className="text-xs sm:text-sm text-amber-900/90 dark:text-amber-200/90 leading-relaxed max-w-3xl">
-                  Aapne abhi tak apna <strong>Bank Account Number</strong> ya <strong>UPI ID</strong> add nahi kiya hai. Jab tak bank details add nahi hogi, aap apni total earnings ka payout withdraw nahi kar payenge. Payout delay se bachne ke liye abhi bank details add karein.
+                  You haven't added a <strong>Bank Account Number</strong> or <strong>UPI ID</strong> yet. Until bank details are added, you won't be able to withdraw your earnings. Add them now to avoid payout delays.
                 </p>
               </div>
             </div>
@@ -590,7 +596,7 @@ const VendorDashboard = () => {
                     className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg flex-shrink-0"
                     onError={(e) => {
                       e.target.src =
-                        "https://via.placeholder.com/48x48?text=P";
+                        "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23f3f4f6%22/%3E%3Ccircle cx=%2234%22 cy=%2236%22 r=%228%22 fill=%22%23d1d5db%22/%3E%3Cpath d=%22M12 80l24-28 16 18 12-13 24 23z%22 fill=%22%23d1d5db%22/%3E%3C/svg%3E";
                     }}
                   />
                   <div className="flex-1 min-w-0">

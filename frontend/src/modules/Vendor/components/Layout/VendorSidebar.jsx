@@ -324,7 +324,7 @@ const VendorSidebar = ({ isOpen, onClose, isCollapsed = false, onToggleCollapse 
                   {vendor?.storeName || vendor?.name || "Vendor Store"}
                 </h2>
                 <p className="text-xs text-[#8E7768] truncate">
-                  {vendor?.email || "vendor@example.com"}
+                  {vendor?.email || (vendor?.username ? `@${vendor.username}` : "")}
                 </p>
               </div>
             )}

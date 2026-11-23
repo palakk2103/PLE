@@ -21,7 +21,7 @@ export const B2BMyEnquiries = () => {
     if (!isBusiness) return;
     try {
       setLoading(true);
-      const res = await api.get('/rfq');
+      const res = await api.get('/user/rfq');
       const payload = res?.data ?? res;
       setQuotations(Array.isArray(payload) ? payload : []);
     } catch (error) {

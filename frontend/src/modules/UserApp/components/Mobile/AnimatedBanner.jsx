@@ -121,7 +121,7 @@ const AnimatedBanner = ({ banners = null }) => {
           icon: banner.icon || FiTag,
           heroImage: banner.image || banner.heroImage || watchImg,
         }))
-      : defaultBanners;
+      : []; // no real promo banners configured → render nothing (no made-up "50% OFF" offers)
 
   const handleBannerClick = (target) => {
     const normalizedTarget = String(target || "").trim();
@@ -136,11 +136,14 @@ const AnimatedBanner = ({ banners = null }) => {
   };
 
   useEffect(() => {
+    if (resolvedBanners.length === 0) return undefined;
     const interval = setInterval(() => {
       setCurrentBanner((prev) => (prev + 1) % resolvedBanners.length);
     }, 4000);
     return () => clearInterval(interval);
   }, [resolvedBanners.length]);
+
+  if (resolvedBanners.length === 0) return null;
 
   return (
     <div className="px-2.5 sm:px-4 md:px-0 py-2 sm:py-3 select-none" onDragStart={(e) => e.preventDefault()}>

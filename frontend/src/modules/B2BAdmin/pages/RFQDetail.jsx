@@ -544,8 +544,8 @@ const RFQDetail = () => {
                         <FiAward className="w-5 h-5" /> Super Admin Recommended Vendor
                       </h3>
                       <p className="text-xs text-gray-500 mt-1">
-                        Super Admin ne sabse best quotation evaluate karke neeche ke vendor ko final select kiya hai.
-                        <span className="font-bold text-gray-700"> Approve karke Purchase Order generate karein.</span>
+                        The Super Admin has evaluated all quotations and selected the vendor below as the best option.
+                        <span className="font-bold text-gray-700"> Approve to generate the Purchase Order.</span>
                       </p>
                     </div>
                     <span className="shrink-0 px-3 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-extrabold rounded-full uppercase tracking-wider flex items-center gap-1">

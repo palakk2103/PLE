@@ -28,7 +28,7 @@ const RequestWithdrawalModal = ({ isOpen, onClose, walletData, onWithdrawalSucce
       return;
     }
     if (available < minAmount) {
-      toast.error(`Withdrawal ke liye aapke wallet me minimum ${formatPrice(minAmount)} available balance hona chahiye. Current available: ${formatPrice(available)}.`);
+      toast.error(`A minimum available balance of ${formatPrice(minAmount)} is required to withdraw. Current available: ${formatPrice(available)}.`);
       return;
     }
     if (isNaN(numAmount) || numAmount <= 0) {
@@ -96,7 +96,7 @@ const RequestWithdrawalModal = ({ isOpen, onClose, walletData, onWithdrawalSucce
                   <div>
                     <p className="font-bold">Bank Details Missing</p>
                     <p className="text-amber-800/80 dark:text-amber-300/80 mt-0.5">
-                      Aap withdraw isliye nahi kar pa rahe kyunki aapne payout ke liye Bank Account ya UPI ID save nahi ki hai.
+                      You can't withdraw yet because no Bank Account or UPI ID has been saved for payouts.
                     </p>
                   </div>
                 </div>

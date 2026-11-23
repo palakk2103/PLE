@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { FiPackage, FiMapPin, FiClock, FiCheckCircle, FiXCircle, FiNavigation, FiSearch } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
@@ -13,9 +13,9 @@ const ReturnPickups = () => {
   const [filter, setFilter] = useState('all'); // all, requested, assigned, picked_up
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    fetchReturnRequests().catch(() => null);
-  }, [fetchReturnRequests]);
+  // The backend has no rider-scoped return-pickup API yet (returns are handled by vendor/admin),
+  // and the shared return store would call the *customer* endpoint with a rider token (always 403).
+  // So we don't fetch here; the page shows its normal "no pickup assignments" state.
 
   const handleAssignPickup = async (reqId) => {
     try {

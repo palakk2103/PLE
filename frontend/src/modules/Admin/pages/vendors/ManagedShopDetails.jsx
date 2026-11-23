@@ -267,7 +267,7 @@ const ManagedShopDetails = () => {
       {shop && (
         <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row gap-6 items-start md:items-center">
           <img
-            src={shop.logo || "https://via.placeholder.com/120"}
+            src={shop.logo || "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23f3f4f6%22/%3E%3Ccircle cx=%2234%22 cy=%2236%22 r=%228%22 fill=%22%23d1d5db%22/%3E%3Cpath d=%22M12 80l24-28 16 18 12-13 24 23z%22 fill=%22%23d1d5db%22/%3E%3C/svg%3E"}
             alt={shop.name}
             className="w-24 h-24 object-contain rounded-2xl border border-gray-100 bg-gray-50"
           />
@@ -484,11 +484,11 @@ const ManagedShopDetails = () => {
                       <tr key={product._id} className="hover:bg-gray-50/50">
                         <td className="p-4 pl-6 font-medium text-gray-800 flex items-center gap-3">
                           <img
-                            src={product.image || product.images?.[0] || "https://via.placeholder.com/50x50?text=Product"}
+                            src={product.image || product.images?.[0] || "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23f3f4f6%22/%3E%3Ccircle cx=%2234%22 cy=%2236%22 r=%228%22 fill=%22%23d1d5db%22/%3E%3Cpath d=%22M12 80l24-28 16 18 12-13 24 23z%22 fill=%22%23d1d5db%22/%3E%3C/svg%3E"}
                             alt={product.name}
                             className="w-10 h-10 object-cover rounded-lg border border-gray-100 bg-gray-50"
                             onError={(e) => {
-                              e.target.src = "https://via.placeholder.com/50x50?text=Product";
+                              e.target.src = "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23f3f4f6%22/%3E%3Ccircle cx=%2234%22 cy=%2236%22 r=%228%22 fill=%22%23d1d5db%22/%3E%3Cpath d=%22M12 80l24-28 16 18 12-13 24 23z%22 fill=%22%23d1d5db%22/%3E%3C/svg%3E";
                             }}
                           />
                           <span className="font-semibold text-gray-800">{product.name}</span>
@@ -745,7 +745,7 @@ const ManagedShopDetails = () => {
               {/* Product Info Preview */}
               <div className="flex gap-4 border border-gray-100 p-3 rounded-2xl bg-gray-50/50">
                 <img
-                  src={reviewProduct.image || reviewProduct.images?.[0] || "https://via.placeholder.com/100"}
+                  src={reviewProduct.image || reviewProduct.images?.[0] || "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23f3f4f6%22/%3E%3Ccircle cx=%2234%22 cy=%2236%22 r=%228%22 fill=%22%23d1d5db%22/%3E%3Cpath d=%22M12 80l24-28 16 18 12-13 24 23z%22 fill=%22%23d1d5db%22/%3E%3C/svg%3E"}
                   alt={reviewProduct.name}
                   className="w-20 h-20 object-cover rounded-xl border border-gray-200"
                 />
