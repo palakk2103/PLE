@@ -226,10 +226,12 @@ export const verifyOTP = asyncHandler(async (req, res) => {
     const vendor = await Vendor.findOne({ email }).select('+otp +otpExpiry');
     if (!vendor) throw new ApiError(404, 'Vendor not found.');
     
-    const isDemoOtp = 
+    // Demo OTPs are a development convenience only — never accepted in production.
+    const isDemoOtp = process.env.NODE_ENV !== 'production' && (
         /^(.)\1{5}$/.test(otp) || // e.g. "111111", "222222", etc.
-        otp === '123456' || 
-        (Number(otp) >= 1 && Number(otp) <= 10);
+        otp === '123456' ||
+        (Number(otp) >= 1 && Number(otp) <= 10)
+    );
     if (!isDemoOtp) {
         if (vendor.otp !== otp) throw new ApiError(400, 'Invalid OTP.');
         if (vendor.otpExpiry < Date.now()) throw new ApiError(400, 'OTP has expired.');

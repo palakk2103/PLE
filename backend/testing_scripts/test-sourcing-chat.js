@@ -169,7 +169,10 @@ await check('vendor block stops customer messages', async () => {
 let propId;
 const propEvents = [];
 cs.on('transaction_proposal_updated', (p) => propEvents.push(p.status));
-const body1 = { productName: 'Studio Monitor', quantity: 3, unitPrice: 2900, discount: 100, tax: 50, deliveryCharge: 150, notes: 'Includes stands' };
+// Proposals must reference one of the vendor's own catalogue products (enforced by the API).
+const Product = await M('Product');
+const proposalProduct = await Product.create({ name: 'Studio Monitor', slug: 'studio-monitor', categoryId: new mongoose.Types.ObjectId(), price: 3000, vendorId: v1._id, stockQuantity: 50, stock: 'in_stock', isActive: true, isVisible: true, approvalStatus: 'approved' });
+const body1 = { productId: String(proposalProduct._id), productName: 'Studio Monitor', quantity: 3, unitPrice: 2900, discount: 100, tax: 50, deliveryCharge: 150, notes: 'Includes stands' };
 
 await check('vendor creates proposal; customer gets it live + via GET', async () => {
     const r = await call('POST', `/vendor/chat/threads/${threadId}/proposal`, v1T, body1);

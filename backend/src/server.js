@@ -19,6 +19,15 @@ import { initSocket } from "./config/socket.js";
 import connectDB from "./config/db.js";
 import { validateEnv } from "./config/env.js";
 
+// Safety net: a stray rejected promise (e.g. a failed notification/email in a fire-and-forget call)
+// must be logged, not allowed to take the whole API down for every user.
+process.on("unhandledRejection", (reason) => {
+  console.error("[unhandledRejection]", reason instanceof Error ? reason.stack || reason.message : reason);
+});
+process.on("uncaughtException", (err) => {
+  console.error("[uncaughtException]", err?.stack || err);
+});
+
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {

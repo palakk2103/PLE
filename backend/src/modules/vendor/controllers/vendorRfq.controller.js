@@ -63,6 +63,9 @@ export const vendorSendQuote = asyncHandler(async (req, res) => {
     if (!unitPrice || !totalPrice || !deliveryTime) {
         throw new ApiError(400, 'Unit price, total price, and delivery time are required.');
     }
+    if (!(Number(unitPrice) > 0) || !(Number(totalPrice) > 0) || !Number.isFinite(Number(unitPrice)) || !Number.isFinite(Number(totalPrice))) {
+        throw new ApiError(400, 'Unit price and total price must be positive numbers.');
+    }
 
     const vendor = await Vendor.findById(req.user.id);
     if (!vendor) {

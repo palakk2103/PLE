@@ -46,6 +46,12 @@ export const createDirectRFQ = asyncHandler(async (req, res) => {
         }
     }
     if (!vendorId) throw new ApiError(400, 'Please select a vendor.');
+    if (!Number.isInteger(Number(quantity)) || Number(quantity) <= 0) {
+        throw new ApiError(400, 'Quantity must be a positive whole number.');
+    }
+    if (targetPrice !== undefined && targetPrice !== null && targetPrice !== '' && (!(Number(targetPrice) > 0) || !Number.isFinite(Number(targetPrice)))) {
+        throw new ApiError(400, 'Target price must be a positive number.');
+    }
 
     const drfq = await DirectRFQ.create({
         directRfqId: generateId(),

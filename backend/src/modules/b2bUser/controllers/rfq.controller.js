@@ -160,6 +160,12 @@ export const createRFQ = asyncHandler(async (req, res) => {
     if (!quantity || !targetPrice) {
         throw new ApiError(400, 'Quantity and target rate/price are required.');
     }
+    if (!Number.isInteger(Number(quantity)) || Number(quantity) <= 0) {
+        throw new ApiError(400, 'Quantity must be a positive whole number.');
+    }
+    if (!(Number(targetPrice) > 0) || !Number.isFinite(Number(targetPrice))) {
+        throw new ApiError(400, 'Target price must be a positive number.');
+    }
 
     let productName = customProductName || 'Custom Product';
     if (productId) {
@@ -252,6 +258,13 @@ export const updateRFQ = asyncHandler(async (req, res) => {
         expectedDeliveryDate,
         attachment
     } = req.body;
+
+    if (quantity != null && quantity !== '' && (!Number.isInteger(Number(quantity)) || Number(quantity) <= 0)) {
+        throw new ApiError(400, 'Quantity must be a positive whole number.');
+    }
+    if (targetPrice != null && targetPrice !== '' && (!(Number(targetPrice) > 0) || !Number.isFinite(Number(targetPrice)))) {
+        throw new ApiError(400, 'Target price must be a positive number.');
+    }
 
     let productName = customProductName || rfq.customProductName;
     if (productId && productId !== String(rfq.productId)) {
@@ -514,6 +527,12 @@ export const confirmQuote = asyncHandler(async (req, res) => {
     const subtotal = selectedQuote.totalPrice;
     const tax = selectedQuote.taxDetails ? parseFloat(selectedQuote.taxDetails) || 0 : 0;
     const total = subtotal + tax;
+
+    // A single RFQ can only ever produce one Purchase Order (and one stock deduction).
+    const existingPo = await PurchaseOrder.findOne({ rfqId: rfq._id }).select('poNumber').lean();
+    if (existingPo) {
+        throw new ApiError(409, `A Purchase Order (${existingPo.poNumber}) has already been issued for this RFQ.`);
+    }
 
     // Create Purchase Order
     const poNumber = generatePoId();
