@@ -1,4 +1,0 @@
-[     499ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:21551
-[     765ms] [LOG] ✅ Service Worker registered: ServiceWorkerRegistration @ http://localhost:3000/src/services/pushNotificationService.js:11
-[     766ms] [LOG] ✅ Service Worker registered: ServiceWorkerRegistration @ http://localhost:3000/src/services/pushNotificationService.js:11
-[     931ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/b2b/login:1

@@ -1,6 +1,0 @@
-[    1055ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/chunk-276SZO74.js?v=9476b445:21551
-[    1183ms] [LOG] ✅ Service Worker registered: ServiceWorkerRegistration @ http://localhost:3000/src/services/pushNotificationService.js:11
-[    1184ms] [LOG] ✅ Service Worker registered: ServiceWorkerRegistration @ http://localhost:3000/src/services/pushNotificationService.js:11
-[    1420ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/login:1
-[  144181ms] [LOG] Login submit start {email: palakk2103@gmail.com, password: 123456} @ http://localhost:3000/src/modules/UserApp/pages/Login.jsx:124
-[  144313ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://localhost:5000/api/user/auth/login:1
