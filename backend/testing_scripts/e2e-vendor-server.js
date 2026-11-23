@@ -54,6 +54,27 @@ await mkP('Acme Book 15', { price: 61000, vendorId: wen._id, rating: 4.7, review
 await mkP('PLE Own Laptop', { price: 40000, vendorId: undefined, shopId: shop.insertedId, specifications: { features: [spec('RAM', '8', 'GB'), spec('Processor', 'Core i3')] } });
 await mkP('Acme Book 13', { price: 45000, stock: 'out_of_stock', stockQuantity: 0, specifications: { features: [spec('RAM', '16', 'GB')] } });
 
+// Activity for the admin "Monitoring" tab: orders in several statuses / payment modes, a return, chats
+const [User, Order, ReturnRequest, VendorChatThread, VendorChatMessage] = await Promise.all(['User', 'Order', 'ReturnRequest', 'VendorChatThread', 'VendorChatMessage'].map(M));
+const custs = [];
+for (const n of ['Asha', 'Bhanu', 'Chirag']) custs.push(await User.create({ name: n, email: `${n.toLowerCase()}@example.com`, password: PASSWORD, role: 'customer', isActive: true, isVerified: true }));
+let n = 0;
+const ln = (price, quantity, discount = 0) => ({ productId: undefined, vendorId: vendor._id, name: 'Item', price, quantity, discount });
+const place = (user, status, pay, paid, lines, at) => Order.collection.insertOne({
+    orderId: `ORD-DEMO-${++n}`, userId: user._id, status, paymentMethod: pay, paymentStatus: paid ? 'paid' : 'pending', items: lines,
+    vendorItems: [{ vendorId: vendor._id, items: lines, status: 'pending' }], total: 0, createdAt: new Date(at), updatedAt: new Date(at),
+});
+await place(custs[0], 'delivered', 'upi', true, [ln(1000, 2, 100)], '2026-11-10T08:00:00Z');
+await place(custs[0], 'processing', 'cod', false, [ln(500, 1)], '2026-11-12T08:00:00Z');
+await place(custs[1], 'delivered', 'card', true, [ln(200, 3), ln(400, 1)], '2026-11-14T08:00:00Z');
+await place(custs[2], 'cancelled', 'upi', false, [ln(800, 1)], '2026-11-15T08:00:00Z');
+await place(custs[1], 'returned', 'wallet', true, [ln(250, 1)], '2026-11-16T08:00:00Z');
+await ReturnRequest.collection.insertOne({ orderId: (await Order.findOne({ orderId: 'ORD-DEMO-5' }))._id, reason: 'Damaged', vendorId: vendor._id, status: 'pending', refundStatus: 'pending', items: [{ price: 250, quantity: 1 }], createdAt: new Date('2026-11-17T08:00:00Z'), updatedAt: new Date('2026-11-17T08:00:00Z') });
+const th1 = await VendorChatThread.create({ vendorId: vendor._id, customerUserId: custs[0]._id, customerName: 'Asha', status: 'active', productName: 'Acme Book 14', lastMessage: 'Is it in stock?', lastActivity: new Date('2026-11-18T09:00:00Z') });
+for (const [who, text] of [['customer', 'Is it in stock?'], ['vendor', 'Yes, ships tomorrow.'], ['customer', 'Great, thanks!']]) await VendorChatMessage.create({ threadId: th1._id, senderType: who, message: text });
+const th2 = await VendorChatThread.create({ vendorId: vendor._id, customerUserId: custs[1]._id, customerName: 'Bhanu', status: 'closed', lastMessage: 'Thanks', lastActivity: new Date('2026-11-13T09:00:00Z') });
+await VendorChatMessage.create({ threadId: th2._id, senderType: 'customer', message: 'Thanks' });
+
 const { default: cloudinary } = await import('../src/config/cloudinary.js');
 let stubN = 0;
 cloudinary.uploader.upload = async (filePath, opts) => {

@@ -1,4 +1,5 @@
 import VendorBankAccountsPanel from '../../components/vendors/VendorBankAccountsPanel';
+import VendorMonitoringPanel from '../../components/vendors/VendorMonitoringPanel';
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -729,7 +730,7 @@ const VendorDetail = () => {
       {/* Tabs */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="flex overflow-x-auto border-b border-gray-200">
-          {["overview", "orders", "commissions", "settings", "documents"].map((tab) => (
+          {["overview", "monitoring", "orders", "commissions", "settings", "documents"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -1227,6 +1228,8 @@ const VendorDetail = () => {
           )}
 
           {/* Orders Tab */}
+          {activeTab === "monitoring" && <VendorMonitoringPanel vendorId={id} />}
+
           {activeTab === "orders" && (
             <div>
               <h2 className="text-lg font-bold text-gray-800 mb-4">
