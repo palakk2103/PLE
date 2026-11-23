@@ -27,7 +27,9 @@ export const getStoreProfile = asyncHandler(async (req, res) => {
 // address) is verified by PLE and edited under Business Profile, never here.
 export const updateStoreProfile = asyncHandler(async (req, res) => {
     if (req.user.role === 'managed_vendor') throw new ApiError(403, 'Managed vendor stores are set up by the Administrator.');
-    const set = buildStoreProfileUpdates(req.body);
+    const existing = await Vendor.findById(req.user.id).select('storeLogo storeProfile.bannerUrl').lean();
+    if (!existing) throw new ApiError(404, 'Vendor not found.');
+    const set = buildStoreProfileUpdates(req.body, existing);
     const vendor = await Vendor.findByIdAndUpdate(req.user.id, { $set: set }, { new: true, runValidators: true }).select(STORE_FIELDS).lean();
     if (!vendor) throw new ApiError(404, 'Vendor not found.');
     res.status(200).json(new ApiResponse(200, view(vendor), 'Store profile saved.'));

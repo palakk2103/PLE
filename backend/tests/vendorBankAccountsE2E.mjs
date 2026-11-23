@@ -57,7 +57,9 @@ for (const v of [VA, VB, VC, VD, VE]) await ins(M.VendorWallet, { vendorId: v, a
 
 const tok = (id, role) => signAccessToken({ id: String(id), role, email: `${id}@example.com` });
 const TA_V = tok(VA, 'vendor'), TB_V = tok(VB, 'vendor'), TC_V = tok(VC, 'vendor'), TD_V = tok(VD, 'vendor');
-const TADMIN = tok(ADMIN, 'admin');
+const TADMIN = tok(ADMIN, 'superadmin');
+const TPLAIN = tok(ADMIN, 'admin');
+const TACCT = tok(ADMIN, 'account_team');
 const TCUST = tok(CUST, 'customer');
 const MV = (await M.ManagedVendorUser.collection.insertOne({ name: 'Managed V1', username: 'mv1', password: pw, status: 'active', shopId: VA, createdAt: new Date() })).insertedId;
 const TMANAGED = tok(MV, 'managed_vendor');
@@ -235,6 +237,19 @@ let w1, w2, w3;
     check('No payouts yet -> no account highlighted; vendor D migrated on view', noPaid.status === 200 && noPaid.data.accounts.length === 1 && noPaid.data.mostUsedId === null, [noPaid.status, noPaid.data?.mostUsedId]);
     check('Unknown vendor -> 404, bad id -> 400', (await api(TADMIN, 'GET', `/admin/vendors/${new mongoose.Types.ObjectId()}/bank-accounts`)).status === 404 && (await api(TADMIN, 'GET', '/admin/vendors/abc/bank-accounts')).status === 400, 'checked');
 
+    // Full numbers are limited to superadmin / account_team; a plain admin sees them masked everywhere
+    {
+        const plain = await api(TPLAIN, 'GET', `/admin/vendors/${VA}/bank-accounts`);
+        const accts = (plain.data?.accounts || []).filter((x) => x.maskedAccountNumber);
+        check('Plain admin: payout accounts are masked (no full number anywhere)', plain.status === 200 && accts.length > 0 && accts.every((x) => !x.accountNumber && /^X+\d{4}$/.test(x.maskedAccountNumber)) && !/"accountNumber":"\d/.test(JSON.stringify(plain.body)), accts.map((x) => x.maskedAccountNumber));
+        const acct = await api(TACCT, 'GET', `/admin/vendors/${VA}/bank-accounts`);
+        check('account_team still sees the full numbers', acct.status === 200 && (acct.data?.accounts || []).filter((x) => x.maskedAccountNumber).every((x) => /^\d{9,18}$/.test(x.accountNumber || '')), acct.status);
+        const pw3 = await api(TPLAIN, 'GET', `/admin/finance/withdrawals/${w1._id}`);
+        const raw = JSON.stringify(pw3.body);
+        check('Plain admin: withdrawal detail (snapshot, current details, accounts) has no full number', pw3.status === 200 && !/"accountNumber":"\d/.test(raw) && /X{4,}\d{4}/.test(raw), pw3.status);
+        const sup = await api(TADMIN, 'GET', `/admin/finance/withdrawals/${w1._id}`);
+        check('Superadmin: withdrawal detail still has the full snapshot number', /^\d{9,18}$/.test(sup.data?.withdrawal?.bankDetailsSnapshot?.accountNumber || ''), sup.data?.withdrawal?.bankDetailsSnapshot?.accountNumber);
+    }
     const wd = await api(TADMIN, 'GET', `/admin/finance/withdrawals/${w3._id}`);
     check('Admin withdrawal detail: lists accounts and warns the payout account was changed just before', wd.status === 200 && wd.data?.vendorBankAccounts?.length === 3 && wd.data?.payoutAccountChangedRecently === true && wd.data?.withdrawal?.bankDetailsSnapshot?.upiId === 'vee@okicici', [wd.status, wd.data?.payoutAccountChangedRecently]);
     const wd1 = await api(TADMIN, 'GET', `/admin/finance/withdrawals/${w1._id}`);
@@ -282,6 +297,32 @@ let w1, w2, w3;
     check("A vendor can't use the admin view (403)", vendAdmin.status === 403, vendAdmin.status);
     const managed = await api(TMANAGED, 'POST', '/vendor/bank-accounts', good({ accountNumber: '121212121212' }));
     check('Managed-vendor staff cannot change payout accounts (403)', managed.status === 403, `${managed.status} ${managed.body?.message}`);
+}
+
+// Simultaneous changes must never overwrite each other (double-click, two tabs)
+{
+    const VX = await mkVendor('Race Store', {});
+    const TX = tok(VX, 'vendor');
+    const adds = await Promise.all(Array.from({ length: 8 }, (_, i) => api(TX, 'POST', '/vendor/bank-accounts', { accountName: 'Race Store', upiId: `race${i}@okhdfc`, label: `UPI ${i}` })));
+    const ok = adds.filter((r) => r.status === 201).length;
+    const list = (await api(TX, 'GET', '/vendor/bank-accounts')).data?.accounts || [];
+    check('8 simultaneous adds: limit of 5 holds, every success is saved, none lost', ok === 5 && list.length === 5 && adds.filter((r) => r.status === 400).length === 3, { ok, saved: list.length, statuses: adds.map((r) => r.status) });
+    check('...and exactly one account is preferred', list.filter((a) => a.isPreferred).length === 1, list.filter((a) => a.isPreferred).length);
+    const doc = await M.Vendor.findById(VX).lean();
+    check('...and the legacy mirror equals the preferred account', doc.bankDetails.upiId === doc.bankAccounts.find((a) => a.isPreferred).upiId, doc.bankDetails.upiId);
+
+    const [a, b, c] = list;
+    const mixed = await Promise.all([
+        api(TX, 'DELETE', `/vendor/bank-accounts/${a.id}`),
+        api(TX, 'PATCH', `/vendor/bank-accounts/${b.id}/preferred`),
+        api(TX, 'PUT', `/vendor/bank-accounts/${c.id}`, { label: 'Renamed' }),
+    ]);
+    await api(TX, 'POST', '/vendor/bank-accounts', { accountName: 'Race Store', upiId: 'late@okhdfc' });
+    const after = (await api(TX, 'GET', '/vendor/bank-accounts')).data?.accounts || [];
+    check('Simultaneous delete + make-preferred + rename all apply and a later add still works', !after.find((x) => x.id === a.id) && after.find((x) => x.id === c.id)?.label === 'Renamed' && after.some((x) => x.upiId === 'late@okhdfc') && after.length <= 5 && mixed.every((r) => r.status < 500), { statuses: mixed.map((r) => r.status), n: after.length });
+    check('...with exactly one preferred account', after.filter((x) => x.isPreferred).length === 1, after.filter((x) => x.isPreferred).length);
+    const doc2 = await M.Vendor.findById(VX).lean();
+    check('Revision counter advanced once per applied change', doc2.bankAccountsRev >= 9, doc2.bankAccountsRev);
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

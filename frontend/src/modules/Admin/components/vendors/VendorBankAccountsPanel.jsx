@@ -55,9 +55,9 @@ const VendorBankAccountsPanel = ({ vendorId, legacy }) => {
               </div>
               <dl className="text-sm space-y-1 text-gray-700">
                 <div className="flex justify-between gap-3"><dt className="text-gray-500">Account holder</dt><dd className="font-semibold">{a.accountName}</dd></div>
-                {a.accountNumber && (
+                {(a.accountNumber || a.maskedAccountNumber) && (
                   <div className="flex justify-between gap-3 items-center"><dt className="text-gray-500">Account number</dt>
-                    <dd className="font-mono font-semibold flex items-center gap-1.5">{a.accountNumber}<button type="button" onClick={() => copy(a.accountNumber, 'Account number')} className="text-gray-400 hover:text-purple-600" title="Copy"><FiCopy /></button></dd></div>
+                    <dd className="font-mono font-semibold flex items-center gap-1.5">{a.accountNumber || a.maskedAccountNumber}{a.accountNumber && <button type="button" onClick={() => copy(a.accountNumber, 'Account number')} className="text-gray-400 hover:text-purple-600" title="Copy"><FiCopy /></button>}</dd></div>
                 )}
                 {a.bankName && <div className="flex justify-between gap-3"><dt className="text-gray-500">Bank / branch</dt><dd>{a.bankName}{a.branchName ? ` · ${a.branchName}` : ''}</dd></div>}
                 {a.ifscCode && <div className="flex justify-between gap-3"><dt className="text-gray-500">IFSC</dt><dd className="font-mono font-semibold">{a.ifscCode}</dd></div>}

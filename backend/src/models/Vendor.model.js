@@ -123,6 +123,8 @@ const vendorSchema = new mongoose.Schema(
             ],
             default: [],
         },
+        // Bumped on every payout-account change; lets simultaneous edits detect each other
+        bankAccountsRev: { type: Number, default: 0 },
         documents: {
             gst: String,
             pan: String,

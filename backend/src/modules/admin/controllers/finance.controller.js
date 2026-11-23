@@ -1,4 +1,4 @@
-import { buildAccountsView, RECENT_CHANGE_MS } from '../../../services/vendorBankAccounts.service.js';
+import { buildAccountsView, RECENT_CHANGE_MS, canSeeFullBankNumber, maskAccountNumber } from '../../../services/vendorBankAccounts.service.js';
 import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
@@ -232,6 +232,11 @@ export const getWithdrawalById = asyncHandler(async (req, res) => {
 
     if (!withdrawal) throw new ApiError(404, 'Withdrawal request not found.');
 
+    // Full account numbers only for superadmin / account_team; other admins see them masked
+    const fullBank = canSeeFullBankNumber(req.user?.role);
+    const maskForRole = (b) => (fullBank || !b?.accountNumber ? b : { ...b, accountNumber: maskAccountNumber(b.accountNumber) });
+    withdrawal.bankDetailsSnapshot = withdrawal.bankDetailsSnapshot ? maskForRole(withdrawal.bankDetailsSnapshot) : withdrawal.bankDetailsSnapshot;
+
     // Fetch vendor's current wallet and full bank details
     const [vendorWithBank, wallet, recentCommissions] = await Promise.all([
         Vendor.findById(withdrawal.vendorId?._id || withdrawal.vendorId).select('bankDetails bankAccounts').lean(),
@@ -247,8 +252,8 @@ export const getWithdrawalById = asyncHandler(async (req, res) => {
             200,
             {
                 withdrawal,
-                vendorBankDetails: vendorWithBank?.bankDetails || {},
-                vendorBankAccounts: await buildAccountsView({ _id: vendorWithBank?._id, bankAccounts: vendorWithBank?.bankAccounts || [] }, { reveal: true }),
+                vendorBankDetails: maskForRole(vendorWithBank?.bankDetails || {}),
+                vendorBankAccounts: await buildAccountsView({ _id: vendorWithBank?._id, bankAccounts: vendorWithBank?.bankAccounts || [] }, { reveal: fullBank }),
                 payoutAccountChangedRecently: Boolean(
                     withdrawal.bankDetailsSnapshot?.accountUpdatedAt
                     && (new Date(withdrawal.createdAt) - new Date(withdrawal.bankDetailsSnapshot.accountUpdatedAt)) < RECENT_CHANGE_MS

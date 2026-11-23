@@ -143,11 +143,19 @@ export const ensureBankAccounts = async (vendor) => {
         { _id: vendor._id, $or: [{ bankAccounts: { $exists: false } }, { bankAccounts: { $size: 0 } }] },
         { $push: { bankAccounts: entry } }
     );
-    const fresh = await Vendor.findById(vendor._id).select('bankDetails bankAccounts');
-    if (fresh) vendor.bankAccounts = fresh.bankAccounts;
+    const fresh = await Vendor.findById(vendor._id).select('bankDetails bankAccounts bankAccountsRev');
+    if (fresh) { vendor.bankAccounts = fresh.bankAccounts; vendor.bankAccountsRev = fresh.bankAccountsRev; }
     return (res.modifiedCount || 0) > 0;
 };
 
+const plain = (a) => (a?.toObject ? a.toObject() : { ...a });
+const sig = (a) => JSON.stringify({ ...plain(a), updatedAt: undefined });
+
+/**
+ * Writes the accounts only if nobody else changed them since this request read them
+ * (bankAccountsRev still matches). Otherwise throws a conflict that withRetry() handles by
+ * re-reading and re-applying the change, so two simultaneous edits can never overwrite each other.
+ */
 const persist = async (vendor, accounts) => {
     // keep exactly one preferred, then mirror it into the legacy object
     let preferred = accounts.find((a) => a.isPreferred);
@@ -155,17 +163,49 @@ const persist = async (vendor, accounts) => {
         preferred = accounts[accounts.length - 1];
     }
     accounts.forEach((a) => { a.isPreferred = Boolean(preferred) && String(a._id) === String(preferred._id); });
-    vendor.bankAccounts = accounts;
-    vendor.bankDetails = preferred ? legacyFromAccount(preferred) : legacyFromAccount({});
-    await vendor.save({ validateBeforeSave: false });
+    const snap = vendor.$locals?.bankSnap || new Map();
+    const now = new Date();
+    const next = accounts.map((a) => {
+        const o = plain(a);
+        if (!o._id) o._id = new mongoose.Types.ObjectId();
+        if (snap.get(String(o._id)) !== sig(o)) o.updatedAt = now; // only accounts that actually changed
+        if (!o.createdAt) o.createdAt = now;
+        if (!o.changedAt) o.changedAt = now;
+        return o;
+    });
+    const rev = vendor.bankAccountsRev || 0;
+    const res = await Vendor.collection.updateOne(
+        { _id: vendor._id, $or: rev === 0 ? [{ bankAccountsRev: 0 }, { bankAccountsRev: { $exists: false } }] : [{ bankAccountsRev: rev }] },
+        { $set: { bankAccounts: next, bankDetails: legacyFromAccount(next.find((a) => a.isPreferred) || {}), updatedAt: now }, $inc: { bankAccountsRev: 1 } }
+    );
+    if (!res.matchedCount) { const e = new Error('bank accounts changed concurrently'); e.code = 'BANK_REV_CONFLICT'; throw e; }
+    const fresh = await Vendor.findById(vendor._id).select('bankDetails bankAccounts bankAccountsRev');
+    vendor.bankAccounts = fresh.bankAccounts;
+    vendor.bankDetails = fresh.bankDetails;
+    vendor.bankAccountsRev = fresh.bankAccountsRev;
     return vendor;
+};
+
+/** Load -> change -> persist, re-reading and re-applying if another request got in between. */
+const withRetry = async (vendorId, fn) => {
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+        const vendor = await loadVendorWithAccounts(vendorId);
+        try {
+            return await fn(vendor);
+        } catch (err) {
+            if (err?.code === 'BANK_REV_CONFLICT') continue;
+            throw err;
+        }
+    }
+    throw new ApiError(409, 'Your payout accounts were being changed from another place. Please reload and try again.');
 };
 
 export const loadVendorWithAccounts = async (vendorId) => {
     if (!mongoose.isValidObjectId(String(vendorId))) throw new ApiError(400, 'Invalid vendor id.');
-    const vendor = await Vendor.findById(vendorId).select('bankDetails bankAccounts storeName name email createdAt');
+    const vendor = await Vendor.findById(vendorId).select('bankDetails bankAccounts bankAccountsRev storeName name email createdAt');
     if (!vendor) throw new ApiError(404, 'Vendor not found.');
     await ensureBankAccounts(vendor);
+    vendor.$locals.bankSnap = new Map((vendor.bankAccounts || []).map((a) => [String(a._id), sig(a)]));
     return vendor;
 };
 
@@ -219,6 +259,10 @@ const pickMostUsedId = (usage) => {
  * Accounts as returned by the API. reveal=false (the vendor) masks the account number; reveal=true
  * (the admin, who needs it to pay) returns it in full.
  */
+// Only these admin roles may see a payout account number in full (same rule as B2B bank details)
+export const FULL_BANK_ACCESS_ROLES = ['superadmin', 'account_team'];
+export const canSeeFullBankNumber = (role) => FULL_BANK_ACCESS_ROLES.includes(role);
+
 export const buildAccountsView = async (vendor, { reveal = false } = {}) => {
     const accounts = (vendor.bankAccounts || []).map((a) => (a.toObject ? a.toObject() : a));
     const usage = await getAccountUsage(vendor._id, accounts);
@@ -255,8 +299,7 @@ export const buildAccountsView = async (vendor, { reveal = false } = {}) => {
 
 /* ───────────── mutations ───────────── */
 
-export const addAccount = async (vendorId, input) => {
-    const vendor = await loadVendorWithAccounts(vendorId);
+export const addAccount = (vendorId, input) => withRetry(vendorId, async (vendor) => {
     const accounts = vendor.bankAccounts.map((a) => a);
     if (accounts.length >= MAX_BANK_ACCOUNTS) {
         throw new ApiError(400, `You can save up to ${MAX_BANK_ACCOUNTS} payout accounts. Remove one to add another.`);
@@ -269,10 +312,9 @@ export const addAccount = async (vendorId, input) => {
     await persist(vendor, vendor.bankAccounts.map((a) => a));
     const created = vendor.bankAccounts[vendor.bankAccounts.length - 1];
     return { vendor, account: created };
-};
+});
 
-export const updateAccount = async (vendorId, accountId, input) => {
-    const vendor = await loadVendorWithAccounts(vendorId);
+export const updateAccount = (vendorId, accountId, input) => withRetry(vendorId, async (vendor) => {
     const account = vendor.bankAccounts.id(accountId);
     if (!account) throw new ApiError(404, 'Payout account not found.');
     const data = normalizeAccountInput(input, { partial: true, current: account.toObject() });
@@ -289,10 +331,9 @@ export const updateAccount = async (vendorId, accountId, input) => {
     }
     await persist(vendor, vendor.bankAccounts.map((a) => a));
     return { vendor, account, payoutChanged };
-};
+});
 
-export const setPreferredAccount = async (vendorId, accountId) => {
-    const vendor = await loadVendorWithAccounts(vendorId);
+export const setPreferredAccount = (vendorId, accountId) => withRetry(vendorId, async (vendor) => {
     const account = vendor.bankAccounts.id(accountId);
     if (!account) throw new ApiError(404, 'Payout account not found.');
     // becoming the payout destination counts as a change to this account (being demoted does not)
@@ -300,10 +341,9 @@ export const setPreferredAccount = async (vendorId, accountId) => {
     vendor.bankAccounts.forEach((a) => { a.isPreferred = String(a._id) === String(accountId); });
     await persist(vendor, vendor.bankAccounts.map((a) => a));
     return { vendor, account };
-};
+});
 
-export const removeAccount = async (vendorId, accountId) => {
-    const vendor = await loadVendorWithAccounts(vendorId);
+export const removeAccount = (vendorId, accountId) => withRetry(vendorId, async (vendor) => {
     const account = vendor.bankAccounts.id(accountId);
     if (!account) throw new ApiError(404, 'Payout account not found.');
     const wasPreferred = account.isPreferred;
@@ -316,7 +356,7 @@ export const removeAccount = async (vendorId, accountId) => {
     const removed = account.toObject();
     await persist(vendor, remaining);
     return { vendor, removed, newPreferred: wasPreferred ? getPreferredAccount(vendor) : null };
-};
+});
 
 /**
  * Old single-account update calls (/vendor/auth/bank-details, /vendor/finance/bank-details) now

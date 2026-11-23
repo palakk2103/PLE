@@ -12,6 +12,7 @@ process.env.JWT_SECRET = 'e2e-secret';
 process.env.JWT_REFRESH_SECRET = 'e2e-refresh';
 process.env.NODE_ENV = 'test';
 process.env.CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5180';
+process.env.STORE_IMAGE_URL_PREFIXES = 'https://res.cloudinary.test/'; // the Cloudinary stub's host
 for (const k of ['SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASS', 'SHIPROCKET_EMAIL', 'SHIPROCKET_PASSWORD']) process.env[k] = '';
 
 import http from 'node:http';

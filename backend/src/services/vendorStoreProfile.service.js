@@ -7,12 +7,23 @@ const LIMITS = { tagline: 100, about: 1500, businessHours: 100 };
 
 const isSafeText = (text) => moderateMessage(String(text)).action === MODERATION_ACTION.ALLOW;
 
-const cleanImageUrl = (value, label) => {
+// Customers' browsers load these images, so a new logo / banner must be one we hosted (uploaded
+// through the vendor panel), never an arbitrary third-party link that could track visitors or change later.
+const uploadPrefixes = () => {
+    const prefixes = String(process.env.STORE_IMAGE_URL_PREFIXES || '').split(',').map((p) => p.trim()).filter(Boolean);
+    if (process.env.CLOUDINARY_CLOUD_NAME) prefixes.push(`https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/`);
+    return prefixes;
+};
+export const isOwnUploadUrl = (url) => uploadPrefixes().some((p) => url.startsWith(p));
+
+const cleanImageUrl = (value, label, current = '') => {
     const v = String(value ?? '').trim();
     if (!v) return '';
+    if (v === String(current || '').trim()) return v; // unchanged (may be an older link): keep as is
     if (v.length > 500 || !/^https:\/\/\S+$/i.test(v)) {
         throw new ApiError(400, `${label} must be an https image link (upload an image instead).`);
     }
+    if (!isOwnUploadUrl(v)) throw new ApiError(400, `${label} must be an image uploaded here. Use the Upload button instead of pasting a link.`);
     return v;
 };
 
@@ -36,10 +47,10 @@ const cleanColor = (value, label) => {
  * Validates only the fields that were sent and returns a Mongo $set object.
  * Logo is kept on the top-level `storeLogo` (the storefront already reads it from there).
  */
-export const buildStoreProfileUpdates = (body = {}) => {
+export const buildStoreProfileUpdates = (body = {}, current = {}) => {
     const set = {};
-    if (body.storeLogo !== undefined) set.storeLogo = cleanImageUrl(body.storeLogo, 'Store logo');
-    if (body.bannerUrl !== undefined) set['storeProfile.bannerUrl'] = cleanImageUrl(body.bannerUrl, 'Store banner');
+    if (body.storeLogo !== undefined) set.storeLogo = cleanImageUrl(body.storeLogo, 'Store logo', current.storeLogo);
+    if (body.bannerUrl !== undefined) set['storeProfile.bannerUrl'] = cleanImageUrl(body.bannerUrl, 'Store banner', current.storeProfile?.bannerUrl);
     if (body.tagline !== undefined) set['storeProfile.tagline'] = cleanText(body.tagline, 'Tagline', LIMITS.tagline);
     if (body.about !== undefined) set['storeProfile.about'] = cleanText(body.about, 'About your business', LIMITS.about);
     if (body.businessHours !== undefined) set['storeProfile.businessHours'] = cleanText(body.businessHours, 'Business hours', LIMITS.businessHours);

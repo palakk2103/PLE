@@ -15,7 +15,7 @@ const imp = (p) => import(pathToFileURL(`${SRC}/${p}`).href);
 const { MongoMemoryReplSet } = reqB('mongodb-memory-server');
 const mem = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
 process.env.MONGO_URI = mem.getUri('ple_store_profile');
-Object.assign(process.env, { SMTP_HOST: '127.0.0.1', SMTP_PORT: '1', SMTP_USER: 'x', SMTP_PASS: 'x', FIREBASE_SERVICE_ACCOUNT: '', SHIPROCKET_EMAIL: '', SHIPROCKET_PASSWORD: '', NODE_ENV: 'development' });
+Object.assign(process.env, { SMTP_HOST: '127.0.0.1', SMTP_PORT: '1', SMTP_USER: 'x', SMTP_PASS: 'x', FIREBASE_SERVICE_ACCOUNT: '', SHIPROCKET_EMAIL: '', SHIPROCKET_PASSWORD: '', NODE_ENV: 'development', STORE_IMAGE_URL_PREFIXES: 'https://res.cloudinary.test/' });
 
 const mongoose = (await import(pathToFileURL(reqB.resolve('mongoose')).href)).default;
 const { default: app } = await imp('app.js');
@@ -133,6 +133,14 @@ let saved;
     await bad('banner that is not https', { bannerUrl: 'http://insecure.example/b.jpg' }, /https/);
     await bad('banner that is javascript:', { bannerUrl: 'javascript:alert(1)' }, /https/);
     await bad('logo that is not a link', { storeLogo: 'data/logos/logo.png' }, /https/);
+    await bad('banner pasted from another website', { bannerUrl: 'https://tracker.example/pixel.gif' }, /uploaded here/);
+    await bad('logo pasted from another website', { storeLogo: 'https://evil.example/logo.png' }, /uploaded here/);
+    // an older, already-stored outside link is not rejected when the form sends it back unchanged
+    await M.Vendor.collection.updateOne({ _id: V2 }, { $set: { storeLogo: 'https://old-host.example/logo.png' } });
+    const keep = await call(TV2, 'PUT', '/vendor/store-profile', { storeLogo: 'https://old-host.example/logo.png', tagline: 'Still fine' });
+    check('A stored older logo link can be re-saved unchanged', keep.status === 200 && keep.data?.storeLogo === 'https://old-host.example/logo.png', keep.status);
+    const swap = await call(TV2, 'PUT', '/vendor/store-profile', { storeLogo: 'https://another-host.example/logo.png' });
+    check('...but replacing it with another outside link is refused', swap.status === 400, swap.status);
     const after = await call(TV1, 'GET', '/vendor/store-profile');
     check('Rejected saves changed nothing', after.data?.public?.tagline === 'Trusted since 2010', after.data?.public?.tagline);
 
