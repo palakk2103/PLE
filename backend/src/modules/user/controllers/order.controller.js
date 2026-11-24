@@ -329,6 +329,13 @@ export const placeOrder = asyncHandler(async (req, res) => {
             throw new ApiError(400, 'This offer was made by a different seller than the product owner.');
         }
         if (product.stock === 'out_of_stock') throw new ApiError(400, `${product.name} is out of stock.`);
+        // Business buyers must respect the product's minimum order quantity (enforced server-side).
+        if ((req.user?.role === 'b2bAdmin' || req.user?.role === 'b2bEmployee') && !proposalCtx) {
+            const moq = Math.max(Number(product.b2bMinOrderQty) || 1, Number(product.minimumOrderQuantity) || 1);
+            if (moq > 1 && Number(item.quantity) < moq) {
+                throw new ApiError(400, `Minimum order quantity for ${product.name} is ${moq}.`);
+            }
+        }
         if (product.stockQuantity < item.quantity) throw new ApiError(400, `Only ${product.stockQuantity} units of ${product.name} available.`);
 
         // Always trust server-side product pricing; never trust client-sent item.price.
@@ -548,7 +555,11 @@ export const placeOrder = asyncHandler(async (req, res) => {
     // 4. Calculate tax aggregated from itemized GST snapshots
     const totalGstFromItems = enrichedItems.reduce((sum, item) => sum + (item.gstAmount || 0), 0);
     const tax = parseFloat(totalGstFromItems.toFixed(2));
-    const total = parseFloat(Math.max(0, subtotal - couponDiscount - loyaltyDiscount + shipping + tax).toFixed(2));
+    // GST of tax-inclusive items is already inside their price: only GST charged on top is added.
+    const taxChargedOnTop = parseFloat(
+        enrichedItems.reduce((sum, item) => sum + (item.taxIncluded ? 0 : (item.gstAmount || 0)), 0).toFixed(2)
+    );
+    const total = parseFloat(Math.max(0, subtotal - couponDiscount - loyaltyDiscount + shipping + taxChargedOnTop).toFixed(2));
 
     // 5. Build vendor item groups
     const vendorItems = Object.values(vendorMap).map((v) => ({
@@ -1362,6 +1373,7 @@ export const createReturnRequest = asyncHandler(async (req, res) => {
                         image: orderItem.image,
                         quantity: requestedQty,
                         gstAmount: lineRefundParts(orderItem, requestedQty).gst,
+                        discountShare: lineRefundParts(orderItem, requestedQty).discount,
                         reason: String(inputItem?.reason || fallbackReason).trim(),
                     };
                 });
@@ -1377,6 +1389,7 @@ export const createReturnRequest = asyncHandler(async (req, res) => {
                         image: item.image,
                         quantity: remainingFor(item),
                         gstAmount: lineRefundParts(item, remainingFor(item)).gst,
+                        discountShare: lineRefundParts(item, remainingFor(item)).discount,
                         reason: fallbackReason,
                     }));
                 if (normalizedItems.length === 0) {
@@ -1386,7 +1399,7 @@ export const createReturnRequest = asyncHandler(async (req, res) => {
 
             // Refund what the buyer actually paid for these units: price + the GST charged on them.
             const refundAmount = normalizedItems.reduce(
-                (sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0) + Number(item.gstAmount || 0),
+                (sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0) - Number(item.discountShare || 0) + Number(item.gstAmount || 0),
                 0
             );
 

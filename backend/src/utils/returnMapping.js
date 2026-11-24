@@ -163,6 +163,8 @@ export const lineRefundParts = (orderItem, qty) => {
     const gst = !orderItem?.taxIncluded && orderedQty > 0
         ? Number(orderItem?.gstAmount || 0) * (quantity / orderedQty)
         : 0;
-    return { base, gst: Math.round(gst * 100) / 100 };
+    // The buyer paid the line price minus this line's share of any coupon, so refund the same.
+    const discount = orderedQty > 0 ? Number(orderItem?.discount || 0) * (quantity / orderedQty) : 0;
+    return { base, gst: Math.round(gst * 100) / 100, discount: Math.round(discount * 100) / 100 };
 };
 

@@ -157,10 +157,23 @@ export const handleOrderStatusTransition = async (order, nextStatus, options = {
 
     // Save order status changes to database
     if (typeof order.save === 'function') {
-        if (session) {
-            await order.save({ session });
-        } else {
-            await order.save();
+        // Background jobs (invoice / email logging) also save this order, so a rider/vendor/admin
+        // action can hit a Mongoose VersionError and return HTTP 500 even though nothing is wrong.
+        // Re-sync the version with the database and retry instead of failing the request.
+        for (let attempt = 0; ; attempt += 1) {
+            try {
+                if (session) {
+                    await order.save({ session });
+                } else {
+                    await order.save();
+                }
+                break;
+            } catch (saveErr) {
+                if (saveErr?.name !== 'VersionError' || attempt >= 3) throw saveErr;
+                const latest = await Order.findById(order._id).select('__v').lean();
+                if (!latest) throw saveErr;
+                order.__v = latest.__v;
+            }
         }
     } else {
         await Order.updateOne(
