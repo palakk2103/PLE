@@ -7,7 +7,7 @@ import { applyThemeToDom } from "../hooks/useDynamicTheme";
 
 const defaultSettings = {
   general: {
-    storeName: "Appzeto E-commerce",
+    storeName: "People's League of Electronics",
     storeLogo: logoImage,
     favicon: logoImage,
     contactEmail: "contact@example.com",
@@ -122,7 +122,7 @@ const defaultSettings = {
     smtpUser: "",
     smtpPassword: "",
     fromEmail: "noreply@example.com",
-    fromName: "Appzeto Store",
+    fromName: "PLE Store",
   },
   notifications: {
     email: {
@@ -138,7 +138,7 @@ const defaultSettings = {
     },
   },
   seo: {
-    metaTitle: "Appzeto E-commerce - Shop Online",
+    metaTitle: "People's League of Electronics - Shop Online",
     metaDescription: "Shop the latest trends and products",
     metaKeywords: "ecommerce, shopping, online store",
     ogImage: logoImage,

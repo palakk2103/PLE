@@ -19,7 +19,7 @@ export const AUTH_REDIRECT_LOCK_KEY = import.meta.env.VITE_AUTH_REDIRECT_LOCK_KE
 export const AUTH_REDIRECT_LOCK_MS = Number(import.meta.env.VITE_AUTH_REDIRECT_LOCK_MS || 1500);
 
 // App Constants
-export const APP_NAME = 'Appzeto multi vendor E-commerce';
+export const APP_NAME = 'PLE multi vendor E-commerce';
 export const APP_DESCRIPTION = 'Multi Vendor E-commerce Platform';
 
 // Animation Durations

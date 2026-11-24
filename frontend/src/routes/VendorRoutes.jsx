@@ -54,7 +54,6 @@ const VendorB2BOrders = lazy(() => import("../modules/Vendor/pages/b2b/VendorB2B
 const VendorB2BAnalytics = lazy(() => import("../modules/Vendor/pages/b2b/B2BAnalytics"));
 const VendorB2BSettings = lazy(() => import("../modules/Vendor/pages/b2b/B2BSettings"));
 const VendorB2BSellerApplication = lazy(() => import("../modules/Vendor/pages/b2b/B2BSellerApplication"));
-const VendorDeliverySettings = lazy(() => import("../modules/Vendor/pages/VendorDeliverySettings"));
 const VendorFestivalCampaigns = lazy(() => import("../modules/Vendor/pages/FestivalCampaigns"));
 const VendorProductRequests = lazy(() => import("../modules/Vendor/pages/ProductRequests"));
 const VendorProductEnquiries = lazy(() => import("../modules/Vendor/pages/ProductEnquiries"));
@@ -157,7 +156,7 @@ export default function VendorRoutes() {
         {/* Offers & Promotion Management System (Seller) - Removed */}
         <Route path="my-offers/*" element={<Navigate to="/vendor/dashboard" replace />} />
 
-        <Route path="delivery-settings" element={<VendorDeliverySettings />} />
+        <Route path="delivery-settings" element={<Navigate to="/vendor/shipping-management" replace />} />
         <Route path="festival-campaigns" element={<VendorFestivalCampaigns />} />
         <Route path="product-requests" element={<VendorProductRequests />} />
         <Route path="product-enquiries" element={<VendorProductEnquiries />} />

@@ -108,11 +108,6 @@ const OrdersCustomersSettings = lazy(() => import("../modules/Admin/pages/settin
 const ProductsInventorySettings = lazy(() => import("../modules/Admin/pages/settings/ProductsInventorySettings"));
 const ContentFeaturesSettings = lazy(() => import("../modules/Admin/pages/settings/ContentFeaturesSettings"));
 const NotificationsSEOSettings = lazy(() => import("../modules/Admin/pages/settings/NotificationsSEOSettings"));
-const PrivacyPolicy = lazy(() => import("../modules/Admin/pages/policies/PrivacyPolicy"));
-const RefundPolicy = lazy(() => import("../modules/Admin/pages/policies/RefundPolicy"));
-const TermsConditions = lazy(() => import("../modules/Admin/pages/policies/TermsConditions"));
-const PushConfig = lazy(() => import("../modules/Admin/pages/firebase/PushConfig"));
-const Authentication = lazy(() => import("../modules/Admin/pages/firebase/Authentication"));
 const AdminDeliveryManager = lazy(() => import("../modules/Admin/pages/AdminDeliveryManager"));
 
 // Admin Loyalty Program Pages
@@ -312,13 +307,12 @@ export default function AdminRoutes() {
         <Route path="settings/products-inventory" element={<Settings />} />
         <Route path="settings/content-features" element={<Settings />} />
         <Route path="settings/notifications-seo" element={<Settings />} />
-        <Route path="policies" element={<PrivacyPolicy />} />
-        <Route path="policies/privacy-policy" element={<PrivacyPolicy />} />
-        <Route path="policies/refund-policy" element={<RefundPolicy />} />
-        <Route path="policies/terms-conditions" element={<TermsConditions />} />
-        <Route path="firebase" element={<PushConfig />} />
-        <Route path="firebase/push-config" element={<PushConfig />} />
-        <Route path="firebase/authentication" element={<Authentication />} />
+        {/* The admin policy editors only showed a "saved" toast (nothing was stored) and the public
+            policy pages are static legal text, so the editors are retired. */}
+        <Route path="policies/*" element={<Navigate to="/ple-ops-desk/settings/general" replace />} />
+        {/* Firebase config pages only showed "saved" toasts (nothing stored; real push config is the
+            server's FIREBASE_SERVICE_ACCOUNT env var), so they are retired. */}
+        <Route path="firebase/*" element={<Navigate to="/ple-ops-desk/settings/general" replace />} />
         <Route path="campaigns" element={<Campaigns />} />
         <Route path="banners" element={<Banners />} />
         <Route path="reviews" element={<Reviews />} />

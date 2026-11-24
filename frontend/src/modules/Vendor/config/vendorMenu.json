@@ -98,7 +98,7 @@
         "title":  "Shipping Management",
         "route":  "/vendor/shipping-management",
         "children":  [
-                         "Dispatch Settings"
+
                      ]
     },
     {

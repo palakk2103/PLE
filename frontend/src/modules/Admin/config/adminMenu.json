@@ -507,26 +507,6 @@
       {
         "title": "Notifications & SEO",
         "route": "/ple-ops-desk/settings/notifications-seo"
-      },
-      {
-        "title": "Privacy Policy",
-        "route": "/ple-ops-desk/policies/privacy-policy"
-      },
-      {
-        "title": "Refund Policy",
-        "route": "/ple-ops-desk/policies/refund-policy"
-      },
-      {
-        "title": "Terms & Conditions",
-        "route": "/ple-ops-desk/policies/terms-conditions"
-      },
-      {
-        "title": "Firebase Push Config",
-        "route": "/ple-ops-desk/firebase/push-config"
-      },
-      {
-        "title": "Firebase Auth",
-        "route": "/ple-ops-desk/firebase/authentication"
       }
     ]
   }
