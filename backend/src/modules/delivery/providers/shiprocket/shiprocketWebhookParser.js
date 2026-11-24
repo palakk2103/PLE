@@ -1,8 +1,26 @@
 import crypto from 'crypto';
 
+// True when the payload carries any shipment identifier, i.e. it would change data.
+const payloadHasIdentifiers = (rawBody) => {
+    let payload = rawBody;
+    if (typeof rawBody === 'string' || Buffer.isBuffer(rawBody)) {
+        try { payload = JSON.parse(rawBody.toString('utf-8')); } catch { payload = {}; }
+    }
+    return Boolean(
+        payload && (payload.order_id || payload.channel_order_id || payload.custom_order_id ||
+            payload.shipment_id || payload.awb || payload.awb_code || payload.courier_awb)
+    );
+};
+
 export function verifyShiprocketWebhookSignature(rawBody, headers = {}) {
     const expectedToken = process.env.SHIPROCKET_WEBHOOK_TOKEN;
     if (!expectedToken) {
+        // No secret configured: never accept data-changing webhooks in production (anyone could
+        // forge a "delivered" update). Harmless identifier-less probes are still allowed.
+        if (process.env.NODE_ENV === 'production' && payloadHasIdentifiers(rawBody)) {
+            console.warn('[Shiprocket webhook] SHIPROCKET_WEBHOOK_TOKEN is not set — rejecting webhook.');
+            return false;
+        }
         return true;
     }
 
@@ -20,8 +38,9 @@ export function verifyShiprocketWebhookSignature(rawBody, headers = {}) {
         normalized['token'];
 
     if (!headerToken) {
-        // Allow initial test probe/handshake from Shiprocket
-        return true;
+        // A token is configured, so a request without one may only be a harmless probe/handshake
+        // (no shipment identifiers). Anything that could change an order MUST carry the token.
+        return !payloadHasIdentifiers(rawBody);
     }
 
     const incoming = String(headerToken).replace(/^Bearer\s+/i, '').trim();

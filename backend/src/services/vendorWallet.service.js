@@ -188,7 +188,7 @@ export const recordDeliveredEarnings = async (order, options = {}) => {
                 recipientType: 'vendor',
                 title: 'Order Delivered — Earnings On Hold',
                 message: `Order #${order.orderId || order._id} has been delivered. Earnings of ₹${vendorEarnings.toFixed(2)} are placed On Hold during the clearance period.`,
-                type: 'finance',
+                type: 'payment',
                 data: { orderId: order._id, amount: vendorEarnings },
             });
         } catch (notifErr) {
@@ -316,7 +316,7 @@ export const runClearanceCheck = async (targetVendorId = null) => {
                 recipientType: 'vendor',
                 title: 'Earnings Cleared & Available',
                 message: `Earnings of ₹${vendorEarnings.toFixed(2)} for your delivered order have cleared the ${clearanceDays}-day return window and are now available for withdrawal!`,
-                type: 'finance',
+                type: 'payment',
                 data: { commissionId: comm._id, amount: vendorEarnings },
             });
         } catch (notifErr) {
@@ -482,7 +482,7 @@ export const requestWithdrawal = async (vendorId, amountInput, vendorNotes = '')
             recipientType: 'vendor',
             title: 'Withdrawal Request Submitted',
             message: `Your withdrawal request ${withdrawalId} for ₹${amount.toFixed(2)} has been submitted and is under review.`,
-            type: 'finance',
+            type: 'payment',
             data: { withdrawalId, amount },
         });
     } catch (err) {
@@ -525,7 +525,7 @@ export const approveWithdrawal = async (withdrawalDocId, adminId, adminNotes = '
             recipientType: 'vendor',
             title: 'Withdrawal Approved',
             message: `Your withdrawal request ${withdrawal.withdrawalId} for ₹${withdrawal.requestedAmount.toFixed(2)} has been approved and is queued for payout.`,
-            type: 'finance',
+            type: 'payment',
             data: { withdrawalId: withdrawal.withdrawalId },
         });
     } catch (err) {
@@ -623,7 +623,7 @@ export const rejectWithdrawal = async (withdrawalDocId, adminId, reason) => {
             recipientType: 'vendor',
             title: 'Withdrawal Request Rejected',
             message: `Your withdrawal request ${withdrawal.withdrawalId} for ₹${amount.toFixed(2)} was rejected: ${reason}. The amount has been refunded to your Available balance.`,
-            type: 'finance',
+            type: 'payment',
             data: { withdrawalId: withdrawal.withdrawalId, reason },
         });
     } catch (err) {
@@ -803,7 +803,7 @@ export const recordManualPayout = async (withdrawalDocId, adminId, payoutData) =
             recipientType: 'vendor',
             title: 'Payout Processed Successfully',
             message: `Your withdrawal ${withdrawal.withdrawalId} of ₹${finalPaidAmount.toFixed(2)} has been paid to your bank account! UTR / Reference: ${cleanUtr}`,
-            type: 'finance',
+            type: 'payment',
             data: { withdrawalId: withdrawal.withdrawalId, utr: cleanUtr, amount: finalPaidAmount },
         });
 
