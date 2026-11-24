@@ -34,11 +34,13 @@ export const B2BCartSummary = ({ cartItems, subtotal }) => {
     const itemSavings = (estimatedRetailPrice - item.price) * item.quantity;
     totalSavings += itemSavings;
 
-    // GST input tax calculation
-    const gstPercent = specs.gstSlab || 12;
-    // item.price is GST inclusive. Let's compute GST amount: Price - (Price / (1 + GST%))
-    const itemPriceExcludingGst = item.price / (1 + gstPercent / 100);
-    const itemGst = (item.price - itemPriceExcludingGst) * item.quantity;
+    // GST input tax credit = the GST actually charged on this line (same rate and same
+    // inclusive/exclusive rule the server uses at checkout), not a placeholder slab.
+    const gstPercent = Number(item.gstRate ?? item.taxRate ?? specs.gstSlab ?? 18);
+    const lineValue = item.price * item.quantity;
+    const itemGst = item.taxIncluded
+      ? lineValue - lineValue / (1 + gstPercent / 100)
+      : (lineValue * gstPercent) / 100;
     totalGST += itemGst;
   });
 

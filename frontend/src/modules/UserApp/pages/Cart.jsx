@@ -225,6 +225,7 @@ const Cart = () => {
   const gstBreakdown = useMemo(() => {
     const slabs = {};
     let totalTaxSum = 0;
+    let topTaxSum = 0; // GST charged ON TOP of the price (tax-inclusive items are excluded)
     (items || []).forEach((item) => {
       const itemQty = Math.max(1, Number(item.quantity || 1));
       const itemPrice = Math.max(0, Number(item.price || 0));
@@ -233,8 +234,12 @@ const Cart = () => {
       const effectiveGstRate = Number(
         liveRate ?? item.gstRate ?? item.resolvedGstRate ?? item.taxRate ?? 18
       );
-      const itemTax = (itemSubtotal * effectiveGstRate) / 100;
+      const inclusive = Boolean(item.taxIncluded);
+      const itemTax = inclusive
+        ? itemSubtotal - itemSubtotal / (1 + effectiveGstRate / 100)
+        : (itemSubtotal * effectiveGstRate) / 100;
       totalTaxSum += itemTax;
+      if (!inclusive) topTaxSum += itemTax;
 
       const rateKey = `${effectiveGstRate}%`;
       if (!slabs[rateKey]) {
@@ -245,13 +250,14 @@ const Cart = () => {
           count: 0,
         };
       }
-      slabs[rateKey].taxableAmount += itemSubtotal;
+      slabs[rateKey].taxableAmount += inclusive ? itemSubtotal - itemTax : itemSubtotal;
       slabs[rateKey].taxAmount += itemTax;
       slabs[rateKey].count += itemQty;
     });
 
     return {
       totalTax: parseFloat(totalTaxSum.toFixed(2)),
+      topTax: parseFloat(topTaxSum.toFixed(2)),
       slabs: Object.values(slabs).sort((a, b) => b.rate - a.rate),
     };
   }, [items, liveGstRates]);
@@ -270,7 +276,7 @@ const Cart = () => {
 
   const shipping = estimatedShipping !== null ? estimatedShipping : (isBusiness ? 1500 : 50);
   const tax = gstBreakdown.totalTax;
-  const finalTotal = total + shipping + tax;
+  const finalTotal = total + shipping + gstBreakdown.topTax; // inclusive GST is already in the price
 
   // Handlers
   const handleQuantityChange = (item, delta) => {
@@ -495,10 +501,13 @@ const Cart = () => {
                                     </span>
                                     {(() => {
                                       const itemGst = Number(liveGstRates[String(item.id)] ?? item.gstRate ?? item.resolvedGstRate ?? item.taxRate ?? 18);
-                                      const itemTaxAmount = ((item.price * item.quantity * itemGst) / 100);
+                                      const itemLine = item.price * item.quantity;
+                                      const itemTaxAmount = item.taxIncluded
+                                        ? itemLine - itemLine / (1 + itemGst / 100)
+                                        : ((itemLine * itemGst) / 100);
                                       return (
                                         <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-200/50 dark:border-emerald-800/40">
-                                          {itemGst}% GST (+{formatPrice(itemTaxAmount)})
+                                          {itemGst}% GST ({item.taxIncluded ? "incl." : "+"}{formatPrice(itemTaxAmount)})
                                         </span>
                                       );
                                     })()}

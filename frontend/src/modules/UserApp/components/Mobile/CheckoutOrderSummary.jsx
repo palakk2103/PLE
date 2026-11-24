@@ -36,7 +36,10 @@ const OrderSummary = ({
             <div className="space-y-2 pl-2">
               {vendorGroup.items.map((item, itemIndex) => {
                 const itemGst = Number(liveGstRates[String(item.id)] ?? item.gstRate ?? item.resolvedGstRate ?? item.taxRate ?? 18);
-                const itemTaxAmount = ((item.price * item.quantity * itemGst) / 100);
+                const itemLine = item.price * item.quantity;
+                const itemTaxAmount = item.taxIncluded
+                  ? itemLine - itemLine / (1 + itemGst / 100)
+                  : ((itemLine * itemGst) / 100);
                 return (
                   <div
                     key={`${item.id}-${itemIndex}-${getVariantSignature(item?.variant || {})}`}
@@ -52,7 +55,7 @@ const OrderSummary = ({
                         <p className="text-[11px] text-gray-500">{formatVariantLabel(item?.variant)}</p>
                       )}
                       <span className="inline-block mt-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200/60">
-                        {itemGst}% GST (+{formatPrice(itemTaxAmount)})
+                        {itemGst}% GST ({item.taxIncluded ? "incl." : "+"}{formatPrice(itemTaxAmount)})
                       </span>
                     </div>
                   </div>

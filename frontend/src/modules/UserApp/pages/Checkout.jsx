@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
@@ -335,6 +335,7 @@ const MobileCheckout = () => {
 
   const gstBreakdown = useMemo(() => {
     let totalTaxSum = 0;
+    let topTaxSum = 0; // GST charged ON TOP of the price (tax-inclusive items excluded)
     const slabs = {};
     const split = { cgst: 0, sgst: 0, igst: 0, unsplit: 0 };
     const tot = getTotal();
@@ -351,8 +352,12 @@ const MobileCheckout = () => {
       const effectiveGstRate = Number(
         liveRate ?? item.gstRate ?? item.resolvedGstRate ?? item.taxRate ?? 18
       );
-      const itemTax = (netTaxable * effectiveGstRate) / 100;
+      const inclusive = Boolean(item.taxIncluded);
+      const itemTax = inclusive
+        ? netTaxable - netTaxable / (1 + effectiveGstRate / 100)
+        : (netTaxable * effectiveGstRate) / 100;
       totalTaxSum += itemTax;
+      if (!inclusive) topTaxSum += itemTax;
 
       const supplyType = gstSupply?.byProduct?.[String(item.id)]?.supplyType;
       if (supplyType === "INTRA_STATE") {
@@ -373,7 +378,7 @@ const MobileCheckout = () => {
           count: 0
         };
       }
-      slabs[rateKey].taxableAmount += netTaxable;
+      slabs[rateKey].taxableAmount += inclusive ? netTaxable - itemTax : netTaxable;
       slabs[rateKey].taxAmount += itemTax;
       slabs[rateKey].count += itemQty;
     });
@@ -381,6 +386,7 @@ const MobileCheckout = () => {
     const r2 = (n) => Math.round(n * 100) / 100;
     return {
       totalTax: parseFloat(totalTaxSum.toFixed(2)),
+      topTax: parseFloat(topTaxSum.toFixed(2)),
       slabs: Object.values(slabs).sort((a, b) => b.rate - a.rate),
       split: {
         cgst: r2(split.cgst),
@@ -398,8 +404,12 @@ const MobileCheckout = () => {
     : (estimatedShipping !== null ? estimatedShipping : calculateShippingFallback());
   const couponDiscount = appliedCoupon ? appliedDiscount : 0;
   const tax = proposalCheckout ? Number(proposalCheckout.tax || 0) : gstBreakdown.totalTax;
-  const prePointsTotal = total + shipping + tax;
-  const maxRedeemableCash = Math.min(prePointsTotal, appliedPoints * (loyaltyConfig?.redemptionRatio || 0.2));
+  const taxOnTop = proposalCheckout ? tax : gstBreakdown.topTax; // inclusive GST is already inside the price
+  // Same order as the server: subtotal - coupon (+ GST on the discounted value) + delivery.
+  const prePointsTotal = Math.max(0, total - couponDiscount) + shipping + taxOnTop;
+  // Points can cover at most maxRedemptionPercent of (subtotal - coupon), exactly like the server.
+  const loyaltyCapCash = (Math.max(0, total - couponDiscount) * (loyaltyConfig?.maxRedemptionPercent ?? 50)) / 100;
+  const maxRedeemableCash = Math.min(prePointsTotal, loyaltyCapCash, appliedPoints * (loyaltyConfig?.redemptionRatio || 0.2));
   const pointsDiscount = maxRedeemableCash;
   const discount = couponDiscount + pointsDiscount;
   const taxableAmount = Math.max(0, total - couponDiscount);
@@ -420,10 +430,15 @@ const MobileCheckout = () => {
     return gstBreakdown.totalTax;
   }
 
+  // A coupon's discount is computed for the cart total it was applied on, so drop it only if the
+  // total changes afterwards. (Depending on `appliedCoupon` here cleared every coupon the moment it
+  // was applied, so shoppers could never use one.)
+  const couponAppliedForTotalRef = useRef(null);
   useEffect(() => {
-    if (appliedCoupon) {
+    if (appliedCoupon && couponAppliedForTotalRef.current !== null && couponAppliedForTotalRef.current !== total) {
       setAppliedCoupon(null);
       setAppliedDiscount(0);
+      couponAppliedForTotalRef.current = null;
     }
   }, [total, appliedCoupon]);
 
@@ -537,6 +552,7 @@ const MobileCheckout = () => {
       }
 
       setCouponCode(coupon.code || normalizedCode);
+      couponAppliedForTotalRef.current = total;
       setAppliedCoupon(coupon);
       setAppliedDiscount(discountAmount);
       toast.success(`Coupon "${coupon.code}" applied!`);

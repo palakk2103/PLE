@@ -27,7 +27,7 @@ export const useBusinessBuyer = () => {
    * Get B2B specifications for a given product
    */
   const getWholesaleSpecs = (productId, retailPrice) => {
-    const specs = getB2bProductSpecs(productId, retailPrice);
+    const specs = { ...getB2bProductSpecs(productId, retailPrice) }; // copy: we override fields below
 
     // Use the vendor's real wholesale pricing when the product has it, so what the
     // buyer sees is what the server charges (mirrors order.controller's B2B pricing:
@@ -41,7 +41,10 @@ export const useBusinessBuyer = () => {
 
     // Only real product data: no placeholder discounts or MOQs the server would not honour
     // (the old fallback showed 20-40% "bulk" prices that checkout never charged).
-    const realMoq = Math.max(1, Number(product?.b2bMinOrderQty) || 1);
+    // Same rule as the server: the larger of the B2B MOQ and the product's general MOQ.
+    const realGst = Number(product?.gstRate ?? product?.taxRate);
+    if (Number.isFinite(realGst)) specs.gstSlab = realGst;
+    const realMoq = Math.max(1, Number(product?.b2bMinOrderQty) || 1, Number(product?.minimumOrderQuantity) || 1);
     if (!(wholesale > 0) && slabs.length === 0) {
       const price = Number(retailPrice) || 0;
       return { ...specs, moq: realMoq, tiers: [{ minQty: realMoq, price }], retailPrice: price || undefined };
@@ -56,7 +59,7 @@ export const useBusinessBuyer = () => {
     }
     tiers.unshift({ minQty: moq, price: basePrice });
 
-    return { ...specs, tiers, retailPrice: Number(retailPrice) || undefined };
+    return { ...specs, moq, tiers, retailPrice: Number(retailPrice) || undefined };
   };
 
   /**
