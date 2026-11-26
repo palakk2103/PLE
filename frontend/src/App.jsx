@@ -57,30 +57,51 @@ function App() {
             containerStyle={{
               zIndex: 999999,
             }}
+            gutter={10}
             toastOptions={{
               duration: 3000,
               style: {
-                background: "#212121",
-                color: "#fff",
+                background: "#ffffff",
+                color: "#1f2937",
+                fontSize: "14px",
+                fontWeight: 500,
+                lineHeight: 1.45,
+                padding: "12px 16px",
+                borderRadius: "12px",
+                border: "1px solid #e5e7eb",
+                borderLeft: "4px solid #6b7280",
+                boxShadow:
+                  "0 10px 25px -5px rgba(0,0,0,0.12), 0 4px 10px -4px rgba(0,0,0,0.08)",
+                maxWidth: "min(380px, calc(100vw - 32px))",
+                wordBreak: "break-word",
               },
               success: {
                 duration: 3000,
                 iconTheme: {
-                  primary: "#388E3C",
-                  secondary: "#fff",
-                },
-              },
-              error: {
-                duration: 4000,
-                iconTheme: {
-                  primary: "#FF6161",
+                  primary: "#16a34a",
                   secondary: "#fff",
                 },
                 style: {
-                  border: "1px solid #FF3B30",
-                  background: "#FFF2F2",
-                  color: "#D32F2F",
-                  fontWeight: "bold",
+                  borderLeft: "4px solid #16a34a",
+                  background: "#f0fdf4",
+                  color: "#14532d",
+                },
+              },
+              error: {
+                duration: 4500,
+                iconTheme: {
+                  primary: "#dc2626",
+                  secondary: "#fff",
+                },
+                style: {
+                  borderLeft: "4px solid #dc2626",
+                  background: "#fef2f2",
+                  color: "#7f1d1d",
+                },
+              },
+              loading: {
+                style: {
+                  borderLeft: "4px solid #2563eb",
                 },
               },
             }}

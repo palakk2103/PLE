@@ -842,6 +842,10 @@ export const reviewProduct = asyncHandler(async (req, res) => {
     product.approvalStatus = status;
     product.approvedBy = req.user.id;
     product.approvalDate = new Date();
+    if (product.isRefurbished && product.refurbishedDetails) {
+        product.refurbishedDetails.approvalStatus = status;
+        if (status === 'rejected') product.refurbishedDetails.rejectionReason = reason || '';
+    }
 
     if (status === 'rejected') {
         product.rejectionReason = reason || '';

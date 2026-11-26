@@ -11,6 +11,7 @@ import { useVendorAuthStore } from '../../store/vendorAuthStore';
 import socketService from '../../../../shared/utils/socket';
 import { updateVendorOrderStatus } from '../../services/vendorService';
 import { formatPrice } from '../../../../shared/utils/helpers';
+import { handleImageError, NO_IMAGE_PLACEHOLDER } from "../../../../shared/utils/helpers";
 
 const VendorLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -258,7 +259,7 @@ const VendorLayout = () => {
                         <div className="flex items-center space-x-2.5 sm:space-x-3 min-w-0 flex-1">
                           {item.image ? (
                             <img
-                              src={item.image}
+                              src={item.image || NO_IMAGE_PLACEHOLDER} onError={handleImageError}
                               alt={item.name}
                               className="w-9 h-9 sm:w-10 sm:h-10 object-cover rounded bg-white border border-gray-200 dark:border-white/10 flex-shrink-0"
                             />

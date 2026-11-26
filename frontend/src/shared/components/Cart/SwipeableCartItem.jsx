@@ -7,6 +7,7 @@ import { useWishlistStore } from "../../store/wishlistStore";
 import { formatPrice } from "../../utils/helpers";
 import { formatVariantLabel } from "../../utils/variant";
 import useSwipeGesture from "../../../modules/UserApp/hooks/useSwipeGesture";
+import { handleImageError, NO_IMAGE_PLACEHOLDER } from "../../utils/helpers";
 
 const SwipeableCartItem = ({ item, index }) => {
     const [swipeOffset, setSwipeOffset] = useState(0);
@@ -122,7 +123,7 @@ const SwipeableCartItem = ({ item, index }) => {
                 {/* Product Image */}
                 <div className="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 rounded-lg overflow-hidden bg-gray-200 relative z-10">
                     <img
-                        src={item.image}
+                        src={item.image || NO_IMAGE_PLACEHOLDER} onError={handleImageError}
                         alt={item.name}
                         className="w-full h-full object-cover"
                     />

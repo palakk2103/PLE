@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { FiArrowLeft, FiCheck, FiMail, FiRefreshCw } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import MobileLayout from '../components/Layout/MobileLayout';
+import AuthSplitLayout from '../components/Auth/AuthSplitLayout';
 import PageTransition from '../../../shared/components/PageTransition';
 import { useAuthStore } from '../../../shared/store/authStore';
 
@@ -96,14 +96,8 @@ const MobileForgotPassword = () => {
   return (
     <PageTransition>
       <MobileLayout showBottomNav={false} showCartBar={false}>
-        <div className="w-full min-h-screen flex items-start justify-center px-4 pt-6 pb-8 bg-gray-50 dark:bg-zinc-950 transition-colors duration-500">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="w-full max-w-md"
-          >
-            <div className="bg-white dark:bg-zinc-900 rounded-2xl p-5 sm:p-6 shadow-sm border dark:border-zinc-800 transition-colors duration-500">
+        <AuthSplitLayout>
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl p-5 sm:p-6 lg:p-10 shadow-sm lg:shadow-xl border dark:border-zinc-800 transition-colors duration-500">
               <div className="text-center mb-8">
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-50 mb-2">Forgot Password</h1>
                 <p className="text-sm text-gray-600 dark:text-zinc-400 break-all px-1">
@@ -192,8 +186,7 @@ const MobileForgotPassword = () => {
                 </Link>
               </div>
             </div>
-          </motion.div>
-        </div>
+        </AuthSplitLayout>
       </MobileLayout>
     </PageTransition>
   );

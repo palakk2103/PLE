@@ -262,7 +262,12 @@ export const useOrderStore = create(
       ensureHydrated: () => {
         const state = get();
         if (!state.hasFetched && !state.isLoading) {
-          state.fetchUserOrders(1, 30).catch(() => null);
+          // getOrder()/getAllOrders() are called while components render; start the fetch after the
+          // current render so the store update doesn't hit React's "setState during render" warning.
+          setTimeout(() => {
+            const s = get();
+            if (!s.hasFetched && !s.isLoading) s.fetchUserOrders(1, 30).catch(() => null);
+          }, 0);
         }
       },
 

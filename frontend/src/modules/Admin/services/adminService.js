@@ -29,6 +29,9 @@ export const getB2bOverviewStats = (params = {}) =>
 export const getRevenueData = (period = 'monthly', params = {}) =>
     api.get('/admin/analytics/revenue', { params: { period, ...params } });
 
+export const getVendorsAnalytics = (params = {}) =>
+    api.get('/admin/analytics/vendors', { params });
+
 export const getReturnsSummary = (params = {}) =>
     api.get('/admin/analytics/returns-summary', { params });
 

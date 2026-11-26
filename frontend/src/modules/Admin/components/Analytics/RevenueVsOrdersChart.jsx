@@ -13,9 +13,9 @@ import {
 import { formatDate, filterByDateRange, getDateRange, formatCurrency } from '../../utils/adminHelpers';
 import { motion } from 'framer-motion';
 
-const RevenueVsOrdersChart = ({ data, period = 'month' }) => {
+const RevenueVsOrdersChart = ({ data, period = 'month', range: customRange = null }) => {
   const filteredData = useMemo(() => {
-    const range = getDateRange(period);
+    const range = customRange || getDateRange(period);
     const filtered = filterByDateRange(data, range.start, range.end);
     // Show last 7 days for better visibility
     const daysToShow = 7;
@@ -23,7 +23,7 @@ const RevenueVsOrdersChart = ({ data, period = 'month' }) => {
       ...item,
       dateLabel: formatDate(item.date, { month: 'short', day: 'numeric' }),
     }));
-  }, [data, period]);
+  }, [data, period, customRange]);
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {

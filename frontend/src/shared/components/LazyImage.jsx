@@ -56,7 +56,8 @@ const LazyImage = ({
       const placeholder = getPlaceholderImage(
         placeholderWidth,
         placeholderHeight,
-        placeholderText || alt || "Image"
+        // Never print the (long) alt text into the picture - it overflows. Short fixed label only.
+        placeholderText || "No image"
       );
       setFallbackSrc(placeholder);
       setImageSrc(placeholder);

@@ -22,6 +22,8 @@ const B2BRFQDetail = lazy(() => import("../modules/B2BAdmin/pages/RFQDetail"));
 const B2BQuotations = lazy(() => import("../modules/B2BAdmin/pages/Quotations"));
 const B2BRFQDiscussions = lazy(() => import("../modules/B2BAdmin/pages/RFQDiscussions"));
 const B2BPurchaseOrders = lazy(() => import("../modules/B2BAdmin/pages/PurchaseOrders"));
+const B2BCompanyPOs = lazy(() => import("../modules/B2BAdmin/pages/CompanyPOs"));
+const B2BPOSignatories = lazy(() => import("../modules/B2BAdmin/pages/POSignatories"));
 const ShopChats = lazy(() => import("../modules/B2BAdmin/pages/ShopChats"));
 const UserProductRequestHistory = lazy(() => import("../modules/UserApp/pages/ProductRequestHistory"));
 const UserProductRequestDetail = lazy(() => import("../modules/UserApp/pages/ProductRequestDetail"));
@@ -62,6 +64,8 @@ export default function B2BRoutes() {
         <Route path="discussions" element={<B2BRFQDiscussions />} />
         <Route path="shop-chats" element={<ShopChats />} />
         <Route path="purchase-orders" element={<B2BPurchaseOrders />} />
+        <Route path="company-pos" element={<B2BCompanyPOs />} />
+        <Route path="po-signatories" element={<B2BPOSignatories />} />
         <Route path="company-profile" element={<B2BCompanyProfile />} />
         <Route path="legal-documents" element={<B2BLegalDocuments />} />
         <Route path="admin-profile" element={<B2BAdminProfile />} />

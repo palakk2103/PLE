@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../../../../shared/utils/api";
 import { motion } from "framer-motion";
 import {
   FiCheckCircle,
@@ -11,6 +13,31 @@ import {
 
 const RefurbishedMarketplace = () => {
   const navigate = useNavigate();
+
+  // Live counts for the card badges (these used to be hardcoded "8 Pending" / "2 Alerts").
+  const [counts, setCounts] = useState({ pending: null, flagged: null, openReturns: null });
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const [prods, rets] = await Promise.all([
+          api.get("/admin/refurbished-products"),
+          api.get("/admin/refurbished-returns"),
+        ]);
+        if (!active) return;
+        const list = Array.isArray(prods?.data) ? prods.data : [];
+        const returns = Array.isArray(rets?.data) ? rets.data : [];
+        setCounts({
+          pending: list.filter((p) => p.refurbishedDetails?.approvalStatus === "pending").length,
+          flagged: list.filter((p) => p.refurbishedDetails?.flagged).length,
+          openReturns: returns.filter((r) => !["completed", "rejected", "refunded"].includes(String(r.status))).length,
+        });
+      } catch {
+        /* badges simply stay hidden if the counts cannot be loaded */
+      }
+    })();
+    return () => { active = false; };
+  }, []);
 
   const menuItems = [
     {
@@ -33,7 +60,7 @@ const RefurbishedMarketplace = () => {
       shadowColor: "shadow-orange-500/10",
       hoverShadow: "hover:shadow-orange-500/25",
       description: "Moderate condition grades, device health reports, and replacement histories",
-      badge: "8 Pending",
+      badgeKey: "pending",
     },
     {
       path: "/ple-ops-desk/refurbished/moderation",
@@ -44,7 +71,7 @@ const RefurbishedMarketplace = () => {
       shadowColor: "shadow-red-500/10",
       hoverShadow: "hover:shadow-red-500/25",
       description: "Detect fake grading configurations, misleading conditions, and flag listings",
-      badge: "2 Alerts",
+      badgeKey: "flagged",
     },
     {
       path: "/ple-ops-desk/refurbished/complaints",
@@ -55,7 +82,7 @@ const RefurbishedMarketplace = () => {
       shadowColor: "shadow-emerald-500/10",
       hoverShadow: "hover:shadow-emerald-500/25",
       description: "Track return inspections, damage claims, and verify physical requests",
-      badge: "Active Log",
+      badgeKey: "openReturns",
     },
     {
       path: "/ple-ops-desk/refurbished/categories",
@@ -66,7 +93,6 @@ const RefurbishedMarketplace = () => {
       shadowColor: "shadow-amber-800/10",
       hoverShadow: "hover:shadow-amber-800/25",
       description: "Map open-box, renewed, and refurbished sections to existing categories",
-      badge: "Configured",
     },
   ];
 
@@ -131,10 +157,18 @@ const RefurbishedMarketplace = () => {
                   `}
                 />
 
-                {/* Badge */}
-                <div className="absolute top-4 right-4 bg-white/90 px-2.5 py-0.5 rounded-full text-[10px] font-bold text-gray-700 shadow-sm border border-gray-100">
-                  {item.badge}
-                </div>
+                {/* Badge (live counts; hidden until loaded) */}
+                {(() => {
+                  const labels = { pending: "Pending", flagged: "Flagged", openReturns: "Open" };
+                  const text = item.badgeKey
+                    ? (counts[item.badgeKey] === null ? null : `${counts[item.badgeKey]} ${labels[item.badgeKey]}`)
+                    : item.badge;
+                  return text ? (
+                    <div className="absolute top-4 right-4 bg-white/90 px-2.5 py-0.5 rounded-full text-[10px] font-bold text-gray-700 shadow-sm border border-gray-100">
+                      {text}
+                    </div>
+                  ) : null;
+                })()}
 
                 {/* Icon Container */}
                 <div

@@ -1,5 +1,5 @@
 import { FiShoppingBag } from "react-icons/fi";
-import { formatPrice } from "../../../../shared/utils/helpers";
+import { formatPrice, handleImageError, NO_IMAGE_PLACEHOLDER } from "../../../../shared/utils/helpers";
 import { formatVariantLabel, getVariantSignature } from "../../../../shared/utils/variant";
 import { useLoyaltyStore } from "../../../../shared/store/loyaltyStore";
 
@@ -45,7 +45,7 @@ const OrderSummary = ({
                     key={`${item.id}-${itemIndex}-${getVariantSignature(item?.variant || {})}`}
                     className="flex items-center gap-2 text-xs"
                   >
-                    <img src={item.image} alt={item.name} className="w-10 h-10 rounded-lg object-cover" />
+                    <img src={item.image || NO_IMAGE_PLACEHOLDER} onError={handleImageError} alt={item.name} className="w-10 h-10 rounded-lg object-cover flex-shrink-0 bg-gray-100" />
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-gray-800 truncate text-xs">{item.name}</p>
                       <p className="text-gray-600 text-xs">

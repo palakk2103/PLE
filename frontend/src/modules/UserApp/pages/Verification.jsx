@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation, useSearchParams, Link } from 'react-router-dom';
 import { FiArrowLeft, FiCheck } from 'react-icons/fi';
-import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import MobileLayout from "../components/Layout/MobileLayout";
+import AuthSplitLayout from '../components/Auth/AuthSplitLayout';
 import PageTransition from '../../../shared/components/PageTransition';
 import { useAuthStore } from '../../../shared/store/authStore';
 
@@ -120,14 +120,8 @@ const MobileVerification = () => {
   return (
     <PageTransition>
       <MobileLayout showBottomNav={false} showCartBar={false}>
-        <div className="w-full min-h-screen flex items-start justify-center px-4 pt-6 pb-8 bg-gray-50 dark:bg-zinc-950 transition-colors duration-500">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="w-full max-w-md"
-          >
-            <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-100 dark:border-zinc-800 transition-colors duration-500">
+        <AuthSplitLayout>
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 sm:p-8 lg:p-10 shadow-sm lg:shadow-xl border border-gray-100 dark:border-zinc-800 transition-colors duration-500">
               {/* Back Button */}
               <button
                 onClick={() => navigate(-1)}
@@ -208,8 +202,7 @@ const MobileVerification = () => {
                 </p>
               </div>
             </div>
-          </motion.div>
-        </div>
+        </AuthSplitLayout>
       </MobileLayout>
     </PageTransition>
   );

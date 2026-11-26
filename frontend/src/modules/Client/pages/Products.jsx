@@ -6,6 +6,7 @@ import {
   Smartphone, Shirt, Home as HomeIcon, Sparkles as BeautyIcon, Trophy 
 } from 'lucide-react';
 import { EncryptedText } from '@/components/ui/encrypted-text';
+import { handleImageError, NO_IMAGE_PLACEHOLDER } from "../../../shared/utils/helpers";
 
 // High-quality mock e-commerce products
 const MOCK_PRODUCTS = [
@@ -558,7 +559,7 @@ export default function Products() {
                     {/* Image top container */}
                     <div className="relative aspect-square w-full bg-[#151515] overflow-hidden select-none">
                       <img
-                        src={product.image}
+                        src={product.image || NO_IMAGE_PLACEHOLDER} onError={handleImageError}
                         alt={product.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                         loading="lazy"

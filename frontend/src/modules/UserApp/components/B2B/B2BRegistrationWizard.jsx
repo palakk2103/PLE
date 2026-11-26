@@ -1,13 +1,33 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FiEye, FiEyeOff, FiUploadCloud, FiTrash2, FiFileText, FiDownload, FiCheck, FiRefreshCw } from 'react-icons/fi';
+import { useNavigate, Link } from 'react-router-dom';
+import { FiEye, FiEyeOff, FiUploadCloud, FiTrash2, FiFileText, FiDownload, FiCheck, FiRefreshCw, FiEdit2, FiArrowLeft, FiArrowRight, FiBookmark, FiHelpCircle } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import api from '../../../../shared/utils/api';
 import { useAuthStore } from '../../../../shared/store/authStore';
 import { useB2bStore } from '../../../../shared/store/b2bStore';
 import { useB2BAdminStore } from '../../../B2BAdmin/store/b2bAdminStore';
 
-const STEPS = ['Company Details', 'Authorised Signatory', 'Admin Information', 'Employees'];
+// Pages of the wizard. `step` is the logical step (1-4 are persisted in drafts, 5 = frontend-only review).
+const PAGES = [
+  { key: 'company', step: 1, title: 'Company Details', label: 'Basic information', subtitle: "Let's start with your business information." },
+  { key: 'address', step: 1, title: 'Company Address', label: 'Registered address', subtitle: 'Tell us where your business is located.' },
+  { key: 'bank', step: 1, title: 'Bank Details', label: 'Settlement account', subtitle: 'The bank account used for payments and verification.' },
+  { key: 'gst', step: 1, title: 'GST & Agreement', label: 'Tax & agreement', subtitle: 'GST registration details and your signed platform agreement.' },
+  { key: 'signatory', step: 2, title: 'Authorised Signatory', label: 'Signatory & authority', subtitle: 'Who is authorised to sign on behalf of the business.' },
+  { key: 'admin', step: 3, title: 'Admin Information', label: 'Primary admin & security', subtitle: 'Set up the primary administrator of this account.' },
+  { key: 'employees', step: 4, title: 'Employees', label: 'Team members (optional)', subtitle: 'Add team members who can use this business account.' },
+  { key: 'review', step: 5, title: 'Review & Submit', label: 'Confirm and create account', subtitle: 'Check everything you have entered before submitting.' },
+];
+const GROUPS = [
+  { step: 1, title: 'Company Details', desc: 'Business, address, bank & GST' },
+  { step: 2, title: 'Authorised Signatory', desc: 'Signatory identity & authority' },
+  { step: 3, title: 'Admin Information', desc: 'Primary admin & security' },
+  { step: 4, title: 'Employees', desc: 'Add team members (optional)' },
+  { step: 5, title: 'Review & Submit', desc: 'Confirm and create your account' },
+];
+const pagesOfStep = (st) => PAGES.map((p, i) => (p.step === st ? i : -1)).filter((i) => i >= 0);
+const PAGE_BY_KEY = Object.fromEntries(PAGES.map((p, i) => [p.key, i]));
+
 const SESSION_KEY = 'b2bDraftSession';
 const MAX_DOC_BYTES = 5 * 1024 * 1024;
 const DOC_EXTS = ['pdf', 'jpg', 'jpeg', 'png'];
@@ -50,14 +70,14 @@ const btnPrimary = 'bg-[#AE020B] hover:bg-[#8d0208] text-white py-2.5 md:py-3 ro
 const btnSecondary = 'border-2 border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-800 text-gray-700 dark:text-zinc-200 py-2.5 md:py-3 rounded-xl font-bold text-xs md:text-sm disabled:opacity-50';
 
 const Section = ({ title, children }) => (
-  <div className="border-t dark:border-zinc-800 pt-3 md:pt-4 space-y-3">
+  <div className="border-t first:border-t-0 first:pt-0 dark:border-zinc-800 pt-3 md:pt-4 space-y-3">
     <h3 className="text-xs md:text-sm font-bold text-[#AE020B] uppercase tracking-wide">{title}</h3>
-    {children}
+    <div className="grid grid-cols-1 md:grid-cols-2 md:gap-x-5 gap-y-3 md:gap-y-4 [&>*]:min-w-0">{children}</div>
   </div>
 );
 
-const Field = ({ label, required, error, name, children }) => (
-  <div data-field={name}>
+const Field = ({ label, required, error, name, full, children }) => (
+  <div data-field={name} className={full ? 'md:col-span-2' : undefined}>
     <label className={labelCls}>{label} {required ? '*' : <span className="font-normal text-gray-400">(Optional)</span>}</label>
     {children}
     {error && <p className="mt-1 text-[11px] md:text-xs text-red-600" role="alert">{error}</p>}
@@ -101,7 +121,7 @@ const DocUpload = ({ id, label, hint, doc, onChange, error, required = true }) =
 
   const shownErr = localErr || error;
   return (
-    <div className="p-3 bg-gray-50 dark:bg-zinc-900/60 rounded-xl border border-gray-200 dark:border-zinc-800 space-y-2" data-field={id}>
+    <div className="md:col-span-2 p-3 bg-gray-50 dark:bg-zinc-900/60 rounded-xl border border-gray-200 dark:border-zinc-800 space-y-2" data-field={id}>
       <label className="block text-xs font-bold text-gray-800 dark:text-zinc-200">{label} {required ? '*' : '(Optional)'}</label>
       {hint && <p className="text-[11px] text-gray-500 dark:text-zinc-400">{hint}</p>}
       <input ref={inputRef} id={id} data-testid={id} type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" className="hidden"
@@ -159,8 +179,12 @@ const B2BRegistrationWizard = () => {
   const navigate = useNavigate();
   const { register: registerB2BAdminAPI, login: loginB2B, isLoading } = useB2BAdminStore();
 
-  const [step, setStep] = useState(1);
-  const [completed, setCompleted] = useState([]);
+  const [page, setPage] = useState(0);
+  const [donePages, setDonePages] = useState([]);
+  const step = PAGES[page].step;
+  const current = PAGES[page];
+  // logical steps (1-4) whose pages are all done - this is what drafts persist
+  const completed = [1, 2, 3, 4].filter((st) => pagesOfStep(st).every((i) => donePages.includes(i)));
   const [form, setForm] = useState(initialForm);
   const [docs, setDocs] = useState({});
   const [employees, setEmployees] = useState([]);
@@ -198,8 +222,9 @@ const B2BRegistrationWizard = () => {
     setForm({ ...initialForm, ...(draft.data?.form || {}) });
     setDocs(draft.data?.docs || {});
     setEmployees(draft.data?.employees || []);
-    setCompleted(draft.completedSteps || []);
-    setStep(draft.currentStep || 1);
+    const doneSteps = draft.completedSteps || [];
+    setDonePages(doneSteps.flatMap((st) => pagesOfStep(st)));
+    setPage(pagesOfStep(Math.min(Math.max(draft.currentStep || 1, 1), 4))[0] ?? 0);
     setDraftToken(token);
     setLastSaved(draft.updatedAt);
     try { localStorage.setItem(SESSION_KEY, JSON.stringify({ email: draft.email, token })); } catch { /* ignore */ }
@@ -258,20 +283,24 @@ const B2BRegistrationWizard = () => {
 
   /* ---------------- validation ---------------- */
   const req = (v) => String(v ?? '').trim().length > 0;
-  const validate = (s) => {
+  const validate = (key) => {
     const e = {};
-    if (s === 1) {
+    if (key === 'company') {
       if (!req(form.companyName)) e.companyName = 'Company name is required.';
       if (!req(form.businessType)) e.businessType = 'Business type is required.';
       if (!EMAIL_REGEX.test(form.businessEmail.trim())) e.businessEmail = 'Enter a valid company email.';
       if (!mobileOk(form.businessPhone)) e.businessPhone = 'Enter a valid 10-digit contact number.';
       if (!docs.companyRegistrationProof) e.companyRegistrationProof = 'Registration proof is required.';
+    }
+    if (key === 'address') {
       if (!req(form.addrLine1)) e.addrLine1 = 'Address Line 1 is required.';
       if (!req(form.country)) e.country = 'Country is required.';
       if (!req(form.state)) e.state = 'State is required.';
       if (!req(form.city)) e.city = 'City is required.';
       if (!/^[1-9][0-9]{5}$/.test(form.pincode.trim())) e.pincode = 'Enter a valid 6-digit pincode.';
       if (!docs.addressProof) e.addressProof = 'Address proof is required.';
+    }
+    if (key === 'bank') {
       if (!req(form.accountHolderName)) e.accountHolderName = 'Account holder name is required.';
       if (!req(form.bankName)) e.bankName = 'Bank name is required.';
       if (!/^[0-9]{9,18}$/.test(form.accountNumber.trim())) e.accountNumber = 'Account number must be 9-18 digits.';
@@ -279,6 +308,8 @@ const B2BRegistrationWizard = () => {
       if (!IFSC_REGEX.test(form.ifscCode.trim().toUpperCase())) e.ifscCode = 'Invalid IFSC code (e.g. HDFC0001234).';
       if (!req(form.branchName)) e.branchName = 'Branch name is required.';
       if (!docs.bankDocument) e.bankDocument = `Upload your ${form.bankDocType === 'bank_statement' ? 'bank statement' : 'cancelled cheque'}.`;
+    }
+    if (key === 'gst') {
       if (form.gstRegistered === '') e.gstRegistered = 'Please select Yes or No.';
       if (form.gstRegistered === 'yes') {
         if (!GST_REGEX.test(form.gstNumber.trim().toUpperCase())) e.gstNumber = 'Enter a valid 15-character GSTIN.';
@@ -287,7 +318,7 @@ const B2BRegistrationWizard = () => {
       }
       if (!docs.acceptanceExecutionDocument) e.acceptanceExecutionDocument = 'Upload the signed Acceptance & Execution Agreement.';
     }
-    if (s === 2) {
+    if (key === 'signatory') {
       if (!req(form.sigName)) e.sigName = 'Full legal name is required.';
       if (!req(form.sigDesignation)) e.sigDesignation = 'Designation is required.';
       if (!EMAIL_REGEX.test(form.sigEmail.trim())) e.sigEmail = 'Enter a valid official email.';
@@ -296,7 +327,7 @@ const B2BRegistrationWizard = () => {
       if (!docs.sigAuthorisation) e.sigAuthorisation = 'Authorisation document is required.';
       if (!form.sigDeclaration) e.sigDeclaration = 'You must accept the declaration to continue.';
     }
-    if (s === 3) {
+    if (key === 'admin') {
       if (!req(form.adminName)) e.adminName = 'Admin name is required.';
       if (!EMAIL_REGEX.test(form.adminEmail.trim())) e.adminEmail = 'Enter a valid admin email.';
       if (!mobileOk(form.adminPhone)) e.adminPhone = 'Enter a valid 10-digit mobile number.';
@@ -305,7 +336,7 @@ const B2BRegistrationWizard = () => {
       if (form.secretKey.length < 6) e.secretKey = 'Secret key must be at least 6 characters.';
       if (form.secretKey !== form.confirmSecretKey) e.confirmSecretKey = 'Secret keys do not match.';
     }
-    if (s === 4) {
+    if (key === 'employees') {
       employees.forEach((emp, i) => {
         if (!emp.password || emp.password.length < 6) e[`emp${i}`] = 'Password required (min 6 characters).';
       });
@@ -323,12 +354,20 @@ const B2BRegistrationWizard = () => {
   };
 
   const next = () => {
-    if (!validate(step)) return;
-    setCompleted((p) => [...new Set([...p, step])]);
-    setStep(step + 1);
+    if (!validate(current.key)) return;
+    setDonePages((p) => [...new Set([...p, page])]);
+    setPage(page + 1);
     window.scrollTo({ top: 0 });
   };
-  const back = () => { setErrors({}); setStep(Math.max(1, step - 1)); window.scrollTo({ top: 0 }); };
+  const back = () => { setErrors({}); setPage(Math.max(0, page - 1)); window.scrollTo({ top: 0 }); };
+  // Sidebar / review jumps: only to pages already reached.
+  const maxReached = Math.max(page, ...donePages.map((i) => i + 1), 0);
+  const goTo = (i) => {
+    if (i > maxReached || i === page) return;
+    setErrors({});
+    setPage(i);
+    window.scrollTo({ top: 0 });
+  };
 
   /* ---------------- GST / same-as handlers ---------------- */
   const chooseGst = (val) => {
@@ -391,7 +430,7 @@ const B2BRegistrationWizard = () => {
   const buildDraftBody = () => ({
     email: form.businessEmail.trim().toLowerCase(),
     draftToken: draftToken || undefined,
-    currentStep: step,
+    currentStep: Math.min(step, 4),
     completedSteps: completed,
     data: { form, docs, employees },
   });
@@ -399,7 +438,7 @@ const B2BRegistrationWizard = () => {
   const saveDraft = async () => {
     if (!EMAIL_REGEX.test(form.businessEmail.trim())) {
       setErrors((p) => ({ ...p, businessEmail: 'Enter your company email to save a draft.' }));
-      if (step !== 1) setStep(1);
+      if (page !== 0) setPage(0);
       return toast.error('Enter your company email (Step 1) to save a draft.');
     }
     setSavingDraft(true);
@@ -461,8 +500,10 @@ const B2BRegistrationWizard = () => {
   const submit = async (e) => {
     e.preventDefault();
     if (isLoading) return;
-    for (const s of [1, 2, 3, 4]) {
-      if (!validate(s)) { setStep(s); return; }
+    // Enter pressed on an intermediate page just moves forward; only the review page submits.
+    if (current.key !== 'review') { next(); return; }
+    for (const k of ['company', 'address', 'bank', 'gst', 'signatory', 'admin', 'employees']) {
+      if (!validate(k)) { setPage(PAGE_BY_KEY[k]); return; }
     }
     const bankDocType = form.bankDocType;
     const payload = {
@@ -538,36 +579,55 @@ const B2BRegistrationWizard = () => {
     </label>
   );
 
-  return (
-    <form onSubmit={submit} className="space-y-4" noValidate>
-      {/* Step indicator */}
-      <div className="p-3 bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-xl">
-        <p className="text-[11px] md:text-xs text-[#AE020B] dark:text-red-400 font-bold text-center" data-testid="step-label">
-          Step {step} of 4: {STEPS[step - 1]}
-        </p>
-        <ol className="flex items-center justify-between mt-2 gap-1">
-          {STEPS.map((label, i) => {
-            const n = i + 1;
-            const done = completed.includes(n) && n !== step;
-            return (
-              <li key={label} className="flex-1 text-center">
-                <span className={`mx-auto flex items-center justify-center w-6 h-6 rounded-full text-[11px] font-bold ${n === step ? 'bg-[#AE020B] text-white' : done ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-zinc-800 text-gray-500'}`}>
-                  {done ? <FiCheck /> : n}
-                </span>
-                <span className="block text-[9px] mt-0.5 text-gray-600 dark:text-zinc-400">{label}</span>
-                <span className="sr-only">{n === step ? 'current' : done ? 'completed' : 'pending'}</span>
-              </li>
-            );
-          })}
-        </ol>
-      </div>
+  const docLink = (d) => (d ? (
+    <span className="inline-flex items-center gap-2 min-w-0">
+      <FiFileText className="text-[#AE020B] shrink-0" />
+      <span className="truncate">{d.fileName || 'Uploaded document'}</span>
+      {d.url && <a href={d.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline shrink-0">Preview</a>}
+    </span>
+  ) : null);
+  const mask = (v) => (v ? `${'•'.repeat(Math.max(String(v).length - 4, 0))}${String(v).slice(-4)}` : '');
 
-      <div className="flex items-center justify-between text-[11px]">
-        <button type="button" onClick={() => setResume((r) => ({ ...r, open: !r.open, email: r.email || form.businessEmail }))} className="text-[#AE020B] font-bold hover:underline" data-testid="resume-toggle">
-          Resume a saved registration
+  // One block of the review page: a titled card with an Edit button and label/value rows.
+  const reviewBlock = (title, pageKey, rows) => (
+    <div className="rounded-2xl border border-gray-200 dark:border-zinc-800 bg-gray-50/60 dark:bg-zinc-900/60 overflow-hidden" data-testid={`review-${pageKey}`}>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-zinc-800">
+        <h3 className="text-sm font-bold text-gray-900 dark:text-zinc-100">{title}</h3>
+        <button type="button" onClick={() => goTo(PAGE_BY_KEY[pageKey])} className="inline-flex items-center gap-1.5 text-xs font-bold text-[#AE020B] dark:text-red-400 hover:underline">
+          <FiEdit2 /> Edit
         </button>
-        {lastSaved && <span className="text-gray-400">Draft saved {new Date(lastSaved).toLocaleTimeString()}</span>}
       </div>
+      <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 p-4">
+        {rows.filter(([, v]) => v !== undefined && v !== null && v !== '' && v !== false).map(([label, value]) => (
+          <div key={label} className="min-w-0">
+            <dt className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-zinc-500">{label}</dt>
+            <dd className="text-sm font-semibold text-gray-900 dark:text-zinc-100 break-words">{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+
+  const groupState = (g) => {
+    const idx = g.step === 5 ? [PAGE_BY_KEY.review] : pagesOfStep(g.step);
+    const active = idx.includes(page);
+    const done = g.step !== 5 && idx.every((i) => donePages.includes(i));
+    const reachable = idx[0] <= maxReached;
+    return { idx, active, done, reachable };
+  };
+
+  const resumeLabel = (
+    <div className="flex items-center justify-between text-[11px] mb-5">
+      <button type="button" onClick={() => setResume((r) => ({ ...r, open: !r.open, email: r.email || form.businessEmail }))} className="text-[#AE020B] dark:text-red-400 font-bold hover:underline" data-testid="resume-toggle">
+        Resume a saved registration
+      </button>
+      {lastSaved && <span className="text-gray-400">Draft saved {new Date(lastSaved).toLocaleTimeString()}</span>}
+    </div>
+  );
+
+  const formBody = (
+    <form onSubmit={submit} className="space-y-4" noValidate>
+      {resumeLabel}
 
       {resume.open && (
         <div className="p-3 border border-gray-200 dark:border-zinc-800 rounded-xl space-y-2 bg-gray-50 dark:bg-zinc-900" data-testid="resume-panel">
@@ -596,10 +656,9 @@ const B2BRegistrationWizard = () => {
         </div>
       )}
 
-      {/* ---------------- STEP 1 ---------------- */}
-      {step === 1 && (
+      {page === 0 && (
         <div className="space-y-4">
-          <Section title="A. Basic Company Information">
+          <Section title="Basic Company Information">
             <Field label="Company / Business Name" required name="companyName" error={errors.companyName}>
               <input name="companyName" value={form.companyName} onChange={onChange} className={inputCls(errors.companyName)} placeholder="Apex General Enterprises" />
             </Field>
@@ -627,14 +686,19 @@ const B2BRegistrationWizard = () => {
             </Field>
           </Section>
 
-          <Section title="B. Company Address">
-            <Field label="Address Line 1" required name="addrLine1" error={errors.addrLine1}>
+        </div>
+      )}
+
+      {page === 1 && (
+        <div className="space-y-4">
+          <Section title="Company Address">
+            <Field full label="Address Line 1" required name="addrLine1" error={errors.addrLine1}>
               <input name="addrLine1" value={form.addrLine1} onChange={onChange} className={inputCls(errors.addrLine1)} placeholder="404 Business Hub" />
             </Field>
-            <Field label="Address Line 2" name="addrLine2">
+            <Field full label="Address Line 2" name="addrLine2">
               <input name="addrLine2" value={form.addrLine2} onChange={onChange} className={inputCls()} placeholder="BKC" />
             </Field>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="md:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-x-5">
               <Field label="Country" required name="country" error={errors.country}>
                 <input name="country" value={form.country} onChange={onChange} className={inputCls(errors.country)} />
               </Field>
@@ -652,7 +716,12 @@ const B2BRegistrationWizard = () => {
               doc={docs.addressProof} onChange={setDoc('addressProof')} error={errors.addressProof} />
           </Section>
 
-          <Section title="C. Bank Details">
+        </div>
+      )}
+
+      {page === 2 && (
+        <div className="space-y-4">
+          <Section title="Bank Details">
             <Field label="Account Holder Name" required name="accountHolderName" error={errors.accountHolderName}>
               <input name="accountHolderName" value={form.accountHolderName} onChange={onChange} className={inputCls(errors.accountHolderName)} />
             </Field>
@@ -665,7 +734,7 @@ const B2BRegistrationWizard = () => {
             <Field label="Confirm Account Number" required name="confirmAccountNumber" error={errors.confirmAccountNumber}>
               <input name="confirmAccountNumber" inputMode="numeric" value={form.confirmAccountNumber} onChange={onChange} onPaste={(e) => e.preventDefault()} className={inputCls(errors.confirmAccountNumber)} />
             </Field>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="contents">
               <Field label="IFSC Code" required name="ifscCode" error={errors.ifscCode}>
                 <input name="ifscCode" value={form.ifscCode} onChange={(e) => set('ifscCode', e.target.value.toUpperCase())} maxLength={11} className={`${inputCls(errors.ifscCode)} font-mono`} placeholder="HDFC0001234" />
               </Field>
@@ -678,7 +747,7 @@ const B2BRegistrationWizard = () => {
             <Field label="Branch Name" required name="branchName" error={errors.branchName}>
               <input name="branchName" value={form.branchName} onChange={onChange} className={inputCls(errors.branchName)} />
             </Field>
-            <div data-field="bankDocType">
+            <div data-field="bankDocType" className="md:col-span-2">
               <p className={labelCls}>Bank Document *</p>
               <div className="flex flex-wrap gap-2 mb-2">
                 {radio('bankDocType', 'cancelled_cheque', 'Cancelled Cheque', form.bankDocType === 'cancelled_cheque', (v) => { set('bankDocType', v); setDoc('bankDocument')(null); }, 'bankdoc-cheque')}
@@ -689,8 +758,13 @@ const B2BRegistrationWizard = () => {
             </div>
           </Section>
 
-          <Section title="D. GST Details">
-            <div data-field="gstRegistered">
+        </div>
+      )}
+
+      {page === 3 && (
+        <div className="space-y-4">
+          <Section title="GST Details">
+            <div data-field="gstRegistered" className="md:col-span-2">
               <p className={labelCls}>Do you have GST registration? *</p>
               <div className="flex flex-wrap gap-2">
                 {radio('gstRegistered', 'yes', 'Yes, I have GST.', form.gstRegistered === 'yes', chooseGst, 'gst-yes')}
@@ -699,14 +773,14 @@ const B2BRegistrationWizard = () => {
               {errors.gstRegistered && <p className="mt-1 text-[11px] md:text-xs text-red-600" role="alert">{errors.gstRegistered}</p>}
             </div>
             {form.gstRegistered === 'yes' && (
-              <div className="space-y-3" data-testid="gst-fields">
+              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 md:gap-x-5 gap-y-3 md:gap-y-4" data-testid="gst-fields">
                 <Field label="GST Number" required name="gstNumber" error={errors.gstNumber}>
                   <input name="gstNumber" value={form.gstNumber} onChange={(e) => set('gstNumber', e.target.value.toUpperCase())} maxLength={15} className={`${inputCls(errors.gstNumber)} font-mono`} placeholder="27AAPCG9838F1Z1" />
                 </Field>
                 <Field label="Legal Business Name" required name="gstLegalName" error={errors.gstLegalName}>
                   <input name="gstLegalName" value={form.gstLegalName} onChange={onChange} className={inputCls(errors.gstLegalName)} />
                 </Field>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="contents">
                   <Field label="GST Registration Type" name="gstRegType">
                     <select name="gstRegType" value={form.gstRegType} onChange={onChange} className={inputCls()}>
                       <option value="">Select</option><option>Regular</option><option>Composition</option><option>Other</option>
@@ -721,14 +795,14 @@ const B2BRegistrationWizard = () => {
             )}
           </Section>
 
-          <Section title="E. Acceptance & Execution Agreement">
-            <p className="text-[11px] md:text-xs text-gray-500 dark:text-zinc-400">Download the Platform Agreement template, sign it with your company seal, and upload the signed PDF.</p>
+          <Section title="Acceptance & Execution Agreement">
+            <p className="md:col-span-2 text-[11px] md:text-xs text-gray-500 dark:text-zinc-400">Download the Platform Agreement template, sign it with your company seal, and upload the signed PDF.</p>
             {activeTemplate ? (
-              <a href={activeTemplate.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-bold text-white bg-[#AE020B] px-3 py-1.5 rounded-lg"><FiDownload /> Download template</a>
+              <a href={activeTemplate.url} target="_blank" rel="noopener noreferrer" className="md:col-span-2 justify-self-start inline-flex items-center gap-1 text-xs font-bold text-white bg-[#AE020B] px-3 py-1.5 rounded-lg"><FiDownload /> Download template</a>
             ) : (
-              <p className="text-[11px] text-amber-600 font-semibold">Platform Agreement template is not configured yet. Please contact support.</p>
+              <p className="md:col-span-2 text-[11px] text-amber-600 font-semibold">Platform Agreement template is not configured yet. Please contact support.</p>
             )}
-            <div data-field="acceptanceExecutionDocument" className="p-3 bg-gray-50 dark:bg-zinc-900/60 rounded-xl border border-gray-200 dark:border-zinc-800 space-y-2">
+            <div data-field="acceptanceExecutionDocument" className="md:col-span-2 p-3 bg-gray-50 dark:bg-zinc-900/60 rounded-xl border border-gray-200 dark:border-zinc-800 space-y-2">
               <input ref={agreementRef} type="file" accept=".pdf,application/pdf" className="hidden" data-testid="agreement-input" onChange={(e) => { uploadAgreement(e.target.files?.[0]); e.target.value = ''; }} />
               {!docs.acceptanceExecutionDocument ? (
                 <button type="button" onClick={() => agreementRef.current?.click()} className="w-full border-2 border-dashed border-gray-300 dark:border-zinc-700 rounded-xl p-3 text-xs font-bold text-gray-700 dark:text-zinc-300">
@@ -747,7 +821,7 @@ const B2BRegistrationWizard = () => {
       )}
 
       {/* ---------------- STEP 2 ---------------- */}
-      {step === 2 && (
+      {page === 4 && (
         <div className="space-y-4">
           <Section title="A. Personal Information">
             <Field label="Full Legal Name" required name="sigName" error={errors.sigName}>
@@ -773,20 +847,20 @@ const B2BRegistrationWizard = () => {
             <DocUpload id="sigAuthorisation" label="Upload Board Resolution / Authorisation Letter / Applicable Authority Proof" doc={docs.sigAuthorisation} onChange={setDoc('sigAuthorisation')} error={errors.sigAuthorisation} />
           </Section>
           <Section title="D. Declaration">
-            <label className="flex items-start gap-2 text-xs md:text-sm text-gray-700 dark:text-zinc-300 cursor-pointer" data-field="sigDeclaration">
+            <label className="md:col-span-2 flex items-start gap-2 text-xs md:text-sm text-gray-700 dark:text-zinc-300 cursor-pointer" data-field="sigDeclaration">
               <input type="checkbox" checked={form.sigDeclaration} onChange={(e) => toggleDeclaration(e.target.checked)} className="mt-0.5" data-testid="declaration" />
               <span>I confirm that I am authorised to represent this business and execute agreements on its behalf.</span>
             </label>
-            {errors.sigDeclaration && <p className="text-[11px] md:text-xs text-red-600" role="alert">{errors.sigDeclaration}</p>}
+            {errors.sigDeclaration && <p className="md:col-span-2 text-[11px] md:text-xs text-red-600" role="alert">{errors.sigDeclaration}</p>}
           </Section>
         </div>
       )}
 
       {/* ---------------- STEP 3 ---------------- */}
-      {step === 3 && (
+      {page === 5 && (
         <div className="space-y-4">
           <Section title="Admin Information">
-            <label className="flex items-center gap-2 text-xs md:text-sm font-semibold text-gray-700 dark:text-zinc-300 cursor-pointer">
+            <label className="md:col-span-2 flex items-center gap-2 text-xs md:text-sm font-semibold text-gray-700 dark:text-zinc-300 cursor-pointer">
               <input type="checkbox" checked={form.sameAsSignatory} onChange={(e) => toggleSame(e.target.checked)} data-testid="same-as-signatory" />
               Same as Authorised Signatory
             </label>
@@ -821,18 +895,18 @@ const B2BRegistrationWizard = () => {
       )}
 
       {/* ---------------- STEP 4 ---------------- */}
-      {step === 4 && (
+      {page === 6 && (
         <div className="space-y-3.5 text-xs font-semibold">
           <p className="text-[11px] text-gray-500">Adding employees is optional.</p>
-          <div className="border border-gray-150 dark:border-zinc-800 p-3.5 rounded-xl bg-gray-50 dark:bg-zinc-900 space-y-2.5">
-            <h3 className="font-bold text-xs md:text-sm text-gray-800 dark:text-zinc-100">Add Employee</h3>
+          <div className="border border-gray-150 dark:border-zinc-800 p-3.5 md:p-5 rounded-xl bg-gray-50 dark:bg-zinc-900 space-y-2.5 md:space-y-0 md:grid md:grid-cols-2 md:gap-x-5 md:gap-y-3 [&>*]:min-w-0">
+            <h3 className="md:col-span-2 font-bold text-xs md:text-sm text-gray-800 dark:text-zinc-100">Add Employee</h3>
             {[['name', 'Employee Name *', 'text'], ['email', 'Employee Email *', 'email'], ['phone', 'Employee Phone *', 'tel'], ['designation', 'Designation *', 'text'], ['department', 'Department', 'text']].map(([n, l, t]) => (
               <div key={n}>
                 <label className="block text-gray-600 dark:text-zinc-400 mb-1">{l}</label>
                 <input type={t} value={empInput[n]} onChange={(e) => setEmpInput((p) => ({ ...p, [n]: e.target.value }))} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white text-xs" />
               </div>
             ))}
-            <div>
+            <div className="md:col-span-2">
               <label className="block text-gray-600 dark:text-zinc-400 mb-1">Address</label>
               <textarea rows={2} value={empInput.address} onChange={(e) => setEmpInput((p) => ({ ...p, address: e.target.value }))} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white text-xs" />
             </div>
@@ -844,7 +918,7 @@ const B2BRegistrationWizard = () => {
               <label className="block text-gray-600 dark:text-zinc-400 mb-1">Confirm Password *</label>
               <PasswordInput name="empConfirm" value={empConfirm} onChange={(e) => setEmpConfirm(e.target.value)} placeholder="Confirm password" />
             </div>
-            <button type="button" onClick={addEmployee} className="w-full py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-lg font-bold">Add to Team</button>
+            <button type="button" onClick={addEmployee} className="md:col-span-2 w-full py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-lg font-bold">Add to Team</button>
           </div>
 
           {employees.length > 0 && (
@@ -874,18 +948,179 @@ const B2BRegistrationWizard = () => {
         </div>
       )}
 
-      {/* Navigation */}
-      <div className="flex flex-col gap-2.5 pt-2">
-        <div className="flex gap-2.5">
-          {step > 1 && <button type="button" onClick={back} className={`${btnSecondary} flex-1`}>Previous</button>}
-          {step < 4 && <button type="button" onClick={next} className={`${btnPrimary} flex-1`} data-testid="next-btn">Next: {STEPS[step]}</button>}
-          {step === 4 && <button type="submit" disabled={isLoading} className={`${btnPrimary} flex-1`} data-testid="submit-btn">{isLoading ? 'Registering...' : 'Submit Registration'}</button>}
+      {/* ---------------- REVIEW ---------------- */}
+      {page === 7 && (
+        <div className="space-y-4" data-testid="review-page">
+          {reviewBlock('Company Details', 'company', [
+            ['Company / Business Name', form.companyName], ['Business Type', form.businessType],
+            ['Registration Number', form.companyRegistrationNumber], ['Company Email', form.businessEmail],
+            ['Contact Number', form.businessPhone], ['Website', form.website],
+            ['Registration Proof', docLink(docs.companyRegistrationProof)],
+          ])}
+          {reviewBlock('Company Address', 'address', [
+            ['Address Line 1', form.addrLine1], ['Address Line 2', form.addrLine2],
+            ['City', form.city], ['State', form.state], ['Pincode', form.pincode], ['Country', form.country],
+            ['Address Proof', docLink(docs.addressProof)],
+          ])}
+          {reviewBlock('Bank Details', 'bank', [
+            ['Account Holder', form.accountHolderName], ['Bank Name', form.bankName],
+            ['Account Number', mask(form.accountNumber)], ['IFSC Code', form.ifscCode],
+            ['Account Type', form.accountType], ['Branch', form.branchName],
+            [form.bankDocType === 'bank_statement' ? 'Bank Statement' : 'Cancelled Cheque', docLink(docs.bankDocument)],
+          ])}
+          {reviewBlock('GST & Agreement', 'gst', [
+            ['GST Registered', form.gstRegistered === 'yes' ? 'Yes' : form.gstRegistered === 'no' ? 'No' : ''],
+            ['GST Number', form.gstNumber], ['Legal Business Name', form.gstLegalName],
+            ['Registration Type', form.gstRegType], ['State / Jurisdiction', form.gstState],
+            ['GST Certificate', docLink(docs.gstCertificate)],
+            ['Signed Agreement', docLink(docs.acceptanceExecutionDocument)],
+          ])}
+          {reviewBlock('Authorised Signatory', 'signatory', [
+            ['Full Legal Name', form.sigName], ['Designation', form.sigDesignation],
+            ['Official Email', form.sigEmail], ['Mobile Number', form.sigMobile],
+            ['Identity Document', docLink(docs.sigIdentity)], ['Authorisation Document', docLink(docs.sigAuthorisation)],
+            ['Declaration', form.sigDeclaration ? 'Accepted' : ''],
+          ])}
+          {reviewBlock('Admin Information', 'admin', [
+            ['Admin Name', form.adminName], ['Admin Email', form.adminEmail],
+            ['Admin Mobile', form.adminPhone], ['Designation', form.adminDesignation],
+            ['Same as Signatory', form.sameAsSignatory ? 'Yes' : ''],
+            ['Password', form.password ? '••••••••' : ''],
+            ['Owner Secret Key', form.secretKey ? '••••••' : ''],
+          ])}
+          {reviewBlock(`Employees (${employees.length})`, 'employees', employees.length
+            ? employees.map((emp, i) => [`${i + 1}. ${emp.name}`, [emp.email, emp.phone, emp.designation, emp.department].filter(Boolean).join(' · ')])
+            : [['Team members', 'No employees added']])}
+          <p className="text-[11px] md:text-xs text-gray-500 dark:text-zinc-500 leading-relaxed">
+            By submitting, you agree to our{' '}
+            <Link to="/terms-and-conditions" className="text-[#AE020B] dark:text-red-400 font-bold underline">Terms & Conditions</Link> and{' '}
+            <Link to="/privacy-policy" className="text-[#AE020B] dark:text-red-400 font-bold underline">Privacy Policy</Link>.
+          </p>
         </div>
-        <button type="button" onClick={saveDraft} disabled={savingDraft} className={btnSecondary} data-testid="save-draft">
-          {savingDraft ? 'Saving...' : 'Save as Draft'}
-        </button>
+      )}
+
+      {/* Navigation */}
+      <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 pt-5 mt-2 border-t border-gray-200 dark:border-zinc-800">
+        <div>
+          {page > 0 && (
+            <button type="button" onClick={back} className={`${btnSecondary} w-full sm:w-auto px-5 inline-flex items-center justify-center gap-2`} data-testid="prev-btn">
+              <FiArrowLeft /> Previous
+            </button>
+          )}
+        </div>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button type="button" onClick={saveDraft} disabled={savingDraft} className={`${btnSecondary} px-5 inline-flex items-center justify-center gap-2`} data-testid="save-draft">
+            <FiBookmark /> {savingDraft ? 'Saving...' : 'Save & Continue Later'}
+          </button>
+          {page < 7 && (
+            <button type="button" onClick={next} className={`${btnPrimary} px-6 inline-flex items-center justify-center gap-2`} data-testid="next-btn">
+              {page === 6 ? 'Review Details' : 'Continue to Next Step'} <FiArrowRight />
+            </button>
+          )}
+          {page === 7 && (
+            <button type="submit" disabled={isLoading} className={`${btnPrimary} px-6`} data-testid="submit-btn">
+              {isLoading ? 'Registering...' : 'Submit Registration'}
+            </button>
+          )}
+        </div>
       </div>
     </form>
+  );
+
+  /* ---------------- page shell (header + sidebar + content card) ---------------- */
+  return (
+    <div>
+      <div className="min-h-screen bg-gray-50 dark:bg-[#09090b] text-gray-900 dark:text-zinc-100 relative overflow-x-hidden transition-colors duration-300">
+        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+          <div className="absolute -top-40 -right-40 w-[34rem] h-[34rem] rounded-full bg-[#AE020B]/10 dark:bg-[#AE020B]/20 blur-3xl" />
+          <div className="absolute bottom-0 -left-40 w-[30rem] h-[30rem] rounded-full bg-[#AE020B]/5 dark:bg-[#AE020B]/10 blur-3xl" />
+        </div>
+
+        <header className="relative z-20 border-b border-gray-200 dark:border-white/10 bg-white/80 dark:bg-[#09090b]/80 backdrop-blur">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="w-9 h-9 rounded-lg bg-white p-1 shrink-0"><img src="/PLEwhite.png" alt="PLE" className="w-full h-full object-contain" /></span>
+              <span className="text-lg font-extrabold tracking-tight text-gray-900 dark:text-white">PLE <span className="font-semibold text-gray-600 dark:text-zinc-300">eStore</span></span>
+              <span className="hidden sm:block h-6 w-px bg-gray-300 dark:bg-white/15" />
+              <span className="hidden sm:block text-sm text-gray-500 dark:text-zinc-400 truncate">Business Account Registration</span>
+            </div>
+            <div className="flex items-center gap-3 sm:gap-5 shrink-0">
+              <Link to="/help-support" className="hidden sm:inline-flex items-center gap-1.5 text-sm text-gray-600 dark:text-zinc-300 hover:text-gray-900 dark:hover:text-white"><FiHelpCircle /> Need Help?</Link>
+              <Link to="/b2b/login" className="px-4 py-1.5 rounded-lg border border-[#AE020B] text-sm font-semibold text-[#AE020B] dark:text-white hover:bg-[#AE020B] hover:text-white transition-colors">Login</Link>
+            </div>
+          </div>
+        </header>
+
+        <div className="relative z-10 max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 lg:grid lg:grid-cols-[320px_minmax(0,1fr)] lg:gap-8 items-start">
+          {/* Sidebar (desktop) */}
+          <aside className="hidden lg:flex flex-col lg:sticky lg:top-6 rounded-2xl text-white bg-gradient-to-br from-[#AE020B] via-[#8d0208] to-[#4a0105] shadow-xl overflow-hidden relative">
+            <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-white/10" aria-hidden="true" />
+            <div className="absolute -bottom-24 -left-16 w-72 h-72 rounded-full bg-black/10" aria-hidden="true" />
+            <div className="p-6 relative">
+              <span className="inline-block text-[10px] font-bold tracking-widest text-white bg-white/15 border border-white/30 rounded px-2 py-1">B2B ONBOARDING</span>
+              <h2 className="mt-4 text-2xl font-bold leading-tight text-white">Create Your Business Account</h2>
+              <p className="mt-3 text-sm text-white/80 leading-relaxed">Get access to enterprise pricing, procurement tools and a dedicated business experience on PLE eStore.</p>
+
+              <ol className="mt-6 space-y-1">
+                {GROUPS.map((g) => {
+                  const { idx, active, done, reachable } = groupState(g);
+                  return (
+                    <li key={g.step}>
+                      <button type="button" disabled={!reachable} onClick={() => goTo(idx[0])}
+                        className={`w-full flex items-start gap-3 text-left rounded-xl px-3 py-2.5 transition-colors ${active ? 'bg-white/15' : reachable ? 'hover:bg-white/10' : 'opacity-60 cursor-default'}`}>
+                        <span className={`mt-0.5 flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold shrink-0 ${active ? 'bg-white text-[#AE020B]' : done ? 'bg-emerald-500 text-white' : 'bg-white/15 text-white/80'}`}>
+                          {done && !active ? <FiCheck /> : g.step}
+                        </span>
+                        <span className="min-w-0">
+                          <span className={`block text-sm font-semibold text-white`}>{g.title}</span>
+                          <span className="block text-xs text-white/70">{g.desc}</span>
+                          {active && idx.length > 1 && (
+                            <span className="mt-2 block space-y-1">
+                              {idx.map((i) => (
+                                <span key={i} className={`flex items-center gap-2 text-xs ${i === page ? 'text-white font-semibold' : donePages.includes(i) ? 'text-emerald-300' : 'text-white/60'}`}>
+                                  <span className={`w-1.5 h-1.5 rounded-full ${i === page ? 'bg-white' : donePages.includes(i) ? 'bg-emerald-300' : 'bg-white/40'}`} />
+                                  {PAGES[i].title}
+                                </span>
+                              ))}
+                            </span>
+                          )}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+            <div className="relative h-24 flex items-end p-5">
+              <span className="text-xs text-white/70">Your progress is saved when you choose &ldquo;Save &amp; Continue Later&rdquo;.</span>
+            </div>
+          </aside>
+
+          {/* Content */}
+          <section className="min-w-0">
+            {/* Compact progress (mobile / tablet) */}
+            <div className="lg:hidden mb-4 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900/60 p-3">
+              <div className="flex items-center justify-between text-xs text-gray-500 dark:text-zinc-400 mb-2">
+                <span className="font-semibold text-[#AE020B] dark:text-red-400">Step {Math.min(step, 4)} of 4{step === 5 ? ' · Final review' : ''}</span>
+                <span>{page + 1} / {PAGES.length}</span>
+              </div>
+              <div className="h-1.5 rounded-full bg-gray-200 dark:bg-zinc-800 overflow-hidden"><div className="h-full bg-[#AE020B] transition-all" style={{ width: `${((page + 1) / PAGES.length) * 100}%` }} /></div>
+            </div>
+
+            <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900/70 p-4 sm:p-6 lg:p-8 shadow-xl dark:shadow-2xl">
+              <p className="text-xs font-bold text-[#AE020B] dark:text-red-400" data-testid="step-label">
+                {step === 5 ? 'Final step' : `Step ${step} of 4`}
+                {step === 1 ? ` · Part ${page + 1} of ${pagesOfStep(1).length}` : ''}
+              </p>
+              <h1 className="mt-1 text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">{current.title}</h1>
+              <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">{current.subtitle}</p>
+              <div className="my-5 border-t border-gray-200 dark:border-white/10" />
+              {formBody}
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
   );
 };
 

@@ -2,8 +2,9 @@
  * Format price with currency symbol
  */
 export const formatPrice = (price, currency = "₹") => {
-  const numPrice = price ?? 0;
-  return `${currency}${numPrice.toLocaleString("en-IN")}`;
+  const numPrice = Number(price ?? 0) || 0;
+  // Money is shown to at most 2 decimals (avoids values like ₹6,189.333).
+  return `${currency}${numPrice.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 };
 
 /**
@@ -60,6 +61,22 @@ export const getImageUrl = (image, fallback = "/placeholder.jpg") => {
   if (image.startsWith("http")) return image;
   return `${import.meta.env.VITE_IMAGE_BASE_URL || ""}${image}`;
 };
+
+const NO_IMAGE_SVG =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><rect width="120" height="120" fill="#f3f4f6"/><path d="M36 78l16-20 12 14 8-9 12 15H36z" fill="#d1d5db"/><circle cx="46" cy="44" r="7" fill="#d1d5db"/></svg>`
+  );
+
+/** <img onError={handleImageError}> - swaps a broken/missing image for a neutral placeholder (once). */
+export const handleImageError = (e) => {
+  const img = e.currentTarget;
+  if (img.dataset.fallbackApplied) return;
+  img.dataset.fallbackApplied = "1";
+  img.src = NO_IMAGE_SVG;
+};
+
+export const NO_IMAGE_PLACEHOLDER = NO_IMAGE_SVG;
 
 /**
  * Generate a placeholder image as SVG data URI

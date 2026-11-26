@@ -20,6 +20,8 @@ import {
 } from '../controllers/profile.controller.js';
 import * as rfqController from '../controllers/rfq.controller.js';
 import * as employeePurchase from '../controllers/employeePurchase.controller.js';
+import * as companyPO from '../controllers/companyPO.controller.js';
+import * as poSignatory from '../controllers/poSignatory.controller.js';
 import * as notificationController from '../../user/controllers/notification.controller.js';
 import { authenticate } from '../../../middlewares/authenticate.js';
 import { authorize } from '../../../middlewares/authorize.js';
@@ -84,6 +86,26 @@ router.post('/rfq/:id/confirm-quote', requireAdmin, rfqController.confirmQuote);
 router.post('/rfq/:id/approve', requireAdmin, rfqController.confirmQuote);
 router.post('/rfq/:id/reject', requireAdmin, rfqController.rejectRFQRecommendation);
 router.post('/rfq/:id/request-renegotiation', requireAdmin, rfqController.requestRenegotiation);
+
+// Company PO registry (Admin only). Not the vendor-facing /purchase-orders below.
+router.get('/po-signatories', requireAdmin, poSignatory.listSignatories);
+router.post('/po-signatories', requireAdmin, poSignatory.createSignatory);
+router.get('/po-signatories/:id', requireAdmin, poSignatory.getSignatory);
+router.put('/po-signatories/:id', requireAdmin, poSignatory.updateSignatory);
+router.post('/po-signatories/:id/evidence', requireAdmin, uploadDocumentSingle('file'), poSignatory.uploadEvidence);
+router.patch('/po-signatories/:id/verification', requireAdmin, poSignatory.setVerificationStatus);
+router.post('/po-signatories/:id/revoke', requireAdmin, poSignatory.revokeSignatory);
+
+router.get('/company-pos', requireAdmin, companyPO.listCompanyPOs);
+router.get('/company-pos/stats', requireAdmin, companyPO.getCompanyPOStats);
+router.post('/company-pos', requireAdmin, companyPO.createCompanyPO);
+router.get('/company-pos/:id', requireAdmin, companyPO.getCompanyPO);
+router.put('/company-pos/:id', requireAdmin, companyPO.updateCompanyPO);
+router.post('/company-pos/:id/document', requireAdmin, uploadDocumentSingle('file'), companyPO.uploadPODocument);
+router.get('/company-pos/:id/readiness', requireAdmin, companyPO.checkCompanyPOReadiness);
+router.post('/company-pos/:id/activate', requireAdmin, companyPO.activateCompanyPO);
+router.post('/company-pos/:id/revoke', requireAdmin, companyPO.revokeCompanyPO);
+router.post('/company-pos/:id/close', requireAdmin, companyPO.closeCompanyPO);
 
 // Purchase Orders
 router.get('/purchase-orders', rfqController.getPurchaseOrders);

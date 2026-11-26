@@ -47,7 +47,7 @@ const vendorOrderRows = (vendorId, range) => [
     },
 ];
 
-const summarizeReturns = (docs, orderCount) => {
+export const summarizeReturns = (docs, orderCount) => {
     let rejected = 0, completed = 0, returnValue = 0, refunded = 0, pendingRefund = 0;
     for (const r of docs) {
         if (REJECTED.includes(r.status)) rejected += 1;

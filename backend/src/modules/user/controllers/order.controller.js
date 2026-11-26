@@ -1412,9 +1412,16 @@ export const createReturnRequest = asyncHandler(async (req, res) => {
             // Touch the order so concurrent return submissions for the same order conflict and are retried serially.
             await Order.updateOne({ _id: txOrder._id }, { $set: { updatedAt: new Date() } }, { session });
 
+            // Returns of refurbished/renewed items are tracked separately for the admin refurbished desk.
+            const returnedProductIds = normalizedItems.map((it) => it.productId).filter(Boolean);
+            const refurbishedCount = returnedProductIds.length
+                ? await Product.countDocuments({ _id: { $in: returnedProductIds }, isRefurbished: true }).session(session)
+                : 0;
+
             const [created] = await ReturnRequest.create(
                 [
                     {
+                        isRefurbishedComplaint: refurbishedCount > 0,
                         returnId,
                         orderId: txOrder._id,
                         orderNumber: txOrder.orderId,

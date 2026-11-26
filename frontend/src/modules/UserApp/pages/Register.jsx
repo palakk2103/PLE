@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FiMail, FiLock, FiEye, FiEyeOff, FiUser, FiPhone, FiArrowLeft } from 'react-icons/fi';
-import { motion } from 'framer-motion';
 import { useAuthStore } from '../../../shared/store/authStore';
 import { isValidEmail, isValidPhone } from '../../../shared/utils/helpers';
 import toast from 'react-hot-toast';
 import MobileLayout from "../components/Layout/MobileLayout";
 import PageTransition from '../../../shared/components/PageTransition';
+import AuthSplitLayout from '../components/Auth/AuthSplitLayout';
 import B2BRegistrationWizard from '../components/B2B/B2BRegistrationWizard';
 import { useBusinessBuyer } from '../hooks/useBusinessBuyer';
 import { useEffect } from 'react';
@@ -48,17 +48,20 @@ const MobileRegister = ({ isB2BRoute }) => {
     }
   };
 
+  // Business registration has its own full-page layout (header + stepper sidebar).
+  if (isBusinessMode) {
+    return (
+      <PageTransition>
+        <B2BRegistrationWizard />
+      </PageTransition>
+    );
+  }
+
   return (
     <PageTransition>
       <MobileLayout showBottomNav={false} showCartBar={false}>
-        <div className="w-full min-h-screen flex items-start justify-center px-3.5 py-4 sm:px-4 sm:pt-6 pb-8 bg-gray-50 dark:bg-zinc-950 transition-colors duration-500">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="w-full max-w-md"
-          >
-            <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 sm:p-6 shadow-sm relative border dark:border-zinc-800 transition-colors duration-500">
+        <AuthSplitLayout>
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 sm:p-6 lg:p-10 shadow-sm lg:shadow-xl relative border dark:border-zinc-800 transition-colors duration-500">
               <button
                 onClick={() => navigate(-1)}
                 className="absolute left-4 top-4 md:left-6 md:top-6 text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white transition-colors p-1 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full"
@@ -73,8 +76,8 @@ const MobileRegister = ({ isB2BRoute }) => {
               </div>
 
 
-              {!isBusinessMode && (
-                <form onSubmit={handleSubmitB2C(onB2CSubmit)} className="space-y-3 md:space-y-4">
+              {(
+                <form onSubmit={handleSubmitB2C(onB2CSubmit)} className="space-y-3 md:space-y-4 lg:space-y-5">
                   <div className="grid grid-cols-2 gap-2.5 md:gap-4">
                     <div>
                       <label className="block text-xs md:text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1 md:mb-1.5">First Name</label>
@@ -179,7 +182,6 @@ const MobileRegister = ({ isB2BRoute }) => {
                 </form>
               )}
 
-              {isBusinessMode && <B2BRegistrationWizard />}
 
               <div className="mt-4 md:mt-6 text-center">
                 <p className="text-xs md:text-sm text-gray-600 dark:text-zinc-400">
@@ -195,8 +197,7 @@ const MobileRegister = ({ isB2BRoute }) => {
                 <Link to="/privacy-policy" className="text-[#7B0A0A] dark:text-red-400 hover:text-[#AE020B] font-bold underline transition-colors">Privacy Policy</Link>.
               </div>
             </div>
-          </motion.div>
-        </div>
+        </AuthSplitLayout>
 
       </MobileLayout>
     </PageTransition>

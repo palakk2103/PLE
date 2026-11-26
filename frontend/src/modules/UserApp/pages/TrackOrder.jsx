@@ -9,6 +9,7 @@ import PageTransition from '../../../shared/components/PageTransition';
 import Badge from '../../../shared/components/Badge';
 import LazyImage from '../../../shared/components/LazyImage';
 import { useAuthStore } from '../../../shared/store/authStore';
+import { handleImageError, NO_IMAGE_PLACEHOLDER } from "../../../shared/utils/helpers";
 
 const MobileTrackOrder = () => {
   const { orderId } = useParams();
@@ -234,7 +235,7 @@ const MobileTrackOrder = () => {
                     <div key={item.id} className="flex items-center gap-3">
                       <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
                         <LazyImage
-                          src={item.image}
+                          src={item.image || NO_IMAGE_PLACEHOLDER} onError={handleImageError}
                           alt={item.name}
                           className="w-full h-full object-cover"
                         />

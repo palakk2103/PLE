@@ -10,8 +10,10 @@ const RevenueBreakdownCards = ({ stats }) => {
   const vendorNet = Number(stats.vendorNetEarnings || 0);
   const totalAdminRev = Number(stats.totalAdminRevenue || (inHouseRev + adminCommission));
 
-  const inHousePct = totalRev > 0 ? Math.round((inHouseRev / totalRev) * 100) : 0;
-  const vendorPct = totalRev > 0 ? Math.round((vendorGrossRev / totalRev) * 100) : 0;
+  // Shares of the two sales channels, so they always add up to 100% (never "104%").
+  const channelTotal = inHouseRev + vendorGrossRev;
+  const inHousePct = channelTotal > 0 ? Math.round((inHouseRev / channelTotal) * 100) : 0;
+  const vendorPct = channelTotal > 0 ? 100 - inHousePct : 0;
 
   const cards = [
     {

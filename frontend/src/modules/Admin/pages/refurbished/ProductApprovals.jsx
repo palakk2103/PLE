@@ -18,6 +18,7 @@ import {
 import Badge from "../../../../shared/components/Badge";
 import toast from "react-hot-toast";
 import api from "../../../../shared/utils/api";
+import { handleImageError, NO_IMAGE_PLACEHOLDER } from "../../../../shared/utils/helpers";
 
 // Fetch dynamic data instead of mock
 
@@ -243,7 +244,7 @@ const ProductApprovals = () => {
                 {/* Image and badges */}
                 <div className="relative h-44 w-full rounded-xl bg-gray-50 overflow-hidden flex items-center justify-center border border-gray-100">
                   <img
-                    src={product.image}
+                    src={product.image || NO_IMAGE_PLACEHOLDER} onError={handleImageError}
                     alt={product.name}
                     className="max-h-full max-w-full object-contain"
                   />
