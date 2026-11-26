@@ -157,6 +157,7 @@ const MobileCheckout = () => {
   const [selectedUpiApp, setSelectedUpiApp] = useState("gpay"); // "gpay" | "phonepe" | "paytm"
   const [showUpiRedirect, setShowUpiRedirect] = useState(false);
   const [shippingDetails, setShippingDetails] = useState(null);
+  const [optionRates, setOptionRates] = useState({}); // last server quote per shipping option
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -319,7 +320,7 @@ const MobileCheckout = () => {
   const calculateShippingFallback = () => {
     const total = getTotal();
     if (isBusiness) {
-      return 1500; // Flat B2B bulk cargo pallet fee
+      return 50; // Same default the server charges when no vendor zone rate applies (no invented ₹1,500 fee)
     }
     if (shippingOption === "express") {
       return 150; // Express local same-city surcharge
@@ -489,6 +490,34 @@ const MobileCheckout = () => {
         const nextShipping = Number(payload?.shipping);
         if (active) {
           setEstimatedShipping(Number.isFinite(nextShipping) ? nextShipping : null);
+          if (Number.isFinite(nextShipping)) {
+            setOptionRates((prev) => ({ ...prev, [shippingOption]: nextShipping }));
+          }
+          // Quote the other (unselected) option too, so its card shows the real server rate.
+          if (!isBusiness) {
+            const other = shippingOption === "express" ? "standard" : "express";
+            api.post(
+              "/shipping/estimate",
+              {
+                items: validItems,
+                shippingAddress: {
+                  address: String(formData.address || "").trim(),
+                  city: String(formData.city || "").trim(),
+                  state: String(formData.state || "").trim(),
+                  zipCode: String(formData.zipCode || "").trim(),
+                  pincode: String(formData.zipCode || "").trim(),
+                  country: String(formData.country || "").trim(),
+                },
+                shippingOption: other,
+                paymentMethod: formData.paymentMethod === "cash" ? "cod" : "prepaid",
+                couponType: appliedCoupon?.type || null,
+              },
+              { signal: controller.signal }
+            ).then((r2) => {
+              const v = Number((r2?.data ?? r2)?.shipping);
+              if (active && Number.isFinite(v)) setOptionRates((prev) => ({ ...prev, [other]: v }));
+            }).catch(() => null);
+          }
           if (payload?.isCodAvailable !== undefined) {
             setIsCodAvailable(Boolean(payload.isCodAvailable));
           }
@@ -1353,7 +1382,7 @@ const MobileCheckout = () => {
                               </p>
                             </div>
                             <span className="font-black text-[#7B0A0A] shrink-0 text-sm">
-                              {formatPrice(1500)}
+                              {formatPrice(shipping)}
                             </span>
                           </div>
                         </div>
@@ -1387,7 +1416,11 @@ const MobileCheckout = () => {
                               </div>
                             </div>
                             <span className="font-bold text-gray-800 shrink-0">
-                              {formatPrice(150)}
+                              {(() => {
+                                const rate = shippingOption === "express" ? shipping : optionRates.express;
+                                if (rate === undefined) return formatPrice(150);
+                                return rate === 0 ? "FREE" : formatPrice(rate);
+                              })()}
                             </span>
                           </label>
 
@@ -1419,7 +1452,11 @@ const MobileCheckout = () => {
                               </div>
                             </div>
                             <span className="font-bold text-gray-800 shrink-0">
-                              {total >= 100 ? "FREE" : formatPrice(50)}
+                              {(() => {
+                                const rate = shippingOption === "standard" ? shipping : optionRates.standard;
+                                if (rate === undefined) return total >= 100 ? "FREE" : formatPrice(50);
+                                return rate === 0 ? "FREE" : formatPrice(rate);
+                              })()}
                             </span>
                           </label>
                         </div>
@@ -1588,45 +1625,6 @@ const MobileCheckout = () => {
                           </button>
                         </div>
                       )}
-                    </div>
-
-                    {/* Available Offers & Suggestions (UI Only) */}
-                    <div className="mb-6 bg-white p-4 rounded-xl border border-gray-200 shadow-sm space-y-4">
-                      <div className="flex items-center gap-2 text-brand-600">
-                        <FiTag className="text-lg" />
-                        <h3 className="text-sm font-extrabold text-gray-800 uppercase tracking-wide">
-                          Available Savings & Offers
-                        </h3>
-                      </div>
-                      
-                      <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 flex items-center justify-between">
-                        <div>
-                          <p className="text-xs font-bold text-emerald-800">Potential Savings Available</p>
-                          <p className="text-[10px] text-emerald-600">Try applying coupon codes listed below to save extra.</p>
-                        </div>
-                        <span className="text-xs font-black text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-lg">
-                          Save Up To 20%
-                        </span>
-                      </div>
-
-                      {/* Coupon Suggestions */}
-                      <div className="space-y-2">
-                        <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 text-xs space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="font-extrabold text-gray-850">🏦 SBI Card 10% Discount</span>
-                            <span className="font-mono font-bold text-[#C07A3D]">SBISAVE10</span>
-                          </div>
-                          <p className="text-[10px] text-gray-400">Min transaction: ₹5,000. Save up to ₹1,500.</p>
-                        </div>
-
-                        <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 text-xs space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="font-extrabold text-gray-850">🎉 Site-wide Festival Sale</span>
-                            <span className="font-mono font-bold text-[#C07A3D]">FESTIVAL20</span>
-                          </div>
-                          <p className="text-[10px] text-gray-400">Flat 20% off all products across clothing & accessories.</p>
-                        </div>
-                      </div>
                     </div>
 
                     {/* Order Summary (Mobile Only) */}

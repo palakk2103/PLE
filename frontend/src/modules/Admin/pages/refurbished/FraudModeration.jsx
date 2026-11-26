@@ -181,7 +181,11 @@ const FraudModeration = () => {
           </div>
           <div>
             <h3 className="text-sm font-semibold text-gray-400">Checked Compliance</h3>
-            <p className="text-2xl font-black text-gray-900">98.2%</p>
+            <p className="text-2xl font-black text-gray-900">
+              {products.length > 0
+                ? `${(((products.length - products.filter((p) => p.flagged).length) / products.length) * 100).toFixed(1)}%`
+                : "—"}
+            </p>
           </div>
         </div>
       </div>

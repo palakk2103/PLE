@@ -32,6 +32,8 @@ const B2BSidebar = ({ isOpen, setIsOpen, isMobile }) => {
     { name: 'RFQ Discussions', path: '/b2b-dashboard/discussions', icon: FiMessageCircle },
     { name: 'Shop Chats', path: '/b2b-dashboard/shop-chats', icon: FiMessageSquare },
     { name: 'Purchase Orders', path: '/b2b-dashboard/purchase-orders', icon: FiDollarSign },
+    { name: 'Company POs', path: '/b2b-dashboard/company-pos', icon: FiFileText },
+    { name: 'PO Signatories', path: '/b2b-dashboard/po-signatories', icon: FiUser },
     { name: 'Business Wallet', path: '/wallet', icon: FiCreditCard },
     { name: 'Company Profile', path: '/b2b-dashboard/company-profile', icon: FiBriefcase },
     { name: 'Legal Documents', path: '/b2b-dashboard/legal-documents', icon: FiFileText },

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { FiSave, FiArrowLeft, FiPlus, FiTrash, FiEdit, FiFileText } from 'react-icons/fi';
 import { useLandingPageStore } from '../../store/landingPageStore';
 import toast from 'react-hot-toast';
+import { handleImageError, NO_IMAGE_PLACEHOLDER } from "../../../../shared/utils/helpers";
 
 const BlogEditor = () => {
   const navigate = useNavigate();
@@ -191,7 +192,7 @@ const BlogEditor = () => {
             <div key={item.id || idx} className="p-5 flex items-center justify-between hover:bg-gray-50/50 transition">
               <div className="flex items-start gap-4">
                 <img 
-                  src={item.image} 
+                  src={item.image || NO_IMAGE_PLACEHOLDER} onError={handleImageError} 
                   alt={item.title} 
                   className="w-16 h-16 rounded-xl object-cover border border-gray-200"
                 />

@@ -109,10 +109,25 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
             {
                 $project: {
                     vendorId: '$vendorItems.vendorId',
+                    // What the customer actually paid for this seller's part of the order: item value
+                    // - this seller's share of the coupon + GST charged ON TOP (tax-inclusive items already
+                    // carry their GST in the price) + delivery. Keeps seller totals consistent with Total Revenue.
                     amount: {
                         $add: [
                             { $ifNull: ['$vendorItems.subtotal', 0] },
-                            { $ifNull: ['$vendorItems.tax', 0] },
+                            { $multiply: [-1, { $ifNull: ['$vendorItems.discount', 0] }] },
+                            {
+                                $reduce: {
+                                    input: { $ifNull: ['$vendorItems.items', []] },
+                                    initialValue: 0,
+                                    in: {
+                                        $add: [
+                                            '$$value',
+                                            { $cond: [{ $eq: ['$$this.taxIncluded', true] }, 0, { $ifNull: ['$$this.gstAmount', 0] }] }
+                                        ]
+                                    }
+                                }
+                            },
                             { $ifNull: ['$vendorItems.shipping', 0] }
                         ]
                     }

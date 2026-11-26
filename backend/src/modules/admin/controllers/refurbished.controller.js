@@ -2,6 +2,7 @@ import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
 import Product from '../../../models/Product.model.js';
+import Vendor from '../../../models/Vendor.model.js';
 import Order from '../../../models/Order.model.js';
 import ReturnRequest from '../../../models/ReturnRequest.model.js';
 
@@ -37,6 +38,12 @@ export const updateRefurbishedStatus = asyncHandler(async (req, res) => {
     if (flagged !== undefined) product.refurbishedDetails.flagged = flagged;
     if (flagReason) product.refurbishedDetails.flagReason = flagReason;
     if (rejectionReason) product.refurbishedDetails.rejectionReason = rejectionReason;
+
+    // Keep the general approval in step so this page is a complete approval path on its own.
+    product.approvalStatus = status;
+    product.approvedBy = req.user.id;
+    product.approvalDate = new Date();
+    if (status === 'rejected') product.rejectionReason = rejectionReason || product.rejectionReason || '';
 
     // If approved, make it visible/active in store
     if (status === 'approved') {
@@ -81,6 +88,7 @@ export const getRefurbishedStats = asyncHandler(async (req, res) => {
 
     // For monthly revenue trend (last 5 months)
     const monthlyRevenue = Array(5).fill(0);
+    const monthlySales = Array(5).fill(0);
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth();
 
@@ -99,6 +107,7 @@ export const getRefurbishedStats = asyncHandler(async (req, res) => {
                 // Month bucket
                 if (monthDiff >= 0 && monthDiff < 5) {
                     monthlyRevenue[4 - monthDiff] += rev; // index 4 is current month
+                    monthlySales[4 - monthDiff] += qty;
                 }
 
                 // Vendor aggregation
@@ -110,9 +119,11 @@ export const getRefurbishedStats = asyncHandler(async (req, res) => {
                     }
                     vendorStats[vId].sales += qty;
                     vendorStats[vId].revenue += rev;
-                    // Mock ratings for now
-                    vendorStats[vId].ratingSum += (p.rating || 4.5);
-                    vendorStats[vId].ratingCount += 1;
+                    // Only real product ratings count (no invented default rating)
+                    if (Number(p.rating) > 0) {
+                        vendorStats[vId].ratingSum += Number(p.rating);
+                        vendorStats[vId].ratingCount += 1;
+                    }
                 }
 
                 // Condition aggregation
@@ -133,13 +144,14 @@ export const getRefurbishedStats = asyncHandler(async (req, res) => {
         });
     });
 
-    const returnsList = await ReturnRequest.find({ isRefurbishedComplaint: true }).populate('productId').lean();
+    const returnsList = await ReturnRequest.find({ isRefurbishedComplaint: true }).populate('items.productId').lean();
     
     returnsList.forEach(r => {
-        if (r.productId && r.productId.refurbishedDetails) {
-            let cond = r.productId.refurbishedDetails.condition || 'refurbished';
+        const rp = (r.items || []).map((it) => it.productId).find((pr) => pr && pr.refurbishedDetails);
+        if (rp) {
+            let cond = rp.refurbishedDetails.condition || 'refurbished';
             if (cond === 'refurbished') {
-                cond = `Grade ${r.productId.refurbishedDetails.grade || 'A'} Refurbished`;
+                cond = `Grade ${rp.refurbishedDetails.grade || 'A'} Refurbished`;
             } else if (cond === 'renewed') {
                 cond = 'Renewed (Excellent)';
             } else if (cond === 'open_box') {
@@ -153,12 +165,13 @@ export const getRefurbishedStats = asyncHandler(async (req, res) => {
     const returnRatio = totalSales > 0 ? ((returnsList.length / totalSales) * 100).toFixed(1) : "0.0";
 
     // Format top sellers
+    const vendorDocs = await Vendor.find({ _id: { $in: Object.keys(vendorStats) } }).select('name storeName').lean();
     let topSellers = [];
     for (const vId of Object.keys(vendorStats)) {
         // Find vendor name
-        const p = products.find(prod => prod.vendorId?.toString() === vId);
-        const name = p?.vendorId?.storeName || p?.vendorId?.name || "Vendor";
-        const rating = vendorStats[vId].ratingCount > 0 ? (vendorStats[vId].ratingSum / vendorStats[vId].ratingCount).toFixed(1) : "4.5";
+        const vendorDoc = vendorDocs.find((v) => String(v._id) === vId);
+        const name = vendorDoc?.storeName || vendorDoc?.name || "Vendor";
+        const rating = vendorStats[vId].ratingCount > 0 ? (vendorStats[vId].ratingSum / vendorStats[vId].ratingCount).toFixed(1) : "0";
         let badge = "Quality Checked";
         if (vendorStats[vId].sales > 50) badge = "Gold Certified";
         else if (vendorStats[vId].sales > 20) badge = "Verified Refurbisher";
@@ -185,11 +198,20 @@ export const getRefurbishedStats = asyncHandler(async (req, res) => {
         };
     });
 
+    // Real month-over-month change (current month vs previous); "N/A" when there is nothing to compare.
+    const momChange = (series) => {
+        const cur = series[4];
+        const prev = series[3];
+        if (!(prev > 0)) return 'N/A';
+        const pct = ((cur - prev) / prev) * 100;
+        return `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}% MoM`;
+    };
+
     const advancedStats = {
         sales: totalSales,
-        salesChange: "+5.2% MoM",
+        salesChange: momChange(monthlySales),
         revenue: totalRevenue,
-        revenueChange: "+8.4% MoM",
+        revenueChange: momChange(monthlyRevenue),
         returnRatio: returnRatio,
         topSellers,
         returnStats,

@@ -14,15 +14,15 @@ import {
 import { formatDate, filterByDateRange, getDateRange, formatCurrency } from '../../utils/adminHelpers';
 import { motion } from 'framer-motion';
 
-const RevenueLineChart = ({ data, period = 'month' }) => {
+const RevenueLineChart = ({ data, period = 'month', range: customRange = null }) => {
   const filteredData = useMemo(() => {
-    const range = getDateRange(period);
+    const range = customRange || getDateRange(period);
     const filtered = filterByDateRange(data, range.start, range.end);
     return filtered.map((item) => ({
       ...item,
       dateLabel: formatDate(item.date, { month: 'short', day: 'numeric' }),
     }));
-  }, [data, period]);
+  }, [data, period, customRange]);
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {

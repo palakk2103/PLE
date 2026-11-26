@@ -4,7 +4,7 @@ import { FiCheckCircle, FiTruck, FiEye, FiFileText, FiDownload } from 'react-ico
 import { motion } from 'framer-motion';
 import MobileLayout from "../components/Layout/MobileLayout";
 import { useOrderStore } from '../../../shared/store/orderStore';
-import { formatPrice } from '../../../shared/utils/helpers';
+import { formatPrice, handleImageError, NO_IMAGE_PLACEHOLDER } from '../../../shared/utils/helpers';
 import { formatVariantLabel } from '../../../shared/utils/variant';
 import PageTransition from '../../../shared/components/PageTransition';
 import LazyImage from '../../../shared/components/LazyImage';
@@ -213,7 +213,7 @@ const MobileOrderConfirmation = () => {
                   <div key={item.id} className="flex items-center gap-3">
                     <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
                       <LazyImage
-                        src={item.image}
+                        src={item.image || NO_IMAGE_PLACEHOLDER} onError={handleImageError}
                         alt={item.name}
                         className="w-full h-full object-cover"
                       />

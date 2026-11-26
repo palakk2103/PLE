@@ -109,7 +109,7 @@ const PerformanceMetrics = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-600">Total Revenue</p>
+            <p className="text-sm text-gray-600">Net Earnings (after commission)</p>
             <FiDollarSign className="text-green-600" />
           </div>
           <p className="text-2xl font-bold text-gray-800">
@@ -136,7 +136,7 @@ const PerformanceMetrics = () => {
         </div>
         <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-600">Average Order Value</p>
+            <p className="text-sm text-gray-600">Avg. Earnings per Order</p>
             <FiTrendingUp className="text-orange-600" />
           </div>
           <p className="text-2xl font-bold text-gray-800">
@@ -154,7 +154,7 @@ const PerformanceMetrics = () => {
         </div>
         <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-600">Conversion Rate</p>
+            <p className="text-sm text-gray-600">Delivery Completion Rate</p>
             <FiTrendingUp className="text-pink-600" />
           </div>
           <p className="text-2xl font-bold text-gray-800">

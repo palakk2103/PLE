@@ -26,7 +26,7 @@ import { B2BCartSummary } from "../components/B2B/B2BCartSummary";
 import MobileLayout from "../components/Layout/MobileLayout";
 import PageTransition from "../../../shared/components/PageTransition";
 import SEO from "../../../shared/components/SEO/SEO";
-import { formatPrice } from "../../../shared/utils/helpers";
+import { formatPrice, handleImageError, NO_IMAGE_PLACEHOLDER } from "../../../shared/utils/helpers";
 import { formatVariantLabel } from "../../../shared/utils/variant";
 import api from "../../../shared/utils/api";
 import toast from "react-hot-toast";
@@ -274,7 +274,10 @@ const Cart = () => {
     toast.success(`Checking delivery fee for PIN ${clean}...`);
   };
 
-  const shipping = estimatedShipping !== null ? estimatedShipping : (isBusiness ? 1500 : 50);
+  // Same fallback rule as Checkout (used only until the live estimate arrives), so the
+  // cart and checkout totals never disagree: B2B flat 50; B2C free at or above the 100 threshold.
+  const fallbackShipping = isBusiness ? 50 : (total >= 100 ? 0 : 50);
+  const shipping = estimatedShipping !== null ? estimatedShipping : fallbackShipping;
   const tax = gstBreakdown.totalTax;
   const finalTotal = total + shipping + gstBreakdown.topTax; // inclusive GST is already in the price
 
@@ -472,7 +475,8 @@ const Cart = () => {
                                   className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-white dark:bg-zinc-800 border border-gray-200/80 dark:border-zinc-700 p-1.5 flex items-center justify-center shrink-0 overflow-hidden group"
                                 >
                                   <img
-                                    src={item.image || "/placeholder.png"}
+                                    src={item.image || NO_IMAGE_PLACEHOLDER}
+                                    onError={handleImageError}
                                     alt={item.name}
                                     className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal group-hover:scale-105 transition-transform duration-300"
                                   />

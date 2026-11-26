@@ -200,7 +200,8 @@ productSchema.pre('save', function (next) {
         const details = this.refurbishedDetails || {};
         details.condition = cond;
         
-        if (this.get('refurbishedGrade')) details.grade = this.get('refurbishedGrade');
+        // Only take the seller's grade when they actually changed it (never clobber an admin re-grade on a later save).
+        if (this.get('refurbishedGrade') && (this.isNew || this.isModified('refurbishedGrade') || !details.grade)) details.grade = this.get('refurbishedGrade');
         if (this.get('productAgeMonths')) details.usageAge = String(this.get('productAgeMonths'));
         if (this.get('purchaseYear')) details.purchaseYear = Number(this.get('purchaseYear'));
         if (this.get('deviceHealthBattery')) details.batteryHealth = Number(this.get('deviceHealthBattery'));
@@ -218,7 +219,12 @@ productSchema.pre('save', function (next) {
         details.tested = !!this.get('isTested');
         details.certified = !!this.get('isCertified');
         details.qualityChecked = true;
-        details.approvalStatus = this.get('refurbishedApprovalStatus') || 'approved';
+        // Keep an existing decision (admin approve/reject must survive later saves). A brand-new seller
+        // listing waits for review; one that is already approved (e.g. created by an admin) stays approved.
+        if (!details.approvalStatus) {
+            details.approvalStatus = this.get('refurbishedApprovalStatus')
+                || (this.get('approvalStatus') === 'approved' ? 'approved' : 'pending');
+        }
         
         this.refurbishedDetails = details;
     } else if (cond === 'brand_new') {

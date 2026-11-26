@@ -31,7 +31,9 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true, noPa
     pathname === '/register' ||
     pathname === '/verification' ||
     pathname === '/b2b/login' ||
-    pathname === '/b2b/register';
+    pathname === '/b2b/register' ||
+    pathname === '/forgot-password' ||
+    pathname === '/reset-password';
 
   const isCheckoutPage = pathname === '/checkout';
   const isOrderConfirmationPage = pathname.startsWith('/order-confirmation');
@@ -67,7 +69,8 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true, noPa
     pathname === '/about-us' ||
     pathname.startsWith('/legal/');
 
-  const shouldNoPadding = noPadding !== null ? noPadding : isProfileOptionPage;
+  // Auth pages render their own full-bleed split layout, so no side padding.
+  const shouldNoPadding = noPadding !== null ? noPadding : (isProfileOptionPage || isAuthPage);
   
   // Respect the showBottomNav prop and hide on auth pages or when location selector is open
   const shouldShowBottomNav = showBottomNav && !isAuthPage && !isLocationSelectorOpen;

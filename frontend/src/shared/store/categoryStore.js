@@ -23,7 +23,11 @@ export const useCategoryStore = create(
       initialize: async () => {
         set({ isLoading: true });
         try {
+          // The admin category list needs an admin session; on the admin login page (no token yet)
+          // fall back to the public list instead of firing a request that can only return 401.
+          const hasAdminToken = typeof localStorage !== 'undefined' && !!(localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken'));
           const isAdminArea =
+            hasAdminToken &&
             typeof window !== 'undefined' &&
             (window.location.pathname.startsWith(ADMIN_BASE_ROUTE) || window.location.pathname.startsWith('/admin'));
           const response = isAdminArea

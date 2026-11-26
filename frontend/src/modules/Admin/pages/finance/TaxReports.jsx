@@ -50,7 +50,10 @@ const TaxReports = () => {
       const taxAmount = Number(order.tax) || 0;
       const subtotal = Number(order.subtotal) || 0;
       const total = Number(order.total) || 0;
-      const taxRate = subtotal > 0 ? (taxAmount / subtotal) * 100 : 0;
+      // GST is charged on the value AFTER any coupon, so the effective rate is tax / (subtotal - discount).
+      const discount = Number(order.discount ?? order.couponDiscount) || 0;
+      const taxableValue = Math.max(0, subtotal - discount);
+      const taxRate = taxableValue > 0 ? (taxAmount / taxableValue) * 100 : 0;
       const createdAt = order.createdAt ? new Date(order.createdAt) : null;
       const dateKey =
         createdAt && !Number.isNaN(createdAt.getTime())

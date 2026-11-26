@@ -12,17 +12,17 @@ import {
 import { formatDate, filterByDateRange, getDateRange } from '../../utils/adminHelpers';
 import { motion } from 'framer-motion';
 
-const SalesBarChart = ({ data, period = 'month' }) => {
+const SalesBarChart = ({ data, period = 'month', range: customRange = null }) => {
   const filteredData = useMemo(() => {
-    const range = getDateRange(period);
+    const range = customRange || getDateRange(period);
     const filtered = filterByDateRange(data, range.start, range.end);
     // Group by week or show last 7 days based on period
-    const daysToShow = period === 'week' ? 7 : period === 'month' ? 7 : filtered.length;
+    const daysToShow = period === 'week' || period === 'month' ? 7 : filtered.length;
     return filtered.slice(-daysToShow).map((item) => ({
       ...item,
       dateLabel: formatDate(item.date, { month: 'short', day: 'numeric' }),
     }));
-  }, [data, period]);
+  }, [data, period, customRange]);
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { FiSave, FiArrowLeft, FiPlus, FiTrash, FiEdit, FiShoppingBag } from 'react-icons/fi';
 import { useLandingPageStore } from '../../store/landingPageStore';
 import toast from 'react-hot-toast';
+import { handleImageError, NO_IMAGE_PLACEHOLDER } from "../../../../shared/utils/helpers";
 
 const ProductShowcaseEditor = () => {
   const navigate = useNavigate();
@@ -218,7 +219,7 @@ const ProductShowcaseEditor = () => {
           {products.map((item, idx) => (
             <div key={item.id || idx} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition">
               <img 
-                src={item.image} 
+                src={item.image || NO_IMAGE_PLACEHOLDER} onError={handleImageError} 
                 alt={item.name} 
                 className="w-full h-44 object-cover"
               />

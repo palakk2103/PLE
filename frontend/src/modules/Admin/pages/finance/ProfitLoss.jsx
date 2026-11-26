@@ -67,9 +67,13 @@ const ProfitLoss = () => {
     const totalTax = financialSummary.reduce((sum, item) => sum + (item.tax || 0), 0);
     const totalDelivery = financialSummary.reduce((sum, item) => sum + (item.delivery || 0), 0);
     const totalDiscount = financialSummary.reduce((sum, item) => sum + (item.discount || 0), 0);
-    const grossProfit = revenue - totalDiscount;
-    const totalExpenses = totalTax + totalDelivery + totalDiscount;
-    const netProfit = revenue - totalExpenses;
+    // "revenue" is what customers paid, i.e. already AFTER discounts — so discounts are not deducted
+    // again. GST and delivery charges are pass-through amounts, not income.
+    // NOTE: seller payouts and costs are not part of this summary, so these are net SALES figures,
+    // not profit (platform commission is shown on Finance → Overview).
+    const grossProfit = revenue - totalTax; // net sales excl. GST
+    const totalExpenses = totalTax + totalDelivery;
+    const netProfit = revenue - totalExpenses; // net sales excl. GST and delivery
     const profitMargin = revenue > 0 ? (netProfit / revenue) * 100 : 0;
 
     return {
@@ -133,29 +137,24 @@ const ProfitLoss = () => {
         </div>
 
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-          <h3 className="text-lg font-bold text-gray-800 mb-4">Deductions</h3>
+          <h3 className="text-lg font-bold text-gray-800 mb-4">Pass-through amounts</h3>
+          <p className="text-xs text-gray-500 mb-3">Discounts are already deducted from customer billing. Seller payouts and platform commission are on Finance → Overview.</p>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-gray-600">Discount</span>
-              <span className="font-bold text-red-600">
-                {formatPrice(financials.totalDiscount)}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">Tax</span>
+              <span className="text-gray-600">GST collected</span>
               <span className="font-bold text-red-600">
                 {formatPrice(financials.totalTax)}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-gray-600">Shipping</span>
+              <span className="text-gray-600">Delivery charges collected</span>
               <span className="font-bold text-red-600">
                 {formatPrice(financials.totalDelivery)}
               </span>
             </div>
             <div className="border-t border-gray-200 pt-4 flex items-center justify-between">
               <span className="font-semibold text-gray-800">
-                Total Deductions
+                Total pass-through
               </span>
               <span className="font-bold text-red-600">
                 {formatPrice(financials.totalExpenses)}
@@ -168,7 +167,7 @@ const ProfitLoss = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-600">Gross Profit</p>
+            <p className="text-sm text-gray-600">Net Sales (excl. GST)</p>
             <FiTrendingUp className="text-green-600" />
           </div>
           <p className="text-2xl font-bold text-green-600">
@@ -177,7 +176,7 @@ const ProfitLoss = () => {
         </div>
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-600">Net Profit</p>
+            <p className="text-sm text-gray-600">Net Sales (excl. GST &amp; delivery)</p>
             <FiDollarSign className="text-blue-600" />
           </div>
           <p className="text-2xl font-bold text-gray-800">
@@ -186,7 +185,7 @@ const ProfitLoss = () => {
         </div>
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-600">Profit Margin</p>
+            <p className="text-sm text-gray-600">Net Sales Ratio</p>
             <FiTrendingDown className="text-purple-600" />
           </div>
           <p className="text-2xl font-bold text-gray-800">

@@ -1,5 +1,5 @@
 import * as vendorBankAccounts from '../controllers/vendorBankAccounts.controller.js';
-import { getVendorMonitoringSummary } from '../controllers/vendorMonitoring.controller.js';
+import { getVendorMonitoringSummary, getVendorsAnalyticsSummary } from '../controllers/vendorMonitoring.controller.js';
 import * as directRfqMonitor from '../controllers/directRfq.controller.js';
 import { Router } from 'express';
 import * as authController from '../controllers/auth.controller.js';
@@ -345,6 +345,7 @@ router.post('/auth/2fa/resend', twoFactorController.resendLogin2FAOtp);
 router.get('/analytics/dashboard', ...adminAuth, analyticsController.getDashboardStats);
 router.get('/analytics/b2b-overview', ...adminAuth, analyticsController.getB2bOverviewStats);
 router.get('/analytics/revenue', ...adminAuth, analyticsController.getRevenueData);
+router.get('/analytics/vendors', ...adminAuth, getVendorsAnalyticsSummary);
 router.get('/analytics/returns-summary', ...adminAuth, analyticsController.getReturnsSummary);
 router.get('/analytics/order-status', ...adminAuth, analyticsController.getOrderStatusBreakdown);
 router.get('/analytics/top-products', ...adminAuth, analyticsController.getTopProducts);

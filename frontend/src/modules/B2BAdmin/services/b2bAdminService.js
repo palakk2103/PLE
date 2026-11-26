@@ -67,3 +67,29 @@ export { api };
 export default api;
 
 
+
+// ─── Company PO registry (buyer-side PO management) ─────────────────────────
+export const getPOSignatories = () => api.get('/b2b-user/admin/po-signatories');
+export const createPOSignatory = (data) => api.post('/b2b-user/admin/po-signatories', data);
+export const updatePOSignatory = (id, data) => api.put(`/b2b-user/admin/po-signatories/${id}`, data);
+export const setPOSignatoryVerification = (id, data) => api.patch(`/b2b-user/admin/po-signatories/${id}/verification`, data);
+export const revokePOSignatory = (id, data) => api.post(`/b2b-user/admin/po-signatories/${id}/revoke`, data);
+export const uploadPOSignatoryEvidence = (id, file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return api.post(`/b2b-user/admin/po-signatories/${id}/evidence`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+};
+
+export const getCompanyPOs = (params) => api.get('/b2b-user/admin/company-pos', { params });
+export const getCompanyPOStats = () => api.get('/b2b-user/admin/company-pos/stats');
+export const getCompanyPO = (id) => api.get(`/b2b-user/admin/company-pos/${id}`);
+export const createCompanyPO = (data) => api.post('/b2b-user/admin/company-pos', data);
+export const updateCompanyPO = (id, data) => api.put(`/b2b-user/admin/company-pos/${id}`, data);
+export const activateCompanyPO = (id) => api.post(`/b2b-user/admin/company-pos/${id}/activate`);
+export const revokeCompanyPO = (id, data) => api.post(`/b2b-user/admin/company-pos/${id}/revoke`, data);
+export const closeCompanyPO = (id, data) => api.post(`/b2b-user/admin/company-pos/${id}/close`, data);
+export const uploadCompanyPODocument = (id, file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return api.post(`/b2b-user/admin/company-pos/${id}/document`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+};

@@ -35,8 +35,10 @@ const RefundReports = () => {
         const normalizedRefunds = allReturns.map((request) => {
           const requestStatus = request.status || "pending";
           const refundStatus = request.refundStatus || "pending";
+          // The summary follows the REFUND itself: a return can be "completed" (goods received)
+          // while the money has not been refunded yet.
           const status =
-            refundStatus === "processed" || requestStatus === "completed"
+            refundStatus === "processed"
               ? "completed"
               : refundStatus === "failed" || requestStatus === "rejected"
                 ? "rejected"
@@ -75,10 +77,10 @@ const RefundReports = () => {
     (refund) => statusFilter === "all" || refund.status === statusFilter
   );
 
-  const totalRefunds = filteredRefunds.reduce(
-    (sum, refund) => sum + refund.amount,
-    0
-  );
+  // Value of refunds that are paid or still owed (rejected ones are not counted).
+  const totalRefunds = filteredRefunds
+    .filter((refund) => refund.status !== "rejected")
+    .reduce((sum, refund) => sum + refund.amount, 0);
   const completedRefunds = filteredRefunds.filter(
     (r) => r.status === "completed"
   ).length;
@@ -192,7 +194,7 @@ const RefundReports = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-600">Total Refunds</p>
+            <p className="text-sm text-gray-600">Refund Value (paid + pending)</p>
             <FiDollarSign className="text-red-600" />
           </div>
           <p className="text-2xl font-bold text-red-600">

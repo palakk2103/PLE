@@ -5,6 +5,7 @@ import { FiSave, FiArrowLeft, FiPlus, FiTrash, FiEdit, FiUpload } from 'react-ic
 import { useLandingPageStore } from '../../store/landingPageStore';
 import toast from 'react-hot-toast';
 import { uploadAdminImage } from '../../services/adminService';
+import { handleImageError, NO_IMAGE_PLACEHOLDER } from "../../../../shared/utils/helpers";
 
 const PortfolioHighlightsEditor = () => {
   const navigate = useNavigate();
@@ -353,7 +354,7 @@ const PortfolioHighlightsEditor = () => {
                 <h4 className="text-xs text-[#C07A3D] font-semibold mt-0.5">{item.subtitle}</h4>
                 <p className="text-xs text-gray-400 mt-2 line-clamp-2 leading-relaxed">{item.description}</p>
                 {item.image && (
-                  <img src={item.image} alt={item.title} className="w-full h-32 object-cover rounded-xl mt-3 border border-gray-100" />
+                  <img src={item.image || NO_IMAGE_PLACEHOLDER} onError={handleImageError} alt={item.title} className="w-full h-32 object-cover rounded-xl mt-3 border border-gray-100" />
                 )}
               </div>
               <div className="flex gap-2 mt-4 pt-3 border-t border-gray-50">

@@ -15,6 +15,7 @@ import LazyImage from '../../../shared/components/LazyImage';
 import socketService from '../../../shared/utils/socket';
 import api from '../../../shared/utils/api';
 import OrderStatusTimeline from '../../../shared/components/OrderStatusTimeline';
+import { handleImageError, NO_IMAGE_PLACEHOLDER } from "../../../shared/utils/helpers";
 
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
@@ -378,7 +379,7 @@ const MobileOrderDetail = () => {
                             <div key={`${item.id}-${itemIndex}-${getVariantSignature(item?.variant || {})}`} className="flex items-center gap-3">
                               <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
                                 <LazyImage
-                                  src={item.image}
+                                  src={item.image || NO_IMAGE_PLACEHOLDER} onError={handleImageError}
                                   alt={item.name}
                                   className="w-full h-full object-cover"
                                 />
@@ -409,7 +410,7 @@ const MobileOrderDetail = () => {
                       <div key={`${item.id}-${itemIndex}-${getVariantSignature(item?.variant || {})}`} className="flex items-center gap-3">
                         <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
                           <LazyImage
-                            src={item.image}
+                            src={item.image || NO_IMAGE_PLACEHOLDER} onError={handleImageError}
                             alt={item.name}
                             className="w-full h-full object-cover"
                           />

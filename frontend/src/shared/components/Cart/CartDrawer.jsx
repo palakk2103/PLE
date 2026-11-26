@@ -13,6 +13,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useCartStore, useUIStore } from "../../store/useStore";
 import { useAuthStore } from "../../store/authStore";
 import { formatPrice } from "../../utils/helpers";
+import api from "../../utils/api";
+import { useAddressStore } from "../../store/addressStore";
 import { Link, useNavigate } from "react-router-dom";
 import SwipeableCartItem from "./SwipeableCartItem";
 import { useBusinessBuyer } from "../../../modules/UserApp/hooks/useBusinessBuyer";
@@ -89,17 +91,57 @@ const CartDrawer = () => {
     };
   }, [isCartOpen]);
 
+  // GST charged ON TOP of the prices (tax-inclusive items already carry theirs), rounded per line
+  // like the server does, so the drawer matches the cart page / checkout.
   const estimatedGst = useMemo(() => {
     let totalTax = 0;
     (items || []).forEach((item) => {
+      if (item.taxIncluded) return;
       const qty = Math.max(1, Number(item.quantity || 1));
       const price = Math.max(0, Number(item.price || 0));
       const rate = Number(item.gstRate ?? item.resolvedGstRate ?? item.taxRate ?? 18);
-      totalTax += (price * qty * rate) / 100;
+      totalTax += Math.round(((price * qty * rate) / 100) * 100) / 100;
     });
     return parseFloat(totalTax.toFixed(2));
   }, [items]);
-  const estimatedShipping = isBusiness ? 1500 : 50;
+
+  // Delivery: live estimate from the server for the default address PIN (same call as the cart page);
+  // until it arrives use the same fallback rule as Cart/Checkout (B2B flat 50; B2C free from 100).
+  const { addresses, getDefaultAddress, fetchAddresses } = useAddressStore();
+  const [liveShipping, setLiveShipping] = useState(null);
+  const addressesRequested = useRef(false);
+  useEffect(() => {
+    if (isAuthenticated && !addressesRequested.current && !(addresses || []).length) {
+      addressesRequested.current = true; // once only - an empty result must not re-trigger the fetch
+      fetchAddresses?.();
+    }
+  }, [isAuthenticated, addresses, fetchAddresses]);
+  const pincode = String(getDefaultAddress?.()?.zipCode || "").trim();
+  useEffect(() => {
+    if (!isCartOpen || !isAuthenticated || !items.length) return undefined;
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        const res = await api.post(
+          "/shipping/estimate",
+          {
+            items: items.map((i) => ({ productId: i.id, quantity: Number(i.quantity || 1), variant: i.variant || undefined })).filter((i) => i.productId),
+            shippingAddress: { zipCode: pincode, pincode },
+            shippingOption: isBusiness ? "bulk" : "standard",
+            paymentMethod: "prepaid",
+          },
+          { signal: controller.signal }
+        );
+        const v = Number((res?.data ?? res)?.shipping);
+        setLiveShipping(Number.isFinite(v) ? v : null);
+      } catch (err) {
+        if (err?.name !== "CanceledError" && err?.name !== "AbortError") setLiveShipping(null);
+      }
+    }, 300);
+    return () => { clearTimeout(timer); controller.abort(); };
+  }, [isCartOpen, isAuthenticated, items, pincode, isBusiness]);
+  const fallbackShipping = isBusiness ? 50 : (total >= 100 ? 0 : 50);
+  const estimatedShipping = liveShipping !== null ? liveShipping : fallbackShipping;
   const drawerFinalTotal = total + estimatedShipping + estimatedGst;
 
   if (!isMobile) {
@@ -290,7 +332,7 @@ const CartDrawer = () => {
                   <div className="flex justify-between">
                     <span>Estimated Delivery:</span>
                     <span className="font-semibold text-gray-800">
-                      {formatPrice(estimatedShipping)}
+                      {estimatedShipping === 0 ? <span className="text-green-600">FREE</span> : formatPrice(estimatedShipping)}
                     </span>
                   </div>
                   <div className="flex justify-between">
