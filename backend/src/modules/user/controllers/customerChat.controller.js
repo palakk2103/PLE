@@ -273,12 +273,27 @@ export const markCustomerChatRead = asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(200, { unreadCount: 0, seen }, 'Chat marked as read.'));
 });
 
+// "Color: Red | Size: M" from { color: 'Red', size: 'M' } (or a plain string). Kept short and plain.
+const toVariantLabel = (variant) => {
+    if (!variant) return '';
+    if (typeof variant === 'string') return variant.trim().slice(0, 200);
+    if (typeof variant !== 'object' || Array.isArray(variant)) return '';
+    return Object.entries(variant)
+        .map(([axis, value]) => [String(axis || '').replace(/[_-]+/g, ' ').trim(), String(value ?? '').trim()])
+        .filter(([axis, value]) => axis && value)
+        .slice(0, 10)
+        .map(([axis, value]) => `${axis.charAt(0).toUpperCase()}${axis.slice(1)}: ${value}`)
+        .join(' | ')
+        .slice(0, 200);
+};
+
 // @desc    "Enquire Now": open (or resume) a live chat with the seller about one product
 // @route   POST /api/user/chat/vendor/enquire   { productId }
 // One active chat per customer + product; a new one is started once the earlier one was closed.
 export const startProductEnquiryChat = asyncHandler(async (req, res) => {
     const productId = String(req.body?.productId || '');
     if (!mongoose.isValidObjectId(productId)) throw new ApiError(400, 'A valid product is required.');
+    const variantLabel = toVariantLabel(req.body?.variant);
 
     const product = await Product.findById(productId).select('name image images vendorId shopId isActive').lean();
     if (!product || product.isActive === false) throw new ApiError(404, 'Product not found.');
@@ -305,6 +320,20 @@ export const startProductEnquiryChat = asyncHandler(async (req, res) => {
 
     const isOpen = latest && !latest.isReleased && !['resolved', 'closed'].includes(latest.status);
     if (isOpen) {
+        // Same product, different variant: tell the seller which one the customer is asking about now.
+        if (variantLabel && variantLabel !== latest.productVariant) {
+            latest.productVariant = variantLabel;
+            latest.lastMessage = `Now asking about: ${variantLabel}`;
+            latest.lastActivity = new Date();
+            await latest.save();
+            const note = await VendorChatMessage.create({
+                threadId: latest._id, senderType: 'system', senderId: null,
+                message: `Customer is now asking about variant: ${variantLabel}`,
+            });
+            try {
+                getIO()?.to(`chat_${latest._id}`).emit('new_message', { id: note._id, sender: 'system', message: note.message, time: note.createdAt });
+            } catch { /* socket optional */ }
+        }
         return res.status(200).json(new ApiResponse(200, { thread: latest, created: false }, 'Enquiry chat resumed.'));
     }
 
@@ -319,7 +348,8 @@ export const startProductEnquiryChat = asyncHandler(async (req, res) => {
         productRef: product._id,
         productName: product.name,
         productImage: typeof productImage === 'string' ? productImage : (productImage?.url || ''),
-        lastMessage: `Enquiry about ${product.name}`,
+        productVariant: variantLabel,
+        lastMessage: `Enquiry about ${product.name}${variantLabel ? ` (${variantLabel})` : ''}`,
         unreadCount: 1, // the seller has something new to open
         status: 'active',
     });
@@ -327,7 +357,7 @@ export const startProductEnquiryChat = asyncHandler(async (req, res) => {
         threadId: thread._id,
         senderType: 'system',
         senderId: null,
-        message: `Enquiry about "${product.name}"`,
+        message: `Enquiry about "${product.name}"${variantLabel ? ` — Variant: ${variantLabel}` : ''}`,
     });
 
     if (!vendor.isDeleted) {
@@ -336,7 +366,7 @@ export const startProductEnquiryChat = asyncHandler(async (req, res) => {
                 recipientId: vendor._id,
                 recipientType: 'vendor',
                 title: 'New product enquiry',
-                message: `${thread.customerName} wants to know about ${product.name}`,
+                message: `${thread.customerName} wants to know about ${product.name}${variantLabel ? ` (${variantLabel})` : ''}`,
                 type: 'chat',
                 data: { threadId: String(thread._id), productId: String(product._id) },
             });

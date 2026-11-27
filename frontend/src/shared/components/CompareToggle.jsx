@@ -20,6 +20,7 @@ const CompareToggle = ({ product, variant = 'icon', className = '' }) => {
     const res = add(product);
     if (res.ok) toast.success('Added to compare');
     else if (res.reason === 'full') toast.error(`You can compare up to ${MAX_COMPARE} products. Remove one first.`);
+    else if (res.reason === 'invalid') toast.error('This product cannot be compared.');
   };
 
   if (variant === 'button') {

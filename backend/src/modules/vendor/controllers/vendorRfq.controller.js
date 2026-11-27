@@ -80,6 +80,16 @@ export const vendorSendQuote = asyncHandler(async (req, res) => {
     if (['Completed', 'Purchase Order Generated', 'Rejected'].includes(rfq.status)) {
         throw new ApiError(400, 'Cannot quote on a closed or completed RFQ.');
     }
+    // Once a quote is chosen, the price the buyer approves must not change underneath them.
+    if (['Vendor Selected', 'Awaiting B2B Approval'].includes(rfq.status)) {
+        throw new ApiError(409, 'A quote has already been selected for this RFQ. Quotes can no longer be changed.');
+    }
+
+    // The total must at least cover unit price x requested quantity (it may add tax/freight on top).
+    const minimumTotal = Math.round(Number(unitPrice) * Number(rfq.quantity || 0) * 100) / 100;
+    if (Number(totalPrice) + 0.01 < minimumTotal) {
+        throw new ApiError(400, `Total price cannot be less than unit price x quantity (₹${minimumTotal.toLocaleString('en-IN')} for ${rfq.quantity} units).`);
+    }
 
     // Check if vendor already has a quotation in the array
     const existingQuoteIndex = rfq.quotations.findIndex(q => String(q.vendorId) === String(req.user.id));

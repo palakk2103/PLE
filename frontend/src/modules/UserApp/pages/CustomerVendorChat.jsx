@@ -520,6 +520,9 @@ const CustomerVendorChat = () => {
                   <div className="min-w-0">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">You are asking about</p>
                     <p className="text-sm font-semibold text-gray-800 truncate">{thread.productName}</p>
+                    {thread.productVariant && (
+                      <p className="text-xs text-gray-500 truncate">{thread.productVariant}</p>
+                    )}
                   </div>
                 </div>
               )}

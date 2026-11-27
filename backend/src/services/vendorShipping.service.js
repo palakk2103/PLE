@@ -137,11 +137,10 @@ export const calculateVendorShippingForGroups = async ({
             continue;
         }
 
-        // If vendor free-shipping threshold is met
-        if (defaultThreshold > 0 && subtotal >= defaultThreshold) {
-            shippingByVendor[vendorId] = 0;
-            continue;
-        }
+        // Vendor free-shipping threshold met: shipping is free, but we still ask the courier below
+        // whether the pincode can be delivered at all (it used to skip that check entirely, and every
+        // vendor has a ₹100 threshold by default, so most orders were never checked).
+        const freeByThreshold = defaultThreshold > 0 && subtotal >= defaultThreshold;
 
         // Resolve vendor pickup pincode
         let pickupPincode = pickupByVendor.get(vendorId);
@@ -204,6 +203,12 @@ export const calculateVendorShippingForGroups = async ({
                 // If Shiprocket throws (e.g. rate limit, credentials, network), we log and fallback to database rules
                 console.warn(`[vendorShipping] Shiprocket quote failed for vendor ${vendorId}: ${srErr.message}`);
             }
+        }
+
+        if (freeByThreshold) {
+            shippingByVendor[vendorId] = 0;
+            delete courierInfoByVendor[vendorId];
+            continue;
         }
 
         if (shiprocketRate !== null) {

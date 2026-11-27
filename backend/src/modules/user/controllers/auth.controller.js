@@ -190,7 +190,7 @@ export const login = asyncHandler(async (req, res) => {
 export const refresh = asyncHandler(async (req, res) => {
     const { refreshToken } = req.body;
     const decoded = decodeRefreshTokenOrThrow(refreshToken);
-    const user = await User.findById(decoded.id).select('+refreshTokenHash +refreshTokenExpiresAt isActive isVerified');
+    const user = await User.findById(decoded.id).select('+refreshTokenHash +refreshTokenExpiresAt isActive isVerified role email');
 
     if (!user) throw new ApiError(401, 'Invalid refresh token.');
     if (!user.isActive) throw new ApiError(403, 'Your account has been deactivated.');
@@ -198,7 +198,8 @@ export const refresh = asyncHandler(async (req, res) => {
 
     const tokens = await rotateRefreshSession(
         user,
-        { id: user._id, role: 'customer', email: user.email },
+        // Keep the account's real role (was hard-coded to 'customer').
+        { id: user._id, role: user.role || 'customer', email: user.email },
         refreshToken
     );
 

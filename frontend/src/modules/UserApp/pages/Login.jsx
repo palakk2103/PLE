@@ -119,7 +119,11 @@ const MobileLogin = ({ isB2BRoute }) => {
           }
 
           navigate('/home', { replace: true });
+          return;
         }
+        // The B2B store returns failures instead of throwing, and the API client deliberately
+        // shows no toast for 401s, so the reason must be shown here or the user sees nothing.
+        toast.error(result?.error || 'Login failed. Please check your email and password.');
         return;
       }
 

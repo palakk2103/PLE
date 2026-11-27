@@ -285,6 +285,9 @@ export const useB2BAdminStore = create(
         sessionStorage.setItem('b2bAdminToken', accessToken);
         localStorage.removeItem('b2bAdminToken');
       }
+      // Lets the API client renew the session instead of signing the user out when the access token expires.
+      const refreshToken = payload.refreshToken || payload.data?.refreshToken;
+      if (refreshToken) localStorage.setItem('b2bAdminRefreshToken', refreshToken);
 
       set({ isAuthenticated: true, adminProfile, error: null });
       return { success: true, isEmployee: !!adminProfile?.isEmployee };
@@ -309,6 +312,9 @@ export const useB2BAdminStore = create(
         sessionStorage.setItem('b2bAdminToken', accessToken);
         localStorage.removeItem('b2bAdminToken');
       }
+      // Lets the API client renew the session instead of signing the user out when the access token expires.
+      const refreshToken = payload.refreshToken || payload.data?.refreshToken;
+      if (refreshToken) localStorage.setItem('b2bAdminRefreshToken', refreshToken);
 
       set({ isAuthenticated: true, adminProfile, error: null });
       return { success: true, isEmployee: !!adminProfile?.isEmployee };
@@ -324,7 +330,9 @@ export const useB2BAdminStore = create(
   register: async (data) => {
     set({ isLoading: true, error: null });
     try {
-      await api.registerB2BAdmin(data);
+      const res = await api.registerB2BAdmin(data);
+      const body = res?.data || res;
+      set({ lastRegistrationSkippedEmployees: body?.skippedEmployees || body?.data?.skippedEmployees || [] });
       return true;
     } catch (err) {
       const msg = err.response?.data?.message || 'Registration failed';

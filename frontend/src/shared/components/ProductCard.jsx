@@ -15,7 +15,6 @@ import FlyingItem from "../../modules/UserApp/components/Mobile/FlyingItem";
 import { getVariantSignature } from "../utils/variant";
 import { useBusinessBuyer } from "../../modules/UserApp/hooks/useBusinessBuyer";
 import { B2BProductCardOverlay } from "../../modules/UserApp/components/B2B/B2BProductCardOverlay";
-import { estimateDeliveryETA } from "../data/deliveryMockData";
 
 // Offers System Imports
 import { offerMockService } from "../../modules/offers/services/offerMockService";
@@ -53,14 +52,6 @@ const ProductCard = memo(({ product, hideRating = false, isFlashSale = false, sh
   });
   const buttonRef = useRef(null);
 
-  // Compute logistics metadata with memoization
-  const deliveryInfo = useMemo(() => {
-    if (!product?.id) return { badgeText: "Standard Delivery", badgeColor: "bg-gray-100 text-gray-700" };
-    const isExpressEligible = product.id % 2 === 0 || product.vendorName === "Super Electro Corp";
-    return isExpressEligible
-      ? estimateDeliveryETA("400001", "400001", isBusiness)
-      : estimateDeliveryETA("400001", "110001", isBusiness);
-  }, [product?.id, product?.vendorName, isBusiness]);
 
   // Check for any active matching offer with memoization
   const activeOffer = useMemo(() => {
@@ -329,12 +320,8 @@ const ProductCard = memo(({ product, hideRating = false, isFlashSale = false, sh
             )}
           </div>
 
-          {/* Smart Delivery ETA Badge */}
-          <div className="mb-2 flex items-center">
-            <span className={`text-[8px] md:text-[9.5px] font-black px-2 py-0.5 rounded-full ${deliveryInfo.badgeColor}`}>
-              {deliveryInfo.badgeText}
-            </span>
-          </div>
+          {/* (A delivery-time badge used to be shown here. It was invented from the product id, not
+              from real courier data, so it was removed; the product page has a real pincode check.) */}
 
           {/* Flash Sale Progress Bar */}
           {isFlashSale && (

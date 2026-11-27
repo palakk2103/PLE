@@ -52,7 +52,6 @@ import {
   B2BNotifyMe,
   B2BStockAvailability,
 } from "../components/B2B";
-import { estimateDeliveryETA } from "../../../shared/data/deliveryMockData";
 import { ProductEnquiryModal } from "../components/Enquiry/ProductEnquiryModal";
 
 // Offers System Imports
@@ -257,19 +256,35 @@ const MobileProductDetail = () => {
   const [pincode, setPincode] = useState("");
   const [estDelivery, setEstDelivery] = useState(null);
   const [checkedPincode, setCheckedPincode] = useState(false);
+  const [checkingPincode, setCheckingPincode] = useState(false);
+  // Only the first 3 reviews were ever shown, so older reviews (incl. photo reviews) were unreachable.
+  const [showAllReviews, setShowAllReviews] = useState(false);
 
-  const handleCheckDelivery = (e) => {
+  // Real check against the seller's location and courier coverage (same logic checkout uses).
+  const handleCheckDelivery = async (e) => {
     e.preventDefault();
-    if (!pincode.trim() || pincode.trim().length < 5) {
-      toast.error("Please enter a valid postal code");
+    const pin = pincode.trim();
+    if (!/^\d{6}$/.test(pin)) {
+      toast.error("Please enter a valid 6-digit pincode");
       return;
     }
-    // Simulate lookup: Super Electro is vendor 400001, otherwise Noida 201301. Pincodes match if first 3 digits match Crawford Mumbai.
-    const vendorZip = product?.vendorId === "SEL-301" || product?.id % 2 === 0 ? "400001" : "201301";
-    const info = estimateDeliveryETA(vendorZip, pincode, isBusiness);
-    setEstDelivery(info);
-    setCheckedPincode(true);
-    toast.success("Delivery SLA updated for your location!");
+    if (!isMongoId(product?.id)) {
+      toast.error("Delivery check is not available for this product.");
+      return;
+    }
+    setCheckingPincode(true);
+    try {
+      const res = await api.get(`/products/${product.id}/delivery-check`, {
+        params: { pincode: pin, quantity: Math.max(1, Number(quantity) || 1) },
+      });
+      setEstDelivery(res?.data || null);
+      setCheckedPincode(true);
+    } catch {
+      setEstDelivery(null);
+      setCheckedPincode(false);
+    } finally {
+      setCheckingPincode(false);
+    }
   };
 
   useEffect(() => {
@@ -593,7 +608,11 @@ const MobileProductDetail = () => {
     if (isStartingEnquiry) return;
     setIsStartingEnquiry(true);
     try {
-      const res = await api.post("/user/chat/vendor/enquire", { productId: product.id });
+      // Send the variant the customer has selected, so the seller knows exactly what they are asking about.
+      const res = await api.post("/user/chat/vendor/enquire", {
+        productId: product.id,
+        variant: selectedVariant && Object.keys(selectedVariant).length ? selectedVariant : undefined,
+      });
       const threadId = res?.data?.thread?._id;
       if (!threadId) throw new Error("Could not open the chat.");
       navigate(`/chat/vendor/${threadId}`);
@@ -693,6 +712,8 @@ const MobileProductDetail = () => {
       id: product.id,
       name: product.name,
       price: finalPrice,
+      // lets the cart re-price business lines when the quantity changes (bulk slabs)
+      b2bBasePrice: isBusiness ? resolveVariantPrice(product, selectedVariant) : undefined,
       image: product.image,
       unit: product.unit,
       quantity: quantity,
@@ -808,7 +829,11 @@ const MobileProductDetail = () => {
                   images={productImages}
                   productName={product.name}
                 />
-                
+                {/* A labelled button: testers could not find Compare from the small icon alone */}
+                {isMongoId(product?.id) && (
+                  <CompareToggle product={product} variant="button" className="mt-3 w-full justify-center" />
+                )}
+
                 {/* Floating Wishlist and Share buttons */}
                 <div className="absolute top-4 right-4 flex flex-col gap-2.5 z-30">
                   <CompareToggle product={product} className="!w-10 !h-10 !p-0 flex items-center justify-center border border-gray-200 bg-white/90" />
@@ -1229,55 +1254,58 @@ const MobileProductDetail = () => {
                   )}
                 </div>
 
-                {/* Smart Delivery Estimation Widget */}
-                <div className="bg-gray-50 border border-gray-150 rounded-2xl p-5 mb-6 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-extrabold text-gray-800 uppercase tracking-wide flex items-center gap-2">
-                      <span>🚚 Logistics Speed Check</span>
-                    </h4>
-                    <span className="text-[10px] text-gray-400 font-bold uppercase">Dynamic SLA Tracking</span>
-                  </div>
-                  
+                {/* Delivery check by pincode */}
+                <div className="bg-gray-50 border border-gray-150 rounded-2xl p-5 mb-6 space-y-4" data-testid="pincode-check">
+                  <h4 className="text-sm font-extrabold text-gray-800 uppercase tracking-wide flex items-center gap-2">
+                    <span>🚚 Check Delivery by Pincode</span>
+                  </h4>
+
                   <form onSubmit={handleCheckDelivery} className="flex gap-2">
                     <input
                       type="text"
+                      inputMode="numeric"
                       maxLength={6}
                       value={pincode}
-                      onChange={(e) => setPincode(e.target.value.replace(/\D/g, ""))}
-                      placeholder="Enter Delivery Pincode (e.g. 400001)"
+                      onChange={(e) => { setPincode(e.target.value.replace(/\D/g, "")); setCheckedPincode(false); }}
+                      placeholder="Enter 6-digit pincode"
+                      aria-label="Delivery pincode"
                       className="flex-1 bg-white border border-gray-250 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 font-medium"
                     />
                     <button
                       type="submit"
-                      className="px-4 py-2 bg-gray-900 hover:bg-black text-white text-xs font-bold rounded-xl transition-colors shadow-sm"
+                      disabled={checkingPincode}
+                      className="px-4 py-2 bg-gray-900 hover:bg-black text-white text-xs font-bold rounded-xl transition-colors shadow-sm disabled:opacity-60"
                     >
-                      Check Speed
+                      {checkingPincode ? "Checking…" : "Check"}
                     </button>
                   </form>
 
                   {checkedPincode && estDelivery ? (
-                    <div className="bg-white rounded-xl p-3 border border-gray-100/80 space-y-2 text-xs">
-                      <div className="flex items-center justify-between flex-wrap gap-2">
-                        <span className="text-gray-400 font-medium">Estimated Handover Time:</span>
-                        <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] uppercase ${estDelivery.badgeColor}`}>
-                          {estDelivery.badgeText}
-                        </span>
+                    estDelivery.serviceable ? (
+                      <div className="bg-white rounded-xl p-3 border border-gray-100/80 space-y-1.5 text-xs" data-testid="pincode-result">
+                        <p className="font-bold text-green-700">✓ Delivery available to {estDelivery.pincode}</p>
+                        <p className="text-gray-700">
+                          Estimated delivery: <span className="font-semibold">{estDelivery.estimatedDelivery}</span>
+                        </p>
+                        <p className="text-gray-700">
+                          Delivery charge:{" "}
+                          <span className="font-semibold">
+                            {Number(estDelivery.shippingCharge) > 0 ? `₹${Number(estDelivery.shippingCharge).toLocaleString("en-IN")}` : "Free"}
+                          </span>
+                        </p>
+                        <p className="text-gray-700">
+                          Cash on Delivery: <span className="font-semibold">{estDelivery.codAvailable ? "Available" : "Not available"}</span>
+                        </p>
+                        <p className="text-[10px] text-gray-400">Final charge is confirmed at checkout.</p>
                       </div>
-                      <div className="text-gray-700 font-semibold flex items-center gap-1">
-                        <span>ETA:</span>
-                        <span className="text-primary-600 font-extrabold">{estDelivery.displayETA}</span>
+                    ) : (
+                      <div className="bg-red-50 rounded-xl p-3 border border-red-100 text-xs" data-testid="pincode-result">
+                        <p className="font-bold text-red-700">✗ Sorry, this item cannot be delivered to {estDelivery.pincode} right now.</p>
                       </div>
-                      <p className="text-[10px] text-gray-400 leading-normal">
-                        {estDelivery.type === "express" 
-                          ? "⚡ Same-City express guarantees local dispatch inside 2 hours and doorstep delivery within selected ETA window."
-                          : estDelivery.type === "bulk"
-                          ? "📦 Heavy freight cargo handling. High-volume pallet security dispatch with priority courier routing."
-                          : "🚚 Standard nationwide express delivery. Fully tracked regional corridor logistics."}
-                      </p>
-                    </div>
+                    )
                   ) : (
                     <p className="text-[10.5px] text-gray-400 font-medium">
-                      Enter your zipcode to verify Same-City Express eligibility (8–16 Hours) or regional courier durations.
+                      Enter your pincode to see if this item can be delivered to you, the delivery charge and the expected delivery time.
                     </p>
                   )}
                 </div>
@@ -1548,7 +1576,7 @@ const MobileProductDetail = () => {
                       Product Reviews ({productReviews.length})
                     </h3>
                     <div className="space-y-4">
-                      {productReviews.slice(0, 3).map((review) => (
+                      {(showAllReviews ? productReviews : productReviews.slice(0, 3)).map((review) => (
                         <div
                           key={review.id}
                           className="bg-white border border-gray-150 rounded-2xl p-5 shadow-sm space-y-3"
@@ -1612,6 +1640,16 @@ const MobileProductDetail = () => {
                         </div>
                       ))}
                     </div>
+                    {productReviews.length > 3 && (
+                      <button
+                        type="button"
+                        onClick={() => setShowAllReviews((v) => !v)}
+                        className="mt-4 w-full py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                        data-testid="toggle-all-reviews"
+                      >
+                        {showAllReviews ? "Show fewer reviews" : `See all ${productReviews.length} reviews`}
+                      </button>
+                    )}
                   </div>
                 )}
           </div>

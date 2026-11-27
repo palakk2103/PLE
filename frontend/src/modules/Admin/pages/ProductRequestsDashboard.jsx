@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { FiSearch, FiLayers, FiAlertCircle, FiCheckCircle, FiXCircle, FiTrendingUp, FiSettings, FiEdit, FiTrash2, FiActivity, FiUser, FiInfo, FiSend, FiEye, FiMaximize2, FiMail, FiPhone, FiCalendar, FiPackage, FiDollarSign, FiX, FiMessageSquare, FiLock } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
@@ -7,7 +8,9 @@ import api from "../../../shared/utils/api";
 const ProductRequestsDashboard = () => {
   const [requests, setRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchParams] = useSearchParams();
+  // ?search=REQ-123456 (used by links from the vendor Monitoring tab)
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [filterType, setFilterType] = useState("All"); // All, General, PLE Shop
   
   // Status modification state

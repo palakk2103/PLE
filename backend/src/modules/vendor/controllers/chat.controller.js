@@ -15,6 +15,7 @@ import ChatTransactionProposal from '../../../models/ChatTransactionProposal.mod
 import { decryptMessage } from '../../../utils/chatEncryption.util.js';
 import { normalizeReportReason } from '../../../utils/chatReport.util.js';
 import { assertTextLength } from '../../../utils/chatLimits.js';
+import { resolveProductGST } from '../../../utils/gstUtils.js';
 import { receiptFields, stampDeliveryOnSend, markDeliveredFor, markSeenFor } from '../../../services/chatReceipts.service.js';
 
 const buildThreadSeedFromOrder = (order) => {
@@ -541,7 +542,10 @@ export const createVendorProposal = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'Please select the product this offer is for.');
     }
     const { default: ProductModel } = await import('../../../models/Product.model.js');
-    const ownProduct = await ProductModel.findOne({ _id: productId, vendorId: req.user.id }).select('name').lean();
+    const ownProduct = await ProductModel.findOne({ _id: productId, vendorId: req.user.id })
+        .select('name gstMode gstRate taxRate categoryId variants')
+        .populate('categoryId', 'gstRate parentId')
+        .lean();
     if (!ownProduct) {
         throw new ApiError(400, 'You can only make an offer for one of your own products.');
     }
@@ -566,7 +570,6 @@ export const createVendorProposal = asyncHandler(async (req, res) => {
     const parsedQty = Math.max(1, parseInt(quantity, 10) || 1);
     const parsedUnitPrice = Number(unitPrice);
     const parsedDiscount = Math.max(0, Number(discount) || 0);
-    const parsedTax = Math.max(0, Number(tax) || 0);
     const parsedDelivery = Math.max(0, Number(deliveryCharge) || 0);
 
     const priceValidation = validateMonetaryOffer(parsedUnitPrice);
@@ -575,6 +578,18 @@ export const createVendorProposal = asyncHandler(async (req, res) => {
     }
 
     const agreedAmount = Math.round(parsedQty * parsedUnitPrice * 100) / 100;
+
+    // A discount larger than the goods value would make the taxable value (and the invoice) negative.
+    if (parsedDiscount > agreedAmount) {
+        throw new ApiError(400, `Discount (₹${parsedDiscount}) cannot be more than the product amount (₹${agreedAmount}).`);
+    }
+
+    // GST is worked out from the product's real GST rate, not typed in by hand, so the offer,
+    // the order and the invoice always agree. The negotiated price is exclusive of GST.
+    const vendorForGst = await Vendor.findById(req.user.id).select('categoryGstRates').lean();
+    const gstRate = resolveProductGST(ownProduct, ownProduct.categoryId, vendorForGst);
+    const parsedTax = Math.round((agreedAmount - parsedDiscount) * gstRate) / 100;
+
     const finalAmount = Math.round((agreedAmount - parsedDiscount + parsedTax + parsedDelivery) * 100) / 100;
 
     if (finalAmount <= 0) {
@@ -622,6 +637,7 @@ export const createVendorProposal = asyncHandler(async (req, res) => {
         agreedAmount,
         discount: parsedDiscount,
         tax: parsedTax,
+        gstRate,
         deliveryCharge: parsedDelivery,
         finalAmount,
         status: 'pending_customer_confirmation',

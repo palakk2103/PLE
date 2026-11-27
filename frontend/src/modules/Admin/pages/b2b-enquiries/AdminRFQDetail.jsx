@@ -68,7 +68,8 @@ const AdminRFQDetail = () => {
       setLoading(true);
       const [rfqRes, vendorRes] = await Promise.all([
         api.get(`/admin/rfq/${id}`),
-        api.get('/admin/vendors')
+        // Only approved vendors can be invited; the default page size (20) hid everyone else.
+        api.get('/admin/vendors', { params: { status: 'approved', limit: 500 } })
       ]);
 
       if (rfqRes && rfqRes.data) {

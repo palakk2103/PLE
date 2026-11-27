@@ -1,3 +1,4 @@
+import { isB2BRole, resolveB2BUnitPrice } from '../utils/b2bPricing.js';
 import { Router } from 'express';
 import mongoose from 'mongoose';
 import asyncHandler from '../utils/asyncHandler.js';
@@ -19,8 +20,6 @@ import PortfolioPage from '../models/PortfolioPage.model.js';
 import { getPortfolioPage } from '../modules/admin/controllers/cms.controller.js';
 
 import ManagedShop from '../models/ManagedShop.model.js';
-import ManagedVendorUser from '../models/ManagedVendorUser.model.js';
-import Admin from '../models/Admin.model.js';
 import Wallet from '../models/Wallet.model.js';
 import User from '../models/User.model.js';
 import { optionalAuth } from '../middlewares/authenticate.js';
@@ -37,57 +36,8 @@ import { resolveSellerState, resolveBuyerState, determineSupplyType } from '../u
 
 const router = Router();
 
-router.get('/setup-test-data', asyncHandler(async (req, res) => {
-    let admin = await Admin.findOne({ isActive: true });
-    if (!admin) {
-        admin = await Admin.create({
-            name: "Test Admin",
-            email: "admin@test.com",
-            password: "password123",
-            role: "admin",
-            isActive: true
-        });
-    }
-
-    let shop = await ManagedShop.findOne({ name: "Anita Mega Mart" });
-    if (!shop) {
-        shop = await ManagedShop.create({
-            name: "Anita Mega Mart",
-            logo: "https://via.placeholder.com/150",
-            address: "123 Mart Street",
-            phone: "9876543210",
-            gst: "27AAAAA1111A1Z1",
-            warehouse: "Mumbai Warehouse",
-            status: "active",
-            description: "Managed Superstore"
-        });
-    }
-
-    let vendorUser = await ManagedVendorUser.findOne({ username: "rahul" });
-    if (!vendorUser) {
-        vendorUser = await ManagedVendorUser.create({
-            name: "Rahul Kumar",
-            phone: "9999999999",
-            username: "rahul",
-            password: "password123",
-            role: "managed_vendor",
-            shopId: shop._id,
-            createdBy: admin._id,
-            status: "active"
-        });
-    }
-
-    res.status(200).json(new ApiResponse(200, {
-        shop,
-        vendorUser: {
-            id: vendorUser._id,
-            name: vendorUser.name,
-            username: vendorUser.username,
-            role: vendorUser.role,
-            status: vendorUser.status
-        }
-    }, 'Test data seeded successfully!'));
-}));
+// (A public GET /setup-test-data route used to live here. It created a working vendor login
+// "rahul / password123" for anyone who called it, so it was removed.)
 
 router.get('/loyalty/config', asyncHandler(async (req, res) => {
     const loyaltyService = await import('../services/loyalty.service.js');
@@ -548,6 +498,48 @@ const getProductDetail = asyncHandler(async (req, res) => {
 // GET /api/products/:id
 router.get('/products/:id', getProductDetail);
 
+// GET /api/products/:id/delivery-check?pincode=560001
+// Real delivery check for the product page: the same courier/zone logic checkout uses, so what the
+// customer sees here matches what checkout will charge (replaces the old simulated "speed check").
+const deliveryCheckLimiter = rateLimit({ windowMs: 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
+router.get('/products/:id/delivery-check', deliveryCheckLimiter, asyncHandler(async (req, res) => {
+    const pincode = String(req.query.pincode || '').trim();
+    if (!/^\d{6}$/.test(pincode)) throw new ApiError(400, 'Enter a valid 6-digit pincode.');
+    if (!mongoose.isValidObjectId(req.params.id)) throw new ApiError(404, 'Product not found.');
+
+    const product = await Product.findOne({ _id: req.params.id, isActive: { $ne: false } })
+        .select('vendorId shopId price weight packageWeight')
+        .lean();
+    if (!product) throw new ApiError(404, 'Product not found.');
+
+    const sellerId = String(product.shopId || product.vendorId || '');
+    const quantity = Math.max(1, Math.min(1000, parseInt(req.query.quantity, 10) || 1));
+    const { isServiceable, isCodAvailable, shippingByVendor, courierInfo } = await calculateVendorShippingForGroups({
+        vendorGroups: [{
+            vendorId: sellerId,
+            subtotal: Number(product.price || 0) * quantity,
+            items: [{ quantity, weight: product.weight || product.packageWeight }],
+        }],
+        shippingAddress: { zipCode: pincode, country: 'India' },
+        shippingOption: 'standard',
+        paymentMethod: 'cod', // asks the courier about COD as well, so we can say whether it is available
+    });
+
+    const courier = courierInfo?.[sellerId] || null;
+    const etdDays = Number(courier?.estimated_delivery_days || courier?.estimatedDeliveryDays);
+    res.status(200).json(new ApiResponse(200, {
+        pincode,
+        serviceable: isServiceable !== false,
+        codAvailable: isCodAvailable !== false,
+        shippingCharge: Number(shippingByVendor?.[sellerId] || 0),
+        estimatedDelivery: courier?.etd
+            || (Number.isFinite(etdDays) && etdDays > 0 ? `${etdDays} day${etdDays === 1 ? '' : 's'}` : null)
+            || courier?.estimatedDays
+            || '3–5 business days',
+        courierName: courier?.courier_name || courier?.courierName || null,
+    }, isServiceable === false ? 'Delivery not available to this pincode.' : 'Delivery available.'));
+}));
+
 // GET /api/categories (public)
 const getPublicCategoriesList = asyncHandler(async (req, res) => {
     const categories = await Category.find({
@@ -821,7 +813,7 @@ router.get('/coupons/available', optionalAuth, asyncHandler(async (req, res) => 
 }));
 
 // POST /api/shipping/estimate
-router.post('/shipping/estimate', asyncHandler(async (req, res) => {
+router.post('/shipping/estimate', optionalAuth, asyncHandler(async (req, res) => {
     const items = Array.isArray(req.body?.items) ? req.body.items : [];
     const shippingAddress = req.body?.shippingAddress || {};
     const shippingOption = String(req.body?.shippingOption || 'standard');
@@ -860,7 +852,7 @@ router.post('/shipping/estimate', asyncHandler(async (req, res) => {
     const products = await Product.find({ _id: { $in: productIds }, isActive: true, ...publicApprovalFilter() })
         .populate('vendorId', 'shippingEnabled defaultShippingRate freeShippingThreshold pincode address gstNumber documents.gst b2bSellingGstNumber b2bSellingState state businessAddress')
         .populate('shopId', 'name logo warehouse address gst')
-        .select('_id vendorId shopId price variants.prices')
+        .select('_id vendorId shopId price variants.prices b2bEnabled b2bWholesalePrice b2bBulkPricingSlabs')
         .lean();
 
     const productMap = new Map(products.map((product) => [String(product._id), product]));
@@ -876,7 +868,9 @@ router.post('/shipping/estimate', asyncHandler(async (req, res) => {
 
         const vendorId = String(vendorIdObj);
         const quantity = Math.max(1, Number(item?.quantity || 1));
-        const price = Math.max(0, Number(resolveVariantPrice(product, item?.variant) || 0));
+        const normalPrice = Math.max(0, Number(resolveVariantPrice(product, item?.variant) || 0));
+        // Business buyers pay the B2B price at checkout, so the estimate (free-shipping thresholds) must use it too.
+        const price = isB2BRole(req.user?.role) ? resolveB2BUnitPrice(product, normalPrice, quantity) : normalPrice;
         const subtotal = price * quantity;
 
         if (!vendorMap[vendorId]) {

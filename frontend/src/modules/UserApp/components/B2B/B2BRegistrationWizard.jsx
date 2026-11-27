@@ -550,6 +550,10 @@ const B2BRegistrationWizard = () => {
     }
     try { localStorage.removeItem(SESSION_KEY); } catch { /* ignore */ }
     toast.success('Company Registration Successful!');
+    const skipped = useB2BAdminStore.getState().lastRegistrationSkippedEmployees || [];
+    if (skipped.length) {
+      toast.error(`${skipped.length} employee(s) could not be added: ${skipped.map((e) => `${e.email} (${e.reason})`).join('; ')}. You can add them later from Employee Management.`, { duration: 10000 });
+    }
     try {
       const loginResult = await loginB2B({ businessEmail: form.adminEmail, password: form.password });
       if (loginResult?.success || loginResult === true) {
@@ -564,6 +568,8 @@ const B2BRegistrationWizard = () => {
         navigate('/home', { replace: true });
         return;
       }
+      // Normal case right after registering: the company is waiting for approval.
+      if (loginResult?.error) toast(loginResult.error, { icon: 'ℹ️', duration: 8000 });
     } catch (loginErr) {
       console.error('Auto login after B2B registration failed:', loginErr);
     }

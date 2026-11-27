@@ -573,9 +573,9 @@ export const openVendorWindow = asyncHandler(async (req, res) => {
     });
 
     // Notify all approved vendors
-    const eligibleVendors = await Vendor.find({ status: 'approved' }).select('_id');
-    for (const vendor of eligibleVendors) {
-        await Notification.create({
+    // One bulk insert instead of one awaited write per vendor (was slow enough to time out with many vendors).
+    const eligibleVendors = await Vendor.find({ status: 'approved' }).select('_id').lean();
+    await Notification.insertMany(eligibleVendors.map((vendor) => ({
             recipientId: vendor._id,
             recipientType: 'vendor',
             type: 'system',
@@ -587,8 +587,7 @@ export const openVendorWindow = asyncHandler(async (req, res) => {
                 requestId: request.requestId,
                 windowExpiresAt: expiresAt.toISOString()
             }
-        });
-    }
+    })), { ordered: false });
 
     res.status(200).json(
         new ApiResponse(200, request, 'Vendor window opened successfully')

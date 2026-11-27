@@ -508,7 +508,7 @@ const Chat = () => {
                             {chat.productRequestId ? (
                               <span className="text-indigo-600 font-semibold">📦 Req: {chat.productRequestId}</span>
                             ) : chat.productName ? (
-                              <span className="text-primary-700 font-semibold">🛍️ Enquiry: {chat.productName}</span>
+                              <span className="text-primary-700 font-semibold">🛍️ Enquiry: {chat.productName}{chat.productVariant ? ` (${chat.productVariant})` : ""}</span>
                             ) : chat.orderDisplayId ? (
                               `Order: ${chat.orderDisplayId}`
                             ) : (
@@ -569,7 +569,7 @@ const Chat = () => {
                         {selectedChat.productRequestId ? (
                           <span className="text-indigo-600 font-semibold">📦 Source Now: {selectedChat.productRequestId}</span>
                         ) : selectedChat.productName ? (
-                          <span className="text-primary-700 font-semibold">🛍️ Enquiry about {selectedChat.productName}</span>
+                          <span className="text-primary-700 font-semibold">🛍️ Enquiry about {selectedChat.productName}{selectedChat.productVariant ? ` — ${selectedChat.productVariant}` : ""}</span>
                         ) : selectedChat.orderDisplayId ? (
                           `Order: ${selectedChat.orderDisplayId}`
                         ) : (
@@ -796,6 +796,7 @@ const Chat = () => {
             <TransactionBox
               proposal={proposal}
               isVendor={true}
+              defaultVariant={selectedChat?.productVariant || ""}
               onPropose={handleCreateProposal}
               onCancel={handleCancelProposal}
               isSubmitting={submittingAction}
@@ -904,6 +905,7 @@ const Chat = () => {
               <TransactionBox
                 proposal={proposal}
                 isVendor={true}
+                defaultVariant={selectedChat?.productVariant || ""}
                 onPropose={handleCreateProposal}
                 onCancel={handleCancelProposal}
                 isSubmitting={submittingAction}

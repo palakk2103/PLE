@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
@@ -167,16 +168,21 @@ export const createRFQ = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'Target price must be a positive number.');
     }
 
+    if (productId && !mongoose.isValidObjectId(productId)) {
+        throw new ApiError(400, 'Selected product is not valid. Please choose it again.');
+    }
     let productName = customProductName || 'Custom Product';
     if (productId) {
         const product = await Product.findById(productId);
-        if (product) productName = product.name;
+        if (!product) throw new ApiError(404, 'Selected product was not found.');
+        productName = product.name;
     }
 
     const initialStatus = status === 'Submitted' ? 'Submitted' : 'Draft';
 
     const rfqVal = {
         rfqId: generateRfqId(),
+        title: String(title || '').trim().slice(0, 200) || undefined,
         companyId,
         companyName: company.companyName,
         productId: productId || undefined,
@@ -266,6 +272,9 @@ export const updateRFQ = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'Target price must be a positive number.');
     }
 
+    if (productId && !mongoose.isValidObjectId(productId)) {
+        throw new ApiError(400, 'Selected product is not valid. Please choose it again.');
+    }
     let productName = customProductName || rfq.customProductName;
     if (productId && productId !== String(rfq.productId)) {
         const product = await Product.findById(productId);
@@ -282,6 +291,7 @@ export const updateRFQ = asyncHandler(async (req, res) => {
     rfq.expectedDeliveryDate = expectedDeliveryDate || rfq.expectedDeliveryDate;
     rfq.attachment = attachment || rfq.attachment;
     rfq.priority = priority || rfq.priority;
+    if (title !== undefined) rfq.title = String(title || '').trim().slice(0, 200) || rfq.title;
     rfq.category = category || rfq.category;
 
     await rfq.save();

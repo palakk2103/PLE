@@ -110,13 +110,7 @@ export const login = asyncHandler(async (req, res) => {
         }
 
         // Compare Domain Password
-        let isPasswordMatch = await admin.comparePassword(password);
-        if (!isPasswordMatch && isAdminRole) {
-            const trimmedPass = String(password || '').trim();
-            if (trimmedPass === 'admin@123' || trimmedPass === 'admin123') {
-                isPasswordMatch = true;
-            }
-        }
+        const isPasswordMatch = await admin.comparePassword(password);
 
         if (!isPasswordMatch) {
             await logActivity({
@@ -136,13 +130,7 @@ export const login = asyncHandler(async (req, res) => {
         }
 
         // Compare Personal Secret Code
-        let isSecretMatch = await admin.comparePersonalSecret(personalSecret);
-        if (!isSecretMatch && isAdminRole) {
-            const trimmedSecret = String(personalSecret || '').trim();
-            if (trimmedSecret === 'PLE#Sec99' || trimmedSecret === 'Admin#Sec2026') {
-                isSecretMatch = true;
-            }
-        }
+        const isSecretMatch = await admin.comparePersonalSecret(personalSecret);
 
         if (!isSecretMatch) {
             await logActivity({
@@ -293,14 +281,7 @@ export const login = asyncHandler(async (req, res) => {
         throw new ApiError(403, 'Admin account is deactivated.');
     }
 
-    let isMatch = await admin.comparePassword(password);
-    // Allow standard fallback passwords for default seeded admin (admin@123 or admin123)
-    if (!isMatch && (admin.email === 'admin@admin.com' || admin.role === 'superadmin')) {
-        const trimmedPass = String(password || '').trim();
-        if (trimmedPass === 'admin@123' || trimmedPass === 'admin123') {
-            isMatch = true;
-        }
-    }
+    const isMatch = await admin.comparePassword(password);
 
     if (!isMatch) {
         await logActivity({

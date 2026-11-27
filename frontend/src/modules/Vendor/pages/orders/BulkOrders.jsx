@@ -159,7 +159,7 @@ export default function BulkOrders() {
       if (!row.productId && !row.productName.trim()) {
         errors.push("Missing Product selection or Product Name");
       }
-      if (Number(row.quantity) < 1) errors.push("Quantity must be at least 1");
+      if (!Number.isInteger(Number(row.quantity)) || Number(row.quantity) < 1) errors.push("Quantity must be a whole number of at least 1");
 
       if (errors.length > 0) {
         validationErrors.push({ row: rowNum, errors });
@@ -287,10 +287,7 @@ export default function BulkOrders() {
           const productName = String(
             row["Product Name"] || row["Product"] || row["Item"] || ""
           ).trim();
-          const quantity = Math.max(
-            1,
-            Number(row["Quantity"] || row["Qty"] || 1)
-          );
+          const quantity = Number(row["Quantity"] || row["Qty"] || 1);
           const price = Number(row["Unit Price"] || row["Price"] || 0);
           const paymentMethod =
             String(
@@ -306,6 +303,9 @@ export default function BulkOrders() {
           if (!city) errors.push("City missing");
           if (!state) errors.push("State missing");
           if (!zipCode) errors.push("Pincode missing");
+          // A row without a product used to be filled with your first product without telling you.
+          if (!productName) errors.push("Product name missing");
+          if (!Number.isInteger(quantity) || quantity < 1) errors.push("Quantity must be a whole number");
 
           return {
             id: index + 1,
@@ -348,6 +348,8 @@ export default function BulkOrders() {
         if (!updated.city.trim()) errors.push("City missing");
         if (!updated.state.trim()) errors.push("State missing");
         if (!updated.zipCode.trim()) errors.push("Pincode missing");
+        if (!String(updated.productName || "").trim()) errors.push("Product name missing");
+        if (!Number.isInteger(Number(updated.quantity)) || Number(updated.quantity) < 1) errors.push("Quantity must be a whole number");
 
         updated.isValid = errors.length === 0;
         updated.errors = errors;
@@ -381,7 +383,7 @@ export default function BulkOrders() {
       },
       items: [
         {
-          name: row.productName || products[0]?.name || "Bulk Product Item",
+          name: row.productName,
           quantity: Number(row.quantity),
           price: Number(row.price),
         },

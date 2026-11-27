@@ -19,9 +19,13 @@ import {
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 
+const inr = (n) =>
+  Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 export const TransactionBox = ({
   proposal,
   isVendor = false,
+  defaultVariant = "",
   onPropose,
   onCancel,
   onAccept,
@@ -60,7 +64,6 @@ export const TransactionBox = ({
   const [formQty, setFormQty] = useState(1);
   const [formUnitPrice, setFormUnitPrice] = useState("");
   const [formDiscount, setFormDiscount] = useState("");
-  const [formTax, setFormTax] = useState("");
   const [formDelivery, setFormDelivery] = useState("");
   const [formNotes, setFormNotes] = useState("");
 
@@ -72,17 +75,15 @@ export const TransactionBox = ({
       setFormQty(proposal.quantity || 1);
       setFormUnitPrice(proposal.unitPrice || "");
       setFormDiscount(proposal.discount || "");
-      setFormTax(proposal.tax || "");
       setFormDelivery(proposal.deliveryCharge || "");
       setFormNotes(proposal.notes || "");
     } else {
       setFormProductId("");
       setFormName("");
-      setFormVariant("");
+      setFormVariant(defaultVariant || "");
       setFormQty(1);
       setFormUnitPrice("");
       setFormDiscount("");
-      setFormTax("");
       setFormDelivery("");
       setFormNotes("");
     }
@@ -92,6 +93,7 @@ export const TransactionBox = ({
   const handleProposeSubmit = (e) => {
     e.preventDefault();
     if (!formProductId || !formName.trim() || !formUnitPrice || Number(formUnitPrice) <= 0) return;
+    if (Number(formDiscount || 0) > Math.round(Number(formQty || 1) * Number(formUnitPrice || 0) * 100) / 100) return;
 
     if (onPropose) {
       onPropose({
@@ -101,7 +103,6 @@ export const TransactionBox = ({
         quantity: Math.max(1, parseInt(formQty, 10) || 1),
         unitPrice: Math.max(0, parseFloat(formUnitPrice) || 0),
         discount: Math.max(0, parseFloat(formDiscount) || 0),
-        tax: Math.max(0, parseFloat(formTax) || 0),
         deliveryCharge: Math.max(0, parseFloat(formDelivery) || 0),
         notes: formNotes.trim(),
       });
@@ -163,9 +164,18 @@ export const TransactionBox = ({
   };
 
   const calculatedSubtotal = Math.round((Number(formQty || 1) * Number(formUnitPrice || 0)) * 100) / 100;
+  // GST is calculated by the server from the product's GST rate; this is the same sum as a preview.
+  const pickedProduct = vendorProducts.find((pr) => String(pr._id || pr.id) === String(formProductId));
+  const previewGstRate = Number.isFinite(Number(pickedProduct?.gstRate ?? pickedProduct?.taxRate))
+    ? Number(pickedProduct?.gstRate ?? pickedProduct?.taxRate)
+    : 18;
+  const discountTooHigh = Number(formDiscount || 0) > calculatedSubtotal;
+  const calculatedTax = discountTooHigh
+    ? 0
+    : Math.round((calculatedSubtotal - Number(formDiscount || 0)) * previewGstRate) / 100;
   const calculatedTotal =
     Math.round(
-      (calculatedSubtotal - Number(formDiscount || 0) + Number(formTax || 0) + Number(formDelivery || 0)) * 100
+      (calculatedSubtotal - Number(formDiscount || 0) + calculatedTax + Number(formDelivery || 0)) * 100
     ) / 100;
 
   return (
@@ -234,7 +244,7 @@ export const TransactionBox = ({
                 </div>
                 <div className="text-right flex-shrink-0">
                   <span className="text-xs font-bold text-white">
-                    ₹{proposal.unitPrice.toLocaleString("en-IN")}
+                    ₹{inr(proposal.unitPrice)}
                   </span>
                   <span className="text-[10px] text-zinc-400 block">per unit</span>
                 </div>
@@ -251,22 +261,22 @@ export const TransactionBox = ({
               <div className="flex justify-between text-zinc-400">
                 <span>Agreed Subtotal:</span>
                 <span className="font-medium text-zinc-200">
-                  ₹{proposal.agreedAmount.toLocaleString("en-IN")}
+                  ₹{inr(proposal.agreedAmount)}
                 </span>
               </div>
 
               {proposal.discount > 0 && (
                 <div className="flex justify-between text-emerald-400">
                   <span>Special Discount:</span>
-                  <span>-₹{proposal.discount.toLocaleString("en-IN")}</span>
+                  <span>-₹{inr(proposal.discount)}</span>
                 </div>
               )}
 
               {proposal.tax > 0 && (
                 <div className="flex justify-between text-zinc-400">
-                  <span>GST / Taxes:</span>
+                  <span>GST{proposal.gstRate != null ? ` (${proposal.gstRate}%)` : " / Taxes"}:</span>
                   <span className="text-zinc-300">
-                    +₹{proposal.tax.toLocaleString("en-IN")}
+                    +₹{inr(proposal.tax)}
                   </span>
                 </div>
               )}
@@ -275,7 +285,7 @@ export const TransactionBox = ({
                 <div className="flex justify-between text-zinc-400">
                   <span>Delivery Charges:</span>
                   <span className="text-zinc-300">
-                    +₹{proposal.deliveryCharge.toLocaleString("en-IN")}
+                    +₹{inr(proposal.deliveryCharge)}
                   </span>
                 </div>
               )}
@@ -283,7 +293,7 @@ export const TransactionBox = ({
               <div className="pt-2 border-t border-zinc-800 flex justify-between items-center text-sm">
                 <span className="font-bold text-white">Agreed Total:</span>
                 <span className="text-base font-extrabold text-amber-400">
-                  ₹{proposal.finalAmount.toLocaleString("en-IN")}
+                  ₹{inr(proposal.finalAmount)}
                 </span>
               </div>
             </div>
@@ -548,17 +558,15 @@ export const TransactionBox = ({
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
-                      Tax / GST (₹)
+                      GST ({previewGstRate}%)
                     </label>
-                    <input
-                      type="number"
-                      min={0}
-                      step="any"
-                      value={formTax}
-                      onChange={(e) => setFormTax(e.target.value)}
-                      placeholder="0.00"
-                      className="w-full bg-[#12141C] border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-red-500"
-                    />
+                    <div
+                      className="w-full bg-[#0E1016] border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-300"
+                      title="Calculated automatically from the product's GST rate"
+                    >
+                      ₹{calculatedTax.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </div>
+                    <p className="text-[10px] text-zinc-500 mt-1">Auto-calculated from the product's GST rate.</p>
                   </div>
                   <div>
                     <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
@@ -589,11 +597,17 @@ export const TransactionBox = ({
                   />
                 </div>
 
+                {discountTooHigh && (
+                  <p className="text-[11px] text-rose-400">
+                    Discount cannot be more than the product amount (₹{calculatedSubtotal.toLocaleString("en-IN")}).
+                  </p>
+                )}
+
                 {/* Calculation summary */}
                 <div className="p-3 bg-[#12141C] rounded-xl border border-zinc-800 text-xs flex justify-between items-center">
                   <span className="text-zinc-400">Calculated Final Amount:</span>
                   <span className="text-base font-extrabold text-amber-400">
-                    ₹{calculatedTotal > 0 ? calculatedTotal.toLocaleString("en-IN") : "0.00"}
+                    ₹{inr(Math.max(0, calculatedTotal))}
                   </span>
                 </div>
 
@@ -607,7 +621,7 @@ export const TransactionBox = ({
                   </button>
                   <button
                     type="submit"
-                    disabled={isSubmitting || calculatedTotal <= 0}
+                    disabled={isSubmitting || calculatedTotal <= 0 || discountTooHigh}
                     className="flex-1 py-2 rounded-xl text-xs font-bold bg-[#7B0A0A] hover:bg-[#AE020B] text-white shadow-md disabled:opacity-50"
                   >
                     Send Proposal

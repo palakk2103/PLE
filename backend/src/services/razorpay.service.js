@@ -62,3 +62,13 @@ export const fetchRazorpayPayment = async (paymentId) => {
         return null;
     }
 };
+
+/** Fetch an order (amount, amount_paid, status, notes). Throws ApiError(502) if the gateway can't be reached. */
+export const fetchRazorpayOrder = async (orderId) => {
+    try {
+        return await getClient().orders.fetch(orderId);
+    } catch (err) {
+        console.error('Failed to fetch order from Razorpay:', err?.error?.description || err?.message || err);
+        throw new ApiError(502, 'Could not confirm the payment with the gateway. Please try again.');
+    }
+};

@@ -49,7 +49,8 @@ router.post('/auth/2fa/resend', twoFactorController.resendLogin2FAOtp);
 
 // Auth routes
 router.post('/auth/register', authLimiter, validate(registerSchema), authController.register);
-router.post('/auth/register-b2b', uploadDocumentSingle('gstCertificate'), authController.registerB2B);
+// Legacy (the web app uses /b2b-user/auth/register). Rate-limited: it accepts a public file upload.
+router.post('/auth/register-b2b', authLimiter, uploadDocumentSingle('gstCertificate'), authController.registerB2B);
 router.post('/auth/verify-otp', validate(otpSchema), authController.verifyOTP);
 router.post('/auth/resend-otp', otpLimiter, validate(resendOtpSchema), authController.resendOTP);
 router.post('/auth/forgot-password', authLimiter, validate(forgotPasswordSchema), authController.forgotPassword);

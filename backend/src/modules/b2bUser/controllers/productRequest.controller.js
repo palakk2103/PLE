@@ -11,6 +11,9 @@ import Product from '../../../models/Product.model.js';
 import Order from '../../../models/Order.model.js';
 import Address from '../../../models/Address.model.js';
 import { User } from '../../../models/User.model.js';
+import VendorChatThread from '../../../models/VendorChatThread.model.js';
+import VendorChatMessage from '../../../models/VendorChatMessage.model.js';
+import { getIO } from '../../../config/socket.js';
 import { generateOrderId } from '../../../utils/generateOrderId.js';
 import {
     resolveProductGST,
@@ -85,7 +88,7 @@ export const createProductRequest = asyncHandler(async (req, res) => {
             if (!vendor) {
                 throw new ApiError(404, 'Selected vendor was not found.');
             }
-            if (vendor.status !== 'approved' && vendor.status !== 'pending') {
+            if (vendor.status !== 'approved') {
                 throw new ApiError(400, 'Selected vendor is not active.');
             }
         } else {
@@ -99,8 +102,12 @@ export const createProductRequest = asyncHandler(async (req, res) => {
         }
     }
 
+    // REQ- ids are random 6 digits: make sure we do not hit an existing one (unique index -> 500).
+    let requestId = generateRequestId();
+    for (let i = 0; i < 5 && await ProductRequest.exists({ requestId }); i++) requestId = generateRequestId();
+
     const request = await ProductRequest.create({
-        requestId: generateRequestId(),
+        requestId,
         userId,
         productName,
         category,
@@ -141,7 +148,7 @@ export const createProductRequest = asyncHandler(async (req, res) => {
     if (isShopSpecific) {
         if (targetEntityType === 'Vendor') {
             await Notification.create({
-                recipientId: targetEntityId,
+                recipientId: finalTargetId,
                 recipientType: 'vendor',
                 type: 'system',
                 title: 'New Store Product Request',
@@ -154,11 +161,11 @@ export const createProductRequest = asyncHandler(async (req, res) => {
 
             // Dispatch Vendor New Sourcing Request Email (Item 205)
             sendVendorNewSourcingRequestEmail({
-                vendor: targetEntityId,
+                vendor: finalTargetId,
                 request
             }).catch(err => console.warn(`[VendorSourcingRequestEmail] Failed: ${err.message}`));
         } else if (targetEntityType === 'ManagedShop') {
-            const managedUsers = await ManagedVendorUser.find({ shopId: targetEntityId });
+            const managedUsers = await ManagedVendorUser.find({ shopId: finalTargetId });
             for (const mUser of managedUsers) {
                 await Notification.create({
                     recipientId: mUser._id,
@@ -234,7 +241,7 @@ export const getProductRequestById = asyncHandler(async (req, res) => {
         queryConditions.push({ _id: idParam });
     }
 
-    const isAdmin = req.user.role === 'admin' || req.user.role === 'super_admin';
+    const isAdmin = ['admin', 'superadmin', 'account_team'].includes(req.user.role);
     const filter = {
         $or: queryConditions,
         ...(isAdmin ? {} : { userId })
@@ -612,8 +619,16 @@ export const requestChanges = asyncHandler(async (req, res) => {
         throw new ApiError(403, 'You do not own this product request.');
     }
 
-    if (!['Quotation Submitted', 'Vendor Accepted'].includes(request.status)) {
-        throw new ApiError(400, 'Cannot request changes at this stage.');
+    // 'Negotiation' is allowed too: a buyer may add to their request before the vendor replies
+    // (previously a second request returned Error 400).
+    if (!['Quotation Submitted', 'Vendor Accepted', 'Negotiation'].includes(request.status)) {
+        throw new ApiError(400, `Changes can only be requested while a vendor quotation is open (current status: ${request.status}).`);
+    }
+    if (!request.acceptedVendorId) {
+        throw new ApiError(400, 'No vendor is working on this request yet, so there is no quotation to negotiate.');
+    }
+    if (desiredPrice !== undefined && desiredPrice !== null && desiredPrice !== '' && !(Number(desiredPrice) > 0)) {
+        throw new ApiError(400, 'Desired price must be a positive amount.');
     }
 
     // Mark latest quotation as negotiation requested
@@ -653,6 +668,25 @@ export const requestChanges = asyncHandler(async (req, res) => {
         message: `The customer has requested changes on the quotation for "${request.productName}": ${message}`,
         data: { relatedId: request._id.toString(), onModel: 'ProductRequest', requestId: request.requestId }
     });
+
+    // Also put it in the vendor's chat for this request, so it is not only a bell notification.
+    if (request.chatThreadId) {
+        try {
+            const thread = await VendorChatThread.findById(request.chatThreadId);
+            if (thread) {
+                const note = await VendorChatMessage.create({
+                    threadId: thread._id, senderType: 'system', senderId: null,
+                    message: `[Change Requested] ${changeDetail}`,
+                });
+                thread.lastActivity = new Date();
+                thread.lastMessage = '[Change Requested]';
+                await thread.save();
+                getIO().to(`chat_${thread._id}`).emit('new_message', { id: note._id, sender: 'system', message: note.message, time: note.createdAt });
+            }
+        } catch (chatErr) {
+            console.warn('Could not post change request to chat:', chatErr.message);
+        }
+    }
 
     res.status(200).json(
         new ApiResponse(200, request, 'Change request submitted to vendor.')

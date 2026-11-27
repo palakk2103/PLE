@@ -1,3 +1,4 @@
+import { isB2BRole, resolveB2BUnitPrice } from '../../../utils/b2bPricing.js';
 import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
@@ -341,19 +342,9 @@ export const placeOrder = asyncHandler(async (req, res) => {
         // Always trust server-side product pricing; never trust client-sent item.price.
         let { price: itemPrice, variantKey, hasVariantAxes } = resolveVariantSelection(product, item.variant);
 
-        // Apply B2B Pricing if applicable
-        const isB2BUser = req.user?.role === 'b2bAdmin' || req.user?.role === 'b2bEmployee';
-        if (isB2BUser && product.b2bEnabled) {
-            let b2bPrice = product.b2bWholesalePrice || itemPrice;
-            if (product.b2bBulkPricingSlabs && product.b2bBulkPricingSlabs.length > 0) {
-                const slab = product.b2bBulkPricingSlabs.find(
-                    s => item.quantity >= s.minQty && (!s.maxQty || item.quantity <= s.maxQty)
-                );
-                if (slab && slab.pricePerUnit) {
-                    b2bPrice = slab.pricePerUnit;
-                }
-            }
-            itemPrice = b2bPrice;
+        // B2B pricing (wholesale price / bulk slab) — same rule as the storefront, see utils/b2bPricing.js
+        if (isB2BRole(req.user?.role)) {
+            itemPrice = resolveB2BUnitPrice(product, itemPrice, item.quantity);
         }
         // Negotiated offer: the agreed price per unit (after the agreed discount) replaces catalogue pricing.
         let proposalNetTotal = null;
@@ -519,6 +510,15 @@ export const placeOrder = asyncHandler(async (req, res) => {
         // Delivery charge is part of the agreed final amount.
         shipping = round2(proposalCtx.deliveryCharge || 0);
         shippingByVendor = { [String(proposalCtx.vendorId)]: shipping };
+    }
+
+    // The courier said nobody delivers to this pincode: don't take an order that cannot be shipped.
+    // (Only an explicit "not serviceable" answer blocks; if the courier service is down we still accept.)
+    if (isServiceable === false) {
+        throw new ApiError(
+            400,
+            `Sorry, we cannot deliver to pincode ${shippingAddress?.zipCode || ''} right now. Please use a different delivery address.`
+        );
     }
 
     const isCodOrder = ['cod', 'cash'].includes(String(normalizedPaymentMethod).toLowerCase());
