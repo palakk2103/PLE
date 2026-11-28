@@ -41,6 +41,7 @@ export const validateV2Registration = ({ companyData = {}, signatoryData = {}, a
     // Step 1 - company
     if (!req(companyData.companyName)) add('companyName', 'Company name is required.');
     if (!req(companyData.businessType)) add('businessType', 'Business type is required.');
+    if (!req(companyData.companyRegistrationNumber)) add('companyRegistrationNumber', 'Company Registration Number is required.');
     if (!isValidEmail(companyData.businessEmail)) add('businessEmail', 'A valid company email is required.');
     if (!isValidMobile(companyData.businessPhone)) add('businessPhone', 'A valid 10-digit company contact number is required.');
 

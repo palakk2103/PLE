@@ -1,3 +1,4 @@
+import { isB2BRole, resolveB2BUnitPrice } from '../../../utils/b2bPricing.js';
 import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
@@ -341,19 +342,9 @@ export const placeOrder = asyncHandler(async (req, res) => {
         // Always trust server-side product pricing; never trust client-sent item.price.
         let { price: itemPrice, variantKey, hasVariantAxes } = resolveVariantSelection(product, item.variant);
 
-        // Apply B2B Pricing if applicable
-        const isB2BUser = req.user?.role === 'b2bAdmin' || req.user?.role === 'b2bEmployee';
-        if (isB2BUser && product.b2bEnabled) {
-            let b2bPrice = product.b2bWholesalePrice || itemPrice;
-            if (product.b2bBulkPricingSlabs && product.b2bBulkPricingSlabs.length > 0) {
-                const slab = product.b2bBulkPricingSlabs.find(
-                    s => item.quantity >= s.minQty && (!s.maxQty || item.quantity <= s.maxQty)
-                );
-                if (slab && slab.pricePerUnit) {
-                    b2bPrice = slab.pricePerUnit;
-                }
-            }
-            itemPrice = b2bPrice;
+        // B2B pricing (wholesale price / bulk slab) — same rule as the storefront, see utils/b2bPricing.js
+        if (isB2BRole(req.user?.role)) {
+            itemPrice = resolveB2BUnitPrice(product, itemPrice, item.quantity);
         }
         // Negotiated offer: the agreed price per unit (after the agreed discount) replaces catalogue pricing.
         let proposalNetTotal = null;
@@ -519,6 +510,15 @@ export const placeOrder = asyncHandler(async (req, res) => {
         // Delivery charge is part of the agreed final amount.
         shipping = round2(proposalCtx.deliveryCharge || 0);
         shippingByVendor = { [String(proposalCtx.vendorId)]: shipping };
+    }
+
+    // The courier said nobody delivers to this pincode: don't take an order that cannot be shipped.
+    // (Only an explicit "not serviceable" answer blocks; if the courier service is down we still accept.)
+    if (isServiceable === false) {
+        throw new ApiError(
+            400,
+            `Sorry, we cannot deliver to pincode ${shippingAddress?.zipCode || ''} right now. Please use a different delivery address.`
+        );
     }
 
     const isCodOrder = ['cod', 'cash'].includes(String(normalizedPaymentMethod).toLowerCase());
@@ -706,6 +706,20 @@ export const placeOrder = asyncHandler(async (req, res) => {
             
             if (finalPaymentMethod === 'mixed' && remainingToPay <= 0) {
                 finalPaymentMethod = 'wallet';
+            }
+            if (walletUsed > 0) {
+                if (remainingToPay <= 0) {
+                    finalPaymentMethod = 'wallet';
+                } else if (finalPaymentMethod === 'cod') {
+                    // Nothing records how much cash would still be due on delivery.
+                    throw new ApiError(400, 'Wallet balance cannot be combined with Cash on Delivery. Pay the remaining amount online, or turn off the wallet.');
+                } else {
+                    // The gateway must only charge what the wallet did not cover.
+                    finalPaymentMethod = 'mixed';
+                }
+            }
+            if (finalPaymentMethod === 'wallet' && remainingToPay > 0) {
+                throw new ApiError(400, 'Wallet amount does not cover the order total.');
             }
 
             if (finalPaymentMethod === 'card' || finalPaymentMethod === 'online' || finalPaymentMethod === 'razorpay' || (finalPaymentMethod === 'mixed' && remainingToPay > 0)) {
@@ -930,7 +944,7 @@ export const placeOrder = asyncHandler(async (req, res) => {
                                 },
                                 status: 'Approved',
                                 paymentStatus: initialPaymentStatus === 'paid' ? 'Paid' : 'Unpaid',
-                                paymentMethod: finalPaymentMethod === 'card' ? 'Card' : (finalPaymentMethod === 'upi' ? 'UPI' : (finalPaymentMethod === 'wallet' ? 'NetBanking' : 'None'))
+                                paymentMethod: finalPaymentMethod === 'card' ? 'Card' : (finalPaymentMethod === 'wallet' ? 'NetBanking' : 'None')
                             }], { session });
                         }
                     }
@@ -1122,6 +1136,90 @@ export const getOrderDetail = asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(200, order, 'Order detail fetched.'));
 });
 
+/**
+ * Cancels an order inside a transaction: marks it cancelled, puts stock back, cancels commissions and
+ * purchase orders, and reverses loyalty points. Shared by buyer cancellation and the job that releases
+ * unpaid online orders, so both follow the same rules. Money refunds happen after the transaction.
+ */
+export const cancelOrderInSession = async (order, { reason, userId, role, session }) => {
+    order.status = 'cancelled';
+    order.cancelledAt = new Date();
+    order.cancellationReason = reason || 'Cancelled by customer';
+    if (Array.isArray(order.vendorItems)) {
+        order.vendorItems = order.vendorItems.map((vendorGroup) => ({
+            ...vendorGroup.toObject(),
+            status: 'cancelled',
+        }));
+    }
+    await order.save({ session });
+
+    // Restore stock and status
+    for (const item of order.items) {
+        const quantity = Number(item.quantity || 0);
+        if (quantity <= 0) continue;
+
+        const productSnapshot = await Product.findById(item.productId)
+            .select('variants.stockMap variants.prices')
+            .session(session)
+            .lean();
+        const variantKey = resolveOrderItemVariantKey(productSnapshot, item);
+
+        const incUpdate = { stockQuantity: quantity };
+        if (variantKey) {
+            incUpdate[`variants.stockMap.${variantKey}`] = quantity;
+        }
+
+        const product = await Product.findByIdAndUpdate(item.productId, { $inc: incUpdate }, { new: true, session });
+        if (!product) continue;
+
+        const nextStockState =
+            product.stockQuantity <= 0
+                ? 'out_of_stock'
+                : (product.stockQuantity <= product.lowStockThreshold ? 'low_stock' : 'in_stock');
+
+        await Product.updateOne(
+            { _id: product._id },
+            { $set: { stock: nextStockState } },
+            { session }
+        );
+    }
+
+    // Reverse vendor earnings visibility for this order.
+    await Commission.updateMany(
+        {
+            orderId: order._id,
+            status: { $ne: 'cancelled' },
+        },
+        {
+            $set: {
+                status: 'cancelled',
+                paidAt: null,
+                settlementId: null,
+            },
+        },
+        { session }
+    );
+
+    await PurchaseOrder.updateMany(
+        { orderId: order._id, status: { $ne: 'Cancelled' } },
+        { $set: { status: 'Cancelled' } },
+        { session }
+    );
+
+    // Revert loyalty points transactions for both B2C and B2B
+    const isB2C = role === 'customer';
+    const isB2B = role === 'b2bAdmin' || role === 'b2bEmployee';
+    if (isB2C || isB2B) {
+        const loyaltyService = await import('../../../services/loyalty.service.js');
+        if (order.loyaltyPointsEarned > 0) {
+            await loyaltyService.reverseEarnedPoints(userId, order._id, session);
+        }
+        if (order.loyaltyPointsRedeemed > 0) {
+            await loyaltyService.restoreRedeemedPoints(userId, order._id, session);
+        }
+    }
+};
+
 // PATCH /api/user/orders/:id/cancel
 export const cancelOrder = asyncHandler(async (req, res) => {
     const session = await mongoose.startSession();
@@ -1131,76 +1229,7 @@ export const cancelOrder = asyncHandler(async (req, res) => {
             if (!order) throw new ApiError(404, 'Order not found.');
             if (!['pending', 'processing'].includes(order.status)) throw new ApiError(400, 'Order cannot be cancelled at this stage.');
 
-            order.status = 'cancelled';
-            order.cancelledAt = new Date();
-            order.cancellationReason = req.body.reason || 'Cancelled by customer';
-            if (Array.isArray(order.vendorItems)) {
-                order.vendorItems = order.vendorItems.map((vendorGroup) => ({
-                    ...vendorGroup.toObject(),
-                    status: 'cancelled',
-                }));
-            }
-            await order.save({ session });
-
-            // Restore stock and status
-            for (const item of order.items) {
-                const quantity = Number(item.quantity || 0);
-                if (quantity <= 0) continue;
-
-                const productSnapshot = await Product.findById(item.productId)
-                    .select('variants.stockMap variants.prices')
-                    .session(session)
-                    .lean();
-                const variantKey = resolveOrderItemVariantKey(productSnapshot, item);
-
-                const incUpdate = { stockQuantity: quantity };
-                if (variantKey) {
-                    incUpdate[`variants.stockMap.${variantKey}`] = quantity;
-                }
-
-                const product = await Product.findByIdAndUpdate(item.productId, { $inc: incUpdate }, { new: true, session });
-                if (!product) continue;
-
-                const nextStockState =
-                    product.stockQuantity <= 0
-                        ? 'out_of_stock'
-                        : (product.stockQuantity <= product.lowStockThreshold ? 'low_stock' : 'in_stock');
-
-                await Product.updateOne(
-                    { _id: product._id },
-                    { $set: { stock: nextStockState } },
-                    { session }
-                );
-            }
-
-            // Reverse vendor earnings visibility for this order.
-            await Commission.updateMany(
-                {
-                    orderId: order._id,
-                    status: { $ne: 'cancelled' },
-                },
-                {
-                    $set: {
-                        status: 'cancelled',
-                        paidAt: null,
-                        settlementId: null,
-                    },
-                },
-                { session }
-            );
-
-            // Revert loyalty points transactions for both B2C and B2B
-            const isB2C = req.user?.role === 'customer';
-            const isB2B = req.user?.role === 'b2bAdmin' || req.user?.role === 'b2bEmployee';
-            if (isB2C || isB2B) {
-                const loyaltyService = await import('../../../services/loyalty.service.js');
-                if (order.loyaltyPointsEarned > 0) {
-                    await loyaltyService.reverseEarnedPoints(req.user.id, order._id, session);
-                }
-                if (order.loyaltyPointsRedeemed > 0) {
-                    await loyaltyService.restoreRedeemedPoints(req.user.id, order._id, session);
-                }
-            }
+            await cancelOrderInSession(order, { reason: req.body.reason, userId: req.user.id, role: req.user?.role, session });
         });
     } finally {
         await session.endSession();
@@ -1255,11 +1284,6 @@ export const cancelOrder = asyncHandler(async (req, res) => {
 const normalizeReturnRequest = (requestDoc, invoiceMap = new Map()) => {
     const request = typeof requestDoc?.toObject === 'function' ? requestDoc.toObject() : requestDoc;
     const refundDetails = request?.refundDetails ? { ...request.refundDetails } : {};
-    if (refundDetails.gatewayRefundId && !refundDetails.gatewayRrn) {
-        if (refundDetails.gatewayRefundId.includes('Do69qx') || refundDetails.gatewayRefundId.includes('rfnd_T')) {
-            refundDetails.gatewayRrn = '628115811411';
-        }
-    }
     return {
         ...request,
         id: String(request?._id || ''),

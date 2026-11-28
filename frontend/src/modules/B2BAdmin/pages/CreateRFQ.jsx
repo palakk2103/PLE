@@ -127,15 +127,12 @@ const CreateRFQ = () => {
         setAttachment(res.data.url);
         toast.success('File uploaded successfully!');
       } else {
-        // Fallback for mock/local upload simulation if Cloudinary is unavailable
-        setAttachment(`https://example.com/uploads/${file.name}`);
-        toast.success('Attachment added (simulation)');
+        // Never save a made-up link: the vendor and admin would get a broken attachment.
+        toast.error('The file could not be uploaded. Please try again.');
       }
     } catch (err) {
       console.error(err);
-      // Fallback
-      setAttachment(`https://example.com/uploads/${file.name}`);
-      toast.success('Attachment added (simulation fallback)');
+      // The API client already shows the server's reason (e.g. file type or size).
     } finally {
       setUploading(false);
     }

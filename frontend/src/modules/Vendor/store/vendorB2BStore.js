@@ -59,9 +59,9 @@ const mapRfqToEnquiry = (rfq) => {
   // Fallback for company/buyer information
   const buyerName = rfq.createdByAdminId?.adminName || rfq.buyerId?.name || 'Business Buyer';
   const buyerCompany = rfq.companyName || rfq.buyerId?.companyName || 'B2B Client Company';
-  const buyerEmail = rfq.createdByAdminId?.adminEmail || rfq.buyerId?.email || 'buyer@company.com';
-  const buyerPhone = rfq.createdByAdminId?.adminPhone || rfq.buyerId?.phone || '9876543210';
-  const buyerAddress = rfq.buyerId?.businessAddress || 'Default Company Address';
+  const buyerEmail = rfq.createdByAdminId?.adminEmail || rfq.buyerId?.email || '';
+  const buyerPhone = rfq.createdByAdminId?.adminPhone || rfq.buyerId?.phone || '';
+  const buyerAddress = rfq.buyerId?.businessAddress || '';
 
   // Map timeline events from approvalHistory
   const mappedTimeline = (rfq.approvalHistory || []).map(h => ({
@@ -98,7 +98,7 @@ const mapRfqToEnquiry = (rfq) => {
       phone: buyerPhone,
       address: buyerAddress,
       businessType: "Wholesaler",
-      gstNumber: rfq.buyerId?.gstNumber || "27AAPCG9838F1Z1",
+      gstNumber: rfq.buyerId?.gstNumber || '',
       verificationStatus: "Approved"
     },
     products: [

@@ -4,7 +4,6 @@ import ApiError from '../../../utils/ApiError.js';
 import Admin from '../../../models/Admin.model.js';
 import { logActivity } from '../../../services/auditLog.service.js';
 import { sendSecurityAlert } from '../../../services/adminNotification.service.js';
-import bcrypt from 'bcryptjs';
 
 const CLASS_PREFIX_MAP = {
     employee: 'PLE-EMP-',
@@ -57,6 +56,13 @@ export const generateUniqueIdentityId = async (identityClass = 'employee', role 
     return candidateId;
 };
 
+// A plain admin must not take over or lock out a Super Admin account.
+const assertCanManage = (actor, member) => {
+    if (member.role === 'superadmin' && actor?.role !== 'superadmin') {
+        throw new ApiError(403, 'Only a Super Admin can change another Super Admin account.');
+    }
+};
+
 // GET /api/admin/account-team/next-id?class=employee&role=superadmin
 export const getNextId = asyncHandler(async (req, res) => {
     const identityClass = req.query.class || (req.query.role === 'superadmin' ? 'superadmin' : 'employee');
@@ -94,6 +100,9 @@ export const provisionMember = asyncHandler(async (req, res) => {
     }
 
     const isSuperAdmin = role === 'superadmin' || role === 'admin';
+    if (isSuperAdmin && req.user?.role !== 'superadmin') {
+        throw new ApiError(403, 'Only a Super Admin can create another Super Admin.');
+    }
     const finalRole = isSuperAdmin ? 'superadmin' : 'account_team';
     const finalUserType = isSuperAdmin ? 'superadmin' : 'account_team';
     const finalIdentityClass = isSuperAdmin ? 'superadmin' : (identityClass ? String(identityClass).toLowerCase() : 'employee');
@@ -276,6 +285,7 @@ export const updateMember = asyncHandler(async (req, res) => {
 
     const member = await Admin.findById(req.params.id);
     if (!member) throw new ApiError(404, 'Team member not found.');
+    assertCanManage(req.user, member);
 
     if (name) member.name = name.trim();
     if (phone !== undefined) member.phone = phone.trim();
@@ -315,6 +325,7 @@ export const toggleMemberStatus = asyncHandler(async (req, res) => {
 
     const member = await Admin.findById(req.params.id);
     if (!member) throw new ApiError(404, 'Team member not found.');
+    assertCanManage(req.user, member);
 
     // Prevent deactivating own Super Admin account
     if (String(member._id) === String(req.user.id)) {
@@ -372,6 +383,7 @@ export const resetCredentials = asyncHandler(async (req, res) => {
 
     const member = await Admin.findById(req.params.id);
     if (!member) throw new ApiError(404, 'Team member not found.');
+    assertCanManage(req.user, member);
 
     const changes = [];
 
@@ -379,7 +391,8 @@ export const resetCredentials = asyncHandler(async (req, res) => {
         if (String(newPassword).length < 6) {
             throw new ApiError(400, 'New password must be at least 6 characters.');
         }
-        member.password = await bcrypt.hash(newPassword, 12);
+        // Plain text here: the Admin model's pre-save hook hashes it (hashing twice made the new password unusable).
+        member.password = String(newPassword);
         changes.push('password');
     }
 

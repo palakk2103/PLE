@@ -7,3 +7,4 @@ node_modules
 
 # Browser-test output and local deploy credentials
 .playwright-mcp/
+.env.local

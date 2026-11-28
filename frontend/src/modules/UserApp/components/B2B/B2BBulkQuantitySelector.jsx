@@ -42,7 +42,7 @@ export const B2BBulkQuantitySelector = ({ product, quantity, onChange }) => {
         </h4>
         <div className="grid grid-cols-3 gap-2">
           {specs.tiers.map((tier, idx) => {
-            const isActive = quantity >= tier.minQty && (idx === specs.tiers.length - 1 || quantity < specs.tiers[idx + 1].minQty);
+            const isActive = quantity >= tier.minQty && (idx === specs.tiers.length - 1 || quantity < specs.tiers[idx + 1].minQty) && (!tier.maxQty || quantity <= tier.maxQty);
             return (
               <button
                 key={idx}

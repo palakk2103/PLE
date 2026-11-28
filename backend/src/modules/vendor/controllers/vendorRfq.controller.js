@@ -36,12 +36,19 @@ export const toVendorRfqView = (rfqDoc, vendorId) => {
     rfq.quotations = myQuotes;
     rfq.assignedVendorIds = (rfq.assignedVendorIds || []).filter((v) => String(v?._id || v) === me);
     rfq.negotiationMessages = [];
-    rfq.approvalHistory = (rfq.approvalHistory || []).filter((h) => {
-        if (!NEGOTIATION_HISTORY_ACTIONS.has(h.action)) return true;
-        if (String(h.updatedBy) === me) return true; // this vendor's own message
+    // History notes quote vendor names and prices ("Selected quotation from vendor X (Total: ...)"),
+    // so a vendor gets notes only for its own entries and for admin messages sent to it. Other entries
+    // keep their status and date; entries about other vendors are left out altogether.
+    rfq.approvalHistory = (rfq.approvalHistory || []).reduce((visible, h) => {
+        const own = String(h.updatedBy) === me;
         // Admin -> vendor messages are logged as `... sent message to vendor <name>: "..."`
-        return [...myNames].some((name) => String(h.notes || '').includes(`to vendor ${name}:`));
-    });
+        const toMe = h.action === 'Admin Negotiation Message Sent'
+            && [...myNames].some((name) => String(h.notes || '').includes(`to vendor ${name}:`));
+        if (own || toMe) return [...visible, h];
+        if (NEGOTIATION_HISTORY_ACTIONS.has(h.action) || /^(Vendor|Re-negotiation)\b/.test(h.action || '')) return visible;
+        const { notes, updatedBy, ...safe } = h;
+        return [...visible, safe];
+    }, []);
     delete rfq.timeline; // legacy buyer/seller/admin price timeline
     return rfq;
 };
@@ -79,6 +86,16 @@ export const vendorSendQuote = asyncHandler(async (req, res) => {
 
     if (['Completed', 'Purchase Order Generated', 'Rejected'].includes(rfq.status)) {
         throw new ApiError(400, 'Cannot quote on a closed or completed RFQ.');
+    }
+    // Once a quote is chosen, the price the buyer approves must not change underneath them.
+    if (['Vendor Selected', 'Awaiting B2B Approval'].includes(rfq.status)) {
+        throw new ApiError(409, 'A quote has already been selected for this RFQ. Quotes can no longer be changed.');
+    }
+
+    // The total must at least cover unit price x requested quantity (it may add tax/freight on top).
+    const minimumTotal = Math.round(Number(unitPrice) * Number(rfq.quantity || 0) * 100) / 100;
+    if (Number(totalPrice) + 0.01 < minimumTotal) {
+        throw new ApiError(400, `Total price cannot be less than unit price x quantity (₹${minimumTotal.toLocaleString('en-IN')} for ${rfq.quantity} units).`);
     }
 
     // Check if vendor already has a quotation in the array

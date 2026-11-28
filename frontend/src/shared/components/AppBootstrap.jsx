@@ -1,3 +1,4 @@
+import { showPendingSessionNotice } from '../utils/sessionNotice';
 import { useEffect } from "react";
 import api from "../utils/api";
 import { useAuthStore } from "../store/authStore";
@@ -65,6 +66,8 @@ const AppBootstrap = () => {
     try { useAdminAuthStore.getState().initialize(); } catch (e) { console.warn(e); }
     try { useSettingsStore.getState().initialize(); } catch (e) { console.warn(e); }
     
+    showPendingSessionNotice();
+
     // Initialize FCM Service Worker
     initializePushNotifications();
   }, []);

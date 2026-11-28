@@ -36,7 +36,14 @@ export const getVendorProductRequests = asyncHandler(async (req, res) => {
         };
     } else if (isManagedVendor) {
         if (!req.user.shopId) {
-            throw new ApiError(400, 'Managed vendor is not assigned to a shop.');
+            // Not linked to a shop yet: nothing to show (an empty list, not an Error 400 page).
+            const pageNum = Math.max(1, parseInt(page, 10) || 1);
+            const limitNum = Math.max(1, parseInt(limit, 10) || 10);
+            return res.status(200).json(new ApiResponse(200, {
+                requests: [],
+                pagination: { total: 0, page: pageNum, limit: limitNum, pages: 0 },
+                notice: 'Your account is not linked to a shop yet. Please contact the admin.'
+            }, 'Product requests fetched successfully'));
         }
         visibilityFilter = {
             $or: [

@@ -1,3 +1,7 @@
+import '../../../models/ManagedShop.model.js'; // registers ManagedShop for bulk orders by managed vendors
+import { resolveProductGST, calculateItemGST, resolveSellerState, resolveBuyerState, determineSupplyType, applyGSTSplit, summarizeGST } from '../../../utils/gstUtils.js';
+
+const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
 import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
@@ -306,26 +310,35 @@ export const createBulkOrders = asyncHandler(async (req, res) => {
     const vendorId = req.user.id;
     const isManaged = req.user.role === 'managed_vendor';
     const shopId = req.user.shopId;
+    const sellerId = isManaged ? (shopId || vendorId) : vendorId;
 
-    let vendorName = 'Vendor';
-    if (isManaged) {
-        vendorName = req.user.storeName || req.user.name || 'Managed Vendor';
-    } else {
-        const vendorDoc = await mongoose.model('Vendor').findById(vendorId).select('storeName name');
-        if (vendorDoc) {
-            vendorName = vendorDoc.storeName || vendorDoc.name || 'Vendor';
-        }
-    }
+    // Seller record: name on the order + state for the CGST/SGST vs IGST split.
+    const sellerDoc = isManaged
+        ? await mongoose.model('ManagedShop').findById(shopId).select('name gst address warehouse').lean().catch(() => null)
+        : await mongoose.model('Vendor').findById(vendorId)
+            .select('storeName name categoryGstRates defaultGstRate gstNumber documents.gst b2bSellingGstNumber b2bSellingState state address businessAddress')
+            .lean();
+    const vendorName = isManaged
+        ? (sellerDoc?.name || req.user.storeName || req.user.name || 'Managed Vendor')
+        : (sellerDoc?.storeName || sellerDoc?.name || 'Vendor');
+    const sellerState = resolveSellerState(sellerDoc);
+
+    // Only this seller's own products (a product id from another vendor used to reduce THEIR stock).
+    const ownProductFilter = isManaged
+        ? { $or: [{ shopId }, { vendorId }, { vendorUserId: vendorId }] }
+        : { vendorId };
+    const escapeRx = (str) => String(str).replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
 
     const createdOrders = [];
     const errors = [];
 
     for (let index = 0; index < orders.length; index++) {
-        const orderData = orders[index];
+        const orderData = orders[index] || {};
         const rowNum = index + 1;
 
+        const session = await mongoose.startSession();
         try {
-            const { customer, shippingAddress, items, paymentMethod = 'cod', paymentStatus = 'pending', notes } = orderData;
+            const { customer, shippingAddress, items, paymentMethod = 'cod', paymentStatus = 'pending' } = orderData;
 
             const custName = customer?.name || shippingAddress?.name;
             const custPhone = customer?.phone || shippingAddress?.phone;
@@ -343,98 +356,137 @@ export const createBulkOrders = asyncHandler(async (req, res) => {
                 throw new Error(`Row #${rowNum}: Order must contain at least 1 item.`);
             }
 
+            const orderAddress = {
+                name: custName,
+                email: custEmail || '',
+                phone: custPhone,
+                address: addr,
+                city,
+                state,
+                zipCode,
+                country: shippingAddress?.country || 'India',
+            };
+            const buyerState = resolveBuyerState(orderAddress);
+            const supplyType = determineSupplyType(sellerState, buyerState);
+
+            // 1. Resolve every item against this seller's catalogue before touching anything.
             const formattedItems = [];
-            let calculatedSubtotal = 0;
-
             for (const item of items) {
-                const qty = Math.max(1, Number(item.quantity) || 1);
-                let productDoc = null;
-
-                if (item.productId && mongoose.Types.ObjectId.isValid(item.productId)) {
-                    productDoc = await Product.findById(item.productId);
-                } else if (item.name || item.productName) {
-                    const searchName = (item.name || item.productName).trim();
-                    const productFilter = isManaged
-                        ? { $or: [{ shopId }, { vendorId }, { vendorUserId: vendorId }], name: new RegExp(`^${searchName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}$`, 'i') }
-                        : { vendorId, name: new RegExp(`^${searchName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}$`, 'i') };
-                    productDoc = await Product.findOne(productFilter);
+                const qty = Number(item?.quantity);
+                if (!Number.isInteger(qty) || qty < 1) {
+                    throw new Error(`Row #${rowNum}: Quantity must be a whole number of at least 1.`);
                 }
 
-                const price = Number(item.price !== undefined && item.price !== null && item.price !== '' ? item.price : (productDoc?.price || 0));
-                const name = item.name || productDoc?.name || 'Bulk Order Item';
-                const image = productDoc?.image || productDoc?.images?.[0] || '';
+                let productDoc = null;
+                if (item.productId) {
+                    if (!mongoose.Types.ObjectId.isValid(item.productId)) {
+                        throw new Error(`Row #${rowNum}: Invalid product id.`);
+                    }
+                    productDoc = await Product.findOne({ _id: item.productId, ...ownProductFilter }).populate('categoryId', 'gstRate parentId');
+                    if (!productDoc) throw new Error(`Row #${rowNum}: This product is not in your catalogue.`);
+                } else if (item.name || item.productName) {
+                    const searchName = String(item.name || item.productName).trim();
+                    productDoc = await Product.findOne({ ...ownProductFilter, name: new RegExp(`^${escapeRx(searchName)}$`, 'i') })
+                        .populate('categoryId', 'gstRate parentId');
+                }
 
-                formattedItems.push({
+                // A blank/0 price in the sheet means "use my catalogue price" (it used to save the item as free).
+                const typedPrice = Number(item.price);
+                const rawPrice = typedPrice > 0 ? typedPrice : Number(productDoc?.price || 0);
+                if (!Number.isFinite(rawPrice) || !(rawPrice > 0)) {
+                    throw new Error(`Row #${rowNum}: Enter a unit price for "${item.name || item.productName || 'this item'}" (it is not in your catalogue).`);
+                }
+
+                // GST from the product's own GST settings (it used to be 0 on every bulk order).
+                // Items that are not in the catalogue carry no GST, because no rate is known for them.
+                const gstRate = productDoc ? resolveProductGST(productDoc, productDoc.categoryId, sellerDoc) : 0;
+                const taxIncluded = productDoc ? !!productDoc.taxIncluded : false;
+                const { taxableAmount, gstAmount } = calculateItemGST(rawPrice, qty, gstRate, 0, taxIncluded);
+
+                const line = {
                     productId: productDoc?._id || null,
-                    vendorId: isManaged ? (shopId || vendorId) : vendorId,
-                    name,
-                    image,
-                    price,
+                    vendorId: sellerId,
+                    name: item.name || item.productName || productDoc?.name || 'Bulk Order Item',
+                    image: productDoc?.image || productDoc?.images?.[0] || '',
+                    price: rawPrice,
                     quantity: qty,
                     variant: item.variant || {},
-                });
-
-                calculatedSubtotal += price * qty;
-
-                // Update stock if product exists and stock quantity is tracked
-                if (productDoc && typeof productDoc.stockQuantity === 'number') {
-                    productDoc.stockQuantity = Math.max(0, productDoc.stockQuantity - qty);
-                    if (productDoc.stockQuantity === 0) {
-                        productDoc.stock = 'out_of_stock';
-                    } else if (productDoc.stockQuantity <= (productDoc.lowStockThreshold || 5)) {
-                        productDoc.stock = 'low_stock';
-                    }
-                    await productDoc.save();
-                }
+                    gstRate,
+                    gstAmount,
+                    taxableAmount,
+                    taxIncluded,
+                };
+                applyGSTSplit(line, supplyType);
+                formattedItems.push({ line, productDoc });
             }
 
-            const uniqueId = `ORD-BLK-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}-${rowNum}`;
-            const targetVendorId = isManaged ? (shopId || vendorId) : vendorId;
+            const lines = formattedItems.map((f) => f.line);
+            const subtotal = round2(lines.reduce((sum, l) => sum + l.price * l.quantity, 0));
+            const tax = round2(lines.reduce((sum, l) => sum + (l.gstAmount || 0), 0));
+            const taxOnTop = round2(lines.reduce((sum, l) => sum + (l.taxIncluded ? 0 : (l.gstAmount || 0)), 0));
+            const shipping = Math.max(0, Number(orderData.shipping || 0));
+            const discount = Math.max(0, Number(orderData.discount || 0));
+            const gst = summarizeGST(lines);
 
             const vendorGroup = {
-                vendorId: targetVendorId,
+                vendorId: sellerId,
                 vendorName,
-                items: formattedItems,
-                subtotal: calculatedSubtotal,
-                shipping: Number(orderData.shipping || 0),
-                tax: Number(orderData.tax || 0),
-                discount: Number(orderData.discount || 0),
+                items: lines,
+                subtotal,
+                shipping,
+                tax,
+                discount,
                 status: 'pending',
+                sellerState: sellerState?.name,
+                sellerStateCode: sellerState?.code,
+                supplyType,
+                cgst: gst.cgst,
+                sgst: gst.sgst,
+                igst: gst.igst,
             };
-
-            const grandTotal = calculatedSubtotal + vendorGroup.shipping + vendorGroup.tax - vendorGroup.discount;
 
             const validPaymentMethod = ['card', 'cash', 'bank', 'wallet', 'upi', 'cod'].includes(String(paymentMethod).toLowerCase())
                 ? String(paymentMethod).toLowerCase()
                 : 'cod';
 
-            const newOrder = await Order.create({
-                orderId: uniqueId,
-                guestInfo: {
-                    name: custName,
-                    phone: custPhone,
-                    email: custEmail || '',
-                },
-                items: formattedItems,
-                vendorItems: [vendorGroup],
-                shippingAddress: {
-                    name: custName,
-                    email: custEmail || '',
-                    phone: custPhone,
-                    address: addr,
-                    city,
-                    state,
-                    zipCode,
-                    country: shippingAddress?.country || 'India',
-                },
-                paymentMethod: validPaymentMethod,
-                paymentStatus: paymentStatus === 'paid' ? 'paid' : 'pending',
-                status: 'pending',
-                subtotal: calculatedSubtotal,
-                shipping: vendorGroup.shipping,
-                tax: vendorGroup.tax,
-                discount: vendorGroup.discount,
-                total: Math.max(0, grandTotal),
+            let newOrder;
+            // 2. Stock and the order are saved together: a failed row changes nothing
+            //    (stock used to be taken first and lost if the row then failed).
+            await session.withTransaction(async () => {
+                for (const { line, productDoc } of formattedItems) {
+                    if (!productDoc) continue;
+                    const updated = await Product.findOneAndUpdate(
+                        { _id: productDoc._id, stockQuantity: { $gte: line.quantity } },
+                        { $inc: { stockQuantity: -line.quantity } },
+                        { new: true, session }
+                    );
+                    if (!updated) {
+                        // (it used to drop stock to 0 and accept the order anyway)
+                        throw new Error(`Row #${rowNum}: Not enough stock for ${productDoc.name} (available: ${productDoc.stockQuantity ?? 0}).`);
+                    }
+                    const nextStock = updated.stockQuantity <= 0
+                        ? 'out_of_stock'
+                        : (updated.stockQuantity <= (updated.lowStockThreshold || 5) ? 'low_stock' : 'in_stock');
+                    await Product.updateOne({ _id: updated._id }, { $set: { stock: nextStock } }, { session });
+                }
+
+                [newOrder] = await Order.create([{
+                    orderId: `ORD-BLK-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}-${rowNum}`,
+                    guestInfo: { name: custName, phone: custPhone, email: custEmail || '' },
+                    items: lines,
+                    vendorItems: [vendorGroup],
+                    shippingAddress: orderAddress,
+                    paymentMethod: validPaymentMethod,
+                    paymentStatus: paymentStatus === 'paid' ? 'paid' : 'pending',
+                    status: 'pending',
+                    subtotal,
+                    shipping,
+                    tax,
+                    taxBreakdown: gst,
+                    placeOfSupply: buyerState ? { state: buyerState.name, code: buyerState.code } : undefined,
+                    discount,
+                    total: Math.max(0, round2(subtotal + taxOnTop + shipping - discount)),
+                }], { session });
             });
 
             createdOrders.push({
@@ -449,6 +501,8 @@ export const createBulkOrders = asyncHandler(async (req, res) => {
                 row: rowNum,
                 message: err.message || `Error processing row #${rowNum}`,
             });
+        } finally {
+            await session.endSession();
         }
     }
 

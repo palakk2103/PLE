@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { announceSessionEnded } from './sessionNotice';
 import toast from 'react-hot-toast';
 import { API_BASE_URL, AUTH_REDIRECT_LOCK_KEY, AUTH_REDIRECT_LOCK_MS } from './constants';
 import { products as mockProductsList } from '../../data/products';
@@ -33,7 +34,7 @@ const AUTH_SCOPES = {
   b2bAdmin: {
     prefix: '/b2b-user',
     accessKey: 'b2bAdminToken',
-    refreshKey: 'b2bAdminRefreshToken', // Not implemented yet, but keeping for structure
+    refreshKey: 'b2bAdminRefreshToken', // renewed via POST /b2b-user/auth/refresh
     persistKey: 'b2badmin-auth-storage', // Need to match exactly what is in b2bAdminStore.js
     loginPath: '/',
     areaPrefix: '/b2b-dashboard',
@@ -64,6 +65,7 @@ const refreshInFlight = {
   admin: null,
   vendor: null,
   delivery: null,
+  b2bAdmin: null,
   user: null,
 };
 
@@ -399,9 +401,19 @@ api.interceptors.response.use(
     const currentPath = window.location.pathname;
     const pathScope = getScopeFromPath(currentPath);
 
-    if (shouldAttemptRefresh(error, scope)) {
+    // A business buyer on the storefront calls /user/... endpoints with their B2B token,
+    // so that request must be renewed with the B2B refresh token, not the customer one.
+    const sentAuth = String(originalRequest.headers?.Authorization || originalRequest.headers?.authorization || '');
+    const b2bAccess = getStorageItem(AUTH_SCOPES.b2bAdmin.accessKey);
+    const refreshScope = scope === 'user' && b2bAccess && sentAuth === `Bearer ${b2bAccess}` ? 'b2bAdmin' : scope;
+
+    if (shouldAttemptRefresh(error, refreshScope)) {
       try {
-        const nextAccessToken = await runRefresh(scope);
+        const nextAccessToken = await runRefresh(refreshScope);
+        if (refreshScope === 'b2bAdmin' && getStorageItem('token') === b2bAccess) {
+          // Login also copies the B2B token into the shared storefront key; keep the two in step.
+          setStorageItem('token', nextAccessToken);
+        }
         originalRequest._retry = true;
         originalRequest.headers = originalRequest.headers || {};
         originalRequest.headers.Authorization = `Bearer ${nextAccessToken}`;
@@ -449,7 +461,18 @@ api.interceptors.response.use(
         rawMessage.toLowerCase().includes('closed/deleted')
       );
 
-      if (isAccountDeleted) {
+      // A business account switched off while someone is signed in: end the session and say why.
+      const isCompanyDeactivated = typeof rawMessage === 'string' && rawMessage.includes('company account has been deactivated');
+      if (isCompanyDeactivated && !String(originalRequest.url || '').includes('/auth/')) {
+        announceSessionEnded('Your company account has been deactivated. Sign in to see the reason and contact our team.');
+        await clearScopeAuth('b2bAdmin');
+        await clearScopeAuth('user');
+        redirectTo('/b2b/login');
+        return Promise.reject(error);
+      }
+
+      // A refused login attempt must stay on the login screen, which explains why.
+      if (isAccountDeleted && !String(originalRequest.url || '').includes('/auth/login')) {
         if (pathScope === 'vendor' || scope === 'vendor') {
           await clearScopeAuth('vendor');
           toast.error(rawMessage || 'Your vendor account has been closed.');
@@ -503,8 +526,11 @@ api.interceptors.response.use(
       const activeScope = pathScope;
       
       // Only clear scope auth if the request was actually authenticated and refresh failed
+      const isAuthRequest = String(originalRequest.url || '').includes('/auth/');
       if (hadAuthHeader) {
         await clearScopeAuth(scope);
+        // Buyers (including business buyers browsing the store) are told why they were signed out.
+        if (!isAuthRequest && (scope === 'user' || scope === 'b2bAdmin')) announceSessionEnded();
         if (scope !== activeScope) {
           return Promise.reject(error);
         }

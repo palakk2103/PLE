@@ -41,6 +41,8 @@ const vendorChatThreadSchema = new mongoose.Schema(
         productRef: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', default: null, index: true },
         productName: { type: String, default: '' },
         productImage: { type: String, default: '' },
+        // Variant the customer picked on the product page when they pressed "Enquire Now" (e.g. "Color: Red | Size: M").
+        productVariant: { type: String, default: '' },
         unreadCount: { type: Number, default: 0, min: 0 },          // unread for the VENDOR
         unreadCountCustomer: { type: Number, default: 0, min: 0 },  // unread for the CUSTOMER
         adminLastReadAt: { type: Date, default: null },

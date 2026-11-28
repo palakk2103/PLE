@@ -86,6 +86,7 @@ const rfqSchema = new mongoose.Schema(
         sellerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vendor', index: true }, // For backwards compatibility
         productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', index: true },
         customProductName: { type: String },
+        title: { type: String, trim: true, maxlength: 200 },
         quantity: { type: Number, required: true },
         targetPrice: { type: Number, required: notConsumer },
 

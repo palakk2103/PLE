@@ -47,6 +47,7 @@ const errorHandler = (err, req, res, next) => {
         success: false,
         message: error.message,
         ...(error.errors?.length > 0 && { errors: error.errors }),
+        ...(error.data && { data: error.data }),
         ...(process.env.NODE_ENV === 'development' && { stack: error.stack }),
     };
 

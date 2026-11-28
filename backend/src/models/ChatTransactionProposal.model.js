@@ -101,6 +101,12 @@ const chatTransactionProposalSchema = new mongoose.Schema(
             default: 0,
             min: 0,
         },
+        // GST rate (%) the tax above was calculated with, from the product's GST settings.
+        gstRate: {
+            type: Number,
+            min: 0,
+            max: 100,
+        },
         deliveryCharge: {
             type: Number,
             default: 0,

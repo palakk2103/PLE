@@ -9,14 +9,17 @@ import Settings from '../models/Settings.model.js';
 import Wallet from '../models/Wallet.model.js';
 import WalletTransaction from '../models/WalletTransaction.model.js';
 import User from '../models/User.model.js';
-import Razorpay from 'razorpay';
-import crypto from 'crypto';
+import { createRazorpayOrder, isValidRazorpaySignature, fetchRazorpayOrder } from '../services/razorpay.service.js';
 
 const router = Router();
 
 const userAuth = [authenticate, authorize('b2bAdmin', 'b2bEmployee', 'customer'), enforceAccountStatus];
 const adminAuth = [authenticate, authorize('admin', 'superadmin', 'account_team'), enforceAccountStatus];
 const generalWalletAuth = [authenticate, authorize('admin', 'superadmin', 'account_team', 'b2bAdmin', 'b2bEmployee', 'customer'), enforceAccountStatus];
+
+// Only a company (B2B) admin tops up a wallet with real money. Employees spend
+// funds allotted by their admin, and B2C customers have no wallet payments.
+const rechargeAuth = [authenticate, authorize('b2bAdmin'), enforceAccountStatus];
 
 // Helper to get default or saved wallet settings
 const getWalletSettingsHelper = async () => {
@@ -49,7 +52,7 @@ router.get('/history', ...userAuth, asyncHandler(async (req, res) => {
 }));
 
 // POST /wallet/recharge - Create Razorpay order to add money
-router.post('/recharge', ...userAuth, asyncHandler(async (req, res) => {
+router.post('/recharge', ...rechargeAuth, asyncHandler(async (req, res) => {
     const { amount } = req.body;
     const parsedAmount = Number(amount);
 
@@ -70,59 +73,37 @@ router.post('/recharge', ...userAuth, asyncHandler(async (req, res) => {
         throw new ApiError(400, `Recharge exceeds maximum wallet balance limit of ₹${settings.maxBalance}.`);
     }
 
-    try {
-        let razorpayInstance;
-        if (typeof Razorpay === 'function') {
-            razorpayInstance = new Razorpay({
-                key_id: process.env.RAZORPAY_KEY_ID,
-                key_secret: process.env.RAZORPAY_KEY_SECRET,
-            });
-        } else if (Razorpay && typeof Razorpay.default === 'function') {
-            razorpayInstance = new Razorpay.default({
-                key_id: process.env.RAZORPAY_KEY_ID,
-                key_secret: process.env.RAZORPAY_KEY_SECRET,
-            });
-        } else {
-            throw new Error('Razorpay constructor not found in imports.');
-        }
-
-        const rzpOrder = await razorpayInstance.orders.create({
-            amount: Math.round(parsedAmount * 100), // in paise
-            currency: 'INR',
-            receipt: `rcpt_${req.user.id.toString().slice(-8)}_${Date.now().toString().slice(-8)}`
-        });
-
-        res.status(200).json(new ApiResponse(200, {
-            id: rzpOrder.id,
-            amount: rzpOrder.amount,
-            currency: 'INR',
-            key: process.env.RAZORPAY_KEY_ID
-        }, 'Recharge order created.'));
-    } catch (err) {
-        console.error('Razorpay wallet recharge order creation failed:', err);
-        const errMsg = err.message || (err.error && err.error.description) || JSON.stringify(err) || 'Unknown error';
-        throw new ApiError(500, 'Failed to generate payment gateway order. ' + errMsg);
-    }
+    const rzpOrder = await createRazorpayOrder(parsedAmount, {
+        receipt: `rcpt_${req.user.id.toString().slice(-8)}_${Date.now().toString().slice(-8)}`,
+        // Checked again on verify: the order must be a wallet recharge made by this same user.
+        notes: { purpose: 'wallet_recharge', userId: String(req.user.id) },
+    });
+    res.status(200).json(new ApiResponse(200, rzpOrder, 'Recharge order created.'));
 }));
 
 // POST /wallet/verify-payment - Verify payment and credit wallet
-router.post('/verify-payment', ...userAuth, asyncHandler(async (req, res) => {
-    const { razorpay_payment_id, razorpay_order_id, razorpay_signature, amount } = req.body;
+router.post('/verify-payment', ...rechargeAuth, asyncHandler(async (req, res) => {
+    const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
 
-    if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature || !amount) {
+    if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
         throw new ApiError(400, 'Missing payment verification parameters.');
     }
 
-    // Verify signature
-    const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET);
-    hmac.update(razorpay_order_id + "|" + razorpay_payment_id);
-    const generatedSignature = hmac.digest('hex');
-
-    if (generatedSignature !== razorpay_signature) {
+    if (!isValidRazorpaySignature(razorpay_order_id, razorpay_payment_id, razorpay_signature)) {
         throw new ApiError(400, 'Payment signature verification failed.');
     }
 
-    const parsedAmount = Number(amount);
+    // The amount credited is what Razorpay actually charged, never a number sent by the browser
+    // (the signature only covers order id + payment id, so a client-sent amount could be anything).
+    const rzpOrder = await fetchRazorpayOrder(razorpay_order_id);
+    if (rzpOrder?.notes?.purpose !== 'wallet_recharge' || String(rzpOrder?.notes?.userId) !== String(req.user.id)) {
+        throw new ApiError(400, 'This payment does not belong to a wallet recharge on your account.');
+    }
+    if (rzpOrder.status !== 'paid' && Number(rzpOrder.amount_paid || 0) <= 0) {
+        throw new ApiError(400, 'Payment has not been completed yet.');
+    }
+    const parsedAmount = Math.round(Number(rzpOrder.amount_paid || rzpOrder.amount) || 0) / 100;
+    if (!(parsedAmount > 0)) throw new ApiError(400, 'Invalid payment amount.');
     const settings = await getWalletSettingsHelper();
 
     // Calculate cashback if any
@@ -154,45 +135,8 @@ router.post('/verify-payment', ...userAuth, asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(200, { wallet, transaction }, 'Wallet recharge verified and credited successfully.'));
 }));
 
-// POST /wallet/pay - Deduct funds (full or partial payment)
-router.post('/pay', ...userAuth, asyncHandler(async (req, res) => {
-    const { amount, orderId } = req.body;
-    const parsedAmount = Number(amount);
-
-    if (isNaN(parsedAmount) || parsedAmount <= 0) {
-        throw new ApiError(400, 'Invalid payment amount.');
-    }
-
-    const { wallet, transaction } = await walletService.debitWallet({
-        userId: req.user.id,
-        amount: parsedAmount,
-        category: 'order_payment',
-        description: `Payment for order ${orderId || ''}`,
-        orderId
-    });
-
-    res.status(200).json(new ApiResponse(200, { wallet, transaction }, 'Payment deducted from wallet successfully.'));
-}));
-
-// POST /wallet/refund - Credit refund back to wallet (used internally or by admin)
-router.post('/refund', ...generalWalletAuth, asyncHandler(async (req, res) => {
-    const { amount, orderId, reason } = req.body;
-    const parsedAmount = Number(amount);
-
-    if (isNaN(parsedAmount) || parsedAmount <= 0) {
-        throw new ApiError(400, 'Invalid refund amount.');
-    }
-
-    const { wallet, transaction } = await walletService.creditWallet({
-        userId: req.user.id,
-        amount: parsedAmount,
-        category: 'refund',
-        description: reason || `Refund for order ${orderId || ''}`,
-        orderId
-    });
-
-    res.status(200).json(new ApiResponse(200, { wallet, transaction }, 'Refund credited to wallet successfully.'));
-}));
+// /wallet/pay and /wallet/refund were removed: unused, and /refund let any signed-in user
+// credit their own wallet with any amount. Refunds go through services/refund.service.js.
 
 // POST /wallet/admin-credit - Admin credit wallet
 router.post('/admin-credit', ...adminAuth, asyncHandler(async (req, res) => {

@@ -1,5 +1,5 @@
 import * as vendorBankAccounts from '../controllers/vendorBankAccounts.controller.js';
-import { getVendorMonitoringSummary, getVendorsAnalyticsSummary } from '../controllers/vendorMonitoring.controller.js';
+import { getVendorMonitoringSummary, getVendorsAnalyticsSummary, getVendorConversations } from '../controllers/vendorMonitoring.controller.js';
 import * as directRfqMonitor from '../controllers/directRfq.controller.js';
 import { Router } from 'express';
 import * as authController from '../controllers/auth.controller.js';
@@ -124,6 +124,7 @@ router.get('/vendors/:id', ...adminAuth, validate(vendorIdParamSchema, 'params')
 router.get('/vendors/:id/commissions', ...adminAuth, validate(vendorIdParamSchema, 'params'), validate(vendorCommissionsQuerySchema, 'query'), vendorController.getVendorCommissions);
 router.get('/vendors/:id/documents', ...adminAuth, validate(vendorIdParamSchema, 'params'), vendorController.getVendorDocuments);
 router.get('/vendors/:id/monitoring', ...adminAuth, validate(vendorIdParamSchema, 'params'), getVendorMonitoringSummary);
+router.get('/vendors/:id/conversations', ...adminAuth, validate(vendorIdParamSchema, 'params'), getVendorConversations);
 router.get('/vendors/:id/bank-accounts', ...adminAuth, validate(vendorIdParamSchema, 'params'), vendorBankAccounts.getVendorBankAccounts);
 router.patch('/vendors/documents/:docId/status', ...adminAuth, vendorController.updateDocumentStatus);
 router.patch('/vendors/:id/status', ...adminAuth, validate(vendorIdParamSchema, 'params'), validate(vendorStatusUpdateSchema), vendorController.updateVendorStatus);

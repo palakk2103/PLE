@@ -23,11 +23,6 @@ import {
 const normalizeReturnRequest = (request, invoiceMap = new Map()) => {
     const doc = request._doc || request;
     const refundDetails = doc.refundDetails ? { ...doc.refundDetails } : {};
-    if (refundDetails.gatewayRefundId && !refundDetails.gatewayRrn) {
-        if (refundDetails.gatewayRefundId.includes('Do69qx') || refundDetails.gatewayRefundId.includes('rfnd_T')) {
-            refundDetails.gatewayRrn = '628115811411';
-        }
-    }
     return {
         ...doc,
         id: request._id,

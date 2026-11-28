@@ -10,6 +10,7 @@ import { handleOrderStatusTransition } from '../../../services/orderStatus.servi
 import { sendAdminFinanceAlert } from '../../../services/adminNotification.service.js';
 import { createRazorpayOrder, isValidRazorpaySignature, fetchRazorpayPayment } from '../../../services/razorpay.service.js';
 import ProductRequest from '../../../models/ProductRequest.model.js';
+import { processOrderCancellationRefund } from '../../../services/refund.service.js';
 
 const ownsOrder = (order, user) => String(order?.userId || '') === String(user?.id || user?._id || '');
 
@@ -30,6 +31,31 @@ const completeProductRequestAfterPayment = async (order) => {
     await request.save();
 };
 
+// Money arrived for an order that is already cancelled: record it, send it back, and say so.
+// The atomic claim makes sure one payment is only ever refunded once.
+const refundPaymentOnCancelledOrder = async (orderMongoId, razorpayPaymentId, userId) => {
+    const claimed = await Order.findOneAndUpdate(
+        { _id: orderMongoId, status: 'cancelled', 'paymentDetails.refundClaimedFor': { $ne: razorpayPaymentId } },
+        {
+            $set: {
+                paymentStatus: 'paid',
+                'paymentDetails.razorpayPaymentId': razorpayPaymentId,
+                'paymentDetails.refundClaimedFor': razorpayPaymentId,
+                'paymentDetails.status': 'captured',
+            },
+        },
+        { new: true }
+    );
+    if (claimed) {
+        await processOrderCancellationRefund(claimed, {
+            reason: 'Payment received after the order was cancelled',
+            triggeredBy: userId,
+            triggeredByRole: 'system',
+        });
+    }
+    throw new ApiError(409, 'This order was already cancelled, so it was not confirmed. Any amount charged is being refunded.');
+};
+
 // Verify Razorpay payment signature
 export const verifyPayment = asyncHandler(async (req, res) => {
     const { razorpay_payment_id, razorpay_order_id, razorpay_signature, orderId } = req.body;
@@ -45,7 +71,7 @@ export const verifyPayment = asyncHandler(async (req, res) => {
     }
 
     // Already paid (e.g. double-submit / page refresh): succeed without re-processing.
-    if (order.paymentStatus === 'paid') {
+    if (order.paymentStatus === 'paid' && order.status !== 'cancelled') {
         if (order.paymentDetails?.razorpayPaymentId === razorpay_payment_id) {
             return res.status(200).json(new ApiResponse(200, order, 'Payment already verified.'));
         }
@@ -75,6 +101,10 @@ export const verifyPayment = asyncHandler(async (req, res) => {
         }).catch(err => console.error('[FinanceAlert] PG failure alert error:', err.message));
 
         throw new ApiError(400, 'Payment signature verification failed.');
+    }
+
+    if (order.status === 'cancelled') {
+        await refundPaymentOnCancelledOrder(order._id, razorpay_payment_id, req.user.id);
     }
 
     // Retrieve safe card details from Razorpay API
@@ -110,6 +140,11 @@ export const verifyPayment = asyncHandler(async (req, res) => {
     };
 
     await order.save();
+
+    // The order may have been cancelled while the payment was being checked.
+    if (await Order.exists({ _id: order._id, status: 'cancelled' })) {
+        await refundPaymentOnCancelledOrder(order._id, razorpay_payment_id, req.user.id);
+    }
 
     try {
         await completeProductRequestAfterPayment(order);

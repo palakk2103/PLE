@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import api from "../../../../shared/utils/api";
 import { FiDownload } from "react-icons/fi";
 import RegistrationDetailsSections from "../../components/b2b/RegistrationDetailsSections";
+import ApplicationConversation from "../../components/b2b/ApplicationConversation";
 import { getDownloadUrl } from '../../../../shared/utils/documentUrl';
 
 const PendingB2BApprovals = () => {
@@ -291,7 +292,7 @@ const PendingB2BApprovals = () => {
           customContent: (
             <div className="mt-4">
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Rejection Reason (optional)
+                Rejection reason (emailed to and shown to the applicant)
               </label>
               <textarea
                 value={rejectReason}
@@ -581,6 +582,8 @@ const PendingB2BApprovals = () => {
               {fullDetail && (
                 <RegistrationDetailsSections company={fullDetail.company} admin={fullDetail.admin} employees={fullDetail.employees} />
               )}
+
+              <ApplicationConversation companyId={selectedUserForDetails._id || selectedUserForDetails.id} />
 
               {selectedUserForDetails.verificationStatus === "Resubmission Required" && (
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">

@@ -155,24 +155,8 @@ export const useAuthStore = create(
 
           return { success: true, email };
         } catch (error) {
-          console.warn("Buyer API registration failed, falling back to mock registration:", error);
-
-          set({
-            user: null,
-            token: null,
-            refreshToken: null,
-            isAuthenticated: false,
-            pendingEmail: email,
-            isLoading: false,
-            rememberMe: false,
-          });
-
-          localStorage.removeItem('token');
-          localStorage.removeItem('refresh-token');
-          sessionStorage.removeItem('token');
-          sessionStorage.removeItem('refresh-token');
-
-          return { success: true, email };
+          set({ isLoading: false });
+          throw error;
         }
       },
 

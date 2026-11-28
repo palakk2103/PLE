@@ -234,7 +234,7 @@ const Wallet = () => {
               )}
 
               {/* Action buttons */}
-              {!isEmployee && !isFrozen && (
+              {user?.role === 'b2bAdmin' && !isFrozen && (
                 <div className="mt-6">
                   <button
                     onClick={() => setShowRechargeModal(true)}

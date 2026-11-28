@@ -68,7 +68,8 @@ const AdminRFQDetail = () => {
       setLoading(true);
       const [rfqRes, vendorRes] = await Promise.all([
         api.get(`/admin/rfq/${id}`),
-        api.get('/admin/vendors')
+        // Only approved vendors can be invited; the default page size (20) hid everyone else.
+        api.get('/admin/vendors', { params: { status: 'approved', limit: 500 } })
       ]);
 
       if (rfqRes && rfqRes.data) {
@@ -449,6 +450,12 @@ const AdminRFQDetail = () => {
             <div className="p-4 bg-gray-50 rounded-2xl text-xs sm:text-sm text-gray-700 font-semibold border-l-4 border-[#C07A3D]">
               {rfq.requirementDetails || 'No specifications provided.'}
             </div>
+            {rfq.attachment && (
+              <a href={rfq.attachment} target="_blank" rel="noopener noreferrer" data-testid="rfq-attachment"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-700 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 hover:bg-gray-100">
+                View buyer's attachment
+              </a>
+            )}
 
             <div className="grid grid-cols-2 gap-4 text-xs pt-2">
               <div className="p-3.5 bg-gray-50 border border-gray-100 rounded-xl">
@@ -560,6 +567,14 @@ const AdminRFQDetail = () => {
                         }`}>
                           <td className="p-4">
                             <span className="font-bold text-gray-900 block">{q.vendorName}</span>
+                            {(q.attachments || []).map((file, n) => {
+                              const url = typeof file === 'string' ? file : file?.url;
+                              return url ? (
+                                <a key={url} href={url} target="_blank" rel="noopener noreferrer" data-testid="quote-attachment" className="block text-[11px] font-bold text-blue-600 hover:underline mt-1">
+                                  Quote document {n + 1}
+                                </a>
+                              ) : null;
+                            })}
                           </td>
                           <td className="p-4 text-right font-bold text-gray-900">{formatPrice(q.unitPrice)}</td>
                           <td className="p-4 text-right font-extrabold text-gray-900">{formatPrice(q.totalPrice)}</td>

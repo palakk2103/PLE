@@ -14,7 +14,7 @@ import { authenticate } from '../../../middlewares/authenticate.js';
 import { authorize, enforceAccountStatus } from '../../../middlewares/authorize.js';
 import { authLimiter, otpLimiter, chatLimiter } from '../../../middlewares/rateLimiter.js';
 import { validate } from '../../../middlewares/validate.js';
-import { uploadSingle, uploadMultiple, uploadDocumentSingle } from '../../../middlewares/upload.js';
+import { uploadSingle, uploadMultiple, uploadDocumentSingle, uploadDocumentOrPhotoSingle } from '../../../middlewares/upload.js';
 import {
     registerSchema,
     loginSchema,
@@ -49,7 +49,8 @@ router.post('/auth/2fa/resend', twoFactorController.resendLogin2FAOtp);
 
 // Auth routes
 router.post('/auth/register', authLimiter, validate(registerSchema), authController.register);
-router.post('/auth/register-b2b', uploadDocumentSingle('gstCertificate'), authController.registerB2B);
+// Legacy (the web app uses /b2b-user/auth/register). Rate-limited: it accepts a public file upload.
+router.post('/auth/register-b2b', authLimiter, uploadDocumentSingle('gstCertificate'), authController.registerB2B);
 router.post('/auth/verify-otp', validate(otpSchema), authController.verifyOTP);
 router.post('/auth/resend-otp', otpLimiter, validate(resendOtpSchema), authController.resendOTP);
 router.post('/auth/forgot-password', authLimiter, validate(forgotPasswordSchema), authController.forgotPassword);
@@ -134,7 +135,7 @@ router.delete('/notifications/:id', ...customerAuth, notificationController.dele
 // RFQ routes (protected B2B/Customer)
 import * as rfqController from '../controllers/rfq.controller.js';
 router.post('/rfq', ...customerAuth, rfqController.createRFQ);
-router.post('/rfq/upload', ...customerAuth, uploadDocumentSingle('file'), rfqController.uploadAttachment);
+router.post('/rfq/upload', ...customerAuth, uploadDocumentOrPhotoSingle('file'), rfqController.uploadAttachment);
 router.get('/rfq', ...customerAuth, rfqController.getBuyerRFQs);
 router.get('/rfq/:id', ...customerAuth, rfqController.getRFQDetail);
 router.post('/rfq/:id/counter', ...customerAuth, rfqController.buyerCounterOffer);

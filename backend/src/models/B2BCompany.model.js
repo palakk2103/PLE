@@ -109,6 +109,15 @@ const b2bCompanySchema = new mongoose.Schema(
             enum: ['Pending Verification', 'Approved', 'Rejected', 'Suspended', 'Resubmission Required'], 
             default: 'Pending Verification' 
         },
+        rejectionReason: { type: String, default: '', trim: true },
+        deactivationReason: { type: String, default: '', trim: true },
+        // Conversation between the applicant and the admin team about this application.
+        applicationMessages: [{
+            senderType: { type: String, enum: ['applicant', 'admin'], required: true },
+            senderName: { type: String, default: '', trim: true },
+            message: { type: String, required: true, trim: true, maxlength: 2000 },
+            createdAt: { type: Date, default: Date.now }
+        }],
         documentResubmitNotes: {
             type: String,
             default: ''

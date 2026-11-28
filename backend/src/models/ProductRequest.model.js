@@ -132,6 +132,7 @@ const productRequestSchema = new mongoose.Schema({
         }],
         finalPrice: { type: Number },
         estimatedDelivery: { type: Date },
+        deliveryEstimate: { type: String }, // the vendor's own words, e.g. "3-5 business days"
         notes: { type: String }
     },
     associatedOrderId: {

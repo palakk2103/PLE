@@ -195,14 +195,15 @@ await safe('CH-01', 'customer↔vendor', async () => {
 
     // Proposal flow
     const prop = await api(T.v1, 'POST', `/vendor/chat/threads/${thread1}/proposal`, { productId: String(PV1), productName: 'Vendor Widget (Blue)', quantity: 2, unitPrice: 450, deliveryCharge: 50 });
-    check(C, 'Vendor sends price proposal', '201, final 950', prop.status === 201 && prop.data?.finalAmount === 950, `${prop.status} final=${prop.data?.finalAmount}`);
+    // GST comes from the product's rate (18%), not from the vendor: 2 x 450 = 900 + 162 GST + 50 delivery = 1112.
+    check(C, 'Vendor sends price proposal', '201, final 1112 (GST 162 @18%)', prop.status === 201 && prop.data?.finalAmount === 1112 && prop.data?.tax === 162 && prop.data?.gstRate === 18, `${prop.status} final=${prop.data?.finalAmount} tax=${prop.data?.tax} rate=${prop.data?.gstRate}`);
     const pid = prop.data?._id;
     const liveP = await got(sC, 'transaction_proposal_updated');
     check(C, 'Customer receives proposal live', 'event', !!liveP, liveP ? 'received' : 'not received');
     const acc = await api(T.cust, 'POST', `/user/chat/vendor/threads/${thread1}/proposal/${pid}/respond`, { action: 'ACCEPT' });
     check(C, 'Customer accepts proposal', '200 accepted', acc.status === 200 && acc.data?.status === 'accepted', `${acc.status} ${acc.data?.status}`);
     const co = await api(T.cust, 'POST', `/user/chat/vendor/threads/${thread1}/proposal/${pid}/checkout`);
-    check(C, 'Checkout payload generated', 'total 950', co.status === 200 && co.data?.total === 950, `${co.status} total=${co.data?.total}`);
+    check(C, 'Checkout payload generated', 'total 1112', co.status === 200 && co.data?.total === 1112, `${co.status} total=${co.data?.total}`);
     // ---- CHT-011: the accepted offer must become an order at EXACTLY the agreed amount
     const addr = { name: 'Cust One', email: 'custone@example.com', phone: '9000000000', address: '1 Test Street', city: 'Mumbai', state: 'Maharashtra', zipCode: '400001', country: 'India' };
     const placeBase = { shippingAddress: addr, paymentMethod: 'cod', shippingOption: 'standard' };
@@ -220,7 +221,7 @@ await safe('CH-01', 'customer↔vendor', async () => {
     const cheat = await api(T.cust, 'POST', '/user/orders', { ...placeBase, items: [{ ...offerItem, quantity: 5, price: 1 }] });
     check(C, 'Order placed from the accepted offer', '201', cheat.status === 201, `${cheat.status} ${cheat.body?.message || ''}`);
     const orderDoc = cheat.data?.orderId ? await M.Order.findOne({ orderId: cheat.data.orderId }).lean() : null;
-    check(C, 'Order total = exactly the agreed amount (₹950)', '950', orderDoc?.total === 950, `total=${orderDoc?.total} (subtotal ${orderDoc?.subtotal}, shipping ${orderDoc?.shipping}, tax ${orderDoc?.tax})`);
+    check(C, 'Order total = exactly the agreed amount (₹1112)', '1112', orderDoc?.total === 1112, `total=${orderDoc?.total} (subtotal ${orderDoc?.subtotal}, shipping ${orderDoc?.shipping}, tax ${orderDoc?.tax})`);
     check(C, 'Customer cannot change quantity / price (sent qty 5, price ₹1)', 'qty 2 @ ₹450', orderDoc?.items?.[0]?.quantity === 2 && orderDoc?.items?.[0]?.price === 450, `qty=${orderDoc?.items?.[0]?.quantity} price=${orderDoc?.items?.[0]?.price}`);
     const offerAfter = await M.ChatTransactionProposal.findById(pid).lean();
     check(C, 'Offer marked converted_to_order and linked to the order', 'converted + orderRef', offerAfter?.status === 'converted_to_order' && String(offerAfter?.orderRef) === String(orderDoc?._id), `${offerAfter?.status} orderRef=${offerAfter?.orderRef}`);

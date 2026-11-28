@@ -45,6 +45,10 @@ const startServer = async () => {
     // Start vendor window expiry service (runs every 1 hour)
     const { startProductRequestExpiryService } = await import('./services/productRequestExpiry.service.js');
     startProductRequestExpiryService();
+
+    // Give back stock held by online orders that were never paid (every 5 minutes)
+    const { startAbandonedPaymentService } = await import('./services/abandonedPayment.service.js');
+    startAbandonedPaymentService();
     
     const server = http.createServer(app);
     initSocket(server);

@@ -85,6 +85,7 @@ const orderSchema = new mongoose.Schema(
             paymentMethod: String,
             status: String,
             amount: Number,
+            refundClaimedFor: String, // payment id already refunded because the order was cancelled
         },
         status: {
             type: String,

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-import { FiX, FiMessageSquare, FiRefreshCw } from 'react-icons/fi';
+import { Link } from 'react-router-dom';
+import { FiX, FiMessageSquare, FiRefreshCw, FiFileText } from 'react-icons/fi';
 import api from '../../../../shared/utils/api';
+import { ADMIN_BASE_ROUTE } from '../../config/adminRoutesConfig';
 
 const inr = (n) => `₹${Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
 const when = (d) => (d ? new Date(d).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—');
@@ -60,6 +62,8 @@ const VendorMonitoringPanel = ({ vendorId }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [threads, setThreads] = useState({ list: [], total: 0 });
+  const [convos, setConvos] = useState({ items: [], loaded: false, error: false });
+  const [convoType, setConvoType] = useState('all');
   const [open, setOpen] = useState(null);
   const [tick, setTick] = useState(0);
 
@@ -83,6 +87,17 @@ const VendorMonitoringPanel = ({ vendorId }) => {
       .catch(() => { if (alive) setThreads({ list: [], total: 0 }); });
     return () => { alive = false; };
   }, [vendorId, tick]);
+
+  // RFQs, Direct RFQs, Consumer RFQs, Source Now and enquiries (customer chats are listed separately below).
+  useEffect(() => {
+    let alive = true;
+    api.get(`/admin/vendors/${vendorId}/conversations`)
+      .then((res) => { const d = res?.data ?? res; if (alive) setConvos({ items: d.items || [], loaded: true, error: false }); })
+      .catch(() => { if (alive) setConvos({ items: [], loaded: true, error: true }); });
+    return () => { alive = false; };
+  }, [vendorId, tick]);
+  const convoTypes = [...new Map(convos.items.map((c) => [c.type, c.typeLabel])).entries()];
+  const visibleConvos = convoType === 'all' ? convos.items : convos.items.filter((c) => c.type === convoType);
 
   const dateBad = range.from && range.to && range.from > range.to;
   const d = data;
@@ -175,12 +190,44 @@ const VendorMonitoringPanel = ({ vendorId }) => {
                     </div>
                   </button>
                 ))}
-                {threads.total > threads.list.length && <p className="text-xs text-gray-500 pt-2">Showing the latest {threads.list.length} of {threads.total}. Open the Chat Hub for the full list.</p>}
+                {threads.total > threads.list.length && <p className="text-xs text-gray-500 pt-2">Showing the latest {threads.list.length} of {threads.total}. <Link to={`${ADMIN_BASE_ROUTE}/vendors/chats`} className="text-blue-600 hover:underline">Open the Chat Hub</Link> for the full list.</p>}
               </div>
             )}
           </div>
         </>
       )}
+      <div className="rounded-xl border border-gray-200 p-4" data-testid="mon-conversations">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <h3 className="font-bold text-gray-800 text-sm inline-flex items-center gap-2"><FiFileText /> RFQs, sourcing and enquiries</h3>
+          {convoTypes.length > 1 && (
+            <select value={convoType} onChange={(e) => setConvoType(e.target.value)} className="px-2 py-1.5 text-sm border border-gray-300 rounded-lg" aria-label="Filter conversation type">
+              <option value="all">All types ({convos.items.length})</option>
+              {convoTypes.map(([type, lbl]) => <option key={type} value={type}>{lbl} ({convos.items.filter((c) => c.type === type).length})</option>)}
+            </select>
+          )}
+        </div>
+        {!convos.loaded ? <p className="text-sm text-gray-500">Loading…</p>
+          : convos.error ? <p className="text-sm text-red-600">Could not load these conversations.</p>
+            : visibleConvos.length === 0 ? <p className="text-sm text-gray-500">No RFQs, sourcing requests or enquiries for this vendor.</p> : (
+              <div className="divide-y divide-gray-100">
+                {visibleConvos.map((c) => (
+                  <Link key={`${c.type}-${c.id}`} to={`${ADMIN_BASE_ROUTE}/${c.link}`} className="py-2.5 px-1 hover:bg-gray-50 rounded flex items-center justify-between gap-3" data-testid="mon-conversation">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-gray-800 truncate">
+                        <span className="text-[11px] font-bold uppercase text-gray-500 mr-2">{c.typeLabel}</span>
+                        {c.ref ? `${c.ref} · ` : ''}{c.title}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">{c.party ? `${c.party} · ` : ''}{c.messages} message{c.messages === 1 ? '' : 's'}{c.quoted ? ' · vendor has quoted' : ''}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{label(c.status)}</span>
+                      <p className="text-[11px] text-gray-400 mt-0.5">{when(c.updatedAt)}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+      </div>
       {open && <Transcript threadId={open} onClose={() => setOpen(null)} />}
     </div>
   );

@@ -393,6 +393,11 @@ export const requestB2BDocumentResubmission = async (id, reason, requestedDocs =
   return res.data;
 };
 
+export const sendB2BApplicationMessage = async (id, message) => {
+  const res = await api.post(`/admin/b2b-users/${id}/messages`, { message });
+  return res;
+};
+
 export const deleteB2BUser = async (id) => {
   const res = await api.delete(`/admin/b2b-users/${id}`);
   return res.data;

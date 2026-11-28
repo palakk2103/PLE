@@ -44,7 +44,10 @@ const MobileRegister = ({ isB2BRoute }) => {
       toast.success('Registration successful! A verification OTP has been sent to your email.');
       navigate('/verification', { state: { email: data.email } });
     } catch (error) {
-      toast.error(error.message || 'Registration failed. Please try again.');
+      // Server and network errors are already shown by the API interceptor.
+      if (!error.isAxiosError) {
+        toast.error(error.message || 'Registration failed. Please try again.');
+      }
     }
   };
 

@@ -32,8 +32,8 @@ const B2BProducts = () => {
     setLoading(true);
     try {
       const res = await api.get('/admin/products?b2bOnly=true');
-      if (res && res.data && res.data.data) {
-        const prods = res.data.data.products || [];
+      if (res?.data) {
+        const prods = res.data.products || [];
         const mapped = prods.map(p => ({
           id: p._id,
           name: p.name,

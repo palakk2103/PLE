@@ -206,7 +206,7 @@ const ravi = async () => (await M.User.findById(RAVI).lean()).b2bWalletBalance;
     const t3 = (o3.data?.walletTransactions || []).map((t) => `${t.type}:${t.amount}`);
     check('Detail cancelled order: wallet debit then refund credit both visible', o3.data?.order?.status === 'cancelled' && t3.includes('debit:1180') && t3.includes('credit:1180'), t3);
     const o4 = await api(TA, 'GET', `${A}/employees/${RAVI}/orders/${O4.orderId}`);
-    check('Detail card order: gateway order id visible, signature not', o4.data?.payment?.gateway?.razorpayOrderId === 'order_PH1' && !('razorpaySignature' in (o4.data?.payment?.gateway || {})), o4.data?.payment?.gateway);
+    check('Detail card order: gateway order id visible, signature not', o4.data?.payment?.gateway?.razorpayOrderId === O4.paymentDetails.razorpayOrderId && !('razorpaySignature' in (o4.data?.payment?.gateway || {})), o4.data?.payment?.gateway);
     const wrongEmp = await api(TA, 'GET', `${A}/employees/${MEERA}/orders/${O1.orderId}`);
     check("An order is not reachable via another employee's id", wrongEmp.status === 404, wrongEmp.status);
     const otherCo = await api(TA, 'GET', `${A}/employees/${BOB}/orders/${OB.orderId}`);

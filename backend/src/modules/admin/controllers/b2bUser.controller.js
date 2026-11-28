@@ -10,6 +10,7 @@ import RFQ from '../../../models/RFQ.model.js';
 import PurchaseOrder from '../../../models/PurchaseOrder.model.js';
 import { sendEmail } from '../../../services/email.service.js';
 import B2BRegistrationDraft from '../../../models/B2BRegistrationDraft.model.js';
+import { cleanApplicationMessage, escapeHtml } from '../../../services/b2bApplication.service.js';
 
 // Full bank account numbers are only visible to roles that handle finance; others see the last 4 digits.
 const FULL_BANK_ACCESS_ROLES = ['superadmin', 'account_team'];
@@ -181,6 +182,52 @@ export const getB2BCompanyOrders = asyncHandler(async (req, res) => {
     }, 'Company orders fetched.'));
 });
 
+const sendCompanyAccessEmail = async (company, status, reason) => {
+    const admin = await User.findOne({ companyId: company._id, role: 'b2bAdmin' }).select('email name').lean();
+    const html = status === 'Inactive'
+        ? `<p>Dear ${escapeHtml(admin?.name || company.companyName)},</p>
+           <p>The business account for <strong>${escapeHtml(company.companyName)}</strong> has been deactivated.</p>
+           ${reason ? `<p><strong>Reason:</strong> ${escapeHtml(reason)}</p>` : ''}
+           <p>To ask for reconsideration, sign in with your registered email and password and send us a message from the application status page.</p>`
+        : `<p>Dear ${escapeHtml(admin?.name || company.companyName)},</p>
+           <p>The business account for <strong>${escapeHtml(company.companyName)}</strong> is active again.</p>`;
+    try {
+        await sendEmail({
+            to: admin?.email || company.businessEmail,
+            subject: status === 'Inactive' ? 'Your business account has been deactivated' : 'Your business account is active again',
+            text: html.replace(/<[^>]+>/g, ''),
+            html,
+        });
+    } catch (err) {
+        console.warn(`B2B company access email failed: ${err.message}`);
+    }
+};
+
+// POST /api/admin/b2b-users/:id/messages
+export const postAdminApplicationMessage = asyncHandler(async (req, res) => {
+    if (!mongoose.isValidObjectId(req.params.id)) throw new ApiError(400, 'Invalid company id.');
+    const message = cleanApplicationMessage(req.body?.message);
+    const company = await B2BCompany.findByIdAndUpdate(
+        req.params.id,
+        { $push: { applicationMessages: { senderType: 'admin', senderName: 'PLE Admin Team', message } } },
+        { new: true }
+    );
+    if (!company) throw new ApiError(404, 'B2B Company not found.');
+
+    const admin = await User.findOne({ companyId: company._id, role: 'b2bAdmin' }).select('email').lean();
+    try {
+        await sendEmail({
+            to: admin?.email || company.businessEmail,
+            subject: 'New message about your business application',
+            text: `${message}\n\nSign in with your registered email and password to reply from the application status page.`,
+            html: `<p>${escapeHtml(message)}</p><p>Sign in with your registered email and password to reply from the application status page.</p>`,
+        });
+    } catch (err) {
+        console.warn(`B2B application message email failed: ${err.message}`);
+    }
+    res.status(201).json(new ApiResponse(201, company.applicationMessages, 'Message sent.'));
+});
+
 // PATCH /api/admin/b2b-users/:id/status
 export const updateB2BUserStatus = asyncHandler(async (req, res) => {
     const { status, reason } = req.body;
@@ -189,12 +236,14 @@ export const updateB2BUserStatus = asyncHandler(async (req, res) => {
     // Check if this is an active/inactive toggle
     if (['active', 'inactive', 'deactivated'].includes(normalized)) {
         const nextStatus = normalized === 'active' ? 'Active' : 'Inactive';
+        const note = String(reason || '').trim();
         const company = await B2BCompany.findByIdAndUpdate(
             req.params.id,
-            { status: nextStatus },
+            { status: nextStatus, deactivationReason: nextStatus === 'Inactive' ? note : '' },
             { new: true }
         );
         if (!company) throw new ApiError(404, 'B2B Company not found.');
+        await sendCompanyAccessEmail(company, nextStatus, note);
         return res.status(200).json(new ApiResponse(200, company, `Company status updated to ${nextStatus}.`));
     }
     
@@ -218,7 +267,7 @@ export const updateB2BUserStatus = asyncHandler(async (req, res) => {
 
     const company = await B2BCompany.findByIdAndUpdate(
         req.params.id, 
-        { verificationStatus: dbStatus }, 
+        { verificationStatus: dbStatus, rejectionReason: dbStatus === 'Rejected' ? String(reason || '').trim() : '' }, 
         { new: true }
     );
     
@@ -243,9 +292,9 @@ export const updateB2BUserStatus = asyncHandler(async (req, res) => {
             <h2>Account Update</h2>
             <p>Dear ${company.companyName},</p>
             <p>Unfortunately, your B2B account registration could not be approved at this time.</p>
-            ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ''}
+            ${reason ? `<p><strong>Reason:</strong> ${escapeHtml(reason)}</p>` : ''}
             <br/>
-            <p>If you believe this is a mistake, please contact support.</p>
+            <p>To ask for reconsideration, sign in with your registered email and password. The application status page shows your details and lets you message our team.</p>
         `;
     }
 

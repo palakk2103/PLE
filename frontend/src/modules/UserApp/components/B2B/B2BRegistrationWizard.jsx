@@ -6,6 +6,7 @@ import api from '../../../../shared/utils/api';
 import { useAuthStore } from '../../../../shared/store/authStore';
 import { useB2bStore } from '../../../../shared/store/b2bStore';
 import { useB2BAdminStore } from '../../../B2BAdmin/store/b2bAdminStore';
+import { saveApplicationToken } from '../../../../shared/utils/b2bApplication';
 
 // Pages of the wizard. `step` is the logical step (1-4 are persisted in drafts, 5 = frontend-only review).
 const PAGES = [
@@ -288,6 +289,7 @@ const B2BRegistrationWizard = () => {
     if (key === 'company') {
       if (!req(form.companyName)) e.companyName = 'Company name is required.';
       if (!req(form.businessType)) e.businessType = 'Business type is required.';
+      if (!req(form.companyRegistrationNumber)) e.companyRegistrationNumber = 'Company Registration Number is required.';
       if (!EMAIL_REGEX.test(form.businessEmail.trim())) e.businessEmail = 'Enter a valid company email.';
       if (!mobileOk(form.businessPhone)) e.businessPhone = 'Enter a valid 10-digit contact number.';
       if (!docs.companyRegistrationProof) e.companyRegistrationProof = 'Registration proof is required.';
@@ -550,6 +552,10 @@ const B2BRegistrationWizard = () => {
     }
     try { localStorage.removeItem(SESSION_KEY); } catch { /* ignore */ }
     toast.success('Company Registration Successful!');
+    const skipped = useB2BAdminStore.getState().lastRegistrationSkippedEmployees || [];
+    if (skipped.length) {
+      toast.error(`${skipped.length} employee(s) could not be added: ${skipped.map((e) => `${e.email} (${e.reason})`).join('; ')}. You can add them later from Employee Management.`, { duration: 10000 });
+    }
     try {
       const loginResult = await loginB2B({ businessEmail: form.adminEmail, password: form.password });
       if (loginResult?.success || loginResult === true) {
@@ -564,6 +570,13 @@ const B2BRegistrationWizard = () => {
         navigate('/home', { replace: true });
         return;
       }
+      // Normal case right after registering: the company is waiting for approval.
+      if (loginResult?.application) {
+        saveApplicationToken(loginResult.application.applicationToken);
+        navigate('/b2b/application-status', { replace: true });
+        return;
+      }
+      if (loginResult?.error) toast(loginResult.error, { icon: 'ℹ️', duration: 8000 });
     } catch (loginErr) {
       console.error('Auto login after B2B registration failed:', loginErr);
     }
@@ -672,8 +685,8 @@ const B2BRegistrationWizard = () => {
               <DocUpload id="companyRegistrationProof" label={typeCfg?.label || 'Company Registration Proof'} hint={typeCfg?.hint}
                 doc={docs.companyRegistrationProof} onChange={setDoc('companyRegistrationProof')} error={errors.companyRegistrationProof} />
             )}
-            <Field label="Company Registration Number" name="companyRegistrationNumber" error={errors.companyRegistrationNumber}>
-              <input name="companyRegistrationNumber" value={form.companyRegistrationNumber} onChange={onChange} className={inputCls()} placeholder="CIN / LLPIN / Registration No." />
+            <Field label="Company Registration Number" required name="companyRegistrationNumber" error={errors.companyRegistrationNumber}>
+              <input name="companyRegistrationNumber" value={form.companyRegistrationNumber} onChange={onChange} className={inputCls(errors.companyRegistrationNumber)} placeholder="CIN / LLPIN / Registration No." />
             </Field>
             <Field label="Company Email" required name="businessEmail" error={errors.businessEmail}>
               <input type="email" name="businessEmail" value={form.businessEmail} onChange={onChange} className={inputCls(errors.businessEmail)} placeholder="procurement@apexenterprises.in" />
@@ -1039,6 +1052,7 @@ const B2BRegistrationWizard = () => {
         <header className="relative z-20 border-b border-gray-200 dark:border-white/10 bg-white/80 dark:bg-[#09090b]/80 backdrop-blur">
           <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 min-w-0">
+              <Link to="/b2b/login" className="p-2 -ml-2 rounded-full text-gray-700 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-white/10 shrink-0" title="Back to login" aria-label="Back to login"><FiArrowLeft /></Link>
               <span className="w-9 h-9 rounded-lg bg-white p-1 shrink-0"><img src="/PLEwhite.png" alt="PLE" className="w-full h-full object-contain" /></span>
               <span className="text-lg font-extrabold tracking-tight text-gray-900 dark:text-white">PLE <span className="font-semibold text-gray-600 dark:text-zinc-300">eStore</span></span>
               <span className="hidden sm:block h-6 w-px bg-gray-300 dark:bg-white/15" />

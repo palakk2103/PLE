@@ -5,10 +5,12 @@ import B2BCompany from '../../../models/B2BCompany.model.js';
 import User from '../../../models/User.model.js';
 import Settings from '../../../models/Settings.model.js';
 import { generateTokens } from '../../../utils/generateToken.js';
+import { decodeRefreshTokenOrThrow, persistRefreshSession, rotateRefreshSession } from '../../../services/refreshToken.service.js';
 import { signPreAuthToken, send2FAOtp } from '../../../services/twoFactor.service.js';
 import crypto from 'crypto';
 import { sendEmail } from '../../../services/email.service.js';
 import { uploadLocalFileToCloudinaryAndCleanupWithType } from '../../../services/upload.service.js';
+import { signApplicationToken } from '../../../services/b2bApplication.service.js';
 import B2BRegistrationDraft from '../../../models/B2BRegistrationDraft.model.js';
 import {
     validateV2Registration, sanitizeDoc, normalizeMobile, matchesMagicBytes
@@ -159,18 +161,25 @@ export const registerB2BUser = asyncHandler(async (req, res) => {
     });
 
 
-    // 2. Create Admin
-    const b2bAdmin = await User.create({
-        companyId: b2bCompany._id,
-        name: companyName,
-        email: adminEmail,
-        phone: isV2 ? normalizeMobile(adminPhone) : adminPhone,
-        password,
-        role: 'b2bAdmin',
-        b2bRole: 'Admin',
-        isVerified: true,
-        isActive: true
-    });
+    // 2. Create Admin. If this fails the company must not stay behind, otherwise its business
+    // email is "already registered" forever and the applicant can never try again.
+    let b2bAdmin;
+    try {
+        b2bAdmin = await User.create({
+            companyId: b2bCompany._id,
+            name: String(adminName).trim() || companyName,
+            email: adminEmail,
+            phone: isV2 ? normalizeMobile(adminPhone) : adminPhone,
+            password,
+            role: 'b2bAdmin',
+            b2bRole: 'Admin',
+            isVerified: true,
+            isActive: true
+        });
+    } catch (err) {
+        await B2BCompany.deleteOne({ _id: b2bCompany._id }).catch(() => null);
+        throw err;
+    }
 
     if (draft) {
         await B2BRegistrationDraft.deleteOne({ _id: draft._id });
@@ -179,11 +188,11 @@ export const registerB2BUser = asyncHandler(async (req, res) => {
     // Send email to Admin
     try {
         let subject = 'B2B Registration Received - Pending Verification';
-        let statusMessage = "Your company <strong>${companyName}</strong> has been successfully registered and is currently pending verification.</p><p>We will review your application and notify you once it's approved.</p>";
+        let statusMessage = `Your company <strong>${companyName}</strong> has been successfully registered and is currently pending verification.</p><p>We will review your application and notify you once it's approved.</p>`;
         
         if (verificationStatus === 'Approved') {
             subject = 'B2B Registration Successful - Account Approved';
-            statusMessage = "Your company <strong>${companyName}</strong> has been successfully registered and your account is automatically approved.</p><p>You can now log in and start using our platform.</p>";
+            statusMessage = `Your company <strong>${companyName}</strong> has been successfully registered and your account is automatically approved.</p><p>You can now log in and start using our platform.</p>`;
         }
 
         await sendEmail({
@@ -201,18 +210,25 @@ export const registerB2BUser = asyncHandler(async (req, res) => {
         console.error('Failed to send admin registration email:', err);
     }
 
-    // 3. Create Employees (optional)
+    // 3. Create Employees (optional). Anyone who could not be added is reported back, not skipped silently.
+    const skippedEmployees = [];
     if (employees && Array.isArray(employees) && employees.length > 0) {
         for (const emp of employees) {
+            const empEmail = String(emp?.email || '').trim().toLowerCase();
+            if (!empEmail) continue;
             // Check if employee email already exists across the system
-            const existingEmp = await User.findOne({ email: emp.email.toLowerCase() });
-            if (!existingEmp) {
-                // We split name into firstName and lastName for Employee Schema
-                const nameParts = (emp.name || '').split(' ');
-                const firstName = nameParts[0] || 'Unknown';
-                const lastName = nameParts.slice(1).join(' ') || 'Unknown';
-                const empPassword = emp.password || 'Employee@123';
+            const existingEmp = await User.findOne({ email: empEmail });
+            if (existingEmp) {
+                skippedEmployees.push({ email: empEmail, reason: 'This email already has an account.' });
+                continue;
+            }
+            // We split name into firstName and lastName for Employee Schema
+            const nameParts = (emp.name || '').split(' ');
+            const firstName = nameParts[0] || 'Unknown';
+            const lastName = nameParts.slice(1).join(' ') || 'Unknown';
+            const empPassword = emp.password || 'Employee@123';
 
+            try {
                 await User.create({
                     companyId: b2bCompany._id,
                     name: emp.name || 'Unknown',
@@ -229,30 +245,33 @@ export const registerB2BUser = asyncHandler(async (req, res) => {
                     isVerified: true,
                     isActive: true
                 });
+            } catch (empErr) {
+                skippedEmployees.push({ email: empEmail, reason: empErr?.message || 'Could not be created.' });
+                continue;
+            }
 
-                // Send email to Employee
-                const loginUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/login`;
-                try {
-                    const emailHtml = `
-                        <h2>Welcome to the B2B Platform!</h2>
-                        <p>You have been added as an employee for <strong>${companyName}</strong>.</p>
-                        <p><strong>Your Login Credentials:</strong></p>
-                        <ul>
-                            <li>Email: ${emp.email}</li>
-                            <li>Password: ${empPassword}</li>
-                        </ul>
-                        <p>Please note: You will be able to login once your company's account is verified and approved. You can login at <a href="${loginUrl}">login here</a> and change your password as soon as possible.</p>
-                    `;
+            // Send email to Employee
+            const loginUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/login`;
+            try {
+                const emailHtml = `
+                    <h2>Welcome to the B2B Platform!</h2>
+                    <p>You have been added as an employee for <strong>${companyName}</strong>.</p>
+                    <p><strong>Your Login Credentials:</strong></p>
+                    <ul>
+                        <li>Email: ${emp.email}</li>
+                        <li>Password: ${empPassword}</li>
+                    </ul>
+                    <p>Please note: You will be able to login once your company's account is verified and approved. You can login at <a href="${loginUrl}">login here</a> and change your password as soon as possible.</p>
+                `;
 
-                    await sendEmail({
-                        to: emp.email,
-                        subject: 'Your B2B Employee Account Credentials',
-                        text: emailHtml.replace(/<[^>]+>/g, ''),
-                        html: emailHtml,
-                    });
-                } catch (err) {
-                    console.error('Failed to send employee credentials email:', err);
-                }
+                await sendEmail({
+                    to: emp.email,
+                    subject: 'Your B2B Employee Account Credentials',
+                    text: emailHtml.replace(/<[^>]+>/g, ''),
+                    html: emailHtml,
+                });
+            } catch (err) {
+                console.error('Failed to send employee credentials email:', err);
             }
         }
     }
@@ -264,7 +283,7 @@ export const registerB2BUser = asyncHandler(async (req, res) => {
         ? 'B2B Registration successful. Your account is approved.'
         : 'B2B Registration successful. Awaiting admin approval.';
 
-    res.status(201).json(new ApiResponse(201, { company: b2bCompany, admin: adminObj }, responseMessage));
+    res.status(201).json(new ApiResponse(201, { company: b2bCompany, admin: adminObj, skippedEmployees }, responseMessage));
 });
 
 // POST /api/b2b-user/auth/login
@@ -319,13 +338,34 @@ export const loginB2BUser = asyncHandler(async (req, res) => {
 
     const b2bCompany = b2bAdmin.companyId;
 
+    // The password has been checked, so the company's own admin may now see why access is blocked.
+    const blocked = (message) => {
+        const error = new ApiError(403, message);
+        if (!isEmployee) {
+            error.data = {
+                applicationStatus: b2bCompany.status === 'Inactive' ? 'Deactivated' : b2bCompany.verificationStatus,
+                applicationToken: signApplicationToken({ userId: b2bAdmin._id, companyId: b2bCompany._id }),
+            };
+        }
+        return error;
+    };
+
+    if (b2bCompany.status === 'Inactive') {
+        throw blocked('Your company account has been deactivated. See the application status for details.');
+    }
+
     if (b2bCompany.verificationStatus === 'Resubmission Required') {
         if (isEmployee) {
             throw new ApiError(403, 'Account login restricted. Company registration documents require re-upload by the Company Admin.');
         }
         // Allow b2bAdmin to log in so they can re-upload requested documents
     } else if (b2bCompany.verificationStatus !== 'Approved') {
-        throw new ApiError(403, `Account login denied. Company status is: ${b2bCompany.verificationStatus}.`);
+        const statusMessages = {
+            'Pending Verification': 'Your company registration is under review. You can sign in once our team approves it — we will email you.',
+            Rejected: 'Your company registration was not approved. Please contact support for details.',
+        };
+        throw blocked(statusMessages[b2bCompany.verificationStatus]
+            || `Sign-in is not available yet. Company status: ${b2bCompany.verificationStatus}.`);
     }
 
     const { accessToken, refreshToken } = generateTokens({ 
@@ -335,9 +375,8 @@ export const loginB2BUser = asyncHandler(async (req, res) => {
         companyId: b2bAdmin.companyId._id || b2bAdmin.companyId
     });
 
-    b2bAdmin.refreshTokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
-    b2bAdmin.refreshTokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
-    await b2bAdmin.save();
+    // Same session store as the other portals, so POST /b2b-user/auth/refresh can rotate it.
+    await persistRefreshSession(b2bAdmin, refreshToken);
 
     const adminObj = b2bAdmin.toObject();
     delete adminObj.password;
@@ -357,7 +396,33 @@ export const loginB2BUser = asyncHandler(async (req, res) => {
         maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.status(200).json(new ApiResponse(200, { b2bAdmin: adminObj, company: b2bCompany, accessToken }, 'Login successful.'));
+    res.status(200).json(new ApiResponse(200, { b2bAdmin: adminObj, company: b2bCompany, accessToken, refreshToken }, 'Login successful.'));
+});
+
+// POST /api/b2b-user/auth/refresh   { refreshToken }
+// B2B sessions had no refresh, so users were signed out whenever the short-lived access token expired.
+export const refreshB2BSession = asyncHandler(async (req, res) => {
+    const { refreshToken } = req.body || {};
+    const decoded = decodeRefreshTokenOrThrow(refreshToken);
+    const user = await User.findById(decoded.id)
+        .select('+refreshTokenHash +refreshTokenExpiresAt role email isActive companyId')
+        .populate('companyId', 'verificationStatus status');
+    if (!user || !['b2bAdmin', 'b2bEmployee'].includes(user.role)) throw new ApiError(401, 'Invalid refresh token.');
+    if (user.isActive === false) throw new ApiError(403, 'Account is deactivated. Contact support.');
+
+    // Same rule as login: only approved companies (the admin may also fix a resubmission request).
+    const status = user.companyId?.verificationStatus;
+    const allowed = user.companyId?.status !== 'Inactive'
+        && (status === 'Approved' || (status === 'Resubmission Required' && user.role === 'b2bAdmin'));
+    if (!allowed) throw new ApiError(403, 'Your company account is not active. Please sign in again.');
+
+    const tokens = await rotateRefreshSession(user, {
+        id: user._id,
+        role: user.role,
+        email: user.email,
+        companyId: user.companyId?._id || user.companyId,
+    }, refreshToken);
+    res.status(200).json(new ApiResponse(200, tokens, 'Session refreshed successfully.'));
 });
 
 // POST /api/b2b-user/auth/logout

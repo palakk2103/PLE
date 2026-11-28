@@ -63,8 +63,10 @@ const Cell = ({ cell, highlight }) => {
     return s.id ? <Link to={`/seller/${s.id}`} className="hover:underline" data-testid="compare-seller-link">{inner}</Link> : inner;
   }
   if (cell.text === null || cell.text === undefined || cell.text === '') return <span className="text-gray-300">—</span>;
+  // dark: variant needed: dark mode turns the text white but had no dark version of this pale
+  // highlight, so differing values were white-on-yellow (the "comparison text not visible" bug).
   return (
-    <div className={highlight ? 'bg-amber-50 -mx-1 px-1 rounded' : ''}>
+    <div className={highlight ? 'bg-amber-50 dark:bg-amber-500/20 -mx-1 px-1 rounded' : ''}>
       <span className={`${cell.tone ? toneCls[cell.tone] : 'text-gray-800'} break-words`}>{cell.text}</span>
       {cell.sub && <span className="block text-xs text-gray-500">{cell.sub}</span>}
       {cell.best && <span className="inline-block mt-0.5 text-[10px] font-bold text-green-700 bg-green-50 border border-green-200 rounded px-1.5 py-0.5" data-testid="compare-best">{cell.bestLabel}</span>}
@@ -171,6 +173,7 @@ const Compare = () => {
               ) : (
                 <>
                   {data && !data.sameCategory && <p className="mb-3 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2" data-testid="mixed-category">These products are in different categories, so some details won't match up.</p>}
+                  {rows.specs.length === 0 && <p className="mb-3 text-xs text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2" data-testid="no-specs">No detailed specifications have been added for these products yet, so only the general details are compared.</p>}
                   <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white">
                     <table className="w-full border-collapse" data-testid="compare-table">
                       <thead>

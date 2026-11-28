@@ -64,8 +64,17 @@ const ProductRequestForm = () => {
   };
 
   const handleFile = (file) => {
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please upload an image file");
+    // Same rules as the server, checked here so the user gets a clear message instead of
+    // an "Error 400" (iPhone HEIC photos were the common case).
+    const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    // iPhone HEIC/HEIF photos often arrive with an empty type, so check the file name too.
+    const isHeic = /\.hei[cf]$/i.test(file.name || "");
+    if (!allowed.includes(file.type) && !isHeic) {
+      toast.error("Please upload a JPG, PNG, WEBP, GIF or HEIC image.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Image is too large. Please choose one under 10 MB.");
       return;
     }
     setImage(file);
@@ -91,8 +100,11 @@ const ProductRequestForm = () => {
     }
   };
 
+  const [submitting, setSubmitting] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitting) return; // a double tap used to create duplicate requests
 
     if (!formData.name.trim()) {
       toast.error("Product name is required");
@@ -111,6 +123,7 @@ const ProductRequestForm = () => {
       return;
     }
 
+    setSubmitting(true);
     try {
       let uploadedImageUrl = null;
 
@@ -151,6 +164,8 @@ const ProductRequestForm = () => {
     } catch (error) {
       console.error(error);
       toast.error(error.response?.data?.message || "Failed to submit request.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -296,10 +311,11 @@ const ProductRequestForm = () => {
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-750 text-white font-extrabold rounded-xl text-sm shadow-md hover:shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
+            disabled={submitting}
+            className="w-full py-3.5 bg-[#7B0A0A] hover:bg-[#AE020B] text-white font-extrabold rounded-xl text-sm shadow-md hover:shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <FiFileText />
-            <span>Submit Request</span>
+            <span>{submitting ? "Submitting…" : "Submit Request"}</span>
           </button>
         </form>
       </div>

@@ -14,6 +14,7 @@ import {
 } from '../../../shared/utils/postLoginAction';
 import { isValidEmail } from '../../../shared/utils/helpers';
 import toast from 'react-hot-toast';
+import { saveApplicationToken } from '../../../shared/utils/b2bApplication';
 import MobileLayout from '../components/Layout/MobileLayout';
 import PageTransition from '../../../shared/components/PageTransition';
 import TwoFactorVerify from '../../../shared/components/TwoFactorVerify';
@@ -91,6 +92,12 @@ const MobileLogin = ({ isB2BRoute }) => {
     }
   };
 
+  const openApplicationStatus = (application) => {
+    toast.dismiss();
+    saveApplicationToken(application.applicationToken);
+    navigate('/b2b/application-status');
+  };
+
   const onSubmit = async (data) => {
     try {
       if (isBusinessMode) {
@@ -119,7 +126,15 @@ const MobileLogin = ({ isB2BRoute }) => {
           }
 
           navigate('/home', { replace: true });
+          return;
         }
+        // The B2B store returns failures instead of throwing, and the API client deliberately
+        // shows no toast for 401s, so the reason must be shown here or the user sees nothing.
+        if (result?.application) {
+          openApplicationStatus(result.application);
+          return;
+        }
+        toast.error(result?.error || 'Login failed. Please check your email and password.');
         return;
       }
 
@@ -204,6 +219,10 @@ const MobileLogin = ({ isB2BRoute }) => {
                 navigate('/home', { replace: true });
                 return;
               }
+            }
+            if (b2bResult?.application) {
+              openApplicationStatus(b2bResult.application);
+              return;
             }
           } catch (fallbackErr) {
             // ignore fallback error and let the original error show

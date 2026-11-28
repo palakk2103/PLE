@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import { getIO } from '../../../config/socket.js';
@@ -154,8 +155,29 @@ export const assignVendors = asyncHandler(async (req, res) => {
         throw new ApiError(404, 'RFQ not found.');
     }
 
-    rfq.assignedVendorIds = vendorIds;
-    rfq.status = 'Sent To Vendors';
+    if (['Completed', 'Purchase Order Generated', 'Rejected'].includes(rfq.status)) {
+        throw new ApiError(400, `Vendors cannot be assigned to an RFQ that is ${rfq.status}.`);
+    }
+
+    // Only real, approved vendors can be invited.
+    const requestedIds = [...new Set(vendorIds.map(String))];
+    if (requestedIds.some((vid) => !mongoose.isValidObjectId(vid))) {
+        throw new ApiError(400, 'One or more vendor IDs are invalid.');
+    }
+    const approved = await Vendor.find({ _id: { $in: requestedIds }, status: 'approved' }).select('_id').lean();
+    if (approved.length !== requestedIds.length) {
+        throw new ApiError(400, 'Only approved vendors can be invited. Please refresh the vendor list and try again.');
+    }
+
+    // Vendors who already sent a quote keep access, so their quote never becomes orphaned.
+    const quotedIds = (rfq.quotations || []).map((q) => String(q.vendorId));
+    const previouslyAssigned = (rfq.assignedVendorIds || []).map(String);
+    const newlyInvited = requestedIds.filter((vid) => !previouslyAssigned.includes(vid));
+    rfq.assignedVendorIds = [...new Set([...requestedIds, ...quotedIds])];
+    // Re-inviting more vendors after quotes arrived must not move the RFQ backwards.
+    if (!['Quotations Received', 'Vendor Evaluation', 'Vendor Negotiation', 'Vendor Selected', 'Awaiting B2B Approval'].includes(rfq.status)) {
+        rfq.status = 'Sent To Vendors';
+    }
     rfq.approvalHistory.push({
         status: 'Sent To Vendors',
         action: 'Assigned Vendors & Dispatched',
@@ -166,11 +188,15 @@ export const assignVendors = asyncHandler(async (req, res) => {
 
     await rfq.save();
 
-    const io = getIO();
-    io.to(`rfq_${rfq._id}`).emit('status_update', { rfqId: rfq._id, status: rfq.status });
+    // Live update is best-effort: the assignment is already saved, so a socket problem must not turn it into an error.
+    try {
+        getIO().to(`rfq_${rfq._id}`).emit('status_update', { rfqId: rfq._id, status: rfq.status });
+    } catch (socketErr) {
+        console.warn('RFQ status socket update failed:', socketErr.message);
+    }
 
-    // Notify vendors
-    for (const vendorId of vendorIds) {
+    // Notify only vendors who were not already invited
+    for (const vendorId of newlyInvited) {
         await createNotification({
             recipientId: vendorId,
             recipientType: 'vendor',

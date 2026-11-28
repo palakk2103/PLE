@@ -68,12 +68,12 @@ const ProductRequestDetail = () => {
 
   // User Quotation Actions
   const handleApproveQuotation = async () => {
-    if (!confirm("Are you sure you want to accept this quotation and generate an order?")) return;
+    if (!confirm("Approve this quotation? PLE will then finalise your order.")) return;
     setIsActionLoading(true);
     try {
       const response = await api.post(`/user/product-requests/${request.requestId || id}/approve-quotation`);
       if (response.success || response.statusCode === 200) {
-        toast.success("✅ Quotation approved! Your order has been placed.");
+        toast.success("✅ Quotation approved! PLE will finalise your order.");
         fetchRequestDetail();
       }
     } catch (err) {
@@ -318,7 +318,7 @@ const ProductRequestDetail = () => {
                 <div className="p-2 bg-blue-100 rounded-xl text-blue-600 text-lg shrink-0">🤝</div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-extrabold text-blue-800 text-sm">Vendor Locked & Preparing Quotation</h3>
+                    <h3 className="font-extrabold text-blue-800 text-sm">{request.status === "Vendor Accepted" ? "Vendor Locked & Preparing Quotation" : "Vendor assigned to your request"}</h3>
                     {request.vendorFulfillmentExpiresAt && (
                       <span className="text-xs font-bold text-blue-700 bg-blue-100 px-2.5 py-1 rounded-full flex items-center gap-1">
                         <FiClock className="shrink-0" />
@@ -328,7 +328,9 @@ const ProductRequestDetail = () => {
                   </div>
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-2">
                     <p className="text-xs text-blue-700">
-                      A verified vendor has accepted your request. They are finalizing pricing, inventory, and delivery terms to submit a quotation for your review.
+                      {request.status === "Vendor Accepted"
+                        ? "A verified vendor has accepted your request. They are finalizing pricing, inventory, and delivery terms to submit a quotation for your review."
+                        : "A verified vendor is handling your request. You can chat with them here."}
                     </p>
                     {request.chatThreadId && (
                       <button
@@ -578,6 +580,21 @@ const ProductRequestDetail = () => {
                   >
                     <FiX />
                     <span>Decline</span>
+                  </button>
+                </div>
+              )}
+
+              {/* While the vendor is revising, the buyer can still add to the request (the server accepts it) */}
+              {request.status === "Negotiation" && (
+                <div className="pt-3 border-t border-gray-100 flex flex-wrap items-center gap-2">
+                  <p className="text-xs text-gray-500 flex-1 min-w-[160px]">Your change request was sent. The vendor will send a revised quotation.</p>
+                  <button
+                    onClick={() => setShowChangesModal(true)}
+                    disabled={isActionLoading}
+                    className="py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-white font-extrabold rounded-2xl text-sm transition-all shadow-sm flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  >
+                    <FiRefreshCw />
+                    <span>Request More Changes</span>
                   </button>
                 </div>
               )}

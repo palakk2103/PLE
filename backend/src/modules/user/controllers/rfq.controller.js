@@ -47,7 +47,8 @@ export const uploadAttachment = asyncHandler(async (req, res) => {
             'rfq/attachments'
         );
         res.status(200).json(
-            new ApiResponse(200, { url: uploaded.url }, 'Attachment uploaded successfully.')
+            // Browsers cannot show HEIC, so hand back Cloudinary's JPG rendition of it.
+            new ApiResponse(200, { url: uploaded.url.replace(/(\/image\/upload\/.+)\.hei[cf]$/i, '$1.jpg') }, 'Attachment uploaded successfully.')
         );
     } catch (error) {
         await cleanupLocalFiles([req.file?.path]).catch(() => null);

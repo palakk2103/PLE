@@ -52,13 +52,13 @@ app.use(cors({
     origin: true,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'x-idempotency-key', 'x-api-key', 'x-shiprocket-token', 'x-shiprocket-signature']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'x-idempotency-key', 'x-application-token', 'x-api-key', 'x-shiprocket-token', 'x-shiprocket-signature']
 }));
 app.options('*', cors({
     origin: true,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'x-idempotency-key', 'x-api-key', 'x-shiprocket-token', 'x-shiprocket-signature']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'x-idempotency-key', 'x-application-token', 'x-api-key', 'x-shiprocket-token', 'x-shiprocket-signature']
 }));
 
 // ─── Webhook Raw Body Routes (Must be mounted before global express.json) ─────
@@ -80,12 +80,7 @@ app.get('/health', (req, res) => {
     res.status(200).json({
         success: true,
         message: 'Server is running',
-        timestamp: new Date().toISOString(),
-        envDiagnostics: {
-            hasRazorpayId: !!process.env.RAZORPAY_KEY_ID,
-            razorpayId: process.env.RAZORPAY_KEY_ID || 'missing',
-            hasRazorpaySecret: !!process.env.RAZORPAY_KEY_SECRET
-        }
+        timestamp: new Date().toISOString()
     });
 });
 

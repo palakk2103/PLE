@@ -521,20 +521,33 @@ const autoMigrateProducts = async () => {
   }
 };
 
+// Development conveniences must be switched on deliberately and never work in production.
+const isDevFlagOn = (name) =>
+  process.env.NODE_ENV !== 'production' && process.env[name] === 'true';
+
+// Demo accounts use passwords that are written in this file, so they are opt-in (SEED_DEMO_DATA=true).
+const runStartupTasks = async () => {
+  if (isDevFlagOn('SEED_DEMO_DATA')) {
+    await autoSeedAdmin();
+    await autoSeedDeliveryBoy();
+    await autoSeedVendor();
+    await autoSeedB2B();
+    await autoSeedChatThreads();
+  }
+  await autoMigrateCategories();
+  await autoMigrateProducts();
+};
+
 const connectDB = async () => {
   try {
     const conn = await mongoose.connect(process.env.MONGO_URI, {
       serverSelectionTimeoutMS: process.env.NODE_ENV === 'production' ? 30000 : 8000
     });
     console.log(`MongoDB Connected: ${conn.connection.host}`);
-    await autoSeedAdmin();
-    await autoSeedDeliveryBoy();
-    await autoSeedVendor();
-    await autoSeedB2B();
-    await autoSeedChatThreads();
-    await autoMigrateCategories();
-    await autoMigrateProducts();
+    await runStartupTasks();
   } catch (error) {
+    // Never swap in another database silently: stop unless the fallback was asked for.
+    if (!isDevFlagOn('ALLOW_DB_FALLBACK')) throw error;
     const publicIP = await getPublicIP();
     console.error(`
 ========================================================================
@@ -576,13 +589,7 @@ Whenever you're ready, whitelist your IP (${publicIP}) on MongoDB Atlas
 to switch back to your persistent remote cluster.
 ========================================================================
       `);
-      await autoSeedAdmin();
-      await autoSeedDeliveryBoy();
-      await autoSeedVendor();
-      await autoSeedB2B();
-      await autoSeedChatThreads();
-      await autoMigrateCategories();
-      await autoMigrateProducts();
+      await runStartupTasks();
     } catch (localError) {
       console.log('❌ Local MongoDB is not running. Attempting to spin up an in-memory MongoDB fallback server...');
       try {
@@ -605,13 +612,7 @@ Whenever you're ready, whitelist your IP (${publicIP}) on MongoDB Atlas
 to switch back to your persistent remote cluster.
 ========================================================================
         `);
-        await autoSeedAdmin();
-        await autoSeedDeliveryBoy();
-        await autoSeedVendor();
-        await autoSeedB2B();
-        await autoSeedChatThreads();
-        await autoMigrateCategories();
-        await autoMigrateProducts();
+        await runStartupTasks();
       } catch (fallbackError) {
         console.error('❌ Failed to start in-memory MongoDB server:', fallbackError.message);
         process.exit(1);

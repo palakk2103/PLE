@@ -67,12 +67,12 @@ Ensure the following variables are present and non-empty:
 NODE_ENV=production
 PORT=5000
 CLIENT_URL=https://peoplesleagueofelectronics.com
-MONGO_URI=mongodb+srv://palakpatel0342_db_user:U7wRhwijjNX4bboR@cluster0.h0adnwu.mongodb.net/?appName=Cluster0
-JWT_SECRET=your_access_secret_change_this_in_production
-JWT_REFRESH_SECRET=your_refresh_secret_change_this_in_production
-CLOUDINARY_CLOUD_NAME=aewq5rta
-CLOUDINARY_API_KEY=178432623393627
-CLOUDINARY_API_SECRET=TxgLZlmbV9DXCkiFcZlDgczasiU
+MONGO_URI=<set on the server only, never commit the value>
+JWT_SECRET=<set on the server only, never commit the value>
+JWT_REFRESH_SECRET=<set on the server only, never commit the value>
+CLOUDINARY_CLOUD_NAME=<set on the server only, never commit the value>
+CLOUDINARY_API_KEY=<set on the server only, never commit the value>
+CLOUDINARY_API_SECRET=<set on the server only, never commit the value>
 ```
 
 ---

@@ -588,6 +588,19 @@ const RFQDetail = () => {
                     </div>
 
                     {/* Tax & Extra Details */}
+                    {(rfq.quotations[0].attachments || []).length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {rfq.quotations[0].attachments.map((file, n) => {
+                          const url = typeof file === 'string' ? file : file?.url;
+                          return url ? (
+                            <a key={url} href={url} target="_blank" rel="noopener noreferrer" data-testid="quote-attachment" className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-700 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 hover:bg-gray-100">
+                              <FiDownload className="w-4 h-4" /> Quote document {n + 1}
+                            </a>
+                          ) : null;
+                        })}
+                      </div>
+                    )}
+
                     {(rfq.quotations[0].taxDetails || rfq.quotations[0].additionalNotes) && (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {rfq.quotations[0].taxDetails && (

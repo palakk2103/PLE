@@ -1,3 +1,4 @@
+import { isDevOtpAllowed } from '../../../utils/devOtp.js';
 import { applyLegacyUpdate, maskAccountNumber } from '../../../services/vendorBankAccounts.service.js';
 import { clearVendorDraft } from './registrationDraft.controller.js';
 import asyncHandler from '../../../utils/asyncHandler.js';
@@ -226,8 +227,8 @@ export const verifyOTP = asyncHandler(async (req, res) => {
     const vendor = await Vendor.findOne({ email }).select('+otp +otpExpiry');
     if (!vendor) throw new ApiError(404, 'Vendor not found.');
     
-    // Demo OTPs are a development convenience only — never accepted in production.
-    const isDemoOtp = process.env.NODE_ENV !== 'production' && (
+    // Demo OTPs are a development convenience only — see utils/devOtp.js.
+    const isDemoOtp = isDevOtpAllowed() && (
         /^(.)\1{5}$/.test(otp) || // e.g. "111111", "222222", etc.
         otp === '123456' ||
         (Number(otp) >= 1 && Number(otp) <= 10)

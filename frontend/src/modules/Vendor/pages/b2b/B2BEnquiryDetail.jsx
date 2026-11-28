@@ -216,6 +216,12 @@ const B2BEnquiryDetail = () => {
             <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line bg-gray-50 p-4 rounded-lg border border-gray-150">
               {enquiry.message || "No buyer message provided."}
             </p>
+            {enquiry.originalRfq?.attachment && (
+              <a href={enquiry.originalRfq.attachment} target="_blank" rel="noopener noreferrer" data-testid="rfq-attachment"
+                className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 hover:bg-amber-100">
+                <FiFileText /> View buyer's attachment
+              </a>
+            )}
           </div>
 
           {/* Requested Products Table */}
@@ -474,29 +480,27 @@ const B2BEnquiryDetail = () => {
               <hr className="border-gray-100" />
               <div>
                 <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">Email Address</p>
-                <a
-                  href={`mailto:${enquiry.buyer.email}`}
-                  className="font-medium text-amber-800 hover:underline flex items-center gap-1.5 mt-0.5 break-all"
-                >
-                  <FiMail className="text-gray-400 flex-shrink-0" />
-                  {enquiry.buyer.email}
-                </a>
+                {enquiry.buyer.email ? (
+                  <a href={`mailto:${enquiry.buyer.email}`} className="font-medium text-amber-800 hover:underline flex items-center gap-1.5 mt-0.5 break-all">
+                    <FiMail className="text-gray-400 flex-shrink-0" />
+                    {enquiry.buyer.email}
+                  </a>
+                ) : <p className="text-gray-500 mt-0.5">Not shared</p>}
               </div>
               <div>
                 <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">Phone Number</p>
-                <a
-                  href={`tel:${enquiry.buyer.phone}`}
-                  className="font-medium text-gray-800 hover:underline flex items-center gap-1.5 mt-0.5"
-                >
-                  <FiPhone className="text-gray-400" />
-                  {enquiry.buyer.phone}
-                </a>
+                {enquiry.buyer.phone ? (
+                  <a href={`tel:${enquiry.buyer.phone}`} className="font-medium text-gray-800 hover:underline flex items-center gap-1.5 mt-0.5">
+                    <FiPhone className="text-gray-400" />
+                    {enquiry.buyer.phone}
+                  </a>
+                ) : <p className="text-gray-500 mt-0.5">Not shared</p>}
               </div>
               <div>
                 <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">Shipping Destination</p>
                 <p className="text-gray-600 flex items-start gap-1.5 mt-0.5 leading-relaxed">
                   <FiMapPin className="text-gray-400 flex-shrink-0 mt-0.5" />
-                  {enquiry.buyer.address}
+                  {enquiry.buyer.address || "Not shared"}
                 </p>
               </div>
             </div>

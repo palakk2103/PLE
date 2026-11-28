@@ -1,3 +1,4 @@
+import { isDevOtpAllowed } from '../../../utils/devOtp.js';
 import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
@@ -70,7 +71,7 @@ export const verifyOTP = asyncHandler(async (req, res) => {
     if (!user) throw new ApiError(404, 'User not found.');
     
     // Developer bypass in development mode
-    const isDevBypass = process.env.NODE_ENV !== 'production' && otp === '123456';
+    const isDevBypass = isDevOtpAllowed() && otp === '123456';
     
     if (user.otp !== otp && !isDevBypass) throw new ApiError(400, 'Invalid OTP.');
     if (!isDevBypass && user.otpExpiry < Date.now()) throw new ApiError(400, 'OTP has expired. Please request a new one.');
@@ -190,7 +191,7 @@ export const login = asyncHandler(async (req, res) => {
 export const refresh = asyncHandler(async (req, res) => {
     const { refreshToken } = req.body;
     const decoded = decodeRefreshTokenOrThrow(refreshToken);
-    const user = await User.findById(decoded.id).select('+refreshTokenHash +refreshTokenExpiresAt isActive isVerified');
+    const user = await User.findById(decoded.id).select('+refreshTokenHash +refreshTokenExpiresAt isActive isVerified role email');
 
     if (!user) throw new ApiError(401, 'Invalid refresh token.');
     if (!user.isActive) throw new ApiError(403, 'Your account has been deactivated.');
@@ -198,7 +199,8 @@ export const refresh = asyncHandler(async (req, res) => {
 
     const tokens = await rotateRefreshSession(
         user,
-        { id: user._id, role: 'customer', email: user.email },
+        // Keep the account's real role (was hard-coded to 'customer').
+        { id: user._id, role: user.role || 'customer', email: user.email },
         refreshToken
     );
 

@@ -50,8 +50,9 @@ const MobileWishlist = lazy(() => import("../modules/UserApp/pages/Wishlist"));
 const MobileCart = lazy(() => import("../modules/UserApp/pages/Cart"));
 const MobileOffers = lazy(() => import("../modules/UserApp/pages/Offers"));
 const FestivalLandingPage = lazy(() => import("../modules/UserApp/pages/FestivalLandingPage"));
+const B2BApplicationStatus = lazy(() => import("../modules/UserApp/pages/B2BApplicationStatus"));
 const MobileDailyDeals = lazy(() => import("../modules/UserApp/pages/DailyDeals"));
-const MobileFlashSale = lazy(() => import("../modules/UserApp/pages/DailyDeals")); // Wait, DailyDeals or FlashSale? Let's check original imports: lazy(() => import("./modules/UserApp/pages/FlashSale"))
+const MobileFlashSale = lazy(() => import("../modules/UserApp/pages/FlashSale"));
 const MobileNewArrivals = lazy(() => import("../modules/UserApp/pages/NewArrivals"));
 const MobileCampaignSale = lazy(() => import("../modules/UserApp/pages/CampaignSale"));
 const MobileTrackOrder = lazy(() => import("../modules/UserApp/pages/TrackOrder"));
@@ -269,6 +270,7 @@ export default function PortalRoutes() {
           </RouteWrapper>
         }
       />
+      <Route path="/b2b/application-status" element={<RouteWrapper><B2BApplicationStatus /></RouteWrapper>} />
       <Route
         path="/b2b/login"
         element={
@@ -355,7 +357,7 @@ export default function PortalRoutes() {
         path="/flash-sale"
         element={
           <RouteWrapper>
-            <MobileDailyDeals />
+            <MobileFlashSale />
           </RouteWrapper>
         }
       />

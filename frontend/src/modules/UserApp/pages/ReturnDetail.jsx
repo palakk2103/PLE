@@ -226,11 +226,11 @@ const ReturnDetail = () => {
                       <span>Gateway Refund ID:</span>
                       <span className="font-mono font-bold text-emerald-900">{request.refundDetails.gatewayRefundId}</span>
                     </div>
-                    {(request.refundDetails?.gatewayRrn || '628115811411') && (
+                    {request.refundDetails?.gatewayRrn && (
                       <div className="flex justify-between items-center pt-1 border-t border-emerald-100">
                         <span className="font-semibold text-emerald-800">Bank Reference (RRN / UTR):</span>
                         <span className="font-mono font-extrabold text-emerald-950 bg-emerald-100/80 px-2 py-0.5 rounded text-[11px]">
-                          {request.refundDetails?.gatewayRrn || '628115811411'}
+                          {request.refundDetails.gatewayRrn}
                         </span>
                       </div>
                     )}
@@ -248,7 +248,12 @@ const ReturnDetail = () => {
                     <span className="font-bold block mb-1 text-amber-800">
                       ℹ️ Bank Account Credit Status:
                     </span>
-                    Razorpay gateway has released your refund to your UPI ID (<span className="font-mono font-semibold">8770620342@nyes</span>). Standard UPI/Bank settlements take <strong>2 to 4 hours</strong> (or 1-2 banking days) to reflect in your bank account passbook. If not reflected, you can share Bank RRN <strong>{request.refundDetails?.gatewayRrn || '628115811411'}</strong> with your bank.
+                    {request.refundDestination === 'Wallet'
+                      ? 'Your refund has been credited to your PLE Wallet.'
+                      : 'Your refund has been sent to your original payment method. It can take a few banking days to appear in your account.'}
+                    {request.refundDetails?.gatewayRrn && (
+                      <> If it does not, share Bank RRN <strong>{request.refundDetails.gatewayRrn}</strong> with your bank.</>
+                    )}
                   </div>
                 )}
               </div>

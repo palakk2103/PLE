@@ -20,7 +20,7 @@ export const placeOrderSchema = Joi.object({
         zipCode: Joi.string().required(),
         country: Joi.string().required(),
     }).required(),
-    paymentMethod: Joi.string().valid('card', 'cash', 'cod', 'bank', 'upi', 'wallet', 'mixed').required(),
+    paymentMethod: Joi.string().valid('card', 'cash', 'cod', 'wallet', 'mixed').required(),
     couponCode: Joi.string().optional().allow(''),
     shippingOption: Joi.string().valid('standard', 'express', 'bulk').default('standard'),
     loyaltyPointsToRedeem: Joi.number().integer().min(0).optional(),

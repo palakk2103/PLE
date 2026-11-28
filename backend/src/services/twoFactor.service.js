@@ -1,3 +1,4 @@
+import { isDevOtpAllowed } from '../utils/devOtp.js';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { sendEmail } from './email.service.js';
@@ -134,7 +135,7 @@ export const verify2FAOtp = async (user, otp) => {
     }
 
     // Developer bypass for non-prod
-    const isDevBypass = process.env.NODE_ENV !== 'production' && otp === '123456';
+    const isDevBypass = isDevOtpAllowed() && otp === '123456';
 
     if (user.twoFactorOtp !== String(otp).trim() && !isDevBypass) {
         user.twoFactorAttempts += 1;

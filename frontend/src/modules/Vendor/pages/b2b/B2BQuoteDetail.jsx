@@ -338,7 +338,7 @@ const B2BQuoteDetail = () => {
               </div>
               <div>
                 <p className="text-xs text-gray-400 font-semibold">Shipping Destination</p>
-                <p className="text-xs text-gray-650 mt-0.5 leading-relaxed">{enquiry.buyer.address}</p>
+                <p className="text-xs text-gray-650 mt-0.5 leading-relaxed">{enquiry.buyer.address || "Not shared"}</p>
               </div>
             </div>
           </div>

@@ -105,6 +105,19 @@ export const uploadDocumentSingle = (fieldName) =>
         limits: { fileSize: MAX_DOCUMENT_FILE_SIZE },
     }).single(fieldName);
 
+// Same as uploadDocumentSingle, plus iPhone HEIC/HEIF photos. Only for routes that convert them
+// for display (Cloudinary does this when the delivery URL ends in .jpg).
+export const uploadDocumentOrPhotoSingle = (fieldName) =>
+    multer({
+        storage: imageDiskStorage,
+        fileFilter: (req, file, cb) => {
+            const ext = path.extname(file.originalname || '').slice(1).toLowerCase();
+            if (isAllowedDocument(file) || ['heic', 'heif'].includes(ext)) return cb(null, true);
+            cb(new ApiError(400, 'Invalid file type. Only documents and common images (including HEIC) are allowed.'), false);
+        },
+        limits: { fileSize: MAX_DOCUMENT_FILE_SIZE },
+    }).single(fieldName);
+
 // Multiple named document uploads (used for delivery registration docs)
 export const uploadDeliveryDocuments = (fields) =>
     multer({

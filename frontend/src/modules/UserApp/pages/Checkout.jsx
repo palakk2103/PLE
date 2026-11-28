@@ -747,6 +747,11 @@ const MobileCheckout = () => {
       setIsPlacingOrder(true);
       try {
         const walletAmountToUse = useWallet ? Math.min(effectiveWalletUsable, finalTotal) : 0;
+        if (walletAmountToUse > 0 && walletAmountToUse < finalTotal && formData.paymentMethod === 'cash') {
+          toast.error('Wallet balance cannot be combined with Cash on Delivery. Choose online payment for the rest, or turn off the wallet.');
+          setIsPlacingOrder(false);
+          return;
+        }
         const finalPaymentMethod = walletAmountToUse >= finalTotal ? 'wallet' : (useWallet ? 'mixed' : formData.paymentMethod);
 
         const order = await createOrder({

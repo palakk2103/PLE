@@ -4,6 +4,7 @@ import Vendor from '../models/Vendor.model.js';
 import ManagedVendorUser from '../models/ManagedVendorUser.model.js';
 import DeliveryBoy from '../models/DeliveryBoy.model.js';
 import Admin from '../models/Admin.model.js';
+import B2BCompany from '../models/B2BCompany.model.js';
 
 /**
  * Role-based authorization middleware
@@ -40,12 +41,15 @@ export const enforceAccountStatus = async (req, res, next) => {
         const role = String(req.user.role).toLowerCase();
 
         if (role === 'customer' || role === 'b2badmin' || role === 'b2bemployee') {
-            const user = await User.findById(req.user.id).select('isActive isVerified isDeleted deletionStatus').lean();
+            const user = await User.findById(req.user.id).select('isActive isVerified isDeleted deletionStatus companyId').lean();
             if (!user) return next(new ApiError(401, 'Account not found.'));
             if (user.isDeleted || user.deletionStatus === 'APPROVED') {
                 return next(new ApiError(403, 'Your account deletion request has been approved. This account is permanently closed.'));
             }
             if (!user.isActive) return next(new ApiError(403, 'Account is deactivated. Contact support.'));
+            if (role !== 'customer' && user.companyId && await B2BCompany.exists({ _id: user.companyId, status: 'Inactive' })) {
+                return next(new ApiError(403, 'Account is deactivated. Contact support. Your company account has been deactivated.'));
+            }
             if (role === 'customer' && !user.isVerified) return next(new ApiError(403, 'Please verify your email first.'));
             return next();
         }

@@ -4,6 +4,17 @@ import toast from "react-hot-toast";
 import { useAuthStore } from "./authStore";
 import { setPostLoginAction, setPostLoginRedirect } from "../utils/postLoginAction";
 import { getVariantSignature } from "../utils/variant";
+import { resolveB2BUnitPrice } from "../utils/b2bPricing";
+import { getProductById } from "../../modules/UserApp/data/catalogData";
+
+// Business-buyer lines remember their normal unit price (b2bBasePrice). Bulk slab prices depend on the
+// quantity, so the unit price is worked out again whenever the quantity changes - the same rule the
+// server uses at checkout. Other lines keep their price.
+const repriceForQuantity = (line, quantity) => {
+  if (line?.b2bBasePrice === undefined || line?.b2bBasePrice === null) return line?.price;
+  const product = getProductById(line.id);
+  return product ? resolveB2BUnitPrice(product, line.b2bBasePrice, quantity) : line.price;
+};
 
 const getCartLineKey = (id, variant = {}) =>
   `${String(id)}::${getVariantSignature(variant)}`;
@@ -97,14 +108,13 @@ export const useCartStore = create(
               items: state.items.map((i) =>
                 String(i.id) === String(item.id)
                 && String(i.cartLineKey || getCartLineKey(i.id, i.variant)) === lineKey
-                  ? {
-                    ...i,
-                    ...itemWithVendor,
-                    quantity:
-                      Number.isFinite(availableStock)
-                        ? Math.min(newQuantity, availableStock)
-                        : newQuantity,
-                  }
+                  ? (() => {
+                    const mergedQty = Number.isFinite(availableStock)
+                      ? Math.min(newQuantity, availableStock)
+                      : newQuantity;
+                    const merged = { ...i, ...itemWithVendor, quantity: mergedQty };
+                    return { ...merged, price: repriceForQuantity(merged, mergedQty) };
+                  })()
                   : i
               ),
               ownerUserId: currentUserId,
@@ -166,10 +176,10 @@ export const useCartStore = create(
           items: state.items.map((item) =>
             (() => {
               if (String(item.id) !== String(id)) return item;
-              if (!variant) return { ...item, quantity };
+              if (!variant) return { ...item, quantity, price: repriceForQuantity(item, quantity) };
               const candidate = String(item.cartLineKey || getCartLineKey(item.id, item.variant));
               return candidate === getCartLineKey(id, variant)
-                ? { ...item, quantity }
+                ? { ...item, quantity, price: repriceForQuantity(item, quantity) }
                 : item;
             })()
           ),

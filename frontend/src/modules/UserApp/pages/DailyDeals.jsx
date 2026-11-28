@@ -69,11 +69,6 @@ const MobileDailyDeals = () => {
             .filter(Boolean)
           : [];
 
-        if (!slugs.length) {
-          if (!cancelled) setAllDeals([]);
-          return;
-        }
-
         const details = await Promise.allSettled(
           [...new Set(slugs)].map((slug) => api.get(`/campaigns/${slug}`))
         );
@@ -91,7 +86,20 @@ const MobileDailyDeals = () => {
             });
           });
 
-        if (!cancelled) setAllDeals(Array.from(map.values()));
+        let deals = Array.from(map.values());
+        if (!deals.length) {
+          // No running daily-deal campaign: show the same deals as the home page section
+          // (flash-sale products first, then other discounted products).
+          const response = await api.get("/products", { params: { page: 1, limit: 200, sort: "newest" } });
+          const payload = response?.data ?? response;
+          const products = (Array.isArray(payload?.products) ? payload.products : []).map(normalizeProduct);
+          deals = [
+            ...products.filter((p) => p.flashSale),
+            ...products.filter((p) => !p.flashSale && Number(p.originalPrice || 0) > p.price),
+          ];
+        }
+
+        if (!cancelled) setAllDeals(deals);
       } catch {
         if (!cancelled) setAllDeals([]);
       }
